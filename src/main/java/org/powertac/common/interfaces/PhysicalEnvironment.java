@@ -30,9 +30,14 @@ import java.util.List;
 public interface PhysicalEnvironment {
   /**
    * Generates and returns weather forecasts for every enabled timeslot
-   * The physical environment module is responsible for computing weather forecasts for each entry in {@code targetTimeslots} from the perspective of the {@code currentTimeslot}.
+   * The physical environment module is responsible for computing weather
+   * forecasts for each entry in {@code targetTimeslots} from the perspective
+   * of the {@code currentTimeslot}.
    *
-   * Note: For the specific resulting {@link Weather} instance for which {@code weatherInstance.targetTimeslot == weatherInstance.currentTimeslot} (i.e. the "now" timeslot) {@code forecast} attribute must be set to false as this is the real (i.e. metered) weather data and not a forecast anymore
+   * Note: For the specific resulting {@link WeatherReport} instance for which
+   * {@code weatherInstance.targetTimeslot == weatherInstance.currentTimeslot}
+   * (i.e. the "now" timeslot) {@code forecast} attribute must be set to false
+   * as this is the real (i.e. metered) weather data and not a forecast anymore.
    *
    * @param currentTimeslot the current timeslot
    * @param targetTimeslots timeslots to generate weather forecasts for
