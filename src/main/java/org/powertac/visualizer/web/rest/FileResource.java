@@ -185,7 +185,7 @@ public class FileResource {
      * TODO document.
      * 
      * @param type
-     * @param name
+     * @param id
      * @param response
      * @throws IOException
      */

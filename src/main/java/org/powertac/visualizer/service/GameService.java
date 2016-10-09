@@ -66,9 +66,11 @@ public class GameService {
     }
 
     /**
-     *  Get one game by name and type.
+     *  Get one game by login, name and type.
      *
-     *  @param id the id of the entity
+     *  @param login
+     *  @param name
+     *  @param type
      *  @return the entity
      */
     @Transactional(readOnly = true) 
