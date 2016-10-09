@@ -135,7 +135,7 @@ public class BootstrapDataRepo implements DomainRepo
     classMap.clear();
   }  
 
-  void readBootRecord (URL bootUrl)
+  public void readBootRecord (URL bootUrl)
   {
     Document document = getDocument(bootUrl);
     XPathFactory factory = XPathFactory.newInstance();
