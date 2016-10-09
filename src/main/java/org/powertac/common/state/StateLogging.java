@@ -64,7 +64,7 @@ public class StateLogging
   @Pointcut ("execution (Object XStreamStateLoggable.readResolve())")
   public void readResolveMethod() {}
 
-  @Pointcut("execution (@ChainedConstructor *.new (..))")
+  @Pointcut ("execution (@ChainedConstructor *.new (..))")
   public void chainedConstructor() {}
 
   @Pointcut ("(domainConstructor() && !chainedConstructor()) || readResolveMethod()")
@@ -84,15 +84,17 @@ public class StateLogging
   public void newstate (JoinPoint jp)
   {
     Object thing = jp.getTarget();
+    Class<?> clazz = thing.getClass();
     Object[] args = jp.getArgs();
     Signature sig = jp.getSignature();
     Long id = findId(thing);
     if ("readResolve".equals(sig.getName())) {
       args = collectProperties(thing);
-      writeLog(thing.getClass().getName(), id, "-rr", args);
+      writeLog(clazz.getName(), id, "-rr", args);
     }
-    else {
-      writeLog(thing.getClass().getName(), id, "new", args);
+    else if (clazz.isAnnotationPresent(Domain.class)) {
+      // Runtime check annotation to prevent logging subclasses of @Domain
+      writeLog(clazz.getName(), id, "new", args);
     }
   }
   
