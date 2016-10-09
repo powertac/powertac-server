@@ -15,33 +15,24 @@
  */
 package org.powertac.logtool;
 
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 /**
  * This is the top level of the top-down version of the
  * Power TAC logtool analyzer. To use it, give a filename and the
  * classnames of a set of Analyzers.
  * @author John Collins
  */
-public class Logtool
+public class Logtool extends LogtoolContext
 {
   /**
    * Sets up the logtool, delegates everything to a LogtoolCore instance.
    */
   public static void main (String[] args)
   {
-    AbstractApplicationContext context =
-            new ClassPathXmlApplicationContext("logtool.xml");
-    context.registerShutdownHook();
-    
-    // find the LogtoolCore bean
-    LogtoolCore lc =
-            (LogtoolCore)context.getBeansOfType(LogtoolCore.class).values().toArray()[0];
+    Logtool lt = new Logtool();
+    LogtoolCore lc = lt.getCore();
     lc.processCmdLine(args);
-    
+
     // if we get here, it's time to exit
-    context.close();
     System.exit(0);
   }
 }

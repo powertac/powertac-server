@@ -18,7 +18,7 @@ package org.powertac.logtool;
 import org.powertac.logtool.common.DomainObjectReader;
 import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.ifc.Analyzer;
-import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -31,20 +31,41 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public abstract class LogtoolContext
 {
-  AbstractApplicationContext context;
-  
+
+  ApplicationContext context;
+  LogtoolCore core;
+
+  /** Set up the Spring context */
+  protected void initialize() {
+    ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("logtool.xml");
+    ctx.registerShutdownHook();
+    setContext(ctx);
+  }
+
+  protected void setContext(ApplicationContext context) {
+    this.context = context;
+    // find the LogtoolCore bean
+    this.core = (LogtoolCore)context.getBeansOfType(LogtoolCore.class).values().toArray()[0];
+  }
+
   /**
-   * Sets up Spring context, returns LogtoolCore instance
+   * Return the ApplicationContext
+   */
+  protected ApplicationContext getContext () {
+    return context;
+  }
+
+  /**
+   * Returns LogtoolCore instance
    */
   protected LogtoolCore getCore ()
   {
-    context = new ClassPathXmlApplicationContext("logtool.xml");
-    context.registerShutdownHook();
-    
-    // find the LogtoolCore bean
-    return (LogtoolCore)context.getBeansOfType(LogtoolCore.class).values().toArray()[0];
+    if (context == null) {
+      initialize();
+    }
+    return core;
   }
-  
+
   /**
    * Retrieves a Spring component instance by name
    */
@@ -68,7 +89,7 @@ public abstract class LogtoolContext
   protected void registerNewObjectListener (NewObjectListener listener,
                                             Class<?> type)
   {
-    DomainObjectReader dor = (DomainObjectReader) getBean("reader");
+    DomainObjectReader dor = (DomainObjectReader) getBean("domainObjectReader");
     dor.registerNewObjectListener(listener, type);
   }
 }
