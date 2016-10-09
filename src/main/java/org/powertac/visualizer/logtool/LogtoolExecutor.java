@@ -23,6 +23,7 @@ public class LogtoolExecutor extends LogtoolContext implements Analyzer {
      */
     public LogtoolExecutor() {
         super();
+        setContext(SpringApplicationContext.getContext());
     }
 
     public void readLog(String logName, NewObjectListener listener) {
@@ -40,7 +41,7 @@ public class LogtoolExecutor extends LogtoolContext implements Analyzer {
      */
     @Override
     public void setup() {
-        DomainObjectReader dor = (DomainObjectReader) SpringApplicationContext.getBean("reader");
+        DomainObjectReader dor = (DomainObjectReader) getContext().getBean("domainObjectReader");
         dor.registerNewObjectListener(new ObjectHandler(), null);
     }
 

@@ -164,6 +164,7 @@ public class TournamentService implements MessageListener {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @PreDestroy
     private void cleanUp() throws Exception {
         // TODO Maybe Spring is better at handling these?

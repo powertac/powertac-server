@@ -2,16 +2,13 @@ package org.powertac.visualizer.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 
-import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.domain.PersistentToken;
-import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.repository.PersistentTokenRepository;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.UserService;
 import org.powertac.visualizer.service.dto.UserDTO;
 import org.powertac.visualizer.web.rest.vm.ManagedUserVM;
-import org.powertac.visualizer.web.rest.util.HeaderUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,7 +64,7 @@ public class AccountResource {
         return userRepository.findOneByLogin(managedUserVM.getLogin().toLowerCase())
             .map(user -> new ResponseEntity<>("login already in use", textPlainHeaders, HttpStatus.BAD_REQUEST))
             .orElseGet(() -> {
-                User user = userService.createUser(managedUserVM.getLogin(), managedUserVM.getPassword(),
+                userService.createUser(managedUserVM.getLogin(), managedUserVM.getPassword(),
                 managedUserVM.getFirstName(), managedUserVM.getLastName(), managedUserVM.getLangKey());
                 return new ResponseEntity<>(HttpStatus.OK);
             });

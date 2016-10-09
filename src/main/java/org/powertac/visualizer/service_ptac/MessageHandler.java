@@ -74,7 +74,6 @@ public class MessageHandler {
     // TODO Should be in VisualizerService?
     // Or in current competition?
     private int currentTimeslot = 0;
-    private int timeslotCompleted = 0;
     private Instant currentInstant;
 
     public void initialize() {
@@ -177,7 +176,6 @@ public class MessageHandler {
      */
     public synchronized void handleMessage(TimeslotComplete tc) {
         if (tc.getTimeslotIndex() == currentTimeslot) {
-            timeslotCompleted = currentTimeslot;
             notifyAll();
         }
 

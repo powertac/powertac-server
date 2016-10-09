@@ -1,7 +1,6 @@
 package org.powertac.visualizer.web.rest;
 
 import org.powertac.visualizer.Visualizer2App;
-import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.UserService;
 import org.junit.Before;
@@ -16,8 +15,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import javax.inject.Inject;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 

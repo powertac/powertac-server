@@ -9,8 +9,6 @@ import org.powertac.visualizer.service_ptac.VisualizerService;
 import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
 import org.powertac.visualizer.web.dto.InitMessage;
 import org.powertac.visualizer.web.dto.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
@@ -21,8 +19,6 @@ import org.springframework.stereotype.Controller;
  */
 @Controller
 public class Pusher {
-
-    private static Logger log = LoggerFactory.getLogger(Pusher.class);
 
     private static final String TOPIC_MESSAGE = "/topic/push";
 

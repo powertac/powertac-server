@@ -14,8 +14,6 @@ import org.powertac.visualizer.logtool.LogtoolExecutor;
 import org.powertac.visualizer.service.FileService;
 import org.powertac.visualizer.service.GameService;
 import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -28,8 +26,6 @@ import javax.inject.Inject;
  */
 @Service
 public class EmbeddedService {
-
-    private final Logger log = LoggerFactory.getLogger(EmbeddedService.class);
 
     @Inject
     private FileService fileService;
