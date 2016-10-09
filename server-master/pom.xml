@@ -23,6 +23,16 @@
   </parent>
 
 
+  <!-- Sonatype OSS repo for resolving snapshot dependencies -->
+
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
+
   <!-- Common dependencies across all server modules -->
 
   <dependencies>
