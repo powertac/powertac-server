@@ -54,6 +54,12 @@
 
     <dependency>
       <groupId>org.powertac</groupId>
+      <artifactId>factored-customer</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
       <version>${powertac.version}</version>
     </dependency>
