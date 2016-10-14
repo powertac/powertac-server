@@ -17,8 +17,8 @@
 package org.powertac.factoredcustomer;
 
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
+//import org.powertac.common.state.Domain;
+//import org.powertac.common.state.StateChange;
 
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 public class ProfileRecommendation
 {
   private static final int SCORE_SCALING_FACTOR = 10000;
@@ -58,7 +58,7 @@ public class ProfileRecommendation
     opinions = map;
   }
 
-  @StateChange
+  //@StateChange
   public void setOpinion (CapacityProfile profile, Opinion opinion)
   {
     opinions.put(profile, opinion);
@@ -69,7 +69,7 @@ public class ProfileRecommendation
     return opinions;
   }
 
-  @StateChange
+  //@StateChange
   public void setScore (CapacityProfile profile, Double score)
   {
     scores.put(profile, score);
@@ -95,7 +95,7 @@ public class ProfileRecommendation
     return opinions.size() == 0;
   }
 
-  @StateChange
+  //@StateChange
   public void normalizeOpinions ()
   {
     double sumUsageCharge = 0.0;
@@ -126,7 +126,7 @@ public class ProfileRecommendation
         weights.get(ScoringFactor.BUNDLE_VALUE));
   }
 
-  @StateChange
+  //@StateChange
   public void computeScores (double profileChangeWeight,
                              double bundleValueWeight)
   {
@@ -142,7 +142,7 @@ public class ProfileRecommendation
     }
   }
 
-  @StateChange
+  //@StateChange
   public void computeUtilities ()
   {
     if (scores.size() == 1) {
@@ -170,7 +170,7 @@ public class ProfileRecommendation
     }
   }
 
-  @StateChange
+  //@StateChange
   public void computeProbabilities (double rationality)
   {
     // multinomical logit choice model; utilities expected to be in [-3.0, +3.0]

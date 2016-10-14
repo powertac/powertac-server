@@ -16,7 +16,7 @@
 
 package org.powertac.factoredcustomer;
 
-import org.powertac.common.state.Domain;
+//import org.powertac.common.state.Domain;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 public final class CapacityProfile
 {
   enum PermutationRule

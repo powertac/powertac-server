@@ -1,5 +1,5 @@
 /*
-* Copyright 2011 the original author or authors.
+* Copyright 2011, 2016 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.state.Domain;
+//import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
@@ -40,7 +40,7 @@ import java.util.Map;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 class DefaultFactoredCustomer implements FactoredCustomer
 {
   private static Logger log = LogManager.getLogger(DefaultFactoredCustomer.class);

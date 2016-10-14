@@ -33,8 +33,8 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
+//import org.powertac.common.state.Domain;
+//import org.powertac.common.state.StateChange;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 import org.powertac.factoredcustomer.interfaces.CapacityOriginator;
 import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
@@ -50,7 +50,7 @@ import java.util.List;
  *
  * @author Prashant Reddy, John Collins
  */
-@Domain
+//@Domain
 class DefaultUtilityOptimizer implements UtilityOptimizer
 {
   private static Logger log =
@@ -141,7 +141,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   // /////////////// TARIFF SUBSCRIPTION //////////////////////
 
-  @StateChange
+  //@StateChange
   private void subscribe (Tariff tariff, CapacityBundle bundle,
                           int customerCount, boolean verbose)
   {

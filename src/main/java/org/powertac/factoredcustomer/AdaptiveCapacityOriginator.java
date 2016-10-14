@@ -1,5 +1,5 @@
 /*
-* Copyright 2011 the original author or authors.
+* Copyright 2011, 2016 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.state.Domain;
+//import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.ProfileOptimizerStructure.ProfileSelectionMethod;
 import org.powertac.factoredcustomer.ProfileRecommendation.Opinion;
 import org.powertac.factoredcustomer.ProfileRecommendation.ScoringFactor;
@@ -45,7 +45,7 @@ import java.util.Random;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     implements ProfileRecommendation.Listener
 {

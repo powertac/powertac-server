@@ -1,5 +1,5 @@
 /*
-* Copyright 2011-2013 the original author or authors.
+* Copyright 2011-2016 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.powertac.factoredcustomer;
 
-import org.powertac.common.state.Domain;
+//import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
 
@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 class LearningFactoredCustomer extends DefaultFactoredCustomer
 {
   public LearningFactoredCustomer (CustomerStructure customerStructure)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011, 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.powertac.factoredcustomer;
 
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
+//import org.powertac.common.state.Domain;
+//import org.powertac.common.state.StateChange;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
 
 import java.util.HashMap;
@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 final class CustomerFactory
 {
   public interface CustomerCreator
@@ -43,19 +43,19 @@ final class CustomerFactory
   private CustomerCreator defaultCreator;
   private Map<String, CustomerCreator> customerCreators = new HashMap<>();
 
-  @StateChange
+  //@StateChange
   void registerDefaultCreator (CustomerCreator creator)
   {
     defaultCreator = creator;
   }
 
-  @StateChange
+  //@StateChange
   void registerCreator (CustomerCreator creator)
   {
     registerCreator(creator.getKey(), creator);
   }
 
-  @StateChange
+  //@StateChange
   private void registerCreator (String key, CustomerCreator creator)
   {
     customerCreators.put(key, creator);

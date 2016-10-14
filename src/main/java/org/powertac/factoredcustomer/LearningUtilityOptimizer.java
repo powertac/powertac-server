@@ -1,5 +1,5 @@
 /*
-* Copyright 2011-2014 the original author or authors.
+* Copyright 2011-2016 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.powertac.factoredcustomer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.state.Domain;
+//import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 import org.powertac.factoredcustomer.ProfileRecommendation.Opinion;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
@@ -40,7 +40,7 @@ import java.util.Map;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 class LearningUtilityOptimizer extends DefaultUtilityOptimizer
 {
   private static Logger log = LogManager.getLogger(LearningUtilityOptimizer.class);

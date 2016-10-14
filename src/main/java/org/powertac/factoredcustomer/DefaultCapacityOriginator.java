@@ -1,5 +1,5 @@
 /*
-* Copyright 2011 the original author or authors.
+* Copyright 2011, 2016 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.common.state.Domain;
+//import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CapacityStructure.BaseCapacityType;
 import org.powertac.factoredcustomer.CapacityStructure.InfluenceKind;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
@@ -48,7 +48,7 @@ import java.util.Map;
  *
  * @author Prashant Reddy
  */
-@Domain
+//@Domain
 class DefaultCapacityOriginator implements CapacityOriginator
 {
   private static Logger log = LogManager.getLogger(DefaultCapacityOriginator.class);
