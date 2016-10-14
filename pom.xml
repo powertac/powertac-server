@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+     Bundle pom for Powertac core. Individual components do not
+     inherit from this pom; instead they inherit from powertac-parent.
+     Note that this module is only needed for
+     development; there is no need to deploy or release it, and there
+     are no dependencies on it, so its version number is irrelevant.
+   -->
+
+  <!--
+     Note that this does not seem to work for release processing,
+     because maven does not do the right thing with the git submodules.
+     However, it does work for local installation, javadoc generation,
+     and snapshot deployment.
+   -->
+
+  <artifactId>powertac-core</artifactId>
+  <packaging>pom</packaging>
+  <name>Power TAC core modules</name>
+
+  <!-- Pull in the project master pom -->
+  <parent>
+    <groupId>org.powertac</groupId>
+    <artifactId>powertac-parent</artifactId>
+    <version>1.4.0-SNAPSHOT</version>
+    <relativePath />
+  </parent>
+
+
+  <!-- Sonatype OSS repo for resolving snapshot dependencies -->
+
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
+
+  <!-- core components -->
+  <modules>
+    <module>powertac-parent</module>
+    <module>powertac-aop</module>
+    <module>common</module>
+  </modules>
+
+
+  <build>
+
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven-javadoc.version}</version>
+        <executions>
+          <execution>
+            <id>aggregate</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+
+  <scm>
+    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <url>https://github.com/powertac/powertac-server/</url>
+  </scm>
+
+</project>
