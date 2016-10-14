@@ -26,8 +26,11 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
 import javax.jms.MessageListener;
+
 import java.util.concurrent.Executor;
 
 
@@ -83,6 +86,15 @@ public class JmsManagementService
 
     if (amqConnectionFactory != null) {
       amqConnectionFactory.setBrokerURL(getJmsBrokerUrl());
+      Connection connection;
+      try {
+        connection = amqConnectionFactory.createConnection();
+        connection.start();
+      }
+      catch (JMSException e) {
+        // TODO Auto-generated catch block
+        log.error(e.toString());
+      }
     }
   }
 
