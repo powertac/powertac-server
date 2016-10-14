@@ -48,6 +48,7 @@
     <module>powertac-parent</module>
     <module>powertac-aop</module>
     <module>common</module>
+    <module>broker-core</module>
   </modules>
 
 
