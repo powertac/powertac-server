@@ -13,16 +13,9 @@
 
     <parent>
         <groupId>org.powertac</groupId>
-        <artifactId>server-master</artifactId>
+        <artifactId>powertac-server</artifactId>
         <version>1.4.0-SNAPSHOT</version>
-        <relativePath />
     </parent>
-
-
-    <prerequisites>
-        <maven>3.2.1</maven>
-    </prerequisites>
-
 
     <properties>
         <assertj-core.version>3.5.2</assertj-core.version>
