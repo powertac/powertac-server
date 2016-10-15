@@ -14,34 +14,29 @@
 
   <parent>
     <groupId>org.powertac</groupId>
-    <artifactId>server-master</artifactId>
+    <artifactId>powertac-server</artifactId>
     <version>1.4.0-SNAPSHOT</version>
-    <relativePath />
   </parent>
 
 
   <dependencies>
 
     <!-- Power TAC -->
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>accounting</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>auctioneer</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>default-broker</artifactId>
@@ -52,75 +47,61 @@
       <artifactId>distribution-utility</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>household-customer</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>factored-customer</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>officecomplex-customer</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>balancing-market</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>customer-models</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>evcustomer</artifactId>
       <version>${powertac.version}</version>
     </dependency>
 
-
     <!-- Messaging -->
-
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-broker</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-pool</artifactId>
     </dependency>
 
-
     <!-- Utilities -->
-
     <dependency>
       <groupId>net.sf.jopt-simple</groupId>
       <artifactId>jopt-simple</artifactId>
     </dependency>
-
   </dependencies>
 
 
