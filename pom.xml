@@ -20,28 +20,17 @@
      and snapshot deployment.
    -->
 
+  <groupId>org.powertac</groupId>
   <artifactId>powertac-server</artifactId>
   <packaging>pom</packaging>
   <name>Power TAC server modules</name>
 
-  <!-- Pull in the project master pom -->
+  <!-- Do we need this? -->
   <parent>
     <groupId>org.powertac</groupId>
-    <artifactId>server-master</artifactId>
+    <artifactId>powertac-parent</artifactId>
     <version>1.4.0-SNAPSHOT</version>
-    <relativePath />
-  </parent>
-
-
-  <!-- Sonatype OSS repo for resolving snapshot dependencies -->
-
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
-
+  </parent>  
 
   <!-- server components -->
   <modules>
@@ -57,16 +46,35 @@
     <module>genco</module>
     <module>household-customer</module>
     <module>officecomplex-customer</module>
+    <module>logtool-core</module>
     <module>server-main</module>
-    <module>webapp-dependencies</module>
     <module>visualizer</module>
+    <module>visualizer2</module>
   </modules>
 
+  <!-- Common dependencies across all server modules -->
+
+  <dependencies>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>common</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+    <!-- Testing - not inherited from common due to test scope -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+  </dependencies>
 
   <build>
-
+  <pluginManagement>
     <plugins>
-
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>${maven-javadoc.version}</version>
@@ -90,9 +98,8 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
-
+  </pluginManagement>
   </build>
 
 
