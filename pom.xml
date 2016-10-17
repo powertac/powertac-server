@@ -8,7 +8,7 @@
   <artifactId>broker-core</artifactId>
   <packaging>jar</packaging>
 
-  <name>broker-core</name>
+  <name>Power TAC broker-core</name>
   <description>Common core of a Power TAC broker implementation</description>
   <url>https://github.com/powertac/broker-core/</url>
 
