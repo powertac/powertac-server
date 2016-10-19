@@ -54,10 +54,6 @@
     path = evcustomer
     url = https://github.com/powertac/evcustomer.git
     branch = master
-
-[submodule "server-parent"]
-	path = server-parent
-	url = https://github.com/powertac/server-parent.git
 [submodule "logtool-core"]
 	path = logtool-core
 	url = https://github.com/powertac/logtool-core.git
