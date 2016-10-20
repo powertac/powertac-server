@@ -6,14 +6,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <!--
-     Bundle pom for Powertac server.
-   -->
-
-  <!--
-     Note that this does not seem to work for release processing,
-     because maven does not do the right thing with the git submodules.
-     However, it does work for local installation, javadoc generation,
-     and snapshot deployment.
+      Bundle pom for Powertac server, and parent of all server modules.
+      To build the server, mvn clean install
+      To generate javadocs, mvn javadoc:aggregate
    -->
 
   <groupId>org.powertac</groupId>
@@ -27,6 +22,7 @@
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
     <version>1.4.0-SNAPSHOT</version>
+    <relativePath />
   </parent>  
 
   <!-- server components -->
