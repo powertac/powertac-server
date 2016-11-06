@@ -16,10 +16,12 @@
 package org.powertac.du;
 
 import org.powertac.common.Broker;
+import org.powertac.common.state.Domain;
 
 /**
  * @author jcollins
  */
+@Domain
 public class DefaultBroker
 extends Broker
 {
