@@ -19,13 +19,12 @@ import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-
 import org.joda.time.Instant;
-
 import org.powertac.common.Competition;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
 /**
@@ -37,6 +36,7 @@ import org.powertac.common.state.StateChange;
  * proportional to the price.
  * @author John Collins
  */
+@Domain
 public class Buyer extends Genco
 {
   static private Logger log = LogManager.getLogger(Buyer.class.getName());
