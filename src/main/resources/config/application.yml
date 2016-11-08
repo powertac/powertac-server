@@ -38,14 +38,14 @@ spring:
     mvc:
         favicon:
             enabled: false
+    http:
+        multipart:
+            max-file-size: 1024MB
+            max-request-size: 1024MB
 
 security:
     basic:
         enabled: false
-
-multipart:
-    maxFileSize: 1024MB
-    maxRequestSize: 1024MB
 
 # ===================================================================
 # JHipster specific properties
