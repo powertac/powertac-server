@@ -15,14 +15,9 @@
 */
 package org.powertac.server;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.config.AppenderRef;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.springframework.stereotype.Service;
 
 /**
@@ -107,43 +102,11 @@ public class LogService
 
   public void stopLog ()
   {
-    reset();
-  }
-  
-  private void reset() {
-    Logger root = LogManager.getRootLogger();
-    Logger state = getStateLogger();
-    
-    LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-    Configuration cfg = ctx.getConfiguration();
-    
-    ConsoleAppender console = ConsoleAppender.createAppender(
-        null, null, "SYSTEM_OUT", "Console", "true", "true"
-    );
-    AppenderRef[] refs = new AppenderRef[] {
-        AppenderRef.createAppenderRef("Console", null, null)
-    };
-    
-    LoggerConfig newRoot = LoggerConfig.createLogger(
-        "false", Level.OFF, root.getName(), "true", refs, null, cfg, null
-    );
-    newRoot.addAppender(console, null, null);
-    
-    LoggerConfig newState = LoggerConfig.createLogger(
-        "false", Level.OFF, state.getName(), "true", refs, null, cfg, null
-    );
-    newState.addAppender(console, null, null);
-    
-    console.start();
-    cfg.addAppender(console);
-    
-    cfg.removeLogger(root.getName());
-    cfg.addLogger(root.getName(), newRoot);
-    
-    cfg.removeLogger(state.getName());
-    cfg.addLogger(state.getName(), newState);
-    
-    ctx.updateLoggers(cfg);
+    // Removing the system props causes log4j2 to revert to the ones
+    // given in log4j2.xml (typically init.state and init.trace)
+    System.getProperties().remove("logfile");
+    System.getProperties().remove("statefile");
+    ((LoggerContext) LogManager.getContext(false)).reconfigure();
   }
 
 }
