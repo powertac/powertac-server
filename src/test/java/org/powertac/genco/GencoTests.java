@@ -103,7 +103,7 @@ public class GencoTests
   @Test
   public void testInit()
   {
-    // it has already had init() called, should have requested a seed
+    // it has already had init() called, should have requested a armaSeed
     verify(mockSeedRepo).getRandomSeed(eq(Genco.class.getName()),
                                        anyInt(), eq("update"));
   }

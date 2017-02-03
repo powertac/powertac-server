@@ -22,22 +22,22 @@ import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-
 import org.joda.time.Instant;
-
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.ContextService;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
-
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SimpleGencoService
   extends TimeslotPhaseProcessor
-  implements InitializationService, BootstrapState
+  implements ContextService, InitializationService, BootstrapState
 {
   static private Logger log = LogManager.getLogger(SimpleGencoService.class.getName());
 
@@ -72,6 +72,8 @@ public class SimpleGencoService
 
   private List<Genco> gencos; // old-style gencos, including buyer
   private CpGenco cpGenco; // only one of these
+
+  private ApplicationContext context;
 
   /**
    * Default constructor
@@ -106,10 +108,14 @@ public class SimpleGencoService
     brokerRepo.add(buyer);
     gencos.add(buyer);
     buyer.init(brokerProxyService, seedId++, randomSeedRepo);
+    // configure the lmp genco
     cpGenco = new CpGenco("lmp");
     serverConfig.configureMe(cpGenco);
-    cpGenco.init(brokerProxyService, seedId, randomSeedRepo, timeslotRepo);
+    cpGenco.init(brokerProxyService, seedId++, randomSeedRepo, timeslotRepo);
     brokerRepo.add(cpGenco);
+    // configure the MISO demand generator
+    MisoBuyer misoDemand = new MisoBuyer("miso");
+    misoDemand.init(brokerProxyService, seedId++, this);
     return "Genco";
   }
 
@@ -146,5 +152,21 @@ public class SimpleGencoService
   {
     cpGenco.saveBootstrapState(serverConfig);
 //    serverConfig.saveBootstrapState(cpGenco);
+  }
+
+  @Override
+  public void setApplicationContext (ApplicationContext appContext)
+    throws BeansException
+  {
+    context = appContext;
+  }
+
+  /**
+   * Retrieves a Spring component instance by name
+   */
+  @Override
+  public Object getBean (String beanName)
+  {
+    return context.getBean(beanName);
   }
 }
