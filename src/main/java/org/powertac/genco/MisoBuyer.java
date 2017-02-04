@@ -147,34 +147,19 @@ public class MisoBuyer extends Broker
       description = "exponential smoothing parameter for residual random walk")
   private double walkAlpha = 0.02;
 
-  @ConfigurableValue(valueType = "Double",
-      description = "overall scale factor for demand profile")
-  private double scaleFactor = 1.0;
+  // Ratio of Power TAC market size to MISO market size
+  private double scaleFactor = 670.0 / 13660.0;
 
   // Heating and cooling degree-hours are smoothed sequences, which means
   // the value in the previous timeslot is used to compute the value for
   // the current timeslot. In each timeslot we get 24 forecasts, each of which
-  // must be used to re-compute the smoothed values for those timeslots. The
-  // result is that we need to keep track of 25 timeslots
+  // must be used to re-compute the smoothed values for those timeslots.
+  // Each of these parameters is configurable through a fluent setter.
 
-  @ConfigurableValue(valueType = "Double",
-      description = "temperature threshold for cooling")
   private double coolThreshold = 20.0;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "Multiplier: cooling MWh / degree-hour")
   private double coolCoef = 1200.0;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "temperature threshold for heating")
   private double heatThreshold = 17.0;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "multiplier: heating MWh / degree-hour (negative for heating)")
   private double heatCoef = -170.0;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "exponential smoothing parameter for temperature")
   private double tempAlpha = 0.1;
 
   private int timeslotOffset = 0;
@@ -260,12 +245,12 @@ public class MisoBuyer extends Broker
     WeatherForecastPrediction[] forecasts = getForecastArray();
     // smooth the current heat and cool sequences
     double thisHeat =
-        Math.max(0.0, (weather.getTemperature() - heatThreshold));
+        Math.min(0.0, (weather.getTemperature() - heatThreshold));
     lastHeat = tempAlpha * thisHeat + (1.0 - tempAlpha) * lastHeat;
     double[] smoothedHeat =
         smoothForecasts(lastHeat, heatThreshold, -1.0, forecasts);
     double thisCool =
-        Math.min(0.0,(weather.getTemperature() - coolThreshold));
+        Math.max(0.0,(weather.getTemperature() - coolThreshold));
     lastCool = tempAlpha * thisCool + (1.0 - tempAlpha) * lastCool;
     double[] smoothedCool =
         smoothForecasts(lastCool, coolThreshold, 1.0, forecasts);
@@ -288,7 +273,7 @@ public class MisoBuyer extends Broker
   {
     double[] result = new double[forecasts.length];
     double last = start;
-    for (int i = 1; i <= forecasts.length; i += 1) {
+    for (int i = 0; i < forecasts.length; i += 1) {
       double next = forecasts[i].getTemperature() - threshold;
       if (Math.signum(next) != Math.signum(sign))
         next = 0.0;
@@ -305,7 +290,7 @@ public class MisoBuyer extends Broker
     List<WeatherForecastPrediction> fcsts = forecast.getPredictions();
     WeatherForecastPrediction[] result =
         new WeatherForecastPrediction[fcsts.size()];
-    fcsts.forEach(fcst -> result[fcst.getForecastTime()] = fcst);
+    fcsts.forEach(fcst -> result[fcst.getForecastTime() - 1] = fcst);
     return result;
   }
 
@@ -350,6 +335,85 @@ public class MisoBuyer extends Broker
   int getWeeklyOffset ()
   {
     return weeklyOffset;
+  }
+
+  // configurable parameters, fluent setters
+  double getCoolThreshold ()
+  {
+    return coolThreshold;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "temperature threshold for cooling")
+  MisoBuyer withCoolThreshold (double value)
+  {
+    coolThreshold = value;
+    return this;
+  }
+
+  double getCoolCoef ()
+  {
+    return coolCoef;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Multiplier: cooling MWh / degree-hour")
+  MisoBuyer withCoolCoef (double value)
+  {
+    coolCoef = value;
+    return this;
+  }
+
+  double getHeatThreshold ()
+  {
+    return heatThreshold;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "temperature threshold for heating")
+  MisoBuyer withHeatThreshold (double value)
+  {
+    heatThreshold = value;
+    return this;
+  }
+
+  double getHeatCoef ()
+  {
+    return heatCoef;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "multiplier: heating MWh / degree-hour (negative for heating)")
+  MisoBuyer withHeatCoef (double value)
+  {
+    heatCoef = value;
+    return this;
+  }
+
+  double getTempAlpha ()
+  {
+    return tempAlpha;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "exponential smoothing parameter for temperature")
+  MisoBuyer withTempAlpha (double value)
+  {
+    tempAlpha = value;
+    return this;
+  }
+
+  public double getScaleFactor ()
+  {
+    return scaleFactor;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "overall scale factor for demand profile")
+  public MisoBuyer withScaleFactor (double value)
+  {
+    scaleFactor = value;
+    return this;
   }
 
   ComposedTS getTimeseries ()

@@ -46,6 +46,9 @@ import org.powertac.common.Order;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherForecast;
+import org.powertac.common.WeatherForecastPrediction;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.ContextService;
@@ -152,6 +155,7 @@ public class MisoBuyerTest
     // make normal distro return 0.0
     when(seed.nextGaussian()).thenReturn(0.0);
     init();
+    buyer.withScaleFactor(1.0);
     int len = 10;
     double [] ts = new double[len];
     for (int i = 0; i < len; i += 1) {
@@ -171,25 +175,96 @@ public class MisoBuyerTest
   @Test
   public void testWeatherCorrection_z ()
   {
+    Competition comp = Competition.currentCompetition();
+    comp.withTimeslotsOpen(4);
+    WeatherReport wr = new WeatherReport(0, 18.0, 0.0, 0.0, 0.0);
+    when(mockReportRepo.currentWeatherReport()).thenReturn(wr);
+    List<WeatherForecastPrediction> wfs = new ArrayList<>();
+    for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
+      WeatherForecastPrediction wfp =
+          new WeatherForecastPrediction(i + 1, 17.0 + i, 0.0, 0.0, 0.0);
+      wfs.add(wfp);
+    }
+    WeatherForecast wf = new WeatherForecast(0, wfs);
+    when(mockReportRepo.currentWeatherReport()).thenReturn(wr);
+    when(mockForecastRepo.currentWeatherForecast()).thenReturn(wf);
+
+    init();
+    double[] corrections = buyer.computeWeatherCorrections();
+    for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
+      assertEquals("zero correction", 0.0, corrections[i], 1e-6);
+    }
+  }
+
+  @Test
+  public void testForecastSmooth ()
+  {
+    init();
+    buyer.withTempAlpha(0.2);
+    WeatherForecastPrediction[] wfpa= 
+        new WeatherForecastPrediction[4];
+    for (int i = 0; i < 4; i += 1)
+      wfpa[i] = new WeatherForecastPrediction(1, 10.0, 0.0, 0.0, 0.0);
+    // cooling, temps below threshold
+    double[] s1 = buyer.smoothForecasts(0, 11.0, 1.0, wfpa);
+    assertNotNull("non-null result", s1);
+    assertEquals("first zero", 0.0, s1[0], 1e-6);
+    assertEquals("last zero", 0.0, s1[3], 1e-6);
+    // cooling, temps 10 deg over theshold
+    s1 = buyer.smoothForecasts(0.0, 0.0, 1.0, wfpa);
+    double exp = 10.0 * 0.2;
+    assertEquals("first cs", exp, s1[0], 1e-6);
+    exp = 10.0 * 0.2 + exp * 0.8;
+    assertEquals("second cs", exp, s1[1], 1e-6);
+    exp = 10.0 * 0.2 + exp * 0.8;
+    assertEquals("third cs", exp, s1[2], 1e-6);
+    // heating, temps above threshold
+    s1 = buyer.smoothForecasts(0.0, 0.0, -1.0, wfpa);
+    assertEquals("first zero", 0.0, s1[0], 1e-6);
+    assertEquals("last zero", 0.0, s1[3], 1e-6);
+    // heating, temps below threshold
+    s1 = buyer.smoothForecasts(0.0, 20.0, -1.0, wfpa);
+    exp = -10 * 0.2;
+    assertEquals("first hs", exp, s1[0], 1e-6);
+    exp = -10.0 * 0.2 + exp * 0.8;
+    assertEquals("second cs", exp, s1[1], 1e-6);
+    exp = -10.0 * 0.2 + exp * 0.8;
+    assertEquals("third cs", exp, s1[2], 1e-6);
+    exp = -10.0 * 0.2 + exp * 0.8;
+    assertEquals("fourth cs", exp, s1[3], 1e-6);
     
   }
 
   @Test
   public void testWeatherCorrection_heat ()
   {
-    
-  }
+    Competition comp = Competition.currentCompetition();
+    comp.withTimeslotsOpen(4);
+    WeatherReport wr = new WeatherReport(0, 8.0, 0.0, 0.0, 0.0);
+    when(mockReportRepo.currentWeatherReport()).thenReturn(wr);
+    List<WeatherForecastPrediction> wfs = new ArrayList<>();
+    for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
+      WeatherForecastPrediction wfp =
+          new WeatherForecastPrediction(i + 1, 7.0 - i, 0.0, 0.0, 0.0);
+      wfs.add(wfp);
+    }
+    WeatherForecast wf = new WeatherForecast(0, wfs);
+    when(mockReportRepo.currentWeatherReport()).thenReturn(wr);
+    when(mockForecastRepo.currentWeatherForecast()).thenReturn(wf);
 
-  @Test
-  public void testWeatherCorrection_cool ()
-  {
-    
-  }
-
-  @Test
-  public void testWeatherCorrection_heat_cool ()
-  {
-    
+    init();
+    buyer.withHeatThreshold(10.0);
+    double[] smoothedTemps = new double[comp.getTimeslotsOpen()];
+    double exp = 0.1 * -2.0;
+    for (int i = 0; i < smoothedTemps.length; i += 1) {
+      exp = 0.1 * (-3.0 - i) + 0.9 * exp;
+      smoothedTemps[i] = exp;
+    }
+    double[] corrections = buyer.computeWeatherCorrections();
+    for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
+      assertEquals("correction", smoothedTemps[i] * buyer.getHeatCoef(),
+                   corrections[i], 1e-6);
+    }
   }
 
   // Generates a long demand sequence, without weather mod,
