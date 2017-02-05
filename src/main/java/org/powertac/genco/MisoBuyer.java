@@ -228,8 +228,8 @@ public class MisoBuyer extends Broker
       }
       double needed = demand - start;
       Order offer = new Order(this, index, needed, null);
-      log.debug(getUsername() + " wants " + needed +
-                  " in " + index);
+      log.info(getUsername() + " orders " + needed +
+                  " ts " + index);
       brokerProxyService.routeMessage(offer);
     }
   }
@@ -338,66 +338,66 @@ public class MisoBuyer extends Broker
   }
 
   // configurable parameters, fluent setters
-  double getCoolThreshold ()
+  public double getCoolThreshold ()
   {
     return coolThreshold;
   }
 
   @ConfigurableValue(valueType = "Double",
       description = "temperature threshold for cooling")
-  MisoBuyer withCoolThreshold (double value)
+  public MisoBuyer withCoolThreshold (double value)
   {
     coolThreshold = value;
     return this;
   }
 
-  double getCoolCoef ()
+  public double getCoolCoef ()
   {
     return coolCoef;
   }
 
   @ConfigurableValue(valueType = "Double",
       description = "Multiplier: cooling MWh / degree-hour")
-  MisoBuyer withCoolCoef (double value)
+  public MisoBuyer withCoolCoef (double value)
   {
     coolCoef = value;
     return this;
   }
 
-  double getHeatThreshold ()
+  public double getHeatThreshold ()
   {
     return heatThreshold;
   }
 
   @ConfigurableValue(valueType = "Double",
       description = "temperature threshold for heating")
-  MisoBuyer withHeatThreshold (double value)
+  public MisoBuyer withHeatThreshold (double value)
   {
     heatThreshold = value;
     return this;
   }
 
-  double getHeatCoef ()
+  public double getHeatCoef ()
   {
     return heatCoef;
   }
 
   @ConfigurableValue(valueType = "Double",
       description = "multiplier: heating MWh / degree-hour (negative for heating)")
-  MisoBuyer withHeatCoef (double value)
+  public MisoBuyer withHeatCoef (double value)
   {
     heatCoef = value;
     return this;
   }
 
-  double getTempAlpha ()
+  public double getTempAlpha ()
   {
     return tempAlpha;
   }
 
   @ConfigurableValue(valueType = "Double",
       description = "exponential smoothing parameter for temperature")
-  MisoBuyer withTempAlpha (double value)
+  public MisoBuyer withTempAlpha (double value)
   {
     tempAlpha = value;
     return this;

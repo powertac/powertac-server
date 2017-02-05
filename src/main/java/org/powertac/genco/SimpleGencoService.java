@@ -72,6 +72,7 @@ public class SimpleGencoService
 
   private List<Genco> gencos; // old-style gencos, including buyer
   private CpGenco cpGenco; // only one of these
+  private MisoBuyer misoBuyer;
 
   private ApplicationContext context;
 
@@ -114,8 +115,10 @@ public class SimpleGencoService
     cpGenco.init(brokerProxyService, seedId++, randomSeedRepo, timeslotRepo);
     brokerRepo.add(cpGenco);
     // configure the MISO demand generator
-    MisoBuyer misoDemand = new MisoBuyer("miso");
-    misoDemand.init(brokerProxyService, seedId++, this);
+    misoBuyer= new MisoBuyer("miso");
+    serverConfig.configureMe(misoBuyer);
+    misoBuyer.init(brokerProxyService, seedId++, this);
+    brokerRepo.add(misoBuyer);
     return "Genco";
   }
 
@@ -144,6 +147,9 @@ public class SimpleGencoService
     }
     if (null != cpGenco) {
       cpGenco.generateOrders(when, openSlots);
+    }
+    if (null != misoBuyer) {
+      misoBuyer.generateOrders(when, openSlots);
     }
   }
 
