@@ -205,6 +205,7 @@ public class AuctionServiceTests
     map.put("auctioneer.auctionService.sellerSurplusRatio", "0.5");
     map.put("auctioneer.auctionService.defaultMargin", "0.2");
     map.put("auctioneer.auctionService.defaultClearingPrice", "40.0");
+    map.put("auctioneer.auctionService.mktPosnLimitInitial", "90.0");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     svc.initialize(competition, new ArrayList<String>());
