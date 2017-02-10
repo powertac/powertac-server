@@ -148,6 +148,18 @@ public class MisoBuyerTest
     assertEquals("timeslotOffset non-zero", 24, buyer.getTimeslotOffset());
   }
 
+  // Check timeslotOffset in sim mode
+  @Test
+  public void testInitSim_360 ()
+  {
+    Competition comp = Competition.currentCompetition();
+    Instant start = comp.getSimulationBaseTime();
+    timeService.setCurrentTime(comp.getSimulationBaseTime()
+                               .plus(360 * comp.getTimeslotDuration()));
+    init();
+    assertEquals("timeslotOffset non-zero", 360, buyer.getTimeslotOffset());
+  }
+
   // Runs the timeseries for a few steps without randomness
   @Test
   public void testTS_nr ()
@@ -165,6 +177,37 @@ public class MisoBuyerTest
     assertEquals("daily offset", 9, buyer.getDailyOffset());
     assertEquals("weeklyOffset", 3*24 + 9, buyer.getWeeklyOffset());
     for (int i = 0; i < len; i += 1) {
+      double d = buyer.getDailyValue(i);
+      double w = buyer.getWeeklyValue(i);
+      assertEquals("correct ts value", (d + w + buyer.getMean()),
+                   buyer.computeScaledValue(i, 0.0), 1e-5);
+    }
+  }
+
+  // Runs the timeseries for a few steps without randomness
+  @Test
+  public void testTS_nr_360 ()
+  {
+    // make normal distro return 0.0
+    when(seed.nextGaussian()).thenReturn(0.0);
+    Competition comp = Competition.currentCompetition();
+    Instant start = comp.getSimulationBaseTime();
+    timeService.setCurrentTime(comp.getSimulationBaseTime()
+                               .plus(360 * comp.getTimeslotDuration()));
+    init();
+    buyer.withScaleFactor(1.0);
+    int len = 10;
+    double [] ts = new double[len];
+    int first = 360;
+    for (int i = first; i < len + first; i += 1) {
+      int idx = i - first;
+      ts[idx] = buyer.computeScaledValue(i, 0.0);
+    }
+    // daily numbers starting at 9:00
+    assertEquals("daily offset", 9, buyer.getDailyOffset());
+    assertEquals("weeklyOffset", (18*24 + 9) % 168, buyer.getWeeklyOffset());
+    
+    for (int i = 360; i < len+ 360; i += 1) {
       double d = buyer.getDailyValue(i);
       double w = buyer.getWeeklyValue(i);
       assertEquals("correct ts value", (d + w + buyer.getMean()),

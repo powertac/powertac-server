@@ -32,14 +32,11 @@ import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.ContextService;
-import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -297,13 +294,17 @@ public class MisoBuyer extends Broker
   // timeseries parameter access
   double getDailyValue (int ts)
   {
-    int index = (ts - getTimeslotOffset() + getDailyOffset()) % daily.length;
+    int index = 
+        Math.floorMod((ts - getTimeslotOffset() + getDailyOffset()),
+                      daily.length);
     return daily[index];
   }
 
   double getWeeklyValue (int ts)
   {
-    int index = (ts - getTimeslotOffset() + getWeeklyOffset()) % weekly.length;
+    int index =
+        Math.floorMod((ts - getTimeslotOffset() + getWeeklyOffset()),
+                      weekly.length);
     return weekly[index];
   }
 
@@ -449,7 +450,6 @@ public class MisoBuyer extends Broker
     double generateValue (int ts)
     {
       // retrieve daily value, add daily noise
-      double dailySample = tsSeed.nextGaussian();
       double dv = getDailyValue(ts) + tsSeed.nextGaussian() * dailySd;
       // retrieve weekly value, add weekly noise
       double wv = getWeeklyValue(ts) + tsSeed.nextGaussian() * weeklySd;
