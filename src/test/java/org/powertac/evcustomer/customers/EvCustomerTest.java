@@ -39,8 +39,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -75,7 +75,7 @@ public class EvCustomerTest
     mockSeedRepo = mock(RandomSeedRepo.class);
     mockSeed = new MockRandomSeed("Test", groupId, cName);
     when(mockSeedRepo.getRandomSeed(anyString(),
-                                    anyInt(),
+                                    anyLong(),
                                     anyString())).thenReturn(mockSeed);
 
     service = new ServiceAccessor();

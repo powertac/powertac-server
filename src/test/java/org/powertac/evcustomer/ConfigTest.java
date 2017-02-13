@@ -18,15 +18,12 @@ package org.powertac.evcustomer;
 import static org.junit.Assert.*;
 import static org.powertac.util.ListTools.*;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.config.Configurator;
@@ -157,16 +154,16 @@ public class ConfigTest
     {
       config = new CompositeConfiguration();
       configurator = new Configurator();
-      InputStream stream =
-          ConfigTest.class.getResourceAsStream("/config/test-properties.xml");
-      XMLConfiguration xconfig = new XMLConfiguration();
       try {
-        xconfig.load(stream);
-        config.addConfiguration(xconfig);
+        config.addConfiguration(Configurator.readXML("config/test-properties.xml"));
         configurator.setConfiguration(config);
       }
-      catch (ConfigurationException e) {
+      catch (Exception e) {
         e.printStackTrace();
+        Throwable cause = e.getCause();
+        if (cause != null) {
+          cause.printStackTrace();
+        }
         fail(e.toString());
       }
     }

@@ -16,13 +16,10 @@
 
 package org.powertac.evcustomer.beans;
 
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -116,15 +113,11 @@ public class CarTypeTest
     {
       config = new CompositeConfiguration();
       configurator = new Configurator();
-      InputStream stream =
-          CarTypeTest.class.getResourceAsStream("/config/test-properties.xml");
-      XMLConfiguration xconfig = new XMLConfiguration();
       try {
-        xconfig.load(stream);
-        config.addConfiguration(xconfig);
+        config.addConfiguration(Configurator.readXML("config/test-properties.xml"));
         configurator.setConfiguration(config);
       }
-      catch (ConfigurationException e) {
+      catch (Exception e) {
         e.printStackTrace();
         fail(e.toString());
       }
