@@ -18,7 +18,7 @@ package org.powertac.accounting;
 
 import static org.junit.Assert.*;
 import static org.powertac.util.ListTools.*;
-import static org.mockito.Matchers.anyList;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -176,7 +175,7 @@ public class AccountingServiceTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(mockServerProperties).configureMe(anyObject());
+    }).when(mockServerProperties).configureMe(any());
   }
   
   private void initializeService () 
@@ -210,7 +209,7 @@ public class AccountingServiceTests
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("accounting.accountingService.minInterest", "0.01");
     map.put("accounting.accountingService.maxInterest", "0.20");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
 
     String result = accountingService.initialize(comp, new ArrayList<String>());
@@ -231,7 +230,7 @@ public class AccountingServiceTests
     map.put("accounting.accountingService.minInterest", "0.01");
     map.put("accounting.accountingService.maxInterest", "0.20");
     map.put("accounting.accountingService.bankInterest", "0.008");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
 
     accountingService.initialize(comp, new ArrayList<String>());
