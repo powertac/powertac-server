@@ -1,9 +1,8 @@
 package org.powertac.distributionutility;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -14,8 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -146,7 +144,7 @@ public class DistributionUtilityServiceTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(serverPropertiesService).configureMe(anyObject());
+    }).when(serverPropertiesService).configureMe(any());
   }
 
   @After
@@ -166,7 +164,7 @@ public class DistributionUtilityServiceTests
 
   private void initializeService ()
   {
-    Configuration mapConfig = new MapConfiguration(cfgMap);
+    MapConfiguration mapConfig = new MapConfiguration(cfgMap);
     config.setConfiguration(mapConfig);
     distributionUtilityService.initialize(comp, Arrays.asList("BalancingMarket"));
   }
@@ -207,7 +205,7 @@ public class DistributionUtilityServiceTests
         result.add(cbd2);
         return result;
       }
-    }).when(bootRepo).getData(anyObject());
+    }).when(bootRepo).getData(any());
   }
 
   @Test
@@ -249,7 +247,7 @@ public class DistributionUtilityServiceTests
         return response;
       }
     }).when(accountingService).getCurrentSupplyDemandByBroker();
-    when(accountingService.addCapacityTransaction(anyObject(), anyInt(),
+    when(accountingService.addCapacityTransaction(any(), anyInt(),
                                                   anyDouble(), anyDouble(),
                                                   anyDouble())).thenReturn(null);
 
@@ -261,7 +259,7 @@ public class DistributionUtilityServiceTests
     broker3Map.put(Type.CONSUME, -4.0);
     broker3Map.put(Type.PRODUCE, 2.0); //+2
     distributionUtilityService.activate(timeService.getCurrentTime(), 4);
-    verify(accountingService, never()).addCapacityTransaction(anyObject(), anyInt(),
+    verify(accountingService, never()).addCapacityTransaction(any(), anyInt(),
                                                               anyDouble(), anyDouble(),
                                                               anyDouble());
     bumpTime(TimeService.HOUR);
@@ -274,7 +272,7 @@ public class DistributionUtilityServiceTests
     broker3Map.put(Type.CONSUME, -7.5);
     broker3Map.put(Type.PRODUCE, 2.0); //+5.5
     distributionUtilityService.activate(timeService.getCurrentTime(), 4);
-    verify(accountingService, never()).addCapacityTransaction(anyObject(), anyInt(),
+    verify(accountingService, never()).addCapacityTransaction(any(), anyInt(),
                                                               anyDouble(), anyDouble(),
                                                               anyDouble());
     bumpTime(TimeService.HOUR);
@@ -287,7 +285,7 @@ public class DistributionUtilityServiceTests
     broker3Map.put(Type.CONSUME, -4.0);
     broker3Map.put(Type.PRODUCE, 2.0); //+2
     distributionUtilityService.activate(timeService.getCurrentTime(), 4);
-    verify(accountingService, times(3)).addCapacityTransaction(anyObject(), anyInt(),
+    verify(accountingService, times(3)).addCapacityTransaction(any(), anyInt(),
                                                               anyDouble(), anyDouble(),
                                                               anyDouble());
     bumpTime(TimeService.HOUR);
@@ -340,7 +338,7 @@ public class DistributionUtilityServiceTests
         ctxMap.get(broker).add(ctx);
         return ctx;
       }
-    }).when(accountingService).addCapacityTransaction(anyObject(), anyInt(),
+    }).when(accountingService).addCapacityTransaction(any(), anyInt(),
                                                   anyDouble(), anyDouble(),
                                                   anyDouble());
 
