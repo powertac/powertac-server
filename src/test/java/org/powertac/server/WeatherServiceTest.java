@@ -1,7 +1,6 @@
 package org.powertac.server;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -10,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 
@@ -133,7 +133,7 @@ public class WeatherServiceTest
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(serverPropertiesService).configureMe(anyObject());
+    }).when(serverPropertiesService).configureMe(any());
   }
 
   // initialization without a configuration
@@ -159,7 +159,7 @@ public class WeatherServiceTest
     map.put("server.weatherService.weatherReqInterval", "6");
     map.put("server.weatherService.blocking", "true");
     map.put("server.weatherService.forecastHorizon", "12");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
 
     String result = weatherService
