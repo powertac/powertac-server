@@ -23,8 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -41,7 +40,7 @@ import pt.ConfigTestDummy;
 public class ConfiguratorTest
 {
   Competition comp;
-  Configuration config;
+  MapConfiguration config;
   
   /**
    *
@@ -85,7 +84,7 @@ public class ConfiguratorTest
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("pt.configTestDummy.intProperty", "4");
     map.put("pt.configTestDummy.fixedPerKwh", "4.2");
-    Configuration conf = new MapConfiguration(map);
+    MapConfiguration conf = new MapConfiguration(map);
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
 
@@ -104,7 +103,7 @@ public class ConfiguratorTest
     map.put("pt.configTestDummy.intProperty", "-4");
     map.put("pt.configTestDummy.fixedPerKwh", "a6.2"); // bad string
     map.put("pt.configTestDummy.stringProperty", "new string");
-    Configuration conf = new MapConfiguration(map);
+    MapConfiguration conf = new MapConfiguration(map);
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
 
@@ -123,7 +122,7 @@ public class ConfiguratorTest
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("pt.configTestDummy.listProperty", "1.0, 2.1, 3.2");
     map.put("pt.configTestDummy.secondList", "0.1, 1.2, 2.3");
-    Configuration conf = new MapConfiguration(map);
+    MapConfiguration conf = new MapConfiguration(map);
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     ConfigTestDummy dummy = new ConfigTestDummy();
@@ -194,7 +193,7 @@ public class ConfiguratorTest
     map.put("common.config.configInstance.x2.simpleProp", "32");
     map.put("common.config.configInstance.x2.sequence", "2");
     map.put("common.config.configInstance.x2.coefficients", "4.2, 3.2");
-    Configuration conf = new MapConfiguration(map);
+    MapConfiguration conf = new MapConfiguration(map);
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureInstances(ConfigInstance.class);
@@ -233,7 +232,7 @@ public class ConfiguratorTest
     instanceList.add(ci1);
     ConfigInstance ci2 = new ConfigInstance("x2");
     instanceList.add(ci2);
-    Configuration conf = new MapConfiguration(map);
+    MapConfiguration conf = new MapConfiguration(map);
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureNamedInstances(instanceList);

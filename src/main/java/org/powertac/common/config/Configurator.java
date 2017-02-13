@@ -15,20 +15,36 @@
  */
 package org.powertac.common.config;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.AbstractConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
+import org.apache.commons.configuration2.convert.ListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.io.BasePathLocationStrategy;
+import org.apache.commons.configuration2.io.ClasspathLocationStrategy;
+import org.apache.commons.configuration2.io.CombinedLocationStrategy;
+import org.apache.commons.configuration2.io.FileLocationStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -71,29 +87,120 @@ public class Configurator
   static private Logger log = LogManager.getLogger(Configurator.class);
 
   private Configuration config;
-  
+
   // For each class we have encountered, we keep a mapping between the
   // property names represented by the configurable setter methods 
   // (those having a prefix of "set" or "with") and their 
   // ConfigurableValue annotations.
   //@SuppressWarnings("rawtypes")
   private HashMap<Class<?>, HashMap<String, ConfigurableProperty>> annotationMap;
-  
-  //@SuppressWarnings("rawtypes")
+
+  private static final FileLocationStrategy fileLocationStrategy;
+  private static final ListDelimiterHandler listDelimiterHandler;
+  static {
+    LinkedList<FileLocationStrategy> strategies = new LinkedList<>();
+    strategies.add(new ClasspathLocationStrategy());
+    strategies.add(new BasePathLocationStrategy());
+    fileLocationStrategy = new CombinedLocationStrategy(strategies);
+    listDelimiterHandler = new DefaultListDelimiterHandler(',');
+  }
+
+  public final static XMLConfiguration readXML (String path)
+  throws ConfigurationException
+  {
+    return new FileBasedConfigurationBuilder<>(XMLConfiguration.class)
+      .configure(
+        new Parameters().xml()
+        .setBasePath(".")
+        .setFileName(path)
+        .setLocationStrategy(fileLocationStrategy)
+        .setListDelimiterHandler(listDelimiterHandler)
+      )
+      .getConfiguration();
+  }
+
+  public final static XMLConfiguration readXML (File file)
+  throws ConfigurationException
+  {
+    return new FileBasedConfigurationBuilder<>(XMLConfiguration.class)
+      .configure(
+        new Parameters().xml()
+        .setFile(file)
+        .setLocationStrategy(fileLocationStrategy)
+        .setListDelimiterHandler(listDelimiterHandler)
+      )
+      .getConfiguration();
+  }
+
+  public final static XMLConfiguration readXML (URL url)
+  throws ConfigurationException
+  {
+    return new FileBasedConfigurationBuilder<>(XMLConfiguration.class)
+      .configure(
+        new Parameters().xml()
+        .setURL(url)
+        .setListDelimiterHandler(listDelimiterHandler)
+      )
+      .getConfiguration();
+  }
+
+  public final static PropertiesConfiguration readProperties (String path)
+  throws ConfigurationException
+  {
+    return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+      .configure(
+        new Parameters().fileBased()
+        .setBasePath(".")
+        .setFileName(path)
+        .setLocationStrategy(fileLocationStrategy)
+        .setListDelimiterHandler(listDelimiterHandler)
+      )
+      .getConfiguration();
+  }
+
+  public final static PropertiesConfiguration readProperties (URL url)
+  throws ConfigurationException
+  {
+    return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+      .configure(
+        new Parameters().fileBased()
+        .setURL(url)
+        .setListDelimiterHandler(listDelimiterHandler)
+      )
+      .getConfiguration();
+  }
+
+  public final static PropertiesConfiguration readProperties (File file)
+  throws ConfigurationException
+  {
+    return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+      .configure(
+        new Parameters().fileBased()
+        .setFile(file)
+        .setLocationStrategy(fileLocationStrategy)
+        .setListDelimiterHandler(listDelimiterHandler)
+      )
+      .getConfiguration();
+  }
+
   public Configurator ()
   {
     super();
     annotationMap = new HashMap<Class<?>, HashMap<String, ConfigurableProperty>>();
   }
-  
+
   /**
    * Loads a Configuration into this Configurator.
    */
-  public void setConfiguration (Configuration config)
+  public void setConfiguration (AbstractConfiguration config)
   {
+    // https://commons.apache.org/proper/commons-configuration/userguide/upgradeto2_0.html
+    if (config.getListDelimiterHandler() instanceof DisabledListDelimiterHandler) {
+      config.setListDelimiterHandler(listDelimiterHandler);
+    }
     this.config = config;
   }
-  
+
   /**
    * Configures the given thing, using the pre-loaded Configuration.
    */
