@@ -41,6 +41,7 @@ import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.customer.AbstractCustomer;
@@ -216,12 +217,11 @@ implements CustomerModelAccessor
   private void ensureSeeds ()
   {
     if (null == opSeed) {
-      opSeed = service.getRandomSeedRepo()
-          .getRandomSeed(LiftTruck.class.getName() + "-" + name,
-                         0, "model");
-      evalSeed = service.getRandomSeedRepo()
-          .getRandomSeed(LiftTruck.class.getName() + "-" + name,
-                         0, "eval");
+      RandomSeedRepo repo = service.getRandomSeedRepo();
+      opSeed = repo.getRandomSeed(
+                         LiftTruck.class.getName() + "-" + name, 0, "model");
+      evalSeed = repo.getRandomSeed(
+                         LiftTruck.class.getName() + "-" + name, 0, "eval");
       normal = new NormalDistribution(0.0, 1.0);
       normal.reseedRandomGenerator(opSeed.nextLong());
     }
