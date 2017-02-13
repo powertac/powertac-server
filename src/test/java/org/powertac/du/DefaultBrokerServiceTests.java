@@ -16,8 +16,8 @@
 package org.powertac.du;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -25,8 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 
 import org.joda.time.Instant;
 
@@ -138,7 +137,7 @@ public class DefaultBrokerServiceTests
     service = new DefaultBrokerService();
     mockMarket = mock(TariffMarket.class);
     mockRandom = mock(RandomSeedRepo.class);
-    when(mockRandom.getRandomSeed(anyString(), anyInt(), anyString()))
+    when(mockRandom.getRandomSeed(anyString(), anyLong(), anyString()))
         .thenReturn(new MockRandomSeed("broker", 0, ""));
     ReflectionTestUtils.setField(service,
                                  "competitionControlService", 
@@ -161,7 +160,7 @@ public class DefaultBrokerServiceTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(serverPropertiesService).configureMe(anyObject());
+    }).when(serverPropertiesService).configureMe(any());
     
     createTimeslots();
     
@@ -222,7 +221,7 @@ public class DefaultBrokerServiceTests
     map.put("du.defaultBrokerService.consumptionRate", "-0.50");
     map.put("du.defaultBrokerService.productionRate", "0.02");
     map.put("du.defaultBrokerService.initialBidKWh", "1000.0");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     service.initialize(competition, completedInits);
     assertEquals("correct consumption rate", -0.5,
