@@ -16,14 +16,16 @@
 package org.powertac.samplebroker.core;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Collection;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.Configurator;
@@ -87,7 +89,9 @@ implements ApplicationContextAware
     try {
       File defaultProps = new File("broker.properties");
       log.info("adding " + defaultProps.getName());
-      config.addConfiguration(new PropertiesConfiguration(defaultProps));
+      PropertiesConfiguration pconfig = new PropertiesConfiguration();
+      pconfig.read(new FileReader(defaultProps));
+      config.addConfiguration(pconfig);
     }
     catch (Exception e1) {
       log.warn("broker.properties not found: " + e1.toString());
@@ -100,7 +104,7 @@ implements ApplicationContextAware
         if (validXmlResource(xml)) {
           log.info("loading config from " + xml.getURI());
           XMLConfiguration xconfig = new XMLConfiguration();
-          xconfig.load(xml.getInputStream());
+          xconfig.read(xml.getInputStream());
           config.addConfiguration(xconfig);
         }
       }
@@ -112,7 +116,7 @@ implements ApplicationContextAware
           }
           log.info("loading config from " + prop.getURI());
           PropertiesConfiguration pconfig = new PropertiesConfiguration();
-          pconfig.load(prop.getInputStream());
+          pconfig.read(new InputStreamReader(prop.getInputStream()));
           config.addConfiguration(pconfig);
         }
       }
@@ -133,12 +137,15 @@ implements ApplicationContextAware
     // then load the user-specified config
     try {
       PropertiesConfiguration pconfig = new PropertiesConfiguration();
-      pconfig.load(userConfig);
+      pconfig.read(new FileReader(userConfig));
       config.addConfiguration(pconfig);
       log.debug("setUserConfig " + userConfig.getName());
     }
     catch (ConfigurationException e) {
       log.error("Config error loading " + userConfig + ": " + e.toString());
+    }
+    catch (Exception e) {
+      log.error("Error loading configuration: " + e.toString());
     }
     lazyInit();
   }
