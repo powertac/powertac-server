@@ -37,7 +37,7 @@
     <java.version>1.8</java.version>
     <maven.version>3.2.1</maven.version>
 
-    <spring.version>4.3.2.RELEASE</spring.version>
+    <spring.version>4.3.6.RELEASE</spring.version>
 
 
     <!-- Build layout -->
@@ -52,22 +52,24 @@
 
     <!-- Managed common dependency versions -->
 
-    <aspectj.version>1.8.9</aspectj.version>
+    <aspectj.version>1.8.10</aspectj.version>
 
-    <active-mq.version>5.13.4</active-mq.version>
+    <active-mq.version>5.14.3</active-mq.version>
     <xstream.version>1.4.9</xstream.version>
 
     <junit.version>4.12</junit.version>
-    <mockito.version>1.10.19</mockito.version>
+    <mockito.version>2.7.5</mockito.version>
 
-    <log4j.version>2.6.2</log4j.version>
-    <slf4j.version>1.7.21</slf4j.version>
+    <log4j.version>2.7</log4j.version>
+    <slf4j.version>1.7.22</slf4j.version>
     <commons-logging.version>1.2</commons-logging.version>
 
-    <commons-configuration.version>1.10</commons-configuration.version>
+    <commons-configuration2.version>2.1</commons-configuration2.version>
+    <commons-beanutils.version>1.9.3</commons-beanutils.version>
+    <commons-lang3.version>3.5</commons-lang3.version>
     <commons-math.version>3.6.1</commons-math.version>
-    <jopt-simple.version>5.0.2</jopt-simple.version>
-    <joda-time.version>2.9.4</joda-time.version>
+    <jopt-simple.version>5.0.3</jopt-simple.version>
+    <joda-time.version>2.9.7</joda-time.version>
 
 
     <!-- Managed common plugin versions -->
@@ -76,8 +78,8 @@
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
 
-    <maven-aspectj.version>1.8</maven-aspectj.version>
-    <maven-aspectj.compliance>1.8</maven-aspectj.compliance>
+    <maven-aspectj.version>1.9</maven-aspectj.version>
+    <maven-aspectj.compliance>${java.version}</maven-aspectj.compliance>
 
     <maven-antrun.version>1.8</maven-antrun.version>
     <maven-assembly.version>2.6</maven-assembly.version>
@@ -92,7 +94,7 @@
     <!-- https://github.com/tesla/m2eclipse-mavenarchiver/issues/8 -->
     <maven-jar.version>2.6</maven-jar.version>
 
-    <maven-war-plugin.version>2.6</maven-war-plugin.version>
+    <maven-war.version>2.6</maven-war.version>
     <maven-source.version>3.0.1</maven-source.version>
     <maven-javadoc.version>2.10.4</maven-javadoc.version>
     <maven-gpg.version>1.6</maven-gpg.version>
@@ -191,6 +193,12 @@
         <version>${aspectj.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjtools</artifactId>
+        <version>${aspectj.version}</version>
+      </dependency>
+
 
       <!-- Messaging -->
 
@@ -230,7 +238,7 @@
 
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
+        <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
@@ -278,9 +286,21 @@
       <!-- Utilities -->
 
       <dependency>
-        <groupId>commons-configuration</groupId>
-        <artifactId>commons-configuration</artifactId>
-        <version>${commons-configuration.version}</version>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-configuration2</artifactId>
+        <version>${commons-configuration2.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils</artifactId>
+        <version>${commons-beanutils.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
       </dependency>
 
       <dependency>
@@ -480,6 +500,7 @@
               <include>**/*Tests.java</include>
               <include>**/*Test.java</include>
             </includes>
+            <trimStackTrace>false</trimStackTrace>
           </configuration>
         </plugin>
 
@@ -526,6 +547,12 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>${maven-war.version}</version>
         </plugin>
 
 
