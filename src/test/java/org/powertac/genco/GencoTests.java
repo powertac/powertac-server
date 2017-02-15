@@ -16,15 +16,15 @@
 package org.powertac.genco;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,7 +70,7 @@ public class GencoTests
     mockSeedRepo = mock(RandomSeedRepo.class);
     seed = mock(RandomSeed.class);
     when(mockSeedRepo.getRandomSeed(eq(Genco.class.getName()),
-                                    anyInt(),
+                                    anyLong(),
                                     anyString())).thenReturn(seed);
     timeslotRepo = new TimeslotRepo();
     genco = new Genco("Test");
@@ -90,7 +90,7 @@ public class GencoTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(serverConfig).configureMe(anyObject());
+    }).when(serverConfig).configureMe(any());
   }
 
   @Test
@@ -105,7 +105,7 @@ public class GencoTests
   {
     // it has already had init() called, should have requested a armaSeed
     verify(mockSeedRepo).getRandomSeed(eq(Genco.class.getName()),
-                                       anyInt(), eq("update"));
+                                       anyLong(), eq("update"));
   }
 
   @Test
@@ -166,7 +166,7 @@ public class GencoTests
     // set up the genco with commitment leadtime=3
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("genco.genco.commitmentLeadtime", "3");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     serverConfig.configureMe(genco);
     // capture orders
@@ -208,7 +208,7 @@ public class GencoTests
     // set up the genco with commitment leadtime=3
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("genco.genco.commitmentLeadtime", "3");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     serverConfig.configureMe(genco);
     // capture orders

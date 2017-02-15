@@ -16,10 +16,10 @@
 package org.powertac.genco;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -30,8 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -94,7 +93,7 @@ public class MisoBuyerTest
     
     seed = mock(RandomSeed.class);
     when(mockSeedRepo.getRandomSeed(eq(MisoBuyer.class.getName()),
-                                    anyInt(),
+                                    anyLong(),
                                     anyString())).thenReturn(seed);
     when(seed.nextLong()).thenReturn(1l);
     timeslotRepo = new TimeslotRepo();
@@ -132,7 +131,7 @@ public class MisoBuyerTest
   {
     init();
     verify(mockSeedRepo).getRandomSeed(eq(MisoBuyer.class.getName()),
-                                       anyInt(), eq("ts"));
+                                       anyLong(), eq("ts"));
     assertEquals("timeslotOffset is zero", 0, buyer.getTimeslotOffset());
   }
 
