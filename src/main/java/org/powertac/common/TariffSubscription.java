@@ -373,7 +373,9 @@ public class TariffSubscription
    * and the result will be a non-negative value.
    * For storage devices, it may be positive (up-regulation) or negative
    * (down-regulation). 
-   * Intended to be called by customer models. This method is not idempotent,
+   * Intended to be called by customer models.
+   * 
+   * NOTE: This method is not idempotent,
    * because the regulation quantity is reset to zero after it's accessed.
    */
   public synchronized double getRegulation ()
