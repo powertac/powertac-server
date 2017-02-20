@@ -1,6 +1,6 @@
 package org.powertac.distributionutility;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -9,8 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -129,7 +128,7 @@ public class DuServiceNoConfigTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(serverPropertiesService).configureMe(anyObject());
+    }).when(serverPropertiesService).configureMe(any());
   }
 
   @After
@@ -148,7 +147,7 @@ public class DuServiceNoConfigTests
 
   private void initializeService ()
   {
-    Configuration mapConfig = new MapConfiguration(cfgMap);
+    MapConfiguration mapConfig = new MapConfiguration(cfgMap);
     config.setConfiguration(mapConfig);
     distributionUtilityService.initialize(comp, Arrays.asList("BalancingMarket"));
   }
