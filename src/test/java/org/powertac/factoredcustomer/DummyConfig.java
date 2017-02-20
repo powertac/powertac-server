@@ -1,11 +1,9 @@
 package org.powertac.factoredcustomer;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
 
-import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
@@ -29,10 +27,7 @@ class DummyConfig implements ServerConfiguration
 
     try {
       for (String name : names) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL url = classLoader.getResource("config/" + name);
-        XMLConfiguration xconfig = new XMLConfiguration(url);
-        config.addConfiguration(xconfig);
+        config.addConfiguration(Configurator.readXML("config/" + name));
       }
       configurator.setConfiguration(config);
     }
