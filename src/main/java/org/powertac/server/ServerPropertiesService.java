@@ -23,11 +23,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.common.config.ConfigurationRecorder;
@@ -37,7 +37,9 @@ import org.powertac.common.interfaces.ServerProperties;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 /**
@@ -113,11 +115,11 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
         try {
           if (file.toString().endsWith(".xml")) {
             log.debug("adding " + file.getName());
-            config.addConfiguration(new XMLConfiguration(file));
+            config.addConfiguration(Configurator.readXML(file));
           }
           else if (file.toString().endsWith(".properties")) {
             log.debug("adding " + file.getName());
-            config.addConfiguration(new PropertiesConfiguration(file));
+            config.addConfiguration(Configurator.readProperties(file));
           }
         }
         catch (Exception e) {
@@ -131,7 +133,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
       File defaultProps = new File("config/server.properties");
       if (defaultProps.canRead()) {
         log.debug("adding " + defaultProps.getName());
-        config.addConfiguration(new PropertiesConfiguration(defaultProps));
+        config.addConfiguration(Configurator.readProperties(defaultProps));
       }
     }
     catch (Exception e1) {
@@ -144,37 +146,31 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
       for (Resource xml : xmlResources) {
         if (validXmlResource(xml)) {
           log.info("loading config from " + xml.getURI());
-          XMLConfiguration xconfig = new XMLConfiguration();
-          xconfig.load(xml.getInputStream());
-          config.addConfiguration(xconfig);
+          config.addConfiguration(Configurator.readXML(xml.getURL()));
         }
       }
       Resource[] propResources = context.getResources("classpath*:config/*.properties");
       for (Resource prop : propResources) {
         if (validPropResource(prop)) {
           log.info("loading config from " + prop.getURI());
-          PropertiesConfiguration pconfig = new PropertiesConfiguration();
-          pconfig.load(prop.getInputStream());
-          config.addConfiguration(pconfig);
+          config.addConfiguration(Configurator.readProperties(prop.getURL()));
         }
       }
     }
     catch (Exception e) {
       log.error("Error loading configuration: " + e.toString());
     }
-    
+
     // set up the configurator
     configurator.setConfiguration(config);
   }
-  
+
   public void setUserConfig (URL userConfigURL)
           throws ConfigurationException, IOException
   {
     // then load the user-specified config
-    PropertiesConfiguration pconfig = new PropertiesConfiguration();
-    pconfig.load(userConfigURL.openStream());
-    config.addConfiguration(pconfig);
-    log.debug("setUserConfig " + userConfigURL.toExternalForm());
+    config.addConfiguration(Configurator.readProperties(userConfigURL));
+    log.debug("setUserConfig " + userConfigURL);
     lazyInit();
   }
 
@@ -292,7 +288,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   {
      this.context = context;
   }
-  
+
   /**
    * Changes the value of a property (or adds a property).
    */
@@ -304,7 +300,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
 
   // -- valid configuration resources --
   private String[] excludedPaths =
-    {".*/test-classes/.*", ".*/log4j.properties"};
+    {".*/test-classes/.*", ".*/log4j2*.xml"};
 
   private boolean validXmlResource (Resource xml)
   {
@@ -333,7 +329,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   // call this to allow test-classes to be included in valid paths
   void allowTestPaths ()
   {
-    excludedPaths = new String[] { ".*/log4j.properties" };
+    excludedPaths = new String[] { ".*/log4j2*.xml" };
   }
 
   // test support
@@ -357,7 +353,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     @Override
     public void recordItem (String key, Object value)
     {
-      publishedConfig.put(key, value);      
+      publishedConfig.put(key, value);
     }
 
     Properties getConfig ()

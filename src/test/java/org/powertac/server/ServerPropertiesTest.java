@@ -18,11 +18,10 @@ package org.powertac.server;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 
-import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -90,9 +89,6 @@ public class ServerPropertiesTest
     try {
       serverPropertiesService.setUserConfig(new URL("file:src/test/propfiles/server.properties"));
     }
-    catch (MalformedURLException e) {
-      fail(e.toString());
-    }
     catch (ConfigurationException e) {
       fail(e.toString());
     }
@@ -110,9 +106,6 @@ public class ServerPropertiesTest
   {
     try {
       serverPropertiesService.setUserConfig(new URL("file:src/test/propfiles/server.properties"));
-    }
-    catch (MalformedURLException e) {
-      fail(e.toString());
     }
     catch (ConfigurationException e) {
       fail(e.toString());
