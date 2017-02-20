@@ -23,20 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+// import org.apache.logging.log4j.LogManager;
+// import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.XMLMessageConverter;
-import org.powertac.common.msg.CustomerBootstrapData;
-import org.powertac.common.msg.MarketBootstrapData;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.thoughtworks.xstream.XStream;
 
 /**
  * @author John Collins
@@ -44,8 +39,7 @@ import com.thoughtworks.xstream.XStream;
  */
 public class BootstrapDataRepoTest
 {
-  static private Logger log =
-          LogManager.getLogger(BootstrapDataRepoTest.class.getName());
+  // static private Logger log = LogManager.getLogger(BootstrapDataRepoTest.class.getName());
 
   BootstrapDataRepo uut;
   XMLMessageConverter xmc;
@@ -97,7 +91,7 @@ public class BootstrapDataRepoTest
   @Test
   public void testAddListOfObject ()
   {
-    ArrayList<Object> data = new ArrayList();
+    ArrayList<Object> data = new ArrayList<Object>();
     String s1 = "test string";
     data.add(s1);
     Integer i1 = 42;
@@ -184,8 +178,8 @@ public class BootstrapDataRepoTest
   public void testReadBootRecord ()
   {
     try {
-      String cwd = System.getProperty("user.dir");
-      //System.out.println("file://" + cwd);
+      // String cwd = System.getProperty("user.dir");
+      // System.out.println("file://" + cwd);
       URL url = new URL("file:src/test/resources/boot.xml");
       uut.readBootRecord(url);;
     }
