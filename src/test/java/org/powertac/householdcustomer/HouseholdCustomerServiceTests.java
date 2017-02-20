@@ -20,10 +20,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -32,8 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Before;
@@ -206,13 +205,13 @@ public class HouseholdCustomerServiceTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(mockServerProperties).configureMe(anyObject());
+    }).when(mockServerProperties).configureMe(any());
 
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("householdcustomer.householdCustomerService.configFile1",
             "VillageType1.properties");
     map.put("common.competition.expectedTimeslotCount", "1440");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     config.configureSingleton(comp);
 
@@ -267,7 +266,7 @@ public class HouseholdCustomerServiceTests
     TreeMap<String, String> map2 = new TreeMap<String, String>();
     map2.put("householdcustomer.householdCustomerService.configFile1", null);
 
-    Configuration mapConfig = new MapConfiguration(map2);
+    MapConfiguration mapConfig = new MapConfiguration(map2);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
