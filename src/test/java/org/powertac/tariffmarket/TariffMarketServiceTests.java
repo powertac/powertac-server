@@ -18,9 +18,9 @@ package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
 //import static org.powertac.util.ListTools.*;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -28,8 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -145,7 +144,7 @@ public class TariffMarketServiceTests
         msgs.add(args[1]);
         return null;
       }
-    }).when(mockProxy).sendMessage(isA(Broker.class), anyObject());
+    }).when(mockProxy).sendMessage(isA(Broker.class), any());
 
     doAnswer(new Answer() {
       @Override
@@ -165,7 +164,7 @@ public class TariffMarketServiceTests
         msgs.add(args[0]);
         return null;
       }
-    }).when(mockProxy).broadcastMessage(anyObject());
+    }).when(mockProxy).broadcastMessage(any());
 
     doAnswer(new Answer() {
       @Override
@@ -187,7 +186,7 @@ public class TariffMarketServiceTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(mockServerProperties).configureMe(anyObject());
+    }).when(mockServerProperties).configureMe(any());
     
     // init time service
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -217,7 +216,7 @@ public class TariffMarketServiceTests
     map.put("tariffmarket.tariffMarketService.revocationFee", "-420.0");
     map.put("tariffmarket.tariffMarketService.publicationInterval", "3");
     map.put("tariffmarket.tariffMarketService.publicationOffset", "0");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("AccountingService");

@@ -16,8 +16,8 @@
 package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -127,7 +127,7 @@ public class CapacityControlServiceTest
         msgs.add(args[1]);
         return null;
       }
-    }).when(mockProxy).sendMessage(isA(Broker.class), anyObject());
+    }).when(mockProxy).sendMessage(isA(Broker.class), any());
 
   }
 
