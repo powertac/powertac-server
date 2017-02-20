@@ -16,10 +16,10 @@
 package org.powertac.genco;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -30,8 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.joda.time.Instant;
 import org.junit.Before;
@@ -78,7 +77,7 @@ public class CpGencoTest
     mockSeedRepo = mock(RandomSeedRepo.class);
     seed = mock(RandomSeed.class);
     when(mockSeedRepo.getRandomSeed(eq(CpGenco.class.getName()),
-                                    anyInt(),
+                                    anyLong(),
                                     anyString())).thenReturn(seed);
     timeslotRepo = new TimeslotRepo();
     genco = new CpGenco("Test");
@@ -113,7 +112,7 @@ public class CpGencoTest
   {
     init();
     verify(mockSeedRepo).getRandomSeed(eq(CpGenco.class.getName()),
-                                       anyInt(), eq("bid"));
+                                       anyLong(), eq("bid"));
     double[] ca = genco.getCoefficientArray();
     assertNotNull("initialized array", ca);
     assertEquals("3 elements", 3, ca.length);
@@ -224,7 +223,7 @@ public class CpGencoTest
     map.put("genco.cpGenco.coefficients", "1.0, 2.0, 3.0");
     map.put("genco.cpGenco.pSigma", "0.22");
     init();
-    Configuration conf = new MapConfiguration(map);
+    MapConfiguration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(conf);
     configurator.configureSingleton(genco);

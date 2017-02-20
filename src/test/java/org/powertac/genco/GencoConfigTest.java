@@ -19,15 +19,11 @@ import static org.junit.Assert.*;
 
 import java.util.Collection;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.config.Configurator;
-import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -43,7 +39,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 })
 public class GencoConfigTest
 {
-  private Configuration config;
+  private PropertiesConfiguration config;
 
   /**
    *
@@ -51,10 +47,8 @@ public class GencoConfigTest
   @Before
   public void setUp () throws Exception
   {
-    ApplicationContext context = SpringApplicationContext.getContext();
-    Resource props = context.getResource("genco-test.properties");
     // this probably won't work if tests are packaged in a jarfile
-    config = new PropertiesConfiguration(props.getFile());
+    config = Configurator.readProperties("genco-test.properties");
   }
 
   @Test
