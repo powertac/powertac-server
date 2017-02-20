@@ -1,6 +1,6 @@
 package org.powertac.balancemkt;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 import static org.powertac.util.ListTools.*;
@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -121,7 +120,7 @@ public class BalancingMarketServiceTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(serverPropertiesService).configureMe(anyObject());
+    }).when(serverPropertiesService).configureMe(any());
   }
 
   @After
@@ -144,7 +143,7 @@ public class BalancingMarketServiceTests
     TreeMap<String, String> map = new TreeMap<>();
     map.put("balancemkt.balancingMarketService.balancingCostMin", "-0.06");
     map.put("balancemkt.balancingMarketService.balancingCostMax", "-0.06");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     balancingMarketService.initialize(comp, new ArrayList<>());
     assertEquals("correct setting", -0.06,
@@ -159,18 +158,18 @@ public class BalancingMarketServiceTests
   public void testGetMarketBalance ()
   {
     initializeService();
-    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(1.0);
-    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-500.0);    
+    when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(1.0);
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-500.0);    
     assertEquals("correct balance",
                  500.0,
                  balancingMarketService.getMarketBalance(brokerList.get(0)),
                  1e-6);
-    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-1000.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1000.0);    
     assertEquals("correct balance",
                  0.0,
                  balancingMarketService.getMarketBalance(brokerList.get(0)),
                  1e-6);
-    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-1500.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1500.0);    
     assertEquals("correct balance",
                  -500.0,
                  balancingMarketService.getMarketBalance(brokerList.get(0)),
@@ -181,8 +180,8 @@ public class BalancingMarketServiceTests
   public void testNegImbalancedMarket ()
   {
     initializeService();
-    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-50.0);    
+    when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-50.0);    
     double marketBalance = -150.0; // Compute market balance
     //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
@@ -204,8 +203,8 @@ public class BalancingMarketServiceTests
   public void TestPosImbalancedMarket ()
   {
     initializeService();
-    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(50.0);    
+    when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(50.0);    
     double marketBalance = 150.0; // Compute market balance
 
     //Timeslot current = timeslotRepo.currentTimeslot();
@@ -230,7 +229,7 @@ public class BalancingMarketServiceTests
     initializeService();
     double balance = 0.0;
 
-    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
+    when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
     when(accountingService.getCurrentNetLoad(brokerList.get(0))).
       thenReturn(-19599990.0);
     when(accountingService.getCurrentNetLoad(brokerList.get(1))).
@@ -270,7 +269,7 @@ public class BalancingMarketServiceTests
     initializeService();
     balancingMarketService.setRmPremium(1.0);
 
-    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
+    when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
     when(accountingService.getCurrentNetLoad(brokerList.get(0))).thenReturn(200.0);    
     when(accountingService.getCurrentNetLoad(brokerList.get(1))).thenReturn(-400.0);
     when(accountingService.getCurrentNetLoad(brokerList.get(2))).thenReturn(0.0);    
