@@ -16,10 +16,7 @@
 
 package org.powertac.evcustomer.customers;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.CompositeConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +33,6 @@ import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.Config;
-import org.powertac.evcustomer.ConfigTest;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.ClassCar;
@@ -44,7 +40,6 @@ import org.powertac.evcustomer.beans.ClassGroup;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -58,7 +53,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -92,7 +87,7 @@ public class EvSocialClassTest
     mockSeedRepo = mock(RandomSeedRepo.class);
     mockSeed = mock(RandomSeed.class);
     when(mockSeedRepo.getRandomSeed(anyString(),
-                                    anyInt(),
+                                    anyLong(),
                                     anyString())).thenReturn(mockSeed);
     mockCustomerRepo = mock(CustomerRepo.class);
 
@@ -235,7 +230,7 @@ public class EvSocialClassTest
   public void testBootRestoreConfig ()
   {
     // need to configure manually for test
-    serverConfiguration.addXmlConfiguration("test-properties.xml");
+    serverConfiguration.addXmlConfiguration("config/test-properties.xml");
     Collection<?> escs =
         serverConfiguration.configureInstances(EvSocialClass.class);
 
@@ -281,45 +276,34 @@ public class EvSocialClassTest
     {
       config = new CompositeConfiguration();
       configurator = new Configurator();
-      InputStream stream =
-          ConfigTest.class.getResourceAsStream("/config/test-properties.xml");
-      XMLConfiguration xconfig = new XMLConfiguration();
+
       try {
-        xconfig.load(stream);
-        config.addConfiguration(xconfig);
+        config.addConfiguration(Configurator.readXML("config/test-properties.xml"));
         configurator.setConfiguration(config);
       }
-      catch (ConfigurationException e) {
+      catch (Exception e) {
         e.printStackTrace();
         fail(e.toString());
       }
     }
 
-    void addXmlConfiguration (String filename)
+    void addXmlConfiguration (String path)
     {
-      InputStream stream =
-          ConfigTest.class.getResourceAsStream("/config/" + filename);
-      XMLConfiguration xconfig = new XMLConfiguration();
       try {
-        xconfig.load(stream);
-        config.addConfiguration(xconfig);
+        config.addConfiguration(Configurator.readXML(path));
       }
-      catch (ConfigurationException e) {
+      catch (Exception e) {
         e.printStackTrace();
         fail(e.toString());
       }
     }
 
-    void addPropertiesConfiguration (String filename)
+    void addPropertiesConfiguration (String path)
     {
-      InputStream stream =
-          ConfigTest.class.getResourceAsStream("/config/" + filename);
-      PropertiesConfiguration xconfig = new PropertiesConfiguration();
       try {
-        xconfig.load(stream);
-        config.addConfiguration(xconfig);
+        config.addConfiguration(Configurator.readProperties(path));
       }
-      catch (ConfigurationException e) {
+      catch (Exception e) {
         e.printStackTrace();
         fail(e.toString());
       }
