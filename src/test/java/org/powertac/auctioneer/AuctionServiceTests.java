@@ -15,8 +15,7 @@
  */
 package org.powertac.auctioneer;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
@@ -58,9 +57,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.reset;
@@ -154,7 +153,7 @@ public class AuctionServiceTests
         config.configureSingleton(args[0]);
         return null;
       }
-    }).when(mockServerProps).configureMe(anyObject());
+    }).when(mockServerProps).configureMe(any());
 
     // Create some brokers who can trade
     b1 = new Broker("Buyer #1");
@@ -198,7 +197,7 @@ public class AuctionServiceTests
         brokerMsgs.add(args[0]);
         return null;
       }
-    }).when(mockProxy).broadcastMessage(anyObject());
+    }).when(mockProxy).broadcastMessage(any());
 
     // Configure the AuctionService
     TreeMap<String, String> map = new TreeMap<String, String>();
@@ -206,7 +205,7 @@ public class AuctionServiceTests
     map.put("auctioneer.auctionService.defaultMargin", "0.2");
     map.put("auctioneer.auctionService.defaultClearingPrice", "40.0");
     map.put("auctioneer.auctionService.mktPosnLimitInitial", "90.0");
-    Configuration mapConfig = new MapConfiguration(map);
+    MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     svc.initialize(competition, new ArrayList<String>());
   }
@@ -248,7 +247,7 @@ public class AuctionServiceTests
         brokerMsgs.add(args[1]);
         return null;
       }
-    }).when(mockProxy).sendMessage(eq(b1), anyObject());
+    }).when(mockProxy).sendMessage(eq(b1), any());
 
     competition.withMinimumOrderQuantity(0.1);
     Order good = new Order(b1, ts1.getSerialNumber(), 1.0, -22.0);
