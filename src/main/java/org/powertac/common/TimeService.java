@@ -19,7 +19,7 @@ package org.powertac.common;
 import java.util.Map;
 import java.util.TreeSet;
 
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
