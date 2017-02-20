@@ -16,9 +16,9 @@
 package org.powertac.customer.model;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.Collection;
@@ -26,8 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -73,7 +72,7 @@ public class LiftTruckTest
   private RandomSeed seed;
   private ServerConfiguration serverConfig;
   private Configurator configurator;
-  private Configuration config;
+  private MapConfiguration config;
   private TimeslotRepo tsRepo;
   private ServiceAccessor serviceAccessor;
 
@@ -105,7 +104,7 @@ public class LiftTruckTest
     mockSeedRepo = mock(RandomSeedRepo.class);
     seed = mock(RandomSeed.class);
     when(mockSeedRepo.getRandomSeed(anyString(),
-                                    anyInt(),
+                                    anyLong(),
                                     anyString())).thenReturn(seed);
 
     // Set up serverProperties mock
@@ -118,7 +117,7 @@ public class LiftTruckTest
         configurator.configureSingleton(args[0]);
         return null;
       }
-    }).when(serverConfig).configureMe(anyObject());
+    }).when(serverConfig).configureMe(any());
 
     serviceAccessor = new ServiceAccessor();
   }
