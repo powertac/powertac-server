@@ -76,30 +76,30 @@ public class AuctionService
 
   //@Autowired
   //private TimeService timeService;
-  
+
   @Autowired
   private Accounting accountingService;
-  
+
   @Autowired
   private BrokerProxy brokerProxyService;
-  
+
   @Autowired
   private TimeService timeService;
-  
+
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
+
   @Autowired
   private OrderbookRepo orderbookRepo;
-  
+
   @Autowired
   private ServerConfiguration serverProps;
-  
+
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Default margin when matching market order with limit order")
   private double defaultMargin = 0.05; // used when one side has no limit price
-  
+
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Default price/mwh when matching only market orders")
@@ -128,11 +128,11 @@ public class AuctionService
   private double epsilon = 1e-6; // position balance less than this is ignored
 
   private List<Order> incoming;
-  
+
   private HashMap<Timeslot, ArrayList<OrderWrapper>> sortedBids;
   private HashMap<Timeslot, ArrayList<OrderWrapper>> sortedAsks;
   private List<Timeslot> enabledTimeslots = null;
-  
+
   public AuctionService ()
   {
     super();
@@ -154,12 +154,12 @@ public class AuctionService
   {
     return sellerSurplusRatio;
   }
-  
+
   public double getDefaultMargin ()
   {
     return defaultMargin;
   }
-  
+
   public double getDefaultClearingPrice ()
   {
     return defaultClearingPrice;
@@ -185,7 +185,7 @@ public class AuctionService
       log.info("Received " + msg.toString());
     }
   }
-  
+
   public boolean validateOrder (Order order)
   {
     if (order.getMWh().equals(Double.NaN) ||
@@ -195,7 +195,7 @@ public class AuctionService
           + " with invalid quantity " + order.getMWh());
       return false;
     }
-    
+
     double minQuantity = Competition.currentCompetition().getMinimumOrderQuantity();
     if (Math.abs(order.getMWh()) < minQuantity) {
       log.warn("Order from " + order.getBroker().getUsername()
@@ -268,7 +268,7 @@ public class AuctionService
     for (Timeslot timeslot : enabledTimeslots) {
       clearTimeslot(timeslot);
     }
-    
+
     // save a copy of the current set of enabled timeslots for the next clearing
     enabledTimeslots = new ArrayList<Timeslot>(timeslotRepo.enabledTimeslots());
   }
@@ -385,6 +385,9 @@ public class AuctionService
   {
     HashMap<Broker, Double>remainingPosn = new HashMap<>();
     for (OrderWrapper bid: bids) {
+      if (bid.getBroker().isWholesale())
+        // Don't limit wholesale entities
+        continue;
       double remaining = getRemaining(bid.getBroker(), remainingPosn, ts);
       remaining -= bid.getMWh();
       if (remaining < 0.0) {
@@ -438,7 +441,7 @@ public class AuctionService
     }
     sortedBids.get(timeslot).add(marketOrder);
   }
-  
+
   // Collect min/max ask price ranges
   private void collectAskRanges ()
   {
@@ -474,13 +477,13 @@ public class AuctionService
     orderbookRepo.setMinAskPrices(minPriceArray);
     orderbookRepo.setMaxAskPrices(maxPriceArray);
   }
-  
+
   // test support -- get rid of saved timeslots
   void clearEnabledTimeslots ()
   {
     enabledTimeslots = null;
   }
-  
+
   class PendingTrade
   {
     Broker from;
@@ -495,7 +498,7 @@ public class AuctionService
       this.mWh = mWh;
     }
   }
-  
+
   class OrderWrapper implements Comparable<OrderWrapper>
   {
     Order order;
