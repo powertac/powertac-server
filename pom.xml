@@ -39,10 +39,10 @@
     <module>genco</module>
     <module>household-customer</module>
     <module>officecomplex-customer</module>
-    <module>logtool-core</module>
+  <!--  <module>logtool-core</module> -->
     <module>server-main</module>
-    <module>visualizer</module>
-    <module>visualizer2</module>
+  <!--  <module>visualizer</module>
+    <module>visualizer2</module> -->
   </modules>
 
   <!-- Common dependencies across all server modules -->
@@ -57,7 +57,7 @@
     <!-- Testing - not inherited from common due to test scope -->
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
+      <artifactId>mockito-core</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
