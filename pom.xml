@@ -41,6 +41,12 @@
       <groupId>com.joptimizer</groupId>
       <artifactId>joptimizer</artifactId>
       <version>${joptimizer.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
   </dependencies>
