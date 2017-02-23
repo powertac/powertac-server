@@ -44,7 +44,7 @@
         <elasticityModelType>STEPWISE</elasticityModelType>
         <elasticityMap>2.0: 0.95</elasticityMap>
 
-        <curtailmentShifts>0.25,0.25,0.25,0.25</curtailmentShifts>
+        <curtailmentShifts>0.3,0.25,0.25,0.2</curtailmentShifts>
       </HextraChemical>
     </capacityStructure>
 
