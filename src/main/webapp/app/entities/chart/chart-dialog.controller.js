@@ -9,7 +9,10 @@
 
     function ChartDialogController ($timeout, $scope, $stateParams, $uibModalInstance, entity, Chart, User, Graph) {
         var vm = this;
+
         vm.chart = entity;
+        vm.clear = clear;
+        vm.save = save;
         vm.users = User.query();
         vm.graphs = Graph.query();
 
@@ -17,27 +20,29 @@
             angular.element('.form-group:eq(1)>input').focus();
         });
 
-        var onSaveSuccess = function (result) {
-            $scope.$emit('visualizer2App:chartUpdate', result);
-            $uibModalInstance.close(result);
-            vm.isSaving = false;
-        };
+        function clear () {
+            $uibModalInstance.dismiss('cancel');
+        }
 
-        var onSaveError = function () {
-            vm.isSaving = false;
-        };
-
-        vm.save = function () {
+        function save () {
             vm.isSaving = true;
             if (vm.chart.id !== null) {
                 Chart.update(vm.chart, onSaveSuccess, onSaveError);
             } else {
                 Chart.save(vm.chart, onSaveSuccess, onSaveError);
             }
-        };
+        }
 
-        vm.clear = function() {
-            $uibModalInstance.dismiss('cancel');
-        };
+        function onSaveSuccess (result) {
+            $scope.$emit('visualizer2App:chartUpdate', result);
+            $uibModalInstance.close(result);
+            vm.isSaving = false;
+        }
+
+        function onSaveError () {
+            vm.isSaving = false;
+        }
+
+
     }
 })();

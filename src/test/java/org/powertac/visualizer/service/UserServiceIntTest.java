@@ -4,19 +4,19 @@ import org.powertac.visualizer.Visualizer2App;
 import org.powertac.visualizer.domain.PersistentToken;
 import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.repository.PersistentTokenRepository;
+import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.repository.UserRepository;
-import java.time.ZonedDateTime;
-import org.powertac.visualizer.service.util.RandomUtil;
+import org.powertac.visualizer.service.dto.UserDTO;
 import java.time.LocalDate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.inject.Inject;
-import java.util.Optional;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -30,13 +30,13 @@ import static org.assertj.core.api.Assertions.*;
 @Transactional
 public class UserServiceIntTest {
 
-    @Inject
+    @Autowired
     private PersistentTokenRepository persistentTokenRepository;
 
-    @Inject
+    @Autowired
     private UserRepository userRepository;
 
-    @Inject
+    @Autowired
     private UserService userService;
 
     @Test
@@ -60,5 +60,14 @@ public class UserServiceIntTest {
         token.setIpAddress("127.0.0.1");
         token.setUserAgent("Test agent");
         persistentTokenRepository.saveAndFlush(token);
+    }
+
+    @Test
+    public void assertThatAnonymousUserIsNotGet() {
+        final PageRequest pageable = new PageRequest(0, (int) userRepository.count());
+        final Page<UserDTO> allManagedUsers = userService.getAllManagedUsers(pageable);
+        assertThat(allManagedUsers.getContent().stream()
+            .noneMatch(user -> Constants.ANONYMOUS_USER.equals(user.getLogin())))
+            .isTrue();
     }
 }

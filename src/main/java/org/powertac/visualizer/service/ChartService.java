@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -21,12 +20,15 @@ public class ChartService {
 
     private final Logger log = LoggerFactory.getLogger(ChartService.class);
     
-    @Inject
-    private ChartRepository chartRepository;
-    
+    private final ChartRepository chartRepository;
+
+    public ChartService(ChartRepository chartRepository) {
+        this.chartRepository = chartRepository;
+    }
+
     /**
      * Save a chart.
-     * 
+     *
      * @param chart the entity to save
      * @return the persisted entity
      */
@@ -42,10 +44,10 @@ public class ChartService {
      *  @param pageable the pagination information
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public Page<Chart> findAll(Pageable pageable) {
         log.debug("Request to get all Charts");
-        Page<Chart> result = chartRepository.findAll(pageable); 
+        Page<Chart> result = chartRepository.findAll(pageable);
         return result;
     }
 
@@ -67,7 +69,7 @@ public class ChartService {
      *  @param id the id of the entity
      *  @return the entity
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public Chart findOne(Long id) {
         log.debug("Request to get Chart : {}", id);
         Chart chart = chartRepository.findOneWithEagerRelationships(id);
@@ -76,7 +78,7 @@ public class ChartService {
 
     /**
      *  Delete the  chart by id.
-     *  
+     *
      *  @param id the id of the entity
      */
     public void delete(Long id) {

@@ -1,6 +1,7 @@
 package org.powertac.visualizer.repository;
 
 import org.powertac.visualizer.domain.Chart;
+
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 

@@ -1,5 +1,7 @@
 package org.powertac.visualizer.domain;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -13,12 +15,13 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "chart")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Chart implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -34,9 +37,10 @@ public class Chart implements Serializable {
     private User owner;
 
     @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @JoinTable(name = "chart_graph",
-               joinColumns = @JoinColumn(name="charts_id", referencedColumnName="ID"),
-               inverseJoinColumns = @JoinColumn(name="graphs_id", referencedColumnName="ID"))
+               joinColumns = @JoinColumn(name="charts_id", referencedColumnName="id"),
+               inverseJoinColumns = @JoinColumn(name="graphs_id", referencedColumnName="id"))
     private Set<Graph> graphs = new HashSet<>();
 
     public Long getId() {
@@ -88,7 +92,7 @@ public class Chart implements Serializable {
             return false;
         }
         Chart chart = (Chart) o;
-        if(chart.id == null || id == null) {
+        if (chart.id == null || id == null) {
             return false;
         }
         return Objects.equals(id, chart.id);

@@ -37,7 +37,7 @@
             <tbody>
                 <tr ng-repeat="game in vm.games track by game.id">
                     <td><a ui-sref="game-detail({id:game.id})">{{game.id}}</a></td>
-                    <td translate="{{'visualizer2App.GameType.' + game.type}}">{{game.type}}</td>
+                    <td>{{game.type}}</td>
                     <td>{{game.name}}</td>
                     <td>{{game.shared}}</td>
                     <td>{{game.date | date:'medium'}}</td>
@@ -69,19 +69,19 @@
                                     ui-sref="game-detail({id:game.id})"
                                     class="btn btn-info btn-sm">
                                 <span class="glyphicon glyphicon-eye-open"></span>
-                                <span class="hidden-xs hidden-sm"></span>
+                                <span class="hidden-sm-down"></span>
                             </button>
                             <button type="submit"
                                     ui-sref="game.edit({id:game.id})"
                                     class="btn btn-primary btn-sm">
                                 <span class="glyphicon glyphicon-pencil"></span>
-                                <span class="hidden-xs hidden-sm"></span>
+                                <span class="hidden-sm-down"></span>
                             </button>
                             <button type="submit"
                                     ui-sref="game.delete({id:game.id})"
                                     class="btn btn-danger btn-sm">
                                 <span class="glyphicon glyphicon-remove-circle"></span>
-                                <span class="hidden-xs hidden-sm"></span>
+                                <span class="hidden-sm-down"></span>
                             </button>
                         </div>
                     </td>
@@ -90,7 +90,7 @@
         </table>
     </div>
     <div class="text-center">
-        <jhi-item-count page="vm.page" total="vm.queryCount"></jhi-item-count>
-        <uib-pagination class="pagination-sm" total-items="vm.totalItems" ng-model="vm.page" ng-change="vm.transition()"></uib-pagination>
+        <jhi-item-count page="vm.page" total="vm.queryCount" items-per-page="vm.itemsPerPage"></jhi-item-count>
+        <uib-pagination class="pagination-sm" total-items="vm.totalItems" items-per-page="vm.itemsPerPage" ng-model="vm.page" ng-change="vm.transition()"></uib-pagination>
     </div>
 </div>

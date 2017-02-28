@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 /**
  * Service Implementation for managing File.
  */
@@ -24,12 +22,15 @@ public class FileService {
 
     private final Logger log = LoggerFactory.getLogger(FileService.class);
     
-    @Inject
-    private FileRepository fileRepository;
-    
+    private final FileRepository fileRepository;
+
+    public FileService(FileRepository fileRepository) {
+        this.fileRepository = fileRepository;
+    }
+
     /**
      * Save a file.
-     * 
+     *
      * @param file the entity to save
      * @return the persisted entity
      */
@@ -45,10 +46,25 @@ public class FileService {
      *  @param pageable the pagination information
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public Page<File> findAll(Pageable pageable) {
         log.debug("Request to get all Files");
-        Page<File> result = fileRepository.findAll(pageable); 
+        Page<File> result = fileRepository.findAll(pageable);
+        return result;
+    }
+
+    /**
+     *  Get all the files owned by this user, plus all shared files.
+     *  
+     *  @return the list of entities
+     */
+    @Transactional(readOnly = true) 
+    public List<File> findByOwnerIsCurrentUser(String login, FileType type) {
+        log.debug("Request to get all owned and shared Files");
+        if (type != null && type.equals(FileType.ANY)) {
+            type = null;
+        }
+        List<File> result = fileRepository.findByOwnerIsCurrentUser(login, type);
         return result;
     }
 
@@ -73,7 +89,7 @@ public class FileService {
      *  @param id the id of the entity
      *  @return the entity
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public File findOne(Long id) {
         log.debug("Request to get File : {}", id);
         File file = fileRepository.findOne(id);
@@ -82,7 +98,7 @@ public class FileService {
 
     /**
      *  Delete the  file by id.
-     *  
+     *
      *  @param id the id of the entity
      */
     public void delete(Long id) {
@@ -105,7 +121,7 @@ public class FileService {
         file.setType(type);
         file.setName(name);
         file.setOwner(owner);
-        file.setShared(false);
+        file.setShared(owner.getLogin().equals("system") && !name.startsWith("init.")); // Ugh
         return save(file);
     }
 }

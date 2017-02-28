@@ -47,7 +47,7 @@
             }
         })
         .state('file-detail', {
-            parent: 'entity',
+            parent: 'file',
             url: '/file/{id}',
             data: {
                 authorities: ['ROLE_USER'],
@@ -62,9 +62,42 @@
             },
             resolve: {
                 entity: ['$stateParams', 'File', function($stateParams, File) {
-                    return File.get({id : $stateParams.id});
+                    return File.get({id : $stateParams.id}).$promise;
+                }],
+                previousState: ["$state", function ($state) {
+                    var currentStateData = {
+                        name: $state.current.name || 'file',
+                        params: $state.params,
+                        url: $state.href($state.current.name, $state.params)
+                    };
+                    return currentStateData;
                 }]
             }
+        })
+        .state('file-detail.edit', {
+            parent: 'file-detail',
+            url: '/detail/edit',
+            data: {
+                authorities: ['ROLE_USER']
+            },
+            onEnter: ['$stateParams', '$state', '$uibModal', function($stateParams, $state, $uibModal) {
+                $uibModal.open({
+                    templateUrl: 'app/entities/file/file-dialog.html',
+                    controller: 'FileDialogController',
+                    controllerAs: 'vm',
+                    backdrop: 'static',
+                    size: 'lg',
+                    resolve: {
+                        entity: ['File', function(File) {
+                            return File.get({id : $stateParams.id}).$promise;
+                        }]
+                    }
+                }).result.then(function() {
+                    $state.go('^', {}, { reload: false });
+                }, function() {
+                    $state.go('^');
+                });
+            }]
         })
         .state('file.new', {
             parent: 'file',
@@ -90,7 +123,7 @@
                         }
                     }
                 }).result.then(function() {
-                    $state.go('file', null, { reload: true });
+                    $state.go('file', null, { reload: 'file' });
                 }, function() {
                     $state.go('file');
                 });
@@ -111,11 +144,11 @@
                     size: 'lg',
                     resolve: {
                         entity: ['File', function(File) {
-                            return File.get({id : $stateParams.id});
+                            return File.get({id : $stateParams.id}).$promise;
                         }]
                     }
                 }).result.then(function() {
-                    $state.go('file', null, { reload: true });
+                    $state.go('file', null, { reload: 'file' });
                 }, function() {
                     $state.go('^');
                 });
@@ -135,11 +168,11 @@
                     size: 'md',
                     resolve: {
                         entity: ['File', function(File) {
-                            return File.get({id : $stateParams.id});
+                            return File.get({id : $stateParams.id}).$promise;
                         }]
                     }
                 }).result.then(function() {
-                    $state.go('file', null, { reload: true });
+                    $state.go('file', null, { reload: 'file' });
                 }, function() {
                     $state.go('^');
                 });

@@ -4,13 +4,14 @@ describe('Controller Tests', function() {
 
     describe('File Management Detail Controller', function() {
         var $scope, $rootScope;
-        var MockEntity, MockFile, MockUser;
+        var MockEntity, MockPreviousState, MockFile, MockUser;
         var createController;
 
         beforeEach(inject(function($injector) {
             $rootScope = $injector.get('$rootScope');
             $scope = $rootScope.$new();
             MockEntity = jasmine.createSpy('MockEntity');
+            MockPreviousState = jasmine.createSpy('MockPreviousState');
             MockFile = jasmine.createSpy('MockFile');
             MockUser = jasmine.createSpy('MockUser');
             
@@ -18,7 +19,8 @@ describe('Controller Tests', function() {
             var locals = {
                 '$scope': $scope,
                 '$rootScope': $rootScope,
-                'entity': MockEntity ,
+                'entity': MockEntity,
+                'previousState': MockPreviousState,
                 'File': MockFile,
                 'User': MockUser
             };

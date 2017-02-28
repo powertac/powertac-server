@@ -4,7 +4,7 @@
     angular
         .module('visualizer2App')
         .filter('characters', characters);
-        
+
     function characters () {
         return charactersFilter;
 

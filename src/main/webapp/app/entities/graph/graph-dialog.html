@@ -17,7 +17,7 @@
             <label class="control-label" for="field_name">Name</label>
             <input type="text" class="form-control" name="name" id="field_name"
                     ng-model="vm.graph.name"
-                    required ng-minlength="1" ng-maxlength="255" />
+                    required ng-minlength="1" ng-maxlength="255"/>
             <div ng-show="editForm.name.$invalid">
                 <p class="help-block"
                     ng-show="editForm.name.$error.required">
@@ -50,7 +50,7 @@
             <label class="control-label" for="field_shared">Shared</label>
             <input type="checkbox" class="form-control" name="shared" id="field_shared"
                     ng-model="vm.graph.shared"
-                     />
+                    />
             <div ng-show="editForm.shared.$invalid">
                 <p class="help-block"
                     ng-show="editForm.shared.$error.required">
@@ -70,7 +70,7 @@
         <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="vm.clear()">
             <span class="glyphicon glyphicon-ban-circle"></span>&nbsp;<span>Cancel</span>
         </button>
-        <button type="submit" ng-disabled="editForm.$invalid || isSaving" class="btn btn-primary">
+        <button type="submit" ng-disabled="editForm.$invalid || vm.isSaving" class="btn btn-primary">
             <span class="glyphicon glyphicon-save"></span>&nbsp;<span>Save</span>
         </button>
     </div>

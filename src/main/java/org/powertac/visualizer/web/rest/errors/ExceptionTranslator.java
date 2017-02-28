@@ -40,6 +40,16 @@ public class ExceptionTranslator {
         return processFieldErrors(fieldErrors);
     }
 
+    private ErrorVM processFieldErrors(List<FieldError> fieldErrors) {
+        ErrorVM dto = new ErrorVM(ErrorConstants.ERR_VALIDATION);
+
+        for (FieldError fieldError : fieldErrors) {
+            dto.add(fieldError.getObjectName(), fieldError.getField(), fieldError.getCode());
+        }
+
+        return dto;
+    }
+
     @ExceptionHandler(CustomParameterizedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
@@ -89,16 +99,6 @@ public class ExceptionTranslator {
         return new ErrorVM(ErrorConstants.ERR_FORBIDDEN, e.getMessage());
     }
 
-    private ErrorVM processFieldErrors(List<FieldError> fieldErrors) {
-        ErrorVM dto = new ErrorVM(ErrorConstants.ERR_VALIDATION);
-
-        for (FieldError fieldError : fieldErrors) {
-            dto.add(fieldError.getObjectName(), fieldError.getField(), fieldError.getCode());
-        }
-
-        return dto;
-    }
-
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
@@ -107,7 +107,7 @@ public class ExceptionTranslator {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorVM> processRuntimeException(Exception ex) throws Exception {
+    public ResponseEntity<ErrorVM> processRuntimeException(Exception ex) {
         BodyBuilder builder;
         ErrorVM errorVM;
         ResponseStatus responseStatus = AnnotationUtils.findAnnotation(ex.getClass(), ResponseStatus.class);

@@ -1,5 +1,7 @@
 package org.powertac.visualizer.domain;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -13,12 +15,13 @@ import org.powertac.visualizer.domain.enumeration.GraphType;
  */
 @Entity
 @Table(name = "graph")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Graph implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -87,7 +90,7 @@ public class Graph implements Serializable {
             return false;
         }
         Graph graph = (Graph) o;
-        if(graph.id == null || id == null) {
+        if (graph.id == null || id == null) {
             return false;
         }
         return Objects.equals(id, graph.id);

@@ -1,5 +1,7 @@
 package org.powertac.visualizer.domain;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -15,12 +17,13 @@ import org.powertac.visualizer.domain.enumeration.FileType;
  */
 @Entity
 @Table(name = "file")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class File implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     public static final String separator = java.io.File.separator;
-    
+
     public static final String getSafeName(String name) {
         try {
             name = name == null ? null : URLEncoder.encode(name, "UTF-8");
@@ -31,7 +34,7 @@ public class File implements Serializable {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -100,7 +103,7 @@ public class File implements Serializable {
             return false;
         }
         File file = (File) o;
-        if(file.id == null || id == null) {
+        if (file.id == null || id == null) {
             return false;
         }
         return Objects.equals(id, file.id);

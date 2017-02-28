@@ -5,9 +5,9 @@
         .module('visualizer2App')
         .factory('Push', Push);
 
-    Push.$inject = ['$q', '$timeout', '$log', 'DEBUG_INFO_ENABLED'];
+    Push.$inject = ['$http', '$cookies', '$q', '$timeout', '$log', 'DEBUG_INFO_ENABLED'];
 
-    function Push ($q, $timeout, $log, DEBUG_INFO_ENABLED) {
+    function Push ($http, $cookies, $q, $timeout, $log, DEBUG_INFO_ENABLED) {
         var service = {
             receive: receive
         };
@@ -19,7 +19,7 @@
         var RECONNECT_TIMEOUT_START = 500;
         var RECONNECT_TIMEOUT_LIMIT = 32000;
         var delay = RECONNECT_TIMEOUT_START;
-        var offset = Math.ceil(Math.random() * RECONNECT_TIMEOUT_START)
+        var offset = Math.ceil(Math.random() * RECONNECT_TIMEOUT_START);
 
         var listener = $q.defer();
         var socket = {
@@ -37,7 +37,7 @@
 
         function success () {
             // new values
-            delay = RECONNECT_TIMEOUT_START
+            delay = RECONNECT_TIMEOUT_START;
             socket.stomp.subscribe(TOPIC, function (data) {
                 listener.notify(getMessage(data.body));
             });
@@ -47,15 +47,17 @@
             $log.debug('STOMP error ' + error);
             $log.debug('reconnecting in ~' + delay + ' ms.');
             $timeout(function () {
-                delay = Math.min(2 * delay, RECONNECT_TIMEOUT_LIMIT)
+                delay = Math.min(2 * delay, RECONNECT_TIMEOUT_LIMIT);
                 initialize();
             }, delay + offset);
         }
 
         function initialize () {
+            var headers = {};
+            headers[$http.defaults.xsrfHeaderName] = $cookies.get($http.defaults.xsrfCookieName);
             socket.client = new SockJS(SOCKET_URL);
             socket.stomp = Stomp.over(socket.client);
-            socket.stomp.connect({}, success, failure);
+            socket.stomp.connect(headers, success, failure);
             if (!DEBUG_INFO_ENABLED) {
                 socket.stomp.debug = null;
             }

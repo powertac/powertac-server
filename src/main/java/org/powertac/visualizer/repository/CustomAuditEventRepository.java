@@ -1,5 +1,6 @@
 package org.powertac.visualizer.repository;
 
+import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.config.audit.AuditEventConverter;
 import org.powertac.visualizer.domain.PersistentAuditEvent;
 
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.inject.Inject;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -24,13 +24,16 @@ public class CustomAuditEventRepository implements AuditEventRepository {
 
     private static final String AUTHORIZATION_FAILURE = "AUTHORIZATION_FAILURE";
 
-    private static final String ANONYMOUS_USER = "anonymoususer";
+    private final PersistenceAuditEventRepository persistenceAuditEventRepository;
 
-    @Inject
-    private PersistenceAuditEventRepository persistenceAuditEventRepository;
+    private final AuditEventConverter auditEventConverter;
 
-    @Inject
-    private AuditEventConverter auditEventConverter;
+    public CustomAuditEventRepository(PersistenceAuditEventRepository persistenceAuditEventRepository,
+            AuditEventConverter auditEventConverter) {
+
+        this.persistenceAuditEventRepository = persistenceAuditEventRepository;
+        this.auditEventConverter = auditEventConverter;
+    }
 
     @Override
     public List<AuditEvent> find(Date after) {
@@ -64,7 +67,7 @@ public class CustomAuditEventRepository implements AuditEventRepository {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void add(AuditEvent event) {
         if (!AUTHORIZATION_FAILURE.equals(event.getType()) &&
-            !ANONYMOUS_USER.equals(event.getPrincipal().toString())) {
+            !Constants.ANONYMOUS_USER.equals(event.getPrincipal())) {
 
             PersistentAuditEvent persistentAuditEvent = new PersistentAuditEvent();
             persistentAuditEvent.setPrincipal(event.getPrincipal());

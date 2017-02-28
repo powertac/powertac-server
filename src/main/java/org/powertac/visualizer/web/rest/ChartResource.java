@@ -8,17 +8,18 @@ import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.ChartService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
+
+import io.github.jhipster.web.util.ResponseUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.inject.Inject;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,11 +35,15 @@ public class ChartResource {
 
     private final Logger log = LoggerFactory.getLogger(ChartResource.class);
 
-    @Inject
-    private ChartService chartService;
+    private static final String ENTITY_NAME = "chart";
+        
+    private final ChartService chartService;
+    private final UserRepository userRepository;
 
-    @Inject
-    private UserRepository userRepository;
+    public ChartResource(ChartService chartService, UserRepository userRepository) {
+        this.chartService = chartService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * POST  /charts : Create a new chart.
@@ -47,14 +52,12 @@ public class ChartResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new chart, or with status 400 (Bad Request) if the chart has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/charts",
-        method = RequestMethod.POST,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/charts")
     @Timed
     public ResponseEntity<Chart> createChart(@Valid @RequestBody Chart chart) throws URISyntaxException {
         log.debug("REST request to save Chart : {}", chart);
         if (chart.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("chart", "idexists", "A new chart cannot already have an ID")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new chart cannot already have an ID")).body(null);
         }
 
         String login = SecurityUtils.getCurrentUserLogin();
@@ -64,7 +67,7 @@ public class ChartResource {
 
         Chart result = chartService.save(chart);
         return ResponseEntity.created(new URI("/api/charts/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert("chart", result.getId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
     }
 
@@ -77,9 +80,7 @@ public class ChartResource {
      * or with status 500 (Internal Server Error) if the chart couldnt be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/charts",
-        method = RequestMethod.PUT,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping("/charts")
     @Timed
     public ResponseEntity<Chart> updateChart(@Valid @RequestBody Chart chart) throws URISyntaxException {
         log.debug("REST request to update Chart : {}", chart);
@@ -88,7 +89,7 @@ public class ChartResource {
         }
         Chart result = chartService.save(chart);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert("chart", chart.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, chart.getId().toString()))
             .body(result);
     }
 
@@ -99,14 +100,12 @@ public class ChartResource {
      * @return the ResponseEntity with status 200 (OK) and the list of charts in body
      * @throws URISyntaxException if there is an error to generate the pagination HTTP headers
      */
-    @RequestMapping(value = "/charts",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/charts")
     @Timed
     public ResponseEntity<List<Chart>> getAllCharts(Pageable pageable)
         throws URISyntaxException {
         log.debug("REST request to get a page of Charts");
-        Page<Chart> page = chartService.findAll(pageable); 
+        Page<Chart> page = chartService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/charts");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
@@ -117,18 +116,12 @@ public class ChartResource {
      * @param id the id of the chart to retrieve
      * @return the ResponseEntity with status 200 (OK) and with body the chart, or with status 404 (Not Found)
      */
-    @RequestMapping(value = "/charts/{id}",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/charts/{id}")
     @Timed
     public ResponseEntity<Chart> getChart(@PathVariable Long id) {
         log.debug("REST request to get Chart : {}", id);
         Chart chart = chartService.findOne(id);
-        return Optional.ofNullable(chart)
-            .map(result -> new ResponseEntity<>(
-                result,
-                HttpStatus.OK))
-            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(chart));
     }
 
     /**
@@ -137,22 +130,18 @@ public class ChartResource {
      * @param id the id of the chart to delete
      * @return the ResponseEntity with status 200 (OK)
      */
-    @RequestMapping(value = "/charts/{id}",
-        method = RequestMethod.DELETE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping("/charts/{id}")
     @Timed
     public ResponseEntity<Void> deleteChart(@PathVariable Long id) {
         log.debug("REST request to delete Chart : {}", id);
         chartService.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("chart", id.toString())).build();
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
     /**
      * Get all charts owned by logged in user, plus all shared charts.
      */
-    @RequestMapping(value = "/mycharts",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/mycharts")
     @Timed
     public ResponseEntity<List<Chart>> getMyGames() throws URISyntaxException {
         log.debug("REST request to get owned and shared charts");

@@ -10,20 +10,23 @@ import org.powertac.visualizer.domain.enumeration.FileType;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.FileService;
+import org.powertac.visualizer.service_ptac.SyncFilesService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
+
+import io.github.jhipster.web.util.ResponseUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -49,11 +52,18 @@ public class FileResource {
 
     private final Logger log = LoggerFactory.getLogger(FileResource.class);
 
-    @Inject
-    private FileService fileService;
+    private static final String ENTITY_NAME = "file";
+        
+    private final FileService fileService;
+    private final UserRepository userRepository;
 
-    @Inject
-    private UserRepository userRepository;
+    public FileResource(FileService fileService, UserRepository userRepository) {
+        this.fileService = fileService;
+        this.userRepository = userRepository;
+    }
+
+    @Autowired
+    private SyncFilesService syncFilesService;
 
     /**
      * POST  /files : Create a new file.
@@ -62,14 +72,12 @@ public class FileResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new file, or with status 400 (Bad Request) if the file has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/files",
-        method = RequestMethod.POST,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/files")
     @Timed
     public ResponseEntity<File> createFile(@Valid @RequestBody File file) throws URISyntaxException {
         log.debug("REST request to save File : {}", file);
         if (file.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("file", "idexists", "A new file cannot already have an ID")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new file cannot already have an ID")).body(null);
         }
 
         String login = SecurityUtils.getCurrentUserLogin();
@@ -79,7 +87,7 @@ public class FileResource {
 
         File result = fileService.save(file);
         return ResponseEntity.created(new URI("/api/files/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert("file", result.getId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
     }
 
@@ -92,9 +100,7 @@ public class FileResource {
      * or with status 500 (Internal Server Error) if the file couldnt be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/files",
-        method = RequestMethod.PUT,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping("/files")
     @Timed
     public ResponseEntity<File> updateFile(@Valid @RequestBody File file) throws URISyntaxException {
         log.debug("REST request to update File : {}", file);
@@ -103,7 +109,7 @@ public class FileResource {
         }
         File result = fileService.save(file);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert("file", file.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, file.getId().toString()))
             .body(result);
     }
 
@@ -114,14 +120,12 @@ public class FileResource {
      * @return the ResponseEntity with status 200 (OK) and the list of files in body
      * @throws URISyntaxException if there is an error to generate the pagination HTTP headers
      */
-    @RequestMapping(value = "/files",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/files")
     @Timed
     public ResponseEntity<List<File>> getAllFiles(Pageable pageable)
         throws URISyntaxException {
         log.debug("REST request to get a page of Files");
-        Page<File> page = fileService.findAll(pageable); 
+        Page<File> page = fileService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/files");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
@@ -132,18 +136,12 @@ public class FileResource {
      * @param id the id of the file to retrieve
      * @return the ResponseEntity with status 200 (OK) and with body the file, or with status 404 (Not Found)
      */
-    @RequestMapping(value = "/files/{id}",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/files/{id}")
     @Timed
     public ResponseEntity<File> getFile(@PathVariable Long id) {
         log.debug("REST request to get File : {}", id);
         File file = fileService.findOne(id);
-        return Optional.ofNullable(file)
-            .map(result -> new ResponseEntity<>(
-                result,
-                HttpStatus.OK))
-            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(file));
     }
 
     /**
@@ -152,27 +150,24 @@ public class FileResource {
      * @param id the id of the file to delete
      * @return the ResponseEntity with status 200 (OK)
      */
-    @RequestMapping(value = "/files/{id}",
-        method = RequestMethod.DELETE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping("/files/{id}")
     @Timed
     public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
         log.debug("REST request to delete File : {}", id);
         File file = fileService.findOne(id);
         fileService.delete(id);
         file.getType().getFile(file.getOwner(), file.getName()).delete();
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("file", id.toString())).build();
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
     /**
      * Get all files owned by logged in user, plus all shared files.
      */
-    @RequestMapping(value = "/myfiles/{type}/",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/myfiles/{type}/")
     @Timed
     public ResponseEntity<List<File>> getMyFiles(
             @Valid @NotNull @PathVariable String type) throws URISyntaxException {
+        syncFilesService.syncFileSystem();
         FileType fileType = FileType.valueOf(type.toUpperCase());
         log.debug("REST request to get owned and shared files, type = " + type);
         String login = SecurityUtils.getCurrentUserLogin();
@@ -189,7 +184,7 @@ public class FileResource {
      * @param response
      * @throws IOException
      */
-    @RequestMapping(value = "/myfiles/{type}/{id}", method = RequestMethod.GET)
+    @GetMapping("/myfiles/{type}/{id}")
     @Timed
     public void getMyFile (@Valid @NotNull @PathVariable String type,
                 @Valid @NotNull @PathVariable Long id,
@@ -222,8 +217,7 @@ public class FileResource {
      * @throws IOException
      * @throws URISyntaxException
      */
-    @RequestMapping(value = "/myfiles/{type}/", method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/myfiles/{type}/")
     @Timed
     public ResponseEntity<File> postFile (@Valid @NotNull @PathVariable String type,
                 @RequestParam("shared") Boolean shared,

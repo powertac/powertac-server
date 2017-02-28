@@ -5,21 +5,24 @@
         .module('visualizer2App')
         .controller('GraphController', GraphController);
 
-    GraphController.$inject = ['$scope', '$state', 'Graph', 'ParseLinks', 'AlertService', 'pagingParams', 'paginationConstants'];
+    GraphController.$inject = ['Graph', 'ParseLinks', 'AlertService', 'paginationConstants', 'pagingParams'];
 
-    function GraphController ($scope, $state, Graph, ParseLinks, AlertService, pagingParams, paginationConstants) {
+    function GraphController(Graph, ParseLinks, AlertService, paginationConstants, pagingParams) {
+
         var vm = this;
-        vm.loadAll = loadAll;
+
         vm.loadPage = loadPage;
         vm.predicate = pagingParams.predicate;
         vm.reverse = pagingParams.ascending;
         vm.transition = transition;
-        vm.loadAll();
+        vm.itemsPerPage = paginationConstants.itemsPerPage;
+
+        loadAll();
 
         function loadAll () {
             Graph.query({
                 page: pagingParams.page - 1,
-                size: paginationConstants.itemsPerPage,
+                size: vm.itemsPerPage,
                 sort: sort()
             }, onSuccess, onError);
             function sort() {
@@ -41,18 +44,17 @@
             }
         }
 
-        function loadPage (page) {
+        function loadPage(page) {
             vm.page = page;
             vm.transition();
         }
 
-        function transition () {
+        function transition() {
             $state.transitionTo($state.$current, {
                 page: vm.page,
                 sort: vm.predicate + ',' + (vm.reverse ? 'asc' : 'desc'),
                 search: vm.currentSearch
             });
         }
-
     }
 })();

@@ -14,10 +14,10 @@ import org.powertac.visualizer.logtool.LogtoolExecutor;
 import org.powertac.visualizer.service.FileService;
 import org.powertac.visualizer.service.GameService;
 import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 /**
  * This service runs Power TAC games (sim, boot and replay).
@@ -27,38 +27,38 @@ import javax.inject.Inject;
 @Service
 public class EmbeddedService {
 
-    @Inject
+    @Autowired
     private FileService fileService;
 
-    @Inject
+    @Autowired
     private GameService gameService;
 
-    @Inject
+    @Autowired
     private VisualizerService visualizerService;
 
-    @Inject
+    @Autowired
     private MessageDispatcher messageDispatcher;
 
-    @Inject
+    @Autowired
     private CompetitionSetupService competitionSetupService;
 
-    @Inject
+    @Autowired
     private CompetitionControlService competitionControlService;
 
-    @Inject
+    @Autowired
     private LogService logService;
 
-    @Inject
+    @Autowired
     private VisualizerProxy visualizerProxy;
 
     private Thread replayGameThread;
-    
-    private Game currentGame;
 
     @PostConstruct
     private void afterPropertiesSet() {
         visualizerProxy.registerVisualizerMessageListener(messageDispatcher);
     }
+
+    private Game currentGame;
 
     /*
      * (non-Javadoc)

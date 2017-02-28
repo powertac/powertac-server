@@ -42,23 +42,7 @@
                     };
                 }]
             }        })
-        .state('user-management-detail', {
-            parent: 'admin',
-            url: '/user/:login',
-            data: {
-                authorities: ['ROLE_ADMIN'],
-                pageTitle: 'visualizer2'
-            },
-            views: {
-                'content@': {
-                    templateUrl: 'app/admin/user-management/user-management-detail.html',
-                    controller: 'UserManagementDetailController',
-                    controllerAs: 'vm'
-                }
-            }
-        })
         .state('user-management.new', {
-            parent: 'user-management',
             url: '/new',
             data: {
                 authorities: ['ROLE_ADMIN']
@@ -88,7 +72,6 @@
             }]
         })
         .state('user-management.edit', {
-            parent: 'user-management',
             url: '/{login}/edit',
             data: {
                 authorities: ['ROLE_ADMIN']
@@ -112,8 +95,22 @@
                 });
             }]
         })
-        .state('user-management.delete', {
+        .state('user-management-detail', {
             parent: 'user-management',
+            url: '/user/{login}',
+            data: {
+                authorities: ['ROLE_ADMIN'],
+                pageTitle: 'visualizer2'
+            },
+            views: {
+                'content@': {
+                    templateUrl: 'app/admin/user-management/user-management-detail.html',
+                    controller: 'UserManagementDetailController',
+                    controllerAs: 'vm'
+                }
+            }
+        })
+        .state('user-management.delete', {
             url: '/{login}/delete',
             data: {
                 authorities: ['ROLE_ADMIN']

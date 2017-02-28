@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import javax.inject.Inject;
 import java.security.Principal;
 import java.util.Calendar;
 
@@ -30,8 +29,11 @@ public class ActivityService implements ApplicationListener<SessionDisconnectEve
 
     private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @Inject
-    SimpMessageSendingOperations messagingTemplate;
+    private final SimpMessageSendingOperations messagingTemplate;
+
+    public ActivityService(SimpMessageSendingOperations messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+    }
 
     @SubscribeMapping("/topic/activity")
     @SendTo("/topic/tracker")

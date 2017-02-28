@@ -11,7 +11,6 @@ import org.apache.logging.log4j.core.LoggerContext;
 import com.codahale.metrics.annotation.Timed;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,12 +21,10 @@ import java.util.stream.Collectors;
  * Controller for view and managing Log Level at runtime.
  */
 @RestController
-@RequestMapping("/management/jhipster")
+@RequestMapping("/management")
 public class LogsResource {
 
-    @RequestMapping(value = "/logs",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/logs")
     @Timed
     public List<LoggerVM> getList() {
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
@@ -39,8 +36,7 @@ public class LogsResource {
             .collect(Collectors.toList());
     }
 
-    @RequestMapping(value = "/logs",
-        method = RequestMethod.PUT)
+    @PutMapping("/logs")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Timed
     public void changeLevel(@RequestBody LoggerVM jsonLogger) {

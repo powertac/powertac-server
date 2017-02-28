@@ -29,13 +29,12 @@ import org.powertac.visualizer.web.dto.TickValueCustomer;
 import org.powertac.visualizer.web.websocket.Pusher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
-import javax.inject.Inject;
 
 /**
  * This is an implementation of the Initializable interface. It will be
@@ -50,25 +49,25 @@ public class MessageHandler {
 
     static private Logger log = LoggerFactory.getLogger(MessageHandler.class);
 
-    @Inject
+    @Autowired
     private BrokerRepository brokerRepo;
 
-    @Inject
+    @Autowired
     private CustomerRepository customerRepo;
 
-    @Inject
+    @Autowired
     private TickSnapshotRepository tickSnapshotRepo;
 
-    @Inject
+    @Autowired
     private TariffRepository tariffRepo;
 
-    @Inject
+    @Autowired
     private VisualizerService visualizerService;
 
-    @Inject
+    @Autowired
     public Pusher pusher;
 
-    @Inject
+    @Autowired
     private CompetitionService currentCompetition;
 
     // TODO Should be in VisualizerService?

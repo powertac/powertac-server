@@ -11,6 +11,7 @@ import org.powertac.common.msg.VisualizerStatusRequest;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -27,7 +28,7 @@ import org.w3c.dom.Node;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.inject.Inject;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -57,22 +58,22 @@ public class TournamentService implements MessageListener {
 
     static private Logger log = LoggerFactory.getLogger(TournamentService.class.getName());
 
-    @Inject
+    @Autowired
     private VisualizerService visualizerService;
 
-    @Inject
+    @Autowired
     private ApplicationContext context;
 
     @Resource(name = "jmsFactory")
     private CachingConnectionFactory connectionFactory;
 
-    @Inject
+    @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
-    @Inject
+    @Autowired
     private MessageDispatcher dispatcher;
 
-    @Inject
+    @Autowired
     private XMLMessageConverter converter;
 
     // Timers, Threads and Runnables that may need to be killed

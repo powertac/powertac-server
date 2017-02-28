@@ -29,7 +29,7 @@
             <tbody>
                 <tr ng-repeat="file in vm.files track by file.id">
                     <td><a ui-sref="file-detail({id:file.id})">{{file.id}}</a></td>
-                    <td translate="{{'visualizer2App.FileType.' + file.type}}">{{file.type}}</td>
+                    <td>{{file.type}}</td>
                     <td>{{file.name}}</td>
                     <td>{{file.shared}}</td>
                     <td>
@@ -41,19 +41,19 @@
                                     ui-sref="file-detail({id:file.id})"
                                     class="btn btn-info btn-sm">
                                 <span class="glyphicon glyphicon-eye-open"></span>
-                                <span class="hidden-xs hidden-sm"></span>
+                                <span class="hidden-sm-down"></span>
                             </button>
                             <button type="submit"
                                     ui-sref="file.edit({id:file.id})"
                                     class="btn btn-primary btn-sm">
                                 <span class="glyphicon glyphicon-pencil"></span>
-                                <span class="hidden-xs hidden-sm"></span>
+                                <span class="hidden-sm-down"></span>
                             </button>
                             <button type="submit"
                                     ui-sref="file.delete({id:file.id})"
                                     class="btn btn-danger btn-sm">
                                 <span class="glyphicon glyphicon-remove-circle"></span>
-                                <span class="hidden-xs hidden-sm"></span>
+                                <span class="hidden-sm-down"></span>
                             </button>
                         </div>
                     </td>
@@ -62,7 +62,7 @@
         </table>
     </div>
     <div class="text-center">
-        <jhi-item-count page="vm.page" total="vm.queryCount"></jhi-item-count>
-        <uib-pagination class="pagination-sm" total-items="vm.totalItems" ng-model="vm.page" ng-change="vm.transition()"></uib-pagination>
+        <jhi-item-count page="vm.page" total="vm.queryCount" items-per-page="vm.itemsPerPage"></jhi-item-count>
+        <uib-pagination class="pagination-sm" total-items="vm.totalItems" items-per-page="vm.itemsPerPage" ng-model="vm.page" ng-change="vm.transition()"></uib-pagination>
     </div>
 </div>
