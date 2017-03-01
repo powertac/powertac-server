@@ -1,33 +1,34 @@
 package org.powertac.visualizer.web.rest;
 
 import org.powertac.visualizer.Visualizer2App;
+
 import org.powertac.visualizer.domain.View;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.repository.ViewRepository;
 import org.powertac.visualizer.service.ViewService;
+import org.powertac.visualizer.web.rest.errors.ExceptionTranslator;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.hamcrest.Matchers.hasItem;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 
 /**
  * Test class for the ViewResource REST controller.
@@ -40,48 +41,65 @@ public class ViewResourceIntTest {
 
     private static final String DEFAULT_NAME = "A";
     private static final String UPDATED_NAME = "B";
+
     private static final String DEFAULT_GRAPHS = "1";
     private static final String UPDATED_GRAPHS = "2";
 
     private static final Boolean DEFAULT_SHARED = false;
     private static final Boolean UPDATED_SHARED = true;
 
-    @Inject
+    @Autowired
     private ViewRepository viewRepository;
 
-    @Inject
+    @Autowired
     private UserRepository userRepository;
 
-    @Inject
+    @Autowired
     private ViewService viewService;
 
-    @Inject
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
-    @Inject
+    @Autowired
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
+
+    @Autowired
+    private ExceptionTranslator exceptionTranslator;
+
+    @Autowired
+    private EntityManager em;
 
     private MockMvc restViewMockMvc;
 
     private View view;
 
-    @PostConstruct
+    @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        ViewResource viewResource = new ViewResource();
-        ReflectionTestUtils.setField(viewResource, "viewService", viewService);
-        ReflectionTestUtils.setField(viewResource, "userRepository", userRepository);
+        ViewResource viewResource = new ViewResource(viewService, userRepository);
         this.restViewMockMvc = MockMvcBuilders.standaloneSetup(viewResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
             .setMessageConverters(jacksonMessageConverter).build();
+    }
+
+    /**
+     * Create an entity for this test.
+     *
+     * This is a static method, as tests for other entities might also need it,
+     * if they test an entity which requires the current entity.
+     */
+    public static View createEntity(EntityManager em) {
+        View view = new View();
+        view.setName(DEFAULT_NAME);
+        view.setGraphs(DEFAULT_GRAPHS);
+        view.setShared(DEFAULT_SHARED);
+        return view;
     }
 
     @Before
     public void initTest() {
-        view = new View();
-        view.setName(DEFAULT_NAME);
-        view.setGraphs(DEFAULT_GRAPHS);
-        view.setShared(DEFAULT_SHARED);
+        view = createEntity(em);
     }
 
     @Test
@@ -92,17 +110,37 @@ public class ViewResourceIntTest {
         // Create the View
 
         restViewMockMvc.perform(post("/api/views")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(view)))
-                .andExpect(status().isCreated());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(view)))
+            .andExpect(status().isCreated());
 
         // Validate the View in the database
-        List<View> views = viewRepository.findAll();
-        assertThat(views).hasSize(databaseSizeBeforeCreate + 1);
-        View testView = views.get(views.size() - 1);
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeCreate + 1);
+        View testView = viewList.get(viewList.size() - 1);
         assertThat(testView.getName()).isEqualTo(DEFAULT_NAME);
         assertThat(testView.getGraphs()).isEqualTo(DEFAULT_GRAPHS);
         assertThat(testView.isShared()).isEqualTo(DEFAULT_SHARED);
+    }
+
+    @Test
+    @Transactional
+    public void createViewWithExistingId() throws Exception {
+        int databaseSizeBeforeCreate = viewRepository.findAll().size();
+
+        // Create the View with an existing ID
+        View existingView = new View();
+        existingView.setId(1L);
+
+        // An entity with an existing ID cannot be created, so this API call must fail
+        restViewMockMvc.perform(post("/api/views")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(existingView)))
+            .andExpect(status().isBadRequest());
+
+        // Validate the Alice in the database
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeCreate);
     }
 
     @Test
@@ -115,12 +153,12 @@ public class ViewResourceIntTest {
         // Create the View, which fails.
 
         restViewMockMvc.perform(post("/api/views")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(view)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(view)))
+            .andExpect(status().isBadRequest());
 
-        List<View> views = viewRepository.findAll();
-        assertThat(views).hasSize(databaseSizeBeforeTest);
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
@@ -133,12 +171,12 @@ public class ViewResourceIntTest {
         // Create the View, which fails.
 
         restViewMockMvc.perform(post("/api/views")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(view)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(view)))
+            .andExpect(status().isBadRequest());
 
-        List<View> views = viewRepository.findAll();
-        assertThat(views).hasSize(databaseSizeBeforeTest);
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
@@ -151,12 +189,12 @@ public class ViewResourceIntTest {
         // Create the View, which fails.
 
         restViewMockMvc.perform(post("/api/views")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(view)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(view)))
+            .andExpect(status().isBadRequest());
 
-        List<View> views = viewRepository.findAll();
-        assertThat(views).hasSize(databaseSizeBeforeTest);
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
@@ -165,14 +203,14 @@ public class ViewResourceIntTest {
         // Initialize the database
         viewRepository.saveAndFlush(view);
 
-        // Get all the views
+        // Get all the viewList
         restViewMockMvc.perform(get("/api/views?sort=id,desc"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$.[*].id").value(hasItem(view.getId().intValue())))
-                .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
-                .andExpect(jsonPath("$.[*].graphs").value(hasItem(DEFAULT_GRAPHS.toString())))
-                .andExpect(jsonPath("$.[*].shared").value(hasItem(DEFAULT_SHARED.booleanValue())));
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(view.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
+            .andExpect(jsonPath("$.[*].graphs").value(hasItem(DEFAULT_GRAPHS.toString())))
+            .andExpect(jsonPath("$.[*].shared").value(hasItem(DEFAULT_SHARED.booleanValue())));
     }
 
     @Test
@@ -184,7 +222,7 @@ public class ViewResourceIntTest {
         // Get the view
         restViewMockMvc.perform(get("/api/views/{id}", view.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.id").value(view.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()))
             .andExpect(jsonPath("$.graphs").value(DEFAULT_GRAPHS.toString()))
@@ -196,7 +234,7 @@ public class ViewResourceIntTest {
     public void getNonExistingView() throws Exception {
         // Get the view
         restViewMockMvc.perform(get("/api/views/{id}", Long.MAX_VALUE))
-                .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -208,24 +246,41 @@ public class ViewResourceIntTest {
         int databaseSizeBeforeUpdate = viewRepository.findAll().size();
 
         // Update the view
-        View updatedView = new View();
-        updatedView.setId(view.getId());
+        View updatedView = viewRepository.findOne(view.getId());
         updatedView.setName(UPDATED_NAME);
         updatedView.setGraphs(UPDATED_GRAPHS);
         updatedView.setShared(UPDATED_SHARED);
 
         restViewMockMvc.perform(put("/api/views")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(updatedView)))
-                .andExpect(status().isOk());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(updatedView)))
+            .andExpect(status().isOk());
 
         // Validate the View in the database
-        List<View> views = viewRepository.findAll();
-        assertThat(views).hasSize(databaseSizeBeforeUpdate);
-        View testView = views.get(views.size() - 1);
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeUpdate);
+        View testView = viewList.get(viewList.size() - 1);
         assertThat(testView.getName()).isEqualTo(UPDATED_NAME);
         assertThat(testView.getGraphs()).isEqualTo(UPDATED_GRAPHS);
         assertThat(testView.isShared()).isEqualTo(UPDATED_SHARED);
+    }
+
+    @Test
+    @Transactional
+    public void updateNonExistingView() throws Exception {
+        int databaseSizeBeforeUpdate = viewRepository.findAll().size();
+
+        // Create the View
+
+        // If the entity doesn't have an ID, it will be created instead of just being updated
+        restViewMockMvc.perform(put("/api/views")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(view)))
+            .andExpect(status().isCreated());
+
+        // Validate the View in the database
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeUpdate + 1);
     }
 
     @Test
@@ -238,11 +293,16 @@ public class ViewResourceIntTest {
 
         // Get the view
         restViewMockMvc.perform(delete("/api/views/{id}", view.getId())
-                .accept(TestUtil.APPLICATION_JSON_UTF8))
-                .andExpect(status().isOk());
+            .accept(TestUtil.APPLICATION_JSON_UTF8))
+            .andExpect(status().isOk());
 
         // Validate the database is empty
-        List<View> views = viewRepository.findAll();
-        assertThat(views).hasSize(databaseSizeBeforeDelete - 1);
+        List<View> viewList = viewRepository.findAll();
+        assertThat(viewList).hasSize(databaseSizeBeforeDelete - 1);
+    }
+
+    @Test
+    public void equalsVerifier() throws Exception {
+        TestUtil.equalsVerifier(View.class);
     }
 }

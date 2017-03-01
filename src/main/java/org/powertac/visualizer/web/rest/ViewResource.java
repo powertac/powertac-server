@@ -9,17 +9,18 @@ import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.ViewService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
+
+import io.github.jhipster.web.util.ResponseUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.inject.Inject;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,12 +35,17 @@ import java.util.Optional;
 public class ViewResource {
 
     private final Logger log = LoggerFactory.getLogger(ViewResource.class);
-        
-    @Inject
-    private ViewService viewService;
 
-    @Inject
-    private UserRepository userRepository;
+    private static final String ENTITY_NAME = "view";
+        
+    private final ViewService viewService;
+    private final UserRepository userRepository;
+
+    public ViewResource(ViewService viewService, UserRepository userRepository) {
+        this.viewService = viewService;
+        this.userRepository = userRepository;
+        
+    }
 
     /**
      * POST  /views : Create a new view.
@@ -48,14 +54,12 @@ public class ViewResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new view, or with status 400 (Bad Request) if the view has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/views",
-        method = RequestMethod.POST,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/views")
     @Timed
     public ResponseEntity<View> createView(@Valid @RequestBody View view) throws URISyntaxException {
         log.debug("REST request to save View : {}", view);
         if (view.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("view", "idexists", "A new view cannot already have an ID")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new view cannot already have an ID")).body(null);
         }
 
         String login = SecurityUtils.getCurrentUserLogin();
@@ -65,7 +69,7 @@ public class ViewResource {
 
         View result = viewService.save(view);
         return ResponseEntity.created(new URI("/api/views/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert("view", result.getId().toString()))
+            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
     }
 
@@ -78,9 +82,7 @@ public class ViewResource {
      * or with status 500 (Internal Server Error) if the view couldnt be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/views",
-        method = RequestMethod.PUT,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping("/views")
     @Timed
     public ResponseEntity<View> updateView(@Valid @RequestBody View view) throws URISyntaxException {
         log.debug("REST request to update View : {}", view);
@@ -89,7 +91,7 @@ public class ViewResource {
         }
         View result = viewService.save(view);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert("view", view.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, view.getId().toString()))
             .body(result);
     }
 
@@ -100,14 +102,12 @@ public class ViewResource {
      * @return the ResponseEntity with status 200 (OK) and the list of views in body
      * @throws URISyntaxException if there is an error to generate the pagination HTTP headers
      */
-    @RequestMapping(value = "/views",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/views")
     @Timed
     public ResponseEntity<List<View>> getAllViews(Pageable pageable)
         throws URISyntaxException {
         log.debug("REST request to get a page of Views");
-        Page<View> page = viewService.findAll(pageable); 
+        Page<View> page = viewService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/views");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
@@ -118,18 +118,12 @@ public class ViewResource {
      * @param id the id of the view to retrieve
      * @return the ResponseEntity with status 200 (OK) and with body the view, or with status 404 (Not Found)
      */
-    @RequestMapping(value = "/views/{id}",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/views/{id}")
     @Timed
     public ResponseEntity<View> getView(@PathVariable Long id) {
         log.debug("REST request to get View : {}", id);
         View view = viewService.findOne(id);
-        return Optional.ofNullable(view)
-            .map(result -> new ResponseEntity<>(
-                result,
-                HttpStatus.OK))
-            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(view));
     }
 
     /**
@@ -138,22 +132,18 @@ public class ViewResource {
      * @param id the id of the view to delete
      * @return the ResponseEntity with status 200 (OK)
      */
-    @RequestMapping(value = "/views/{id}",
-        method = RequestMethod.DELETE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping("/views/{id}")
     @Timed
     public ResponseEntity<Void> deleteView(@PathVariable Long id) {
         log.debug("REST request to delete View : {}", id);
         viewService.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("view", id.toString())).build();
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
     /**
      * Get all views owned by logged in user, plus all shared views.
      */
-    @RequestMapping(value = "/myviews",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/myviews")
     @Timed
     public ResponseEntity<List<View>> getMyViews() throws URISyntaxException {
         log.debug("REST request to get owned and shared views");

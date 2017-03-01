@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 /**
  * ADAPTED FROM broker core
@@ -37,7 +37,7 @@ implements VisualizerMessageListener, NewObjectListener {
 
     static private Logger log = LoggerFactory.getLogger(MessageDispatcher.class);
 
-    @Inject
+    @Autowired
     private ApplicationContext context;
 
     private HashMap<Class<?>, Set<Object>> registrations;

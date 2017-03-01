@@ -1,17 +1,18 @@
 <div ng-cloak>
   <p class="">
     Game status:
-    <a href="#/" ui-sref="graphs" class="label label-{{vm.state.gameStatusStyle}}">
+    <a ui-sref="graphs" class="label label-{{vm.state.gameStatusStyle}}">
       {{vm.state.gameStatus || '(loading...)'}}
     </a>
-
   </p>
 
   <div ng-switch="vm.state.gameStatus">
 
     <div ng-switch-when="RUNNING">
-      <p>Game <i>{{vm.state.gameName}}</i> is currently running -- You can view its progress in the
-        <a class="alert-link" ui-sref="graphs">Graphs</a> pages.</p>
+      <p>
+        Game <i>{{vm.state.gameName}}</i> is currently running -- You can view
+        its progress <a class="alert-link" ui-sref="graphs">Graphs</a> pages.
+      </p>
     </div>
 
     <div ng-switch-when="WAITING">

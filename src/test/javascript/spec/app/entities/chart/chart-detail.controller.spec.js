@@ -4,13 +4,14 @@ describe('Controller Tests', function() {
 
     describe('Chart Management Detail Controller', function() {
         var $scope, $rootScope;
-        var MockEntity, MockChart, MockUser, MockGraph;
+        var MockEntity, MockPreviousState, MockChart, MockUser, MockGraph;
         var createController;
 
         beforeEach(inject(function($injector) {
             $rootScope = $injector.get('$rootScope');
             $scope = $rootScope.$new();
             MockEntity = jasmine.createSpy('MockEntity');
+            MockPreviousState = jasmine.createSpy('MockPreviousState');
             MockChart = jasmine.createSpy('MockChart');
             MockUser = jasmine.createSpy('MockUser');
             MockGraph = jasmine.createSpy('MockGraph');
@@ -19,7 +20,8 @@ describe('Controller Tests', function() {
             var locals = {
                 '$scope': $scope,
                 '$rootScope': $rootScope,
-                'entity': MockEntity ,
+                'entity': MockEntity,
+                'previousState': MockPreviousState,
                 'Chart': MockChart,
                 'User': MockUser,
                 'Graph': MockGraph

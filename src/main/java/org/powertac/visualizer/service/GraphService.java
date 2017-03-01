@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -21,12 +20,15 @@ public class GraphService {
 
     private final Logger log = LoggerFactory.getLogger(GraphService.class);
     
-    @Inject
-    private GraphRepository graphRepository;
-    
+    private final GraphRepository graphRepository;
+
+    public GraphService(GraphRepository graphRepository) {
+        this.graphRepository = graphRepository;
+    }
+
     /**
      * Save a graph.
-     * 
+     *
      * @param graph the entity to save
      * @return the persisted entity
      */
@@ -42,10 +44,10 @@ public class GraphService {
      *  @param pageable the pagination information
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public Page<Graph> findAll(Pageable pageable) {
         log.debug("Request to get all Graphs");
-        Page<Graph> result = graphRepository.findAll(pageable); 
+        Page<Graph> result = graphRepository.findAll(pageable);
         return result;
     }
 
@@ -67,7 +69,7 @@ public class GraphService {
      *  @param id the id of the entity
      *  @return the entity
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public Graph findOne(Long id) {
         log.debug("Request to get Graph : {}", id);
         Graph graph = graphRepository.findOne(id);
@@ -76,7 +78,7 @@ public class GraphService {
 
     /**
      *  Delete the  graph by id.
-     *  
+     *
      *  @param id the id of the entity
      */
     public void delete(Long id) {

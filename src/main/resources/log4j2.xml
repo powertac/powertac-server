@@ -10,7 +10,7 @@
     <Property name="PID">????</Property>
     <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
     <Property name="LOG_LEVEL_PATTERN">%5p</Property>
-    <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN} ${sys:PID} --- [%15.15t] %-40.40c{1.} : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+    <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN} ${sys:PID} --- [%15.15t]%-40.40c{1.} : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
   </Properties>
 
   <ThresholdFilter level="trace"/>
@@ -33,23 +33,35 @@
 
   <Loggers>
 
-    <Logger name="Log" level="info" additivity="false">
+    <Logger name="Log" level="info">
       <AppenderRef ref="LogFile"/>
     </Logger>
 
-    <Logger name="State" level="info" additivity="false">
+    <Logger name="State" level="info">
       <AppenderRef ref="StateFile"/>
     </Logger>
 
-    <Logger name="org.springframework" level="warn" additivity="false">
-      <AppenderRef ref="LogFile" />
-    </Logger>
-    <Logger name="org.apache" level="warn" additivity="false">
-      <AppenderRef ref="LogFile" />
-    </Logger>
 
     <Logger name="org.powertac.visualizer" level="#log4j2.loglevel#">
       <AppenderRef ref="VizFile" />
+    </Logger>
+
+    <Logger name="io.github.jhipster" level="debug">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+
+
+    <Logger name="org.springframework" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.springframework.web" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.springframework.security" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.springframework.cache" level="warn">
+      <AppenderRef ref="LogFile" />
     </Logger>
 
     <Logger name="org.powertac.logtool" level="#log4j2.loglevel#">
@@ -107,9 +119,13 @@
     <Logger name="liquibase" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
+    <Logger name="LiquibaseSchemaResolver" level="info">
+      <AppenderRef ref="VizFile" />
+    </Logger>
     <Logger name="sun.rmi.transport" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
+
     <Logger name="org.apache.catalina.util.LifecycleBase" level="error">
       <AppenderRef ref="VizFile" />
     </Logger>

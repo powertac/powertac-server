@@ -16,12 +16,12 @@
 
         <addForeignKeyConstraint baseColumnNames="charts_id"
                                  baseTableName="chart_graph"
-                                 constraintName="fk_chart_graph_graph_id"
+                                 constraintName="fk_chart_graph_charts_id"
                                  referencedColumnNames="id"
                                  referencedTableName="chart"/>
         <addForeignKeyConstraint baseColumnNames="graphs_id"
                                  baseTableName="chart_graph"
-                                 constraintName="fk_chart_graph_chart_id"
+                                 constraintName="fk_chart_graph_graphs_id"
                                  referencedColumnNames="id"
                                  referencedTableName="graph"/>
         

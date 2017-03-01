@@ -47,7 +47,7 @@
             }
         })
         .state('view-detail', {
-            parent: 'entity',
+            parent: 'view',
             url: '/view/{id}',
             data: {
                 authorities: ['ROLE_USER'],
@@ -62,9 +62,42 @@
             },
             resolve: {
                 entity: ['$stateParams', 'View', function($stateParams, View) {
-                    return View.get({id : $stateParams.id});
+                    return View.get({id : $stateParams.id}).$promise;
+                }],
+                previousState: ["$state", function ($state) {
+                    var currentStateData = {
+                        name: $state.current.name || 'view',
+                        params: $state.params,
+                        url: $state.href($state.current.name, $state.params)
+                    };
+                    return currentStateData;
                 }]
             }
+        })
+        .state('view-detail.edit', {
+            parent: 'view-detail',
+            url: '/detail/edit',
+            data: {
+                authorities: ['ROLE_USER']
+            },
+            onEnter: ['$stateParams', '$state', '$uibModal', function($stateParams, $state, $uibModal) {
+                $uibModal.open({
+                    templateUrl: 'app/entities/view/view-dialog.html',
+                    controller: 'ViewDialogController',
+                    controllerAs: 'vm',
+                    backdrop: 'static',
+                    size: 'lg',
+                    resolve: {
+                        entity: ['View', function(View) {
+                            return View.get({id : $stateParams.id}).$promise;
+                        }]
+                    }
+                }).result.then(function() {
+                    $state.go('^', {}, { reload: false });
+                }, function() {
+                    $state.go('^');
+                });
+            }]
         })
         .state('view.new', {
             parent: 'view',
@@ -90,7 +123,7 @@
                         }
                     }
                 }).result.then(function() {
-                    $state.go('view', null, { reload: true });
+                    $state.go('view', null, { reload: 'view' });
                 }, function() {
                     $state.go('view');
                 });
@@ -111,11 +144,11 @@
                     size: 'lg',
                     resolve: {
                         entity: ['View', function(View) {
-                            return View.get({id : $stateParams.id});
+                            return View.get({id : $stateParams.id}).$promise;
                         }]
                     }
                 }).result.then(function() {
-                    $state.go('view', null, { reload: true });
+                    $state.go('view', null, { reload: 'view' });
                 }, function() {
                     $state.go('^');
                 });
@@ -135,11 +168,11 @@
                     size: 'md',
                     resolve: {
                         entity: ['View', function(View) {
-                            return View.get({id : $stateParams.id});
+                            return View.get({id : $stateParams.id}).$promise;
                         }]
                     }
                 }).result.then(function() {
-                    $state.go('view', null, { reload: true });
+                    $state.go('view', null, { reload: 'view' });
                 }, function() {
                     $state.go('^');
                 });

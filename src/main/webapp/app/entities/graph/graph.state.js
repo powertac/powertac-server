@@ -47,7 +47,7 @@
             }
         })
         .state('graph-detail', {
-            parent: 'entity',
+            parent: 'graph',
             url: '/graph/{id}',
             data: {
                 authorities: ['ROLE_USER'],
@@ -62,9 +62,42 @@
             },
             resolve: {
                 entity: ['$stateParams', 'Graph', function($stateParams, Graph) {
-                    return Graph.get({id : $stateParams.id});
+                    return Graph.get({id : $stateParams.id}).$promise;
+                }],
+                previousState: ["$state", function ($state) {
+                    var currentStateData = {
+                        name: $state.current.name || 'graph',
+                        params: $state.params,
+                        url: $state.href($state.current.name, $state.params)
+                    };
+                    return currentStateData;
                 }]
             }
+        })
+        .state('graph-detail.edit', {
+            parent: 'graph-detail',
+            url: '/detail/edit',
+            data: {
+                authorities: ['ROLE_USER']
+            },
+            onEnter: ['$stateParams', '$state', '$uibModal', function($stateParams, $state, $uibModal) {
+                $uibModal.open({
+                    templateUrl: 'app/entities/graph/graph-dialog.html',
+                    controller: 'GraphDialogController',
+                    controllerAs: 'vm',
+                    backdrop: 'static',
+                    size: 'lg',
+                    resolve: {
+                        entity: ['Graph', function(Graph) {
+                            return Graph.get({id : $stateParams.id}).$promise;
+                        }]
+                    }
+                }).result.then(function() {
+                    $state.go('^', {}, { reload: false });
+                }, function() {
+                    $state.go('^');
+                });
+            }]
         })
         .state('graph.new', {
             parent: 'graph',
@@ -90,7 +123,7 @@
                         }
                     }
                 }).result.then(function() {
-                    $state.go('graph', null, { reload: true });
+                    $state.go('graph', null, { reload: 'graph' });
                 }, function() {
                     $state.go('graph');
                 });
@@ -111,11 +144,11 @@
                     size: 'lg',
                     resolve: {
                         entity: ['Graph', function(Graph) {
-                            return Graph.get({id : $stateParams.id});
+                            return Graph.get({id : $stateParams.id}).$promise;
                         }]
                     }
                 }).result.then(function() {
-                    $state.go('graph', null, { reload: true });
+                    $state.go('graph', null, { reload: 'graph' });
                 }, function() {
                     $state.go('^');
                 });
@@ -135,11 +168,11 @@
                     size: 'md',
                     resolve: {
                         entity: ['Graph', function(Graph) {
-                            return Graph.get({id : $stateParams.id});
+                            return Graph.get({id : $stateParams.id}).$promise;
                         }]
                     }
                 }).result.then(function() {
-                    $state.go('graph', null, { reload: true });
+                    $state.go('graph', null, { reload: 'graph' });
                 }, function() {
                     $state.go('^');
                 });

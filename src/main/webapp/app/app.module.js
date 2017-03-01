@@ -3,7 +3,7 @@
 
     angular
         .module('visualizer2App', [
-            'ngStorage', 
+            'ngStorage',
             'ngResource',
             'ngCookies',
             'ngAria',

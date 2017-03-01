@@ -1,5 +1,7 @@
 package org.powertac.visualizer.domain;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -14,12 +16,13 @@ import java.util.stream.Collectors;
  */
 @Entity
 @Table(name = "view")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class View implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -113,7 +116,7 @@ public class View implements Serializable {
             return false;
         }
         View view = (View) o;
-        if(view.id == null || id == null) {
+        if (view.id == null || id == null) {
             return false;
         }
         return Objects.equals(id, view.id);

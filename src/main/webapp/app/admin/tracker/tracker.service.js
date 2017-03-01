@@ -34,7 +34,7 @@
             stompClient = Stomp.over(socket);
             var stateChangeStart;
             var headers = {};
-            headers['X-CSRF-TOKEN'] = $cookies[$http.defaults.xsrfCookieName];
+            headers[$http.defaults.xsrfHeaderName] = $cookies.get($http.defaults.xsrfCookieName);
             stompClient.connect(headers, function() {
                 connected.resolve('success');
                 sendActivity();

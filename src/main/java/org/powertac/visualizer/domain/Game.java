@@ -1,5 +1,7 @@
 package org.powertac.visualizer.domain;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -16,12 +18,13 @@ import org.powertac.visualizer.domain.enumeration.GameType;
  */
 @Entity
 @Table(name = "game")
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Game implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -262,7 +265,7 @@ public class Game implements Serializable {
             return false;
         }
         Game game = (Game) o;
-        if(game.id == null || id == null) {
+        if (game.id == null || id == null) {
             return false;
         }
         return Objects.equals(id, game.id);

@@ -1,7 +1,7 @@
 package org.powertac.visualizer.service_ptac;
 
+import org.powertac.visualizer.config.ApplicationProperties;
 import org.powertac.visualizer.config.Constants;
-import org.powertac.visualizer.config.VisualizerProperties;
 import org.powertac.visualizer.domain.Broker;
 import org.powertac.visualizer.domain.Customer;
 import org.powertac.visualizer.domain.Tariff;
@@ -9,13 +9,13 @@ import org.powertac.visualizer.repository_ptac.RecycleRepository;
 import org.powertac.visualizer.web.websocket.Pusher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
 /**
  * @author Jurica Babic, Govert Buijs, Erik Kemperman
@@ -29,10 +29,10 @@ public class VisualizerService {
         IDLE, WAITING, RUNNING, FINISHED, FAILED
     }
 
-    @Inject
+    @Autowired
     private ApplicationContext context;
 
-    @Inject
+    @Autowired
     private Pusher pusher;
 
     @SuppressWarnings("rawtypes")
@@ -40,20 +40,20 @@ public class VisualizerService {
 
     private VisualizerState state;
 
-    @Inject
-    private VisualizerProperties visualizerProperties;
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
-        String mode = visualizerProperties.getMode().trim();
+        String mode = applicationProperties.getMode().trim();
         if (mode == null || mode.isEmpty()) {
             log.debug("No mode provided, falling back to 'research'");
             mode = Constants.MODE_RESEARCH;
-            visualizerProperties.setMode(mode);
+            applicationProperties.setMode(mode);
         }
         // TODO RuntimeException is probably not the right class here...?
         if (mode.equals(Constants.MODE_TOURNAMENT)) {
-            if (visualizerProperties.getConnect().getServerUrl().isEmpty()) {
+            if (applicationProperties.getConnect().getServerUrl().isEmpty()) {
                 throw new RuntimeException(
                         "In tournament mode, a 'serverUrl' is required!");
             }
@@ -65,23 +65,23 @@ public class VisualizerService {
     }
 
     public String getMode() {
-        return visualizerProperties.getMode();
+        return applicationProperties.getMode();
     }
 
     public String getMachineName() {
-        return visualizerProperties.getConnect().getMachineName();
+        return applicationProperties.getConnect().getMachineName();
     }
 
     public String getServerUrl() {
-        return visualizerProperties.getConnect().getServerUrl();
+        return applicationProperties.getConnect().getServerUrl();
     }
 
     public String getTournamentUrl() {
-        return visualizerProperties.getConnect().getTournamentUrl();
+        return applicationProperties.getConnect().getTournamentUrl();
     }
 
     public String getTournamentPath() {
-        return visualizerProperties.getConnect().getTournamentPath();
+        return applicationProperties.getConnect().getTournamentPath();
     }
 
     public void newRun() {
@@ -99,7 +99,7 @@ public class VisualizerService {
 
     @SuppressWarnings("rawtypes")
     public void recycleAll() {
-        for (RecycleRepository repository: repositories) {
+        for (RecycleRepository<?> repository: repositories) {
             repository.recycle();
         }
         Broker.recycle();

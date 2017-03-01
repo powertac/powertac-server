@@ -12,8 +12,9 @@ import java.util.List;
  */
 public interface FileRepository extends JpaRepository<File,Long> {
 
-    @Query("select file from File file where file.owner.login = :login")
-    List<File> findByOwnerIsCurrentUser(@Param("login") String login);
+    @Query("select file from File file where file.owner.login = :login"
+    + " and (:type = NULL or file.type = :type)")
+    List<File> findByOwnerIsCurrentUser(@Param("login") String login, @Param("type") FileType type);
 
     @Query("select file from File file where"
     + " (file.shared = TRUE or file.owner.login = :login)"

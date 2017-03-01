@@ -19,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
@@ -35,28 +34,30 @@ public class AccountResource {
 
     private final Logger log = LoggerFactory.getLogger(AccountResource.class);
 
-    @Inject
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Inject
-    private UserService userService;
+    private final UserService userService;
+    
+    private final PersistentTokenRepository persistentTokenRepository;
 
-    @Inject
-    private PersistentTokenRepository persistentTokenRepository;
+    public AccountResource(UserRepository userRepository, UserService userService,
+                           PersistentTokenRepository persistentTokenRepository) {
+
+        this.userRepository = userRepository;
+        this.userService = userService;
+        this.persistentTokenRepository = persistentTokenRepository;
+    }
 
     /**
      * POST  /register : register the user.
      *
      * @param managedUserVM the managed user View Model
-     * @param request the HTTP request
-     * @return the ResponseEntity with status 200 (OK) and the registered user in body,
-     *  or 400 (Bad Request) if the login is already in use.
+     * @return the ResponseEntity with status 201 (Created) if the user is registered or 400 (Bad Request) if the login or e-mail is already in use
      */
-    @RequestMapping(value = "/register",
-                    method = RequestMethod.POST,
+    @PostMapping(path = "/register",
                     produces={MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_PLAIN_VALUE})
     @Timed
-    public ResponseEntity<?> registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM, HttpServletRequest request) {
+    public ResponseEntity<String> registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
 
         HttpHeaders textPlainHeaders = new HttpHeaders();
         textPlainHeaders.setContentType(MediaType.TEXT_PLAIN);
@@ -64,9 +65,11 @@ public class AccountResource {
         return userRepository.findOneByLogin(managedUserVM.getLogin().toLowerCase())
             .map(user -> new ResponseEntity<>("login already in use", textPlainHeaders, HttpStatus.BAD_REQUEST))
             .orElseGet(() -> {
-                userService.createUser(managedUserVM.getLogin(), managedUserVM.getPassword(),
-                managedUserVM.getFirstName(), managedUserVM.getLastName(), managedUserVM.getLangKey());
-                return new ResponseEntity<>(HttpStatus.OK);
+                userService
+                    .createUser(managedUserVM.getLogin(), managedUserVM.getPassword(),
+                        managedUserVM.getFirstName(), managedUserVM.getLastName(),
+                        managedUserVM.getLangKey());
+                return new ResponseEntity<>(HttpStatus.CREATED);
             });
     }
 
@@ -76,9 +79,7 @@ public class AccountResource {
      * @param request the HTTP request
      * @return the login if the user is authenticated
      */
-    @RequestMapping(value = "/authenticate",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/authenticate")
     @Timed
     public String isAuthenticated(HttpServletRequest request) {
         log.debug("REST request to check if the current user is authenticated");
@@ -90,9 +91,7 @@ public class AccountResource {
      *
      * @return the ResponseEntity with status 200 (OK) and the current user in body, or status 500 (Internal Server Error) if the user couldn't be returned
      */
-    @RequestMapping(value = "/account",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/account")
     @Timed
     public ResponseEntity<UserDTO> getAccount() {
         return Optional.ofNullable(userService.getUserWithAuthorities())
@@ -106,9 +105,7 @@ public class AccountResource {
      * @param userDTO the current user information
      * @return the ResponseEntity with status 200 (OK), or status 400 (Bad Request) or 500 (Internal Server Error) if the user couldn't be updated
      */
-    @RequestMapping(value = "/account",
-        method = RequestMethod.POST,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/account")
     @Timed
     public ResponseEntity<String> saveAccount(@Valid @RequestBody UserDTO userDTO) {
         return userRepository
@@ -127,11 +124,10 @@ public class AccountResource {
      * @param password the new password
      * @return the ResponseEntity with status 200 (OK), or status 400 (Bad Request) if the new password is not strong enough
      */
-    @RequestMapping(value = "/account/change_password",
-        method = RequestMethod.POST,
+    @PostMapping(path = "/account/change_password",
         produces = MediaType.TEXT_PLAIN_VALUE)
     @Timed
-    public ResponseEntity<?> changePassword(@RequestBody String password) {
+    public ResponseEntity<String> changePassword(@RequestBody String password) {
         if (!checkPasswordLength(password)) {
             return new ResponseEntity<>("Incorrect password", HttpStatus.BAD_REQUEST);
         }
@@ -145,9 +141,7 @@ public class AccountResource {
      * @return the ResponseEntity with status 200 (OK) and the current open sessions in body,
      *  or status 500 (Internal Server Error) if the current open sessions couldn't be retrieved
      */
-    @RequestMapping(value = "/account/sessions",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/account/sessions")
     @Timed
     public ResponseEntity<List<PersistentToken>> getCurrentSessions() {
         return userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin())
@@ -173,16 +167,14 @@ public class AccountResource {
      * @param series the series of an existing session
      * @throws UnsupportedEncodingException if the series couldnt be URL decoded
      */
-    @RequestMapping(value = "/account/sessions/{series}",
-        method = RequestMethod.DELETE)
+    @DeleteMapping("/account/sessions/{series}")
     @Timed
     public void invalidateSession(@PathVariable String series) throws UnsupportedEncodingException {
         String decodedSeries = URLDecoder.decode(series, "UTF-8");
-        userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(u -> {
+        userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(u ->
             persistentTokenRepository.findByUser(u).stream()
                 .filter(persistentToken -> StringUtils.equals(persistentToken.getSeries(), decodedSeries))
-                .findAny().ifPresent(t -> persistentTokenRepository.delete(decodedSeries));
-        });
+                .findAny().ifPresent(t -> persistentTokenRepository.delete(decodedSeries)));
     }
 
     private boolean checkPasswordLength(String password) {

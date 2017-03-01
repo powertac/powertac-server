@@ -1,4 +1,4 @@
-// Generated on 2016-08-19 using generator-jhipster 3.6.1
+// Generated on 2017-02-24 using generator-jhipster 4.0.6
 'use strict';
 
 var gulp = require('gulp'),
@@ -36,8 +36,6 @@ gulp.task('copy:fonts', copy.fonts);
 
 gulp.task('copy:common', copy.common);
 
-gulp.task('copy:swagger', copy.swagger);
-
 gulp.task('copy:images', copy.images);
 
 gulp.task('images', function () {
@@ -54,7 +52,6 @@ gulp.task('images', function () {
         .pipe(gulp.dest(config.dist))
         .pipe(browserSync.reload({stream: true}));
 });
-
 
 gulp.task('styles', [], function () {
     return gulp.src(config.app + 'content/css')
@@ -73,8 +70,9 @@ gulp.task('template:test', function () {
         .pipe(gulp.dest(config.test));
 });
 
-gulp.task('inject', function() {
+gulp.task('inject', function(cb) {
     runSequence('inject:dep', 'inject:app');
+    cb();
 });
 
 gulp.task('inject:dep', ['inject:test', 'inject:vendor']);
@@ -83,11 +81,14 @@ gulp.task('inject:app', inject.app);
 
 gulp.task('inject:vendor', inject.vendor);
 
-gulp.task('inject:test', ['template:test'], inject.test);
+gulp.task('inject:test', function(cb) {
+    runSequence('template:test', inject.test);
+    cb();
+});
 
 gulp.task('inject:troubleshoot', inject.troubleshoot);
 
-gulp.task('assets:prod', ['images', 'styles', 'html', 'copy:swagger', 'copy:images'], build);
+gulp.task('assets:prod', ['images', 'styles', 'html', 'copy:images'], build);
 
 gulp.task('html', function () {
     return gulp.src(config.app + 'app/**/*.html')
@@ -179,8 +180,8 @@ gulp.task('watch', function () {
     gulp.watch([config.app + '*.html', config.app + 'app/**', config.app + 'i18n/**']).on('change', browserSync.reload);
 });
 
-gulp.task('install', function () {
-    runSequence('template:index', ['inject:dep', 'ngconstant:dev'], 'inject:app', 'inject:troubleshoot');
+gulp.task('install', function (cb) {
+    runSequence('template:index', ['inject:dep', 'ngconstant:dev'], 'inject:app', 'inject:troubleshoot', cb);
 });
 
 gulp.task('serve', ['install'], serve);

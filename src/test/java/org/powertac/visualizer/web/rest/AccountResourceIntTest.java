@@ -4,6 +4,7 @@ import org.powertac.visualizer.Visualizer2App;
 import org.powertac.visualizer.domain.Authority;
 import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.repository.AuthorityRepository;
+import org.powertac.visualizer.repository.PersistentTokenRepository;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.security.AuthoritiesConstants;
 import org.powertac.visualizer.service.UserService;
@@ -14,15 +15,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,14 +40,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = Visualizer2App.class)
 public class AccountResourceIntTest {
 
-    @Inject
+    @Autowired
     private UserRepository userRepository;
 
-    @Inject
+    @Autowired
     private AuthorityRepository authorityRepository;
 
-    @Inject
+    @Autowired
     private UserService userService;
+
+    @Autowired
+    private PersistentTokenRepository persistentTokenRepository;
 
     @Mock
     private UserService mockUserService;
@@ -60,13 +63,11 @@ public class AccountResourceIntTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        AccountResource accountResource = new AccountResource();
-        ReflectionTestUtils.setField(accountResource, "userRepository", userRepository);
-        ReflectionTestUtils.setField(accountResource, "userService", userService);
+        AccountResource accountResource =
+            new AccountResource(userRepository, userService, persistentTokenRepository);
 
-        AccountResource accountUserMockResource = new AccountResource();
-        ReflectionTestUtils.setField(accountUserMockResource, "userRepository", userRepository);
-        ReflectionTestUtils.setField(accountUserMockResource, "userService", mockUserService);
+        AccountResource accountUserMockResource =
+            new AccountResource(userRepository, mockUserService, persistentTokenRepository);
 
         this.restMvc = MockMvcBuilders.standaloneSetup(accountResource).build();
         this.restUserMockMvc = MockMvcBuilders.standaloneSetup(accountUserMockResource).build();
@@ -134,18 +135,18 @@ public class AccountResourceIntTest {
             "password",             // password
             "Joe",                  // firstName
             "Shmoe",                // lastName
-            "en",               // langKey
-            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)),
+            "en",                   // langKey
+            null,                   // createdBy
             null,                   // createdDate
             null,                   // lastModifiedBy
-            null                    // lastModifiedDate
-        );
+            null,                   // lastModifiedDate
+            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)));
 
         restMvc.perform(
             post("/api/register")
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
                 .content(TestUtil.convertObjectToJsonBytes(validUser)))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated());
 
         Optional<User> user = userRepository.findOneByLogin("joe");
         assertThat(user.isPresent()).isTrue();
@@ -160,18 +161,21 @@ public class AccountResourceIntTest {
             "password",             // password
             "Funky",                // firstName
             "One",                  // lastName
-            "en",               // langKey
-            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)),
-            null,               // createdDate
-            null,               // lastModifiedBy
-            null                // lastModifiedDate
-        );
+            "en",                   // langKey
+            null,                   // createdBy
+            null,                   // createdDate
+            null,                   // lastModifiedBy
+            null,                   // lastModifiedDate
+            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)));
 
         restUserMockMvc.perform(
             post("/api/register")
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
                 .content(TestUtil.convertObjectToJsonBytes(invalidUser)))
             .andExpect(status().isBadRequest());
+
+        Optional<User> user = userRepository.findOneByLogin("funky-log!n");
+        assertThat(user.isPresent()).isFalse();
     }
 
     @Test
@@ -183,12 +187,12 @@ public class AccountResourceIntTest {
             "123",              // password with only 3 digits
             "Bob",              // firstName
             "Green",            // lastName
-            "en",               // langKey
-            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)),
-            null,               // createdDate
-            null,               // lastModifiedBy
-            null                // lastModifiedDate
-        );
+            "en",                   // langKey
+            null,                   // createdBy
+            null,                   // createdDate
+            null,                   // lastModifiedBy
+            null,                   // lastModifiedDate
+            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)));
 
         restUserMockMvc.perform(
             post("/api/register")
@@ -210,23 +214,23 @@ public class AccountResourceIntTest {
             "password",             // password
             "Alice",                // firstName
             "Something",            // lastName
-            "en",               // langKey
-            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)),
+            "en",                   // langKey
+            null,                   // createdBy
             null,                   // createdDate
             null,                   // lastModifiedBy
-            null                    // lastModifiedDate
-        );
+            null,                   // lastModifiedDate
+            new HashSet<>(Arrays.asList(AuthoritiesConstants.USER)));
 
         // Duplicate login, different e-mail
         ManagedUserVM duplicatedUser = new ManagedUserVM(validUser.getId(), validUser.getLogin(), validUser.getPassword(), validUser.getLogin(), validUser.getLastName(),
-            validUser.getLangKey(), validUser.getAuthorities(), validUser.getCreatedDate(), validUser.getLastModifiedBy(), validUser.getLastModifiedDate());
+            validUser.getLangKey(), validUser.getCreatedBy(), validUser.getCreatedDate(), validUser.getLastModifiedBy(), validUser.getLastModifiedDate(), validUser.getAuthorities());
 
         // Good user
         restMvc.perform(
             post("/api/register")
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
                 .content(TestUtil.convertObjectToJsonBytes(validUser)))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated());
 
         // Duplicate login
         restMvc.perform(
@@ -245,18 +249,18 @@ public class AccountResourceIntTest {
             "password",             // password
             "Bad",                  // firstName
             "Guy",                  // lastName
-            "en",               // langKey
-            new HashSet<>(Arrays.asList(AuthoritiesConstants.ADMIN)),
+            "en",                   // langKey
+            null,                   // createdBy
             null,                   // createdDate
             null,                   // lastModifiedBy
-            null                    // lastModifiedDate
-        );
+            null,                   // lastModifiedDate
+            new HashSet<>(Arrays.asList(AuthoritiesConstants.ADMIN)));
 
         restMvc.perform(
             post("/api/register")
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
                 .content(TestUtil.convertObjectToJsonBytes(validUser)))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated());
 
         Optional<User> userDup = userRepository.findOneByLogin("badguy");
         assertThat(userDup.isPresent()).isTrue();
@@ -268,10 +272,15 @@ public class AccountResourceIntTest {
     @Transactional
     public void testSaveInvalidLogin() throws Exception {
         UserDTO invalidUser = new UserDTO(
+            null,                   // id
             "funky-log!n",          // login <-- invalid
             "Funky",                // firstName
             "One",                  // lastName
-            "en",               // langKey
+            "en",                   // langKey
+            null,                   // createdBy
+            null,                   // createdDate
+            null,                   // lastModifiedBy
+            null,                   // lastModifiedDate
             new HashSet<>(Arrays.asList(AuthoritiesConstants.USER))
         );
 

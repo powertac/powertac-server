@@ -13,31 +13,28 @@
         vm.state = State;
 
         var chartConfig = {
-            options: {
-                chart: {
-                    zoomType: 'x'
-                },
-                rangeSelector: {
-                    enabled: true
-                },
-                navigator: {
-                    enabled: true,
-                    adaptToUpdatedData: false,
-                    series: {
-                        type: 'line',
-                        lineWidth: 0,
-                    }
+            chart: {
+                zoomType: 'x'
+            },
+            rangeSelector: {
+                enabled: true
+            },
+            navigator: {
+                enabled: true,
+                adaptToUpdatedData: false,
+                series: {
+                    type: 'line',
+                    lineWidth: 0,
                 }
             },
             series: [],
             title: {
                 text: ''
             },
-            xAxis: {
-                type: 'datetime',
-                categories: State.timeInstances
-            },
-            useHighStocks: true
+            chartType: 'stock',
+            credits: {
+                enabled: false
+            }
         };
 
         function initCharts () {

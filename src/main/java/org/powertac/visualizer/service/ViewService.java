@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -21,12 +20,15 @@ public class ViewService {
 
     private final Logger log = LoggerFactory.getLogger(ViewService.class);
     
-    @Inject
-    private ViewRepository viewRepository;
-    
+    private final ViewRepository viewRepository;
+
+    public ViewService(ViewRepository viewRepository) {
+        this.viewRepository = viewRepository;
+    }
+
     /**
      * Save a view.
-     * 
+     *
      * @param view the entity to save
      * @return the persisted entity
      */
@@ -42,10 +44,10 @@ public class ViewService {
      *  @param pageable the pagination information
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public Page<View> findAll(Pageable pageable) {
         log.debug("Request to get all Views");
-        Page<View> result = viewRepository.findAll(pageable); 
+        Page<View> result = viewRepository.findAll(pageable);
         return result;
     }
 
@@ -67,7 +69,7 @@ public class ViewService {
      *  @param id the id of the entity
      *  @return the entity
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public View findOne(Long id) {
         log.debug("Request to get View : {}", id);
         View view = viewRepository.findOne(id);
@@ -76,7 +78,7 @@ public class ViewService {
 
     /**
      *  Delete the  view by id.
-     *  
+     *
      *  @param id the id of the entity
      */
     public void delete(Long id) {

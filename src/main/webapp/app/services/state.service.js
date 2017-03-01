@@ -78,7 +78,7 @@
         }
 
         function processSnapshot (snapshot) {
-            service.timeInstances.push(snapshot.timeInstance);
+            service.timeInstances.push(new Date(snapshot.timeInstance));
 
             // process broker ticks:
             snapshot.tickValueBrokers.forEach(function (brokerTick) {

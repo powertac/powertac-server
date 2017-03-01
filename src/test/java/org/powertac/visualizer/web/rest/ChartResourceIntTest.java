@@ -1,33 +1,34 @@
 package org.powertac.visualizer.web.rest;
 
 import org.powertac.visualizer.Visualizer2App;
+
 import org.powertac.visualizer.domain.Chart;
 import org.powertac.visualizer.repository.ChartRepository;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.ChartService;
+import org.powertac.visualizer.web.rest.errors.ExceptionTranslator;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.hamcrest.Matchers.hasItem;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 
 /**
  * Test class for the ChartResource REST controller.
@@ -38,47 +39,63 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = Visualizer2App.class)
 public class ChartResourceIntTest {
 
-    private static final String DEFAULT_NAME = "A";
-    private static final String UPDATED_NAME = "B";
+    private static final String DEFAULT_NAME = "AAAAAAAAAA";
+    private static final String UPDATED_NAME = "BBBBBBBBBB";
 
     private static final Boolean DEFAULT_SHARED = false;
     private static final Boolean UPDATED_SHARED = true;
 
-    @Inject
+    @Autowired
     private ChartRepository chartRepository;
 
-    @Inject
+    @Autowired
     private UserRepository userRepository;
 
-    @Inject
+    @Autowired
     private ChartService chartService;
 
-    @Inject
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
-    @Inject
+    @Autowired
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
+
+    @Autowired
+    private ExceptionTranslator exceptionTranslator;
+
+    @Autowired
+    private EntityManager em;
 
     private MockMvc restChartMockMvc;
 
     private Chart chart;
 
-    @PostConstruct
+    @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        ChartResource chartResource = new ChartResource();
-        ReflectionTestUtils.setField(chartResource, "chartService", chartService);
-        ReflectionTestUtils.setField(chartResource, "userRepository", userRepository);
+        ChartResource chartResource = new ChartResource(chartService, userRepository);
         this.restChartMockMvc = MockMvcBuilders.standaloneSetup(chartResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
+            .setControllerAdvice(exceptionTranslator)
             .setMessageConverters(jacksonMessageConverter).build();
+    }
+
+    /**
+     * Create an entity for this test.
+     *
+     * This is a static method, as tests for other entities might also need it,
+     * if they test an entity which requires the current entity.
+     */
+    public static Chart createEntity(EntityManager em) {
+        Chart chart = new Chart();
+        chart.setName(DEFAULT_NAME);
+        chart.setShared(DEFAULT_SHARED);
+        return chart;
     }
 
     @Before
     public void initTest() {
-        chart = new Chart();
-        chart.setName(DEFAULT_NAME);
-        chart.setShared(DEFAULT_SHARED);
+        chart = createEntity(em);
     }
 
     @Test
@@ -89,16 +106,36 @@ public class ChartResourceIntTest {
         // Create the Chart
 
         restChartMockMvc.perform(post("/api/charts")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(chart)))
-                .andExpect(status().isCreated());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(chart)))
+            .andExpect(status().isCreated());
 
         // Validate the Chart in the database
-        List<Chart> charts = chartRepository.findAll();
-        assertThat(charts).hasSize(databaseSizeBeforeCreate + 1);
-        Chart testChart = charts.get(charts.size() - 1);
+        List<Chart> chartList = chartRepository.findAll();
+        assertThat(chartList).hasSize(databaseSizeBeforeCreate + 1);
+        Chart testChart = chartList.get(chartList.size() - 1);
         assertThat(testChart.getName()).isEqualTo(DEFAULT_NAME);
         assertThat(testChart.isShared()).isEqualTo(DEFAULT_SHARED);
+    }
+
+    @Test
+    @Transactional
+    public void createChartWithExistingId() throws Exception {
+        int databaseSizeBeforeCreate = chartRepository.findAll().size();
+
+        // Create the Chart with an existing ID
+        Chart existingChart = new Chart();
+        existingChart.setId(1L);
+
+        // An entity with an existing ID cannot be created, so this API call must fail
+        restChartMockMvc.perform(post("/api/charts")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(existingChart)))
+            .andExpect(status().isBadRequest());
+
+        // Validate the Alice in the database
+        List<Chart> chartList = chartRepository.findAll();
+        assertThat(chartList).hasSize(databaseSizeBeforeCreate);
     }
 
     @Test
@@ -111,12 +148,12 @@ public class ChartResourceIntTest {
         // Create the Chart, which fails.
 
         restChartMockMvc.perform(post("/api/charts")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(chart)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(chart)))
+            .andExpect(status().isBadRequest());
 
-        List<Chart> charts = chartRepository.findAll();
-        assertThat(charts).hasSize(databaseSizeBeforeTest);
+        List<Chart> chartList = chartRepository.findAll();
+        assertThat(chartList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
@@ -129,12 +166,12 @@ public class ChartResourceIntTest {
         // Create the Chart, which fails.
 
         restChartMockMvc.perform(post("/api/charts")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(chart)))
-                .andExpect(status().isBadRequest());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(chart)))
+            .andExpect(status().isBadRequest());
 
-        List<Chart> charts = chartRepository.findAll();
-        assertThat(charts).hasSize(databaseSizeBeforeTest);
+        List<Chart> chartList = chartRepository.findAll();
+        assertThat(chartList).hasSize(databaseSizeBeforeTest);
     }
 
     @Test
@@ -143,13 +180,13 @@ public class ChartResourceIntTest {
         // Initialize the database
         chartRepository.saveAndFlush(chart);
 
-        // Get all the charts
+        // Get all the chartList
         restChartMockMvc.perform(get("/api/charts?sort=id,desc"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$.[*].id").value(hasItem(chart.getId().intValue())))
-                .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
-                .andExpect(jsonPath("$.[*].shared").value(hasItem(DEFAULT_SHARED.booleanValue())));
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(chart.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
+            .andExpect(jsonPath("$.[*].shared").value(hasItem(DEFAULT_SHARED.booleanValue())));
     }
 
     @Test
@@ -161,7 +198,7 @@ public class ChartResourceIntTest {
         // Get the chart
         restChartMockMvc.perform(get("/api/charts/{id}", chart.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.id").value(chart.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()))
             .andExpect(jsonPath("$.shared").value(DEFAULT_SHARED.booleanValue()));
@@ -172,7 +209,7 @@ public class ChartResourceIntTest {
     public void getNonExistingChart() throws Exception {
         // Get the chart
         restChartMockMvc.perform(get("/api/charts/{id}", Long.MAX_VALUE))
-                .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -184,22 +221,39 @@ public class ChartResourceIntTest {
         int databaseSizeBeforeUpdate = chartRepository.findAll().size();
 
         // Update the chart
-        Chart updatedChart = new Chart();
-        updatedChart.setId(chart.getId());
+        Chart updatedChart = chartRepository.findOne(chart.getId());
         updatedChart.setName(UPDATED_NAME);
         updatedChart.setShared(UPDATED_SHARED);
 
         restChartMockMvc.perform(put("/api/charts")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(updatedChart)))
-                .andExpect(status().isOk());
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(updatedChart)))
+            .andExpect(status().isOk());
 
         // Validate the Chart in the database
-        List<Chart> charts = chartRepository.findAll();
-        assertThat(charts).hasSize(databaseSizeBeforeUpdate);
-        Chart testChart = charts.get(charts.size() - 1);
+        List<Chart> chartList = chartRepository.findAll();
+        assertThat(chartList).hasSize(databaseSizeBeforeUpdate);
+        Chart testChart = chartList.get(chartList.size() - 1);
         assertThat(testChart.getName()).isEqualTo(UPDATED_NAME);
         assertThat(testChart.isShared()).isEqualTo(UPDATED_SHARED);
+    }
+
+    @Test
+    @Transactional
+    public void updateNonExistingChart() throws Exception {
+        int databaseSizeBeforeUpdate = chartRepository.findAll().size();
+
+        // Create the Chart
+
+        // If the entity doesn't have an ID, it will be created instead of just being updated
+        restChartMockMvc.perform(put("/api/charts")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(chart)))
+            .andExpect(status().isCreated());
+
+        // Validate the Chart in the database
+        List<Chart> chartList = chartRepository.findAll();
+        assertThat(chartList).hasSize(databaseSizeBeforeUpdate + 1);
     }
 
     @Test
@@ -212,11 +266,16 @@ public class ChartResourceIntTest {
 
         // Get the chart
         restChartMockMvc.perform(delete("/api/charts/{id}", chart.getId())
-                .accept(TestUtil.APPLICATION_JSON_UTF8))
-                .andExpect(status().isOk());
+            .accept(TestUtil.APPLICATION_JSON_UTF8))
+            .andExpect(status().isOk());
 
         // Validate the database is empty
-        List<Chart> charts = chartRepository.findAll();
-        assertThat(charts).hasSize(databaseSizeBeforeDelete - 1);
+        List<Chart> chartList = chartRepository.findAll();
+        assertThat(chartList).hasSize(databaseSizeBeforeDelete - 1);
+    }
+
+    @Test
+    public void equalsVerifier() throws Exception {
+        TestUtil.equalsVerifier(Chart.class);
     }
 }

@@ -5,42 +5,50 @@
         .module('visualizer2App')
         .controller('GameDialogController', GameDialogController);
 
-    GameDialogController.$inject = ['$scope', '$stateParams', '$uibModalInstance', 'entity', 'Game', 'User', 'File'];
+    GameDialogController.$inject = ['$timeout', '$scope', '$stateParams', '$uibModalInstance', 'entity', 'Game', 'User', 'File'];
 
-    function GameDialogController ($scope, $stateParams, $uibModalInstance, entity, Game, User, File) {
+    function GameDialogController ($timeout, $scope, $stateParams, $uibModalInstance, entity, Game, User, File) {
         var vm = this;
+
         vm.game = entity;
+        vm.clear = clear;
+        vm.datePickerOpenStatus = {};
+        vm.openCalendar = openCalendar;
+        vm.save = save;
         vm.users = User.query();
         vm.files = File.query();
 
-        var onSaveSuccess = function (result) {
-            $scope.$emit('visualizer2App:gameUpdate', result);
-            $uibModalInstance.close(result);
-            vm.isSaving = false;
-        };
+        $timeout(function (){
+            angular.element('.form-group:eq(1)>input').focus();
+        });
 
-        var onSaveError = function () {
-            vm.isSaving = false;
-        };
+        function clear () {
+            $uibModalInstance.dismiss('cancel');
+        }
 
-        vm.save = function () {
+        function save () {
             vm.isSaving = true;
             if (vm.game.id !== null) {
                 Game.update(vm.game, onSaveSuccess, onSaveError);
             } else {
                 Game.save(vm.game, onSaveSuccess, onSaveError);
             }
-        };
+        }
 
-        vm.clear = function() {
-            $uibModalInstance.dismiss('cancel');
-        };
+        function onSaveSuccess (result) {
+            $scope.$emit('visualizer2App:gameUpdate', result);
+            $uibModalInstance.close(result);
+            vm.isSaving = false;
+        }
 
-        vm.datePickerOpenStatus = {};
+        function onSaveError () {
+            vm.isSaving = false;
+        }
+
         vm.datePickerOpenStatus.date = false;
 
-        vm.openCalendar = function(date) {
+        function openCalendar (date) {
             vm.datePickerOpenStatus[date] = true;
-        };
+        }
     }
 })();

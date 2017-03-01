@@ -16,17 +16,19 @@ import org.powertac.visualizer.service_ptac.VisualizerService;
 import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
+
+import io.github.jhipster.web.util.ResponseUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -45,17 +47,23 @@ public class GameResource {
 
     private final Logger log = LoggerFactory.getLogger(GameResource.class);
 
-    @Inject
+
+    private static final String ENTITY_NAME = "game";
+        
+    private final GameService gameService;
     private UserRepository userRepository;
 
-    @Inject
-    private GameService gameService;
-
-    @Inject
+    @Autowired
     private VisualizerService visualizerService;
 
-    @Inject
+    @Autowired
     private EmbeddedService embeddedService;
+
+    public GameResource(GameService gameService, UserRepository userRepository) {
+        this.gameService = gameService;
+        this.userRepository = userRepository;
+    }
+
 
     /**
      * POST /games : Create a new game.
@@ -64,14 +72,12 @@ public class GameResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new game, or with status 400 (Bad Request) if the game has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/games",
-        method = RequestMethod.POST,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/games")
     @Timed
     public ResponseEntity<Game> createGame(@Valid @RequestBody Game game) throws URISyntaxException {
         log.debug("REST request to save Game : {}", game);
         if (game.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("game", "idexists", "A new game cannot already have an ID")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new game cannot already have an ID")).body(null);
         }
         String login = SecurityUtils.getCurrentUserLogin();
         User user = userRepository.findOneByLogin(login).orElse(null);
@@ -83,9 +89,8 @@ public class GameResource {
 
         Game result = gameService.save(game);
         return ResponseEntity.created(new URI("/api/games/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert("game",
-                        result.getId().toString()))
-                .body(result);
+            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
+            .body(result);
     }
 
     /**
@@ -97,9 +102,7 @@ public class GameResource {
      * or with status 500 (Internal Server Error) if the game couldnt be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @RequestMapping(value = "/games",
-        method = RequestMethod.PUT,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping("/games")
     @Timed
     public ResponseEntity<Game> updateGame(@Valid @RequestBody Game game) throws URISyntaxException {
         log.debug("REST request to update Game : {}", game);
@@ -111,7 +114,7 @@ public class GameResource {
         }
         Game result = gameService.save(game);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert("game", game.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, game.getId().toString()))
             .body(result);
     }
 
@@ -125,13 +128,11 @@ public class GameResource {
      * @throws URISyntaxException
      *             if there is an error to generate the pagination HTTP headers
      */
-    @RequestMapping(value = "/games",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/games")
     @Timed
     public ResponseEntity<List<Game>> getAllGames(Pageable pageable) throws URISyntaxException {
         log.debug("REST request to get a page of Games");
-        Page<Game> page = gameService.findAll(pageable); 
+        Page<Game> page = gameService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/games");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
@@ -142,18 +143,12 @@ public class GameResource {
      * @param id the id of the game to retrieve
      * @return the ResponseEntity with status 200 (OK) and with body the game, or with status 404 (Not Found)
      */
-    @RequestMapping(value = "/games/{id}",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/games/{id}")
     @Timed
     public ResponseEntity<Game> getGame(@PathVariable Long id) {
         log.debug("REST request to get Game : {}", id);
         Game game = gameService.findOne(id);
-        return Optional.ofNullable(game)
-            .map(result -> new ResponseEntity<>(
-                result,
-                HttpStatus.OK))
-            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(game));
     }
 
     /**
@@ -162,24 +157,18 @@ public class GameResource {
      * @param id the id of the game to delete
      * @return the ResponseEntity with status 200 (OK)
      */
-    @RequestMapping(value = "/games/{id}",
-        method = RequestMethod.DELETE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping("/games/{id}")
     @Timed
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         log.debug("REST request to delete Game : {}", id);
         gameService.delete(id);
-        return ResponseEntity.ok().headers(
-                HeaderUtil.createEntityDeletionAlert("game", id.toString()))
-                .build();
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
     /**
      * Get all games owned by logged in user, plus all shared files.
      */
-    @RequestMapping(value = "/mygames",
-        method = RequestMethod.GET,
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/mygames")
     @Timed
     public ResponseEntity<List<Game>> getMyGames() throws URISyntaxException {
         log.debug("REST request to get owned and shared games");
@@ -188,9 +177,7 @@ public class GameResource {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/bootgame",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/bootgame")
     @Timed
     public ResponseEntity<Game> bootGame(@Valid @RequestBody Game game,
             @RequestParam("overwrite") @Valid @NotNull Boolean overwrite)
@@ -238,9 +225,7 @@ public class GameResource {
                 .body(game);
     }
 
-    @RequestMapping(value = "/simgame",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/simgame")
     @Timed
     public ResponseEntity<Game> simGame(@Valid @RequestBody Game game,
             @RequestParam("overwrite") @Valid @NotNull Boolean overwrite)
@@ -288,9 +273,7 @@ public class GameResource {
                 .body(game);
     }
 
-    @RequestMapping(value = "/replaygame",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/replaygame")
     @Timed
     public ResponseEntity<Void> replayGame(@Valid @RequestBody File file) throws URISyntaxException {
         log.debug("REST request to replay a game");
@@ -315,7 +298,7 @@ public class GameResource {
                 .body(null);
     }
 
-    @RequestMapping(value = "/closegame", method = RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
+    @PostMapping("/closegame")
     @Timed
     public ResponseEntity<Void> closeGame() throws IllegalStateException {
         log.debug("REST request to start a game");

@@ -2,72 +2,66 @@
 <div>
     <h2><span>Game</span> {{vm.game.id}}</h2>
     <hr>
-    <dl class="dl-horizontal">
+    <jhi-alert-error></jhi-alert-error>
+    <dl class="row jh-entity-details">
         <dt><span>Type</span></dt>
         <dd>
-            <span translate="{{'visualizer2App.GameType.' + vm.game.type}}">{{vm.game.type}}</span>
+            <span>{{vm.game.type}}</span>
         </dd>
-        <hr>
         <dt><span>Name</span></dt>
         <dd>
             <span>{{vm.game.name}}</span>
         </dd>
-        <hr>
         <dt><span>Shared</span></dt>
         <dd>
             <span>{{vm.game.shared}}</span>
         </dd>
-        <hr>
         <dt><span>Date</span></dt>
         <dd>
             <span>{{vm.game.date | date:'medium'}}</span>
         </dd>
-        <hr>
         <dt><span>Brokers</span></dt>
         <dd>
             <span>{{vm.game.brokers}}</span>
         </dd>
-        <hr>
         <dt><span>Owner</span></dt>
         <dd>
             {{vm.game.owner.login}}
         </dd>
-        <hr>
         <dt><span>Trace File</span></dt>
         <dd>
             <a ui-sref="file-detail({id:vm.game.traceFile.id})">{{vm.game.traceFile.id}}</a>
         </dd>
-        <hr>
         <dt><span>State File</span></dt>
         <dd>
             <a ui-sref="file-detail({id:vm.game.stateFile.id})">{{vm.game.stateFile.id}}</a>
         </dd>
-        <hr>
         <dt><span>Seed File</span></dt>
         <dd>
             <a ui-sref="file-detail({id:vm.game.seedFile.id})">{{vm.game.seedFile.id}}</a>
         </dd>
-        <hr>
         <dt><span>Boot File</span></dt>
         <dd>
             <a ui-sref="file-detail({id:vm.game.bootFile.id})">{{vm.game.bootFile.id}}</a>
         </dd>
-        <hr>
         <dt><span>Config File</span></dt>
         <dd>
             <a ui-sref="file-detail({id:vm.game.configFile.id})">{{vm.game.configFile.id}}</a>
         </dd>
-        <hr>
         <dt><span>Weather File</span></dt>
         <dd>
             <a ui-sref="file-detail({id:vm.game.weatherFile.id})">{{vm.game.weatherFile.id}}</a>
         </dd>
-        <hr>
     </dl>
 
     <button type="submit"
-            onclick="window.history.back()"
+            ui-sref="{{ vm.previousState }}"
             class="btn btn-info">
         <span class="glyphicon glyphicon-arrow-left"></span>&nbsp;<span> Back</span>
+    </button>
+
+    <button type="button" ui-sref="game-detail.edit({id:vm.game.id})" class="btn btn-primary">
+        <span class="glyphicon glyphicon-pencil"></span>
+        <span class="hidden-sm-down"> Edit</span>
     </button>
 </div>
