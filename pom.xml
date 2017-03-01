@@ -20,11 +20,10 @@
 
   <properties>
     <springwebflow-version>2.4.4.RELEASE</springwebflow-version>
-    <springsecurity-version>4.1.2.RELEASE</springsecurity-version>
+    <springsecurity-version>4.2.1.RELEASE</springsecurity-version>
     <servlet-api.version>3.1.0</servlet-api.version>
     <jsp-api.version>2.2</jsp-api.version>
     <el-api.version>3.0.0</el-api.version>
-    <log4j.version>2.6.2</log4j.version>
   </properties>
 
   <dependencies>
@@ -295,8 +294,6 @@
             <artifactId>maven-war-plugin</artifactId>
             <version>2.2</version>
             <configuration>
-              <!-- skinny war setup -->
-              <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
               <webResources>
                 <resource>
                   <directory>src/main/webapp/WEB-INF/spring</directory>
