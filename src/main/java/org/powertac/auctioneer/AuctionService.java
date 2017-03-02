@@ -108,7 +108,7 @@ public class AuctionService
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Proportion of market surplus allocated to the seller")
-  private double sellerSurplusRatio;
+  private double sellerSurplusRatio = 0.5;
 
   @ConfigurableValue(valueType = "Double",
       publish = true,
