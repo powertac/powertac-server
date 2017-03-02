@@ -37,7 +37,7 @@
       <AppenderRef ref="LogFile"/>
     </Logger>
 
-    <Logger name="State" level="info">
+    <Logger name="State" level="info" additivity="false">
       <AppenderRef ref="StateFile"/>
     </Logger>
 
