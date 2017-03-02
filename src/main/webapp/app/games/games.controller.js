@@ -94,7 +94,7 @@
     }
 
     function isStartButtonDisabled () {
-      return !isGameValid() || !State.gameStatus || State.gameStatus === 'RUNNING';
+      return !isGameValid() || !State.gameStatus || State.gameStatus === 'RUNNING' || State.gameStatus === 'OFFLINE';
     }
 
     function isStopButtonDisabled () {
