@@ -9,19 +9,24 @@
 
     function Push ($http, $cookies, $q, $timeout, $log, DEBUG_INFO_ENABLED) {
         var service = {
-            receive: receive
+            receive: receive,
+            onConnectionChanged: onConnectionChanged
         };
 
         var loc = window.location;
         var SOCKET_URL = '//' + loc.host + loc.pathname + 'websocket/push';
         var TOPIC = '/topic/push';
 
-        var RECONNECT_TIMEOUT_START = 500;
-        var RECONNECT_TIMEOUT_LIMIT = 32000;
+        var RECONNECT_TIMEOUT_START = 125;
+        var RECONNECT_TIMEOUT_LIMIT = 8000;
         var delay = RECONNECT_TIMEOUT_START;
         var offset = Math.ceil(Math.random() * RECONNECT_TIMEOUT_START);
 
         var listener = $q.defer();
+
+        var connected = false;
+        var connectionChanged = null;
+
         var socket = {
             client: null,
             stomp: null
@@ -31,11 +36,19 @@
             return listener.promise;
         }
 
+        function onConnectionChanged(callback) {
+            connectionChanged = callback;
+        }
+
         function getMessage (data) {
             return JSON.parse(data);
         }
 
         function success () {
+            if (!connected) {
+                connected = true;
+                connectionChanged(connected);
+            }
             // new values
             delay = RECONNECT_TIMEOUT_START;
             socket.stomp.subscribe(TOPIC, function (data) {
@@ -44,6 +57,10 @@
         }
 
         function failure (error) {
+            if (connected) {
+                connected = false;
+                connectionChanged(connected);
+            }
             $log.debug('STOMP error ' + error);
             $log.debug('reconnecting in ~' + delay + ' ms.');
             $timeout(function () {

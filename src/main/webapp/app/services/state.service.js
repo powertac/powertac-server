@@ -15,11 +15,14 @@
         service.gameName = '';
         service.queue = [];
         service.gameStatus = '';
+        service.prevStatus = '';
         service.gameStatusStyle = 'default';
 
         Push.receive().then(null, null, function (obj) {
             handlePushMessage(obj);
         });
+        
+        Push.onConnectionChanged(setConnected);
 
         function initGraphData () {
             return {
@@ -55,6 +58,15 @@
                 'retail': initRetail({}),
                 'graphData': initGraphData()
             };
+        }
+        
+        function setConnected(connected) {
+            if (connected) {
+                setStatus(service.prevStatus);
+            } else {
+                service.prevStatus = service.gameStatus;
+                setStatus('OFFLINE');
+            }
         }
 
         function setStatus (status) {
