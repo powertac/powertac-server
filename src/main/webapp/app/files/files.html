@@ -16,7 +16,10 @@
             <option value="weather">WEATHER</option>
           </select>
           <label ng-show="vm.uploadFile != null && vm.uploadType" class="btn btn-default">
-            <input type="checkbox" ng-model="vm.uploadShared" autocomplete="off" />Shared
+            <input type="checkbox" ng-model="vm.uploadShared" autocomplete="off" /> Shared
+          </label>
+          <label ng-show="vm.uploadFile != null && vm.uploadType" class="btn btn-default">
+            <input type="checkbox" ng-model="vm.uploadOverwrite" autocomplete="off" /> Overwrite
           </label>
           <a class="btn btn-default" href="" ng-click="vm.doUpload()" ng-show="vm.uploadFile != null && vm.uploadType">
             <span class="glyphicon glyphicon-upload"></span>
@@ -45,9 +48,6 @@
               <tr>
                 <th colspan="5" st-sort="path">
                   Name
-                  <a href="" ng-click="vm.refreshFiles()">
-                    <i class="glyphicon glyphicon-refresh"></i>
-                  </a>
                 </th>
                 <th colspan="1">
                   Type
@@ -95,6 +95,10 @@
             </tfoot>
 
           </table>
+
+          <a class="btn btn-default" ng-click="vm.refreshFiles()">
+            Refresh <i class="glyphicon glyphicon-refresh"></i>
+          </a>
 
         </div>
 

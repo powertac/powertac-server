@@ -221,6 +221,7 @@ public class FileResource {
     @Timed
     public ResponseEntity<File> postFile (@Valid @NotNull @PathVariable String type,
                 @RequestParam("shared") Boolean shared,
+                @RequestParam("overwrite") Boolean overwrite,
                 @Valid @NotNull @RequestParam("file") MultipartFile part)
                 throws IOException, URISyntaxException {
         String name = part.getOriginalFilename();
@@ -232,7 +233,17 @@ public class FileResource {
         FileType fileType = FileType.valueOf(type.toUpperCase());
         java.io.File raw = fileType.getFile(user, name);
         if (raw.exists()) {
+          if (overwrite) {
+            List<File> files = fileService.findByOwnerIsCurrentUser(login, fileType);
+            for (File file: files) {
+              if (file.getName().equals(name)) {
+                fileService.delete(file.getId());
+                break;
+              }
+            }
+          } else {
             throw new FileExistsException();
+          }
         }
         try (
             OutputStream out = new BufferedOutputStream(new FileOutputStream(raw))

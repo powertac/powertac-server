@@ -27,15 +27,16 @@
         function resetUpload () {
             vm.uploadFile = null;
             vm.uploadShared = false;
+            vm.uploadOverwrite = false;
             vm.uploadType = '';
         }
 
         function doUpload () {
-            console.log('shared: ' + vm.uploadShared);
             Files.upload({
                 file: vm.uploadFile,
                 type: vm.uploadType,
-                shared: vm.uploadShared
+                shared: vm.uploadShared,
+                overwrite: vm.uploadOverwrite
             }, function() {
                 angular.element('#fileForm')[0].reset();
                 vm.resetUpload();
