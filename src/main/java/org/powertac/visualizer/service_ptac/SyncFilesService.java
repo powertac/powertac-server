@@ -40,7 +40,7 @@ public class SyncFilesService {
     @Autowired
     private GameService gameService;
 
-    @Scheduled(fixedDelay = 30000, initialDelay = 10000)
+    @Scheduled(fixedDelay = 5000, initialDelay = 10000)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void syncFileSystem() {
         if (visualizerService.getState().equals(VisualizerState.RUNNING)) {
@@ -51,19 +51,19 @@ public class SyncFilesService {
         long t = System.currentTimeMillis();
         log.debug("Starting at " + new java.util.Date());
 
-        sync(FileType.TRACE, FileType.DIRECTORY_LOG, ".trace");
-        sync(FileType.STATE, FileType.DIRECTORY_LOG, ".state");
-        sync(FileType.BOOT, FileType.DIRECTORY_BOOT, ".xml");
-        sync(FileType.SEED, FileType.DIRECTORY_SEED, ".state");
-        sync(FileType.CONFIG, FileType.DIRECTORY_CONFIG, ".properties");
-        sync(FileType.WEATHER, FileType.DIRECTORY_WEATHER, ".xml");
+        sync(FileType.TRACE, FileType.DIRECTORY_LOG, new String[] {".trace"});
+        sync(FileType.STATE, FileType.DIRECTORY_LOG, new String[] {".state"});
+        sync(FileType.BOOT, FileType.DIRECTORY_BOOT, new String[] {".xml"});
+        sync(FileType.SEED, FileType.DIRECTORY_SEED, new String[] {".state"});
+        sync(FileType.CONFIG, FileType.DIRECTORY_CONFIG, new String[] {".properties", ".props"});
+        sync(FileType.WEATHER, FileType.DIRECTORY_WEATHER, new String[] {".xml"});
 
         t = System.currentTimeMillis() - t;
         log.debug("Finished after " + t + " milliseconds");
     }
 
 
-    private boolean sync(FileType type, String typedir, String suffix) {
+    private boolean sync(FileType type, String typedir, String[] suffixes) {
         int additions = 0, deletions = 0;
         File root = new File(FileType.DIRECTORY_ROOT);
         for (File userdir : root.listFiles()) {
@@ -113,7 +113,12 @@ public class SyncFilesService {
             for (File log : userdir.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
-                    return name.endsWith(suffix); // TODO suffix constants!
+                  for (String suffix : suffixes) {
+                    if (name.endsWith(suffix)) {
+                      return true;
+                    }
+                  }
+                  return false;
                 }
             })) {
                 if (log.isFile()) {
