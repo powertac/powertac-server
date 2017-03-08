@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -40,10 +39,11 @@ public class SyncFilesService {
     @Autowired
     private GameService gameService;
 
-    @Scheduled(fixedDelay = 5000, initialDelay = 10000)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Scheduled(fixedDelay = 30000, initialDelay = 60000)
+    @Transactional()
     public void syncFileSystem() {
-        if (visualizerService.getState().equals(VisualizerState.RUNNING)) {
+        if (visualizerService.getState().equals(VisualizerState.RUNNING)
+        || visualizerService.getState().equals(VisualizerState.WAITING)) {
             log.debug("Skipping sync, game in progress");
             return;
         }
@@ -66,6 +66,7 @@ public class SyncFilesService {
     private boolean sync(FileType type, String typedir, String[] suffixes) {
         int additions = 0, deletions = 0;
         File root = new File(FileType.DIRECTORY_ROOT);
+        log.trace("Syncing type " + type + "...");
         for (File userdir : root.listFiles()) {
             if (!userdir.isDirectory()) {
                 // regular file in root dir, skip
@@ -78,6 +79,7 @@ public class SyncFilesService {
                 // not a user dir (or user was deleted?)
                 continue;
             }
+            log.trace("Syncing user " + login + "...");
 
             // get the DB's current list for this user and type
             List<org.powertac.visualizer.domain.File> expectedList =

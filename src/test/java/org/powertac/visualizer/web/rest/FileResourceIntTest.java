@@ -6,6 +6,7 @@ import org.powertac.visualizer.domain.File;
 import org.powertac.visualizer.repository.FileRepository;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.FileService;
+import org.powertac.visualizer.service.GameService;
 import org.powertac.visualizer.web.rest.errors.ExceptionTranslator;
 
 import org.junit.Before;
@@ -60,6 +61,9 @@ public class FileResourceIntTest {
     private FileService fileService;
 
     @Autowired
+    private GameService gameService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -78,7 +82,7 @@ public class FileResourceIntTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        FileResource fileResource = new FileResource(fileService, userRepository);
+        FileResource fileResource = new FileResource(fileService, gameService, userRepository);
         this.restFileMockMvc = MockMvcBuilders.standaloneSetup(fileResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)

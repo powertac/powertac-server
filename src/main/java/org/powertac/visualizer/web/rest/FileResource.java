@@ -5,11 +5,13 @@ import com.codahale.metrics.annotation.Timed;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.IOUtils;
 import org.powertac.visualizer.domain.File;
+import org.powertac.visualizer.domain.Game;
 import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.domain.enumeration.FileType;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.FileService;
+import org.powertac.visualizer.service.GameService;
 import org.powertac.visualizer.service_ptac.SyncFilesService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
@@ -55,10 +57,12 @@ public class FileResource {
     private static final String ENTITY_NAME = "file";
         
     private final FileService fileService;
+    private final GameService gameService;
     private final UserRepository userRepository;
 
-    public FileResource(FileService fileService, UserRepository userRepository) {
+    public FileResource(FileService fileService, GameService gameService, UserRepository userRepository) {
         this.fileService = fileService;
+        this.gameService = gameService;
         this.userRepository = userRepository;
     }
 
@@ -178,7 +182,7 @@ public class FileResource {
     /**
      * Download a file.
      * TODO document.
-     * 
+     *
      * @param type
      * @param id
      * @param response
@@ -237,6 +241,19 @@ public class FileResource {
             List<File> files = fileService.findByOwnerIsCurrentUser(login, fileType);
             for (File file: files) {
               if (file.getName().equals(name)) {
+                for (Game game : gameService.findByAssociatedFile(file)) {
+                  switch(fileType) {
+                    case BOOT: game.setBootFile(null); break;
+                    case CONFIG: game.setConfigFile(null); break;
+                    case SEED: game.setSeedFile(null); break;
+                    case WEATHER: game.setWeatherFile(null); break;
+                    case STATE: game.setStateFile(null); break;
+                    case TRACE: game.setTraceFile(null); break;
+                    default:
+                      throw new IllegalArgumentException("Can't overwrite " + type + " file");
+                  }
+                  gameService.save(game);
+                }
                 fileService.delete(file.getId());
                 break;
               }
