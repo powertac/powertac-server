@@ -124,7 +124,7 @@ public class TournamentService implements MessageListener {
             public void run() {
                 init();
             }
-        }, 5 * 1000);
+        }, 10 * 1000);
     }
 
     /**
@@ -168,6 +168,7 @@ public class TournamentService implements MessageListener {
     @SuppressWarnings("deprecation")
     @PreDestroy
     private void cleanUp() throws Exception {
+      try {
         // TODO Maybe Spring is better at handling these?
         log.info("\nClean up " + this.getClass().getSimpleName() + " (4) : ");
 
@@ -180,13 +181,17 @@ public class TournamentService implements MessageListener {
         // Kill the message pump from within
         messageQueue.clear();
         putMessage(TournamentEvent.QUIT);
-        messageFeeder.join();
+        if (messageFeeder != null) {
+          messageFeeder.join();
+        }
         log.info("2 ");
 
         // Kill the state machine from within
         eventQueue.clear();
         putEvent(TournamentEvent.QUIT);
-        stateRunner.join();
+        if (stateRunner != null) {
+          stateRunner.join();
+        }
         log.info("3 ");
 
         for (Thread t : Thread.getAllStackTraces().keySet()) {
@@ -197,6 +202,10 @@ public class TournamentService implements MessageListener {
             }
         }
         log.info("4\n");
+      } catch (Exception x) {
+        log.warn("Error in TournamentService.cleanUp()", x);
+        throw x;
+      }
     }
 
     // shut down the proxy at end-of-game, wait a few seconds, go again.
