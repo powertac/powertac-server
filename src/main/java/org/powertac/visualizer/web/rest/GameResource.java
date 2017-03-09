@@ -3,6 +3,7 @@ package org.powertac.visualizer.web.rest;
 import com.codahale.metrics.annotation.Timed;
 
 import org.apache.commons.io.FileExistsException;
+
 import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.domain.File;
 import org.powertac.visualizer.domain.Game;
@@ -32,8 +33,13 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -273,10 +279,11 @@ public class GameResource {
                 .body(game);
     }
 
-    @PostMapping("/replaygame")
+    @PostMapping("/replaygame_internal")
     @Timed
-    public ResponseEntity<Void> replayGame(@Valid @RequestBody File file) throws URISyntaxException {
-        log.debug("REST request to replay a game");
+    public ResponseEntity<Void> replayGameInternal(@Valid @RequestBody File file)
+             throws URISyntaxException, IOException {
+        log.debug("REST request to replay an internal game");
 
         if (!file.getType().equals(FileType.STATE)) {
             throw new IllegalArgumentException("Expected a state file");
@@ -288,13 +295,38 @@ public class GameResource {
             throw new IllegalStateException("Visualizer already has a game running");
         }
 
-        String error = embeddedService.runReplayGame(file);
+        InputStream source = new FileInputStream(new java.io.File(file.getPath()));
+        String error = embeddedService.runReplayGame(source);
         if (error != null) {
             throw new RuntimeException(error);
         }
 
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createAlert("Replaying game from '" + file.getPath() + "'", null))
+                .body(null);
+    }
+
+    @PostMapping("/replaygame_external")
+    @Timed
+    public ResponseEntity<Void> replayGameExternal(@Valid @RequestBody String url)
+             throws URISyntaxException, MalformedURLException, IOException {
+        log.debug("REST request to replay an external game");
+
+        if (visualizerService.getMode().equals(Constants.MODE_TOURNAMENT)) {
+            throw new IllegalStateException("Not available in tournament mode");
+        }
+        if (visualizerService.getState().equals(VisualizerState.RUNNING)) {
+            throw new IllegalStateException("Visualizer already has a game running");
+        }
+
+        InputStream source = new URL(url).openStream();
+        String error = embeddedService.runReplayGame(source);
+        if (error != null) {
+            throw new RuntimeException(error);
+        }
+
+        return ResponseEntity.ok()
+                .headers(HeaderUtil.createAlert("Replaying game from '" + url + "'", null))
                 .body(null);
     }
 

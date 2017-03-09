@@ -1,6 +1,8 @@
 package org.powertac.visualizer.web.rest.errors;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 import org.apache.commons.io.FileExistsException;
@@ -76,6 +78,20 @@ public class ExceptionTranslator {
     @ResponseBody
     public ErrorVM processFileNotFoundException(FileNotFoundException e) {
         return new ErrorVM(ErrorConstants.ERR_FILE_NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ErrorVM processIOException(IOException e) {
+        return new ErrorVM(ErrorConstants.ERR_IOEXCEPTION, e.getMessage());
+    }
+
+    @ExceptionHandler(MalformedURLException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ErrorVM processMalformedURLException(MalformedURLException e) {
+        return new ErrorVM(ErrorConstants.ERR_MALFORMED_URL_EXCEPTION, e.getMessage());
     }
 
     @ExceptionHandler(FileExistsException.class)

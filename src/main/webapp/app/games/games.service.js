@@ -12,7 +12,8 @@
       list: list,
       boot: boot,
       run: run,
-      replay: replay,
+      replayInternal: replayInternal,
+      replayExternal: replayExternal,
       close: close,
       reset: reset
     };
@@ -41,9 +42,15 @@
       $http.post('api/simgame?overwrite=' + overwrite, game).then(success, error);
     }
 
-    function replay (file, success, error) {
-      console.log('Starting replay');
-      $http.post('api/replaygame', file).then(success, error);
+    function replayInternal (file, success, error) {
+      console.log('Starting replay internal');
+      $http.post('api/replaygame_internal', file).then(success, error);
+    }
+
+
+    function replayExternal (file, success, error) {
+      console.log('Starting replay external');
+      $http.post('api/replaygame_external', file).then(success, error);
     }
 
     function close (success, error) {

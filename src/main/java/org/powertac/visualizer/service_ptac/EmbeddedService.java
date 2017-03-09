@@ -1,6 +1,8 @@
 package org.powertac.visualizer.service_ptac;
 
 import org.apache.commons.io.FileExistsException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.visualizer.config.Constants;
 import org.powertac.server.CompetitionControlService;
@@ -17,6 +19,8 @@ import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
+
 import javax.annotation.PostConstruct;
 
 /**
@@ -26,6 +30,8 @@ import javax.annotation.PostConstruct;
  */
 @Service
 public class EmbeddedService {
+
+    Logger log = LogManager.getLogger(EmbeddedService.class);
 
     @Autowired
     private FileService fileService;
@@ -162,7 +168,7 @@ public class EmbeddedService {
      * @see org.powertac.visualizer.service.ptac.VisualizerCompetitionServiceIf#
      * runReplayGame(org.powertac.visualizer.domain.Game)
      */
-    public String runReplayGame(File file) {
+    public String runReplayGame(InputStream source) {
         String error = checkRun();
         if (error != null) {
             return error;
@@ -176,7 +182,10 @@ public class EmbeddedService {
                 // No SimStart and SimEnd when extracting log
                 visualizerService.setState(VisualizerState.RUNNING);
                 LogtoolExecutor logtoolExecutor = new LogtoolExecutor();
-                logtoolExecutor.readLog(file.getPath(), messageDispatcher);
+                String error = logtoolExecutor.readLog(source, messageDispatcher);
+                if (error != null) {
+                  log.error("Error during replay: " + error);
+                }
                 replayGameThread = null;
                 visualizerService.setState(VisualizerState.FINISHED);
             }
