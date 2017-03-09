@@ -15,6 +15,7 @@
  */
 package org.powertac.logtool;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +28,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.logtool.common.DomainObjectReader;
@@ -54,6 +61,9 @@ public class LogtoolCore
   private DomainBuilder builder;
 
   private boolean simEnd = false;
+  
+  static private CompressorStreamFactory compressFactory = new CompressorStreamFactory();
+  static private ArchiveStreamFactory archiveFactory = new ArchiveStreamFactory();
 
   /**
    * Default constructor
@@ -149,7 +159,42 @@ public class LogtoolCore
     reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
     Reader inputReader;
     String line = null;
+
     try {
+      // Stack compression logic if appropriate
+      try {
+        if (!inputStream.markSupported()) {
+          inputStream = new BufferedInputStream(inputStream);
+        }
+        inputStream = compressFactory.createCompressorInputStream(inputStream);
+      } catch (CompressorException x) {
+        // Stream not compressed (or unknown compression scheme)
+      }
+
+      // Stack archive logic if appropriate
+      try {
+        if (!inputStream.markSupported()) {
+          inputStream = new BufferedInputStream(inputStream);
+        }
+        ArchiveInputStream archiveStream = archiveFactory.createArchiveInputStream(inputStream);
+        ArchiveEntry entry;
+        inputStream = null;
+        while ((entry = archiveStream.getNextEntry()) != null) {
+          String name = entry.getName();
+          if (entry.isDirectory() || !name.endsWith(".state") || name.endsWith("init.state")) {
+            continue;
+          }
+          inputStream = archiveStream;
+          break;
+        }
+        if (inputStream == null) {
+          return "Cannot read archive, no valid state log entry";
+        }
+      } catch (ArchiveException x) {
+        // Stream not archived (or unknown archiving scheme)
+      }
+
+      // Now go read the state-log
       inputReader = new InputStreamReader(inputStream);
       builder.setup();
       for (Analyzer tool: tools) {

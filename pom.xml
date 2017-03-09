@@ -20,6 +20,7 @@
 
 
   <properties>
+    <commons-compress.version>1.13</commons-compress.version>
     <exec.args></exec.args><!-- E.g. foo-sim.state org.powertac.logtool.common.NoopAnalyzer -->
   </properties>
 
@@ -59,6 +60,12 @@
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
       <version>${powertac.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>${commons-compress.version}</version>
     </dependency>
 
   </dependencies>
