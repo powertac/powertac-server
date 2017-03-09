@@ -12,12 +12,19 @@
     <Appender name="LogFile" type="File" fileName="log/logtool.trace" append="false">
       <Layout type="PatternLayout" pattern="%r %-5p %c{2}: %m%n"/>
     </Appender>
+    <Console name="StdOut" target="SYSTEM_OUT">
+      <Layout type="PatternLayout" pattern="%m%n"/>
+    </Console>
   </Appenders>
   
   <Loggers>
 
     <Logger name="Log" level="info" additivity="false">
       <AppenderRef ref="LogFile"/>
+    </Logger>
+    
+    <Logger name="org.powertac.logtool.common.NoopAnalyzer" level="info" additivity="false">
+      <AppenderRef ref="StdOut" />
     </Logger>
 
     <!-- Higher threshold for framework packages -->

@@ -20,9 +20,7 @@
 
 
   <properties>
-    <maven-exec.flags>-server -Xmx512m -classpath %classpath</maven-exec.flags>
-    <maven-exec.class>org.powertac.logtool.Logtool</maven-exec.class>
-    <maven-exec.args></maven-exec.args>
+    <exec.args></exec.args><!-- E.g. foo-sim.state org.powertac.logtool.common.NoopAnalyzer -->
   </properties>
 
   <dependencies>
@@ -78,6 +76,17 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <executable>java</executable>
+          <commandlineArgs>-server -Xmx512m -classpath %classpath org.powertac.logtool.Logtool ${exec.args}</commandlineArgs>
+        </configuration>
       </plugin>
 
     </plugins>
