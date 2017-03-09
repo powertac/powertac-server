@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -62,15 +64,15 @@ public class LogtoolCore
   }
 
   /**
-   * Processes a command line. For now, it's just the name of a
-   * state-log file from the simulation server.
+   * Processes a command line, providing a state-log file from the local
+   * filesystem, or a remote URL.
    */
   public String processCmdLine (String[] args)
   {
     if (args.length < 2) {
       return "Usage: Logtool file analyzer ...";
     }
-    String filename = args[0];
+    String source = args[0];
 
     Analyzer[] tools = new Analyzer[args.length - 1];
     for (int i = 1; i < args.length; i++) {
@@ -86,26 +88,31 @@ public class LogtoolCore
       }
     }
 
-    return readStateLog(filename, tools);
+    return readStateLog(source, tools);
   }
 
   /**
-   * Reads the given state-log file using the DomainObjectReader.
-   * If a filename is given, we assume it names a state log file.
-   * If filename is "-" or null, then we assume the state log is
-   * on standard-input. This allows for piping the input from
-   * a compressed archive.
+   * Reads the given state-log source using the DomainObjectReader. Specify the
+   * state-log as a local filename or a remote URL, or pass "-" or null to read
+   * from standard-input.
    */
-  public String readStateLog (String filename, Analyzer... tools)
+  public String readStateLog (String source, Analyzer... tools)
   {
-    if (null == filename || "-".equals(filename)) {
+    if (null == source || "-".equals(source)) {
       log.info("Reading from standard input");
       return readStateLog(System.in, tools);
     }
-    log.info("Reading file " + filename);
-    File inputFile = new File(filename);
+    try {
+      URL inputURL = new URL(source);
+      log.info("Reading url " + source);
+      return readStateLog(inputURL,tools);
+    } catch (MalformedURLException x) {
+      // Continue, assuming it is a regular file
+    }
+    log.info("Reading file " + source);
+    File inputFile = new File(source);
     if (!inputFile.canRead()) {
-      return "Cannot read file " + filename;
+      return "Cannot read file " + source;
     }
     return readStateLog(inputFile, tools);
   }
@@ -119,6 +126,18 @@ public class LogtoolCore
       return readStateLog(new FileInputStream(inputFile), tools);
     } catch (FileNotFoundException e) {
       return "Cannot open file " + inputFile.getPath();
+    }
+  }
+
+  /**
+   * Reads state-log from given input url using the DomainObjectReader.
+   */
+  public String readStateLog (URL inputURL, Analyzer... tools)
+  {
+    try{
+      return readStateLog(inputURL.openStream(), tools);
+    } catch (IOException e) {
+      return "Cannot open url " + inputURL.toString();
     }
   }
 
