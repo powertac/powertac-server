@@ -1,18 +1,18 @@
 package org.powertac.visualizer.logtool;
 
+import java.io.InputStream;
+
 import org.powertac.common.Competition;
 import org.powertac.common.msg.TimeslotUpdate;
-import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.logtool.LogtoolContext;
-import org.powertac.logtool.common.DomainObjectReader;
 import org.powertac.logtool.common.NewObjectListener;
-import org.powertac.logtool.ifc.Analyzer;
+import org.powertac.logtool.common.NoopAnalyzer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogtoolExecutor extends LogtoolContext implements Analyzer {
+public class LogtoolExecutor extends NoopAnalyzer {
 
-    static private Logger log = LoggerFactory.getLogger(LogtoolExecutor.class.getName());
+    static private Logger log = LoggerFactory.getLogger(LogtoolExecutor.class);
 
     private NewObjectListener objListener;
     private String logName;
@@ -23,15 +23,12 @@ public class LogtoolExecutor extends LogtoolContext implements Analyzer {
      */
     public LogtoolExecutor() {
         super();
-        setContext(SpringApplicationContext.getContext());
     }
 
-    public void readLog(String logName, NewObjectListener listener) {
-        log.info("Starting the replay of : " + logName);
-
-        this.logName = logName;
+    public String readLog(InputStream logStream, NewObjectListener listener) {
+        this.logName = "(stream)";
         objListener = listener;
-        super.cli(logName, this);
+        return getCore().readStateLog(logStream, this);
     }
 
     /**
@@ -40,18 +37,20 @@ public class LogtoolExecutor extends LogtoolContext implements Analyzer {
      * timeslotUpdate while reading the file.
      */
     @Override
-    public void setup() {
-        DomainObjectReader dor = (DomainObjectReader) getContext().getBean("domainObjectReader");
-        dor.registerNewObjectListener(new ObjectHandler(), null);
+    public void setup ()
+    {
+      log.info("Starting replay of " + logName);
+      registerNewObjectListener(new ObjectHandler(), null);
     }
 
     @Override
     public void report() {
-        // TODO
-
-        log.info("Finished the replay of : " + logName);
+        log.info("Finished replay of : " + logName);
     }
 
+    // This suppresses all events until the first TimeslotUpdate. At that point
+    // it sends the current competition object, and commences forwarding all
+    // events from there on out.
     private class ObjectHandler implements NewObjectListener {
         private boolean ignore = true;
 

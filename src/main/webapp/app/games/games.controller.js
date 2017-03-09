@@ -16,6 +16,8 @@
     vm.removeBroker = removeBroker;
     vm.getFile = getFile;
     vm.clearFile = clearFile;
+    vm.setSource = setSource;
+    vm.setReplayUrl = setReplayUrl;
     vm.start = start;
     vm.stop = stop;
     vm.isStartButtonDisabled = isStartButtonDisabled;
@@ -33,7 +35,7 @@
       vm.brokers = {};
       vm.brokerCollection = [];
       vm.games = [];
-      vm.replayGame = null;
+      setSource(null);
 
       Games.reset();
     }
@@ -73,6 +75,22 @@
       return Games[type + 'File'] = null;
     }
 
+    function setSource (source) {
+      vm.replaySource = source;
+      vm.replayUrl = '';
+      vm.replayUrlTemp = '';
+      vm.replayGame = null;
+    }
+
+    function setReplayUrl (url) {
+      if (url === undefined) {
+        vm.replayUrl = vm.replayUrlTemp;
+      } else {
+        vm.replayUrl = vm.replayUrlTemp = url;
+      }
+      console.log('set', url, vm.replayUrl);
+    }
+
     function start () {
       if (vm.mode === 'BOOT') {
         startBoot();
@@ -110,7 +128,7 @@
         return true;
       } else if (vm.mode === 'BOOT' && vm.gameName) {
         return true;
-      } else if (vm.mode === 'REPLAY' && Games.stateFile) {
+      } else if (vm.mode === 'REPLAY' && vm.replaySource && (Games.stateFile || vm.replayUrl)) {
         return true;
       }
       return false;
@@ -163,20 +181,32 @@
     }
 
     function startReplay () {
-      Games.replay (Games.stateFile,
-        function() {
-          setMode('');
-        },
-        function (error) {
-          console.error('Failed replay', error);
-        }
-      );
+      if  (vm.replaySource === 'EXTERNAL') {
+        Games.replayExternal(vm.replayUrl,
+            function () {
+              setMode('');
+            },
+            function (error) {
+              console.error('Failed replay', error);
+            }
+        );
+      } else {
+        Games.replayInternal(Games.stateFile,
+            function () {
+              setMode('');
+            },
+            function (error) {
+              console.error('Failed replay', error);
+            }
+        );
+      }
     }
 
     function stopGame () {
       Games.close(
           function() {
             setMode('');
+            setSource('');
           },
           function (error) {
             console.error('Failed stop', error);
