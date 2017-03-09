@@ -17,13 +17,12 @@ package org.powertac.logtool;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -61,7 +60,7 @@ public class LogtoolCore
   {
     super();
   }
-  
+
   /**
    * Processes a command line. For now, it's just the name of a
    * state-log file from the simulation server.
@@ -74,11 +73,11 @@ public class LogtoolCore
     }
     String filename = args[0];
 
-    ArrayList<Analyzer> tools = new ArrayList<Analyzer>();
+    Analyzer[] tools = new Analyzer[args.length - 1];
     for (int i = 1; i < args.length; i++) {
       try {
         Class<?> toolClass = Class.forName(args[i]);
-        tools.add((Analyzer)toolClass.newInstance());
+        tools[i - 1] = (Analyzer) toolClass.newInstance();
       }
       catch (ClassNotFoundException e1) {
         System.out.println("Cannot find analyzer class " + args[i]);
@@ -98,29 +97,44 @@ public class LogtoolCore
    * on standard-input. This allows for piping the input from
    * a compressed archive.
    */
-  public void readStateLog (String filename, List<Analyzer> tools)
+  public void readStateLog (String filename, Analyzer... tools)
   {
-    reader.registerNewObjectListener(new SimEndHandler(),
-                                     SimEnd.class);
+    if (null == filename || "-".equals(filename)) {
+      log.info("Reading from standard input");
+      readStateLog(System.in, tools);
+    } else {
+      log.info("Reading file " + filename);
+      File inputFile = new File(filename);
+      if (!inputFile.canRead()) {
+        System.out.println("Cannot read file " + filename);
+        return;
+      }
+      readStateLog(inputFile, tools);
+    }
+  }
+
+  /**
+   * Reads state-log from given input file using the DomainObjectReader.
+   */
+  public void readStateLog (File inputFile, Analyzer... tools)
+  {
+    try{
+      readStateLog(new FileInputStream(inputFile), tools);
+    } catch (FileNotFoundException e) {
+      System.out.println("Cannot open file " + inputFile.getPath());
+    }
+  }
+
+  /**
+   * Reads state-log from given input stream using the DomainObjectReader.
+   */
+  public void readStateLog (InputStream inputStream, Analyzer... tools)
+  {
+    reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
     Reader inputReader;
     String line = null;
     try {
-      if (null == filename || "-".equals(filename)) {
-        // read from standard input
-        inputReader = new InputStreamReader(System.in);
-        filename = "standard input";
-        log.info("Reading from standard input");
-      }
-      else {
-        // explicit filename given
-        File input = new File(filename);
-        if (!input.canRead()) {
-          System.out.println("Cannot read file " + filename);
-          return;
-        }
-        inputReader = new FileReader(input);
-        log.info("Reading file " + filename);
-      }
+      inputReader = new InputStreamReader(inputStream);
       builder.setup();
       for (Analyzer tool: tools) {
         tool.setup();
@@ -141,26 +155,14 @@ public class LogtoolCore
         tool.report();
       }
     }
-    catch (FileNotFoundException e) {
-      System.out.println("Cannot open file " + filename);
-    }
     catch (IOException e) {
-      System.out.println("error reading from file " + filename);
+      System.out.println("error reading from stream");
     }
     catch (MissingDomainObject e) {
       System.out.println("MDO on " + line);
     }
   }
-  
-  /**
-   * Reads the given state log with a single analyzer
-   */
-  public void readStateLog(String filename, Analyzer tool)
-  {
-    ArrayList<Analyzer> tools = new ArrayList<Analyzer>();
-    tools.add(tool);
-    readStateLog(filename, tools);
-  }
+
 
   class SimEndHandler implements NewObjectListener
   {
