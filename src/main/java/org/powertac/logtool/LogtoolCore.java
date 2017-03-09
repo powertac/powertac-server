@@ -65,11 +65,10 @@ public class LogtoolCore
    * Processes a command line. For now, it's just the name of a
    * state-log file from the simulation server.
    */
-  public void processCmdLine (String[] args)
+  public String processCmdLine (String[] args)
   {
     if (args.length < 2) {
-      System.out.println("Usage: Logtool file analyzer ...");
-      return;
+      return "Usage: Logtool file analyzer ...";
     }
     String filename = args[0];
 
@@ -80,14 +79,14 @@ public class LogtoolCore
         tools[i - 1] = (Analyzer) toolClass.newInstance();
       }
       catch (ClassNotFoundException e1) {
-        System.out.println("Cannot find analyzer class " + args[i]);
+        return "Cannot find analyzer class " + args[i];
       }
       catch (Exception ex) {
-        System.out.println("Exception creating analyzer " + ex.toString());
+        return "Exception creating analyzer " + ex.toString();
       }
     }
 
-    readStateLog(filename, tools);
+    return readStateLog(filename, tools);
   }
 
   /**
@@ -97,38 +96,36 @@ public class LogtoolCore
    * on standard-input. This allows for piping the input from
    * a compressed archive.
    */
-  public void readStateLog (String filename, Analyzer... tools)
+  public String readStateLog (String filename, Analyzer... tools)
   {
     if (null == filename || "-".equals(filename)) {
       log.info("Reading from standard input");
-      readStateLog(System.in, tools);
-    } else {
-      log.info("Reading file " + filename);
-      File inputFile = new File(filename);
-      if (!inputFile.canRead()) {
-        System.out.println("Cannot read file " + filename);
-        return;
-      }
-      readStateLog(inputFile, tools);
+      return readStateLog(System.in, tools);
     }
+    log.info("Reading file " + filename);
+    File inputFile = new File(filename);
+    if (!inputFile.canRead()) {
+      return "Cannot read file " + filename;
+    }
+    return readStateLog(inputFile, tools);
   }
 
   /**
    * Reads state-log from given input file using the DomainObjectReader.
    */
-  public void readStateLog (File inputFile, Analyzer... tools)
+  public String readStateLog (File inputFile, Analyzer... tools)
   {
     try{
-      readStateLog(new FileInputStream(inputFile), tools);
+      return readStateLog(new FileInputStream(inputFile), tools);
     } catch (FileNotFoundException e) {
-      System.out.println("Cannot open file " + inputFile.getPath());
+      return "Cannot open file " + inputFile.getPath();
     }
   }
 
   /**
    * Reads state-log from given input stream using the DomainObjectReader.
    */
-  public void readStateLog (InputStream inputStream, Analyzer... tools)
+  public String readStateLog (InputStream inputStream, Analyzer... tools)
   {
     reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
     Reader inputReader;
@@ -156,11 +153,12 @@ public class LogtoolCore
       }
     }
     catch (IOException e) {
-      System.out.println("error reading from stream");
+      return "Error reading from stream";
     }
     catch (MissingDomainObject e) {
-      System.out.println("MDO on " + line);
+      return "MDO on " + line;
     }
+    return null;
   }
 
 
