@@ -263,11 +263,18 @@ public class FileResource {
           }
         }
         try (
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(raw))
+            OutputStream out = new FileOutputStream(raw);
+            InputStream in = part.getInputStream()
         ) {
-            byte[] bytes = part.getBytes();
-            out.write(bytes);
-            out.close();
+            byte[] buf = new byte[65536];
+            while (true) {
+              int len = in.read(buf);
+              if (len > 0) {
+                out.write(buf, 0, len);
+              } else {
+                break;
+              }
+            }
 
             File file = new File();
             file.setType(fileType);
