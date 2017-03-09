@@ -5,6 +5,7 @@ import org.powertac.common.CashPosition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
+import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimPause;
@@ -229,7 +230,9 @@ public class MessageHandler {
             } else {
                 Tariff oldSpec = tariffRepo.findById(newSpec.getId());
                 if (oldSpec == null) {
+                  if (!Type.PUBLISH.equals(ttx.getTxType())) {
                     log.error("Incoming spec " + newSpec.getId() + " not matched in repo");
+                  }
                 }
             }
 
