@@ -15,17 +15,25 @@
  */
 package org.powertac.logtool;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.logtool.common.DomainObjectReader;
@@ -53,6 +61,9 @@ public class LogtoolCore
   private DomainBuilder builder;
 
   private boolean simEnd = false;
+  
+  static private CompressorStreamFactory compressFactory = new CompressorStreamFactory();
+  static private ArchiveStreamFactory archiveFactory = new ArchiveStreamFactory();
 
   /**
    * Default constructor
@@ -61,66 +72,130 @@ public class LogtoolCore
   {
     super();
   }
-  
+
   /**
-   * Processes a command line. For now, it's just the name of a
-   * state-log file from the simulation server.
+   * Processes a command line, providing a state-log file from the local
+   * filesystem, or a remote URL.
    */
-  public void processCmdLine (String[] args)
+  public String processCmdLine (String[] args)
   {
     if (args.length < 2) {
-      System.out.println("Usage: Logtool file analyzer ...");
-      return;
+      return "Usage: Logtool file analyzer ...";
     }
-    String filename = args[0];
+    String source = args[0];
 
-    ArrayList<Analyzer> tools = new ArrayList<Analyzer>();
+    Analyzer[] tools = new Analyzer[args.length - 1];
     for (int i = 1; i < args.length; i++) {
       try {
         Class<?> toolClass = Class.forName(args[i]);
-        tools.add((Analyzer)toolClass.newInstance());
+        tools[i - 1] = (Analyzer) toolClass.newInstance();
       }
       catch (ClassNotFoundException e1) {
-        System.out.println("Cannot find analyzer class " + args[i]);
+        return "Cannot find analyzer class " + args[i];
       }
       catch (Exception ex) {
-        System.out.println("Exception creating analyzer " + ex.toString());
+        return "Exception creating analyzer " + ex.toString();
       }
     }
 
-    readStateLog(filename, tools);
+    return readStateLog(source, tools);
   }
 
   /**
-   * Reads the given state-log file using the DomainObjectReader.
-   * If a filename is given, we assume it names a state log file.
-   * If filename is "-" or null, then we assume the state log is
-   * on standard-input. This allows for piping the input from
-   * a compressed archive.
+   * Reads the given state-log source using the DomainObjectReader. Specify the
+   * state-log as a local filename or a remote URL, or pass "-" or null to read
+   * from standard-input.
    */
-  public void readStateLog (String filename, List<Analyzer> tools)
+  public String readStateLog (String source, Analyzer... tools)
   {
-    reader.registerNewObjectListener(new SimEndHandler(),
-                                     SimEnd.class);
+    if (null == source || "-".equals(source)) {
+      log.info("Reading from standard input");
+      return readStateLog(System.in, tools);
+    }
+    try {
+      URL inputURL = new URL(source);
+      log.info("Reading url " + source);
+      return readStateLog(inputURL,tools);
+    } catch (MalformedURLException x) {
+      // Continue, assuming it is a regular file
+    }
+    log.info("Reading file " + source);
+    File inputFile = new File(source);
+    if (!inputFile.canRead()) {
+      return "Cannot read file " + source;
+    }
+    return readStateLog(inputFile, tools);
+  }
+
+  /**
+   * Reads state-log from given input file using the DomainObjectReader.
+   */
+  public String readStateLog (File inputFile, Analyzer... tools)
+  {
+    try{
+      return readStateLog(new FileInputStream(inputFile), tools);
+    } catch (FileNotFoundException e) {
+      return "Cannot open file " + inputFile.getPath();
+    }
+  }
+
+  /**
+   * Reads state-log from given input url using the DomainObjectReader.
+   */
+  public String readStateLog (URL inputURL, Analyzer... tools)
+  {
+    try{
+      return readStateLog(inputURL.openStream(), tools);
+    } catch (IOException e) {
+      return "Cannot open url " + inputURL.toString();
+    }
+  }
+
+  /**
+   * Reads state-log from given input stream using the DomainObjectReader.
+   */
+  public String readStateLog (InputStream inputStream, Analyzer... tools)
+  {
+    reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
     Reader inputReader;
     String line = null;
+
     try {
-      if (null == filename || "-".equals(filename)) {
-        // read from standard input
-        inputReader = new InputStreamReader(System.in);
-        filename = "standard input";
-        log.info("Reading from standard input");
-      }
-      else {
-        // explicit filename given
-        File input = new File(filename);
-        if (!input.canRead()) {
-          System.out.println("Cannot read file " + filename);
-          return;
+      // Stack compression logic if appropriate
+      try {
+        if (!inputStream.markSupported()) {
+          inputStream = new BufferedInputStream(inputStream);
         }
-        inputReader = new FileReader(input);
-        log.info("Reading file " + filename);
+        inputStream = compressFactory.createCompressorInputStream(inputStream);
+      } catch (CompressorException x) {
+        // Stream not compressed (or unknown compression scheme)
       }
+
+      // Stack archive logic if appropriate
+      try {
+        if (!inputStream.markSupported()) {
+          inputStream = new BufferedInputStream(inputStream);
+        }
+        ArchiveInputStream archiveStream = archiveFactory.createArchiveInputStream(inputStream);
+        ArchiveEntry entry;
+        inputStream = null;
+        while ((entry = archiveStream.getNextEntry()) != null) {
+          String name = entry.getName();
+          if (entry.isDirectory() || !name.endsWith(".state") || name.endsWith("init.state")) {
+            continue;
+          }
+          inputStream = archiveStream;
+          break;
+        }
+        if (inputStream == null) {
+          return "Cannot read archive, no valid state log entry";
+        }
+      } catch (ArchiveException x) {
+        // Stream not archived (or unknown archiving scheme)
+      }
+
+      // Now go read the state-log
+      inputReader = new InputStreamReader(inputStream);
       builder.setup();
       for (Analyzer tool: tools) {
         tool.setup();
@@ -141,26 +216,15 @@ public class LogtoolCore
         tool.report();
       }
     }
-    catch (FileNotFoundException e) {
-      System.out.println("Cannot open file " + filename);
-    }
     catch (IOException e) {
-      System.out.println("error reading from file " + filename);
+      return "Error reading from stream";
     }
     catch (MissingDomainObject e) {
-      System.out.println("MDO on " + line);
+      return "MDO on " + line;
     }
+    return null;
   }
-  
-  /**
-   * Reads the given state log with a single analyzer
-   */
-  public void readStateLog(String filename, Analyzer tool)
-  {
-    ArrayList<Analyzer> tools = new ArrayList<Analyzer>();
-    tools.add(tool);
-    readStateLog(filename, tools);
-  }
+
 
   class SimEndHandler implements NewObjectListener
   {

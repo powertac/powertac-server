@@ -30,9 +30,16 @@ public class Logtool extends LogtoolContext
   {
     Logtool lt = new Logtool();
     LogtoolCore lc = lt.getCore();
-    lc.processCmdLine(args);
+
+    int exitCode = 0;
+    String error = lc.processCmdLine(args);
+
+    if (error != null) {
+      System.out.println(error);
+      exitCode = -1;
+    }
 
     // if we get here, it's time to exit
-    System.exit(0);
+    System.exit(exitCode);
   }
 }

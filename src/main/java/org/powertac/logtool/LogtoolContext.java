@@ -82,7 +82,7 @@ public abstract class LogtoolContext
     LogtoolCore core = getCore();
     core.readStateLog(inputFile, analyzer);
   }
-  
+
   /**
    * Passthrough for event registration
    */
