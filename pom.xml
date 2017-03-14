@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2-SNAPSHOT</version>
     <relativePath />
   </parent>
 
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>powertac-aop</artifactId>
-      <version>1.4.1</version>
+      <version>1.4.2-SNAPSHOT</version>
     </dependency>
 
 
@@ -222,7 +222,7 @@
     <connection>scm:git:git//github.com/powertac/common.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
     <url>https://github.com/powertac/common/</url>
-    <tag>common-1.4.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
 
