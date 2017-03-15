@@ -181,7 +181,8 @@ public class LogtoolCore
         inputStream = null;
         while ((entry = archiveStream.getNextEntry()) != null) {
           String name = entry.getName();
-          if (entry.isDirectory() || !name.endsWith(".state") || name.endsWith("init.state")) {
+          if (entry.isDirectory() || !name.startsWith("log/")
+                  || !name.endsWith(".state") || name.endsWith("init.state")) {
             continue;
           }
           inputStream = archiveStream;
