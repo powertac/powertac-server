@@ -11,9 +11,11 @@
         var vm = this;
 
         vm.state = State;
+        vm.changeDetection = {};
 
         var chartConfig = {
             chart: {
+                animation: false,
                 zoomType: 'x'
             },
             rangeSelector: {
@@ -38,13 +40,17 @@
         };
 
         function initCharts () {
-            vm.allMoneyCumulativesConfig = angular.copy(chartConfig);
-            vm.retailMoneyCumulativesConfig = angular.copy(chartConfig);
-            vm.retailMoneysConfig = angular.copy(chartConfig);
-            vm.retailKwhCumulativesConfig = angular.copy(chartConfig);
-            vm.retailKwhsConfig = angular.copy(chartConfig);
-            vm.subscriptionsConfig = angular.copy(chartConfig);
-            vm.subscriptionCumulativesConfig = angular.copy(chartConfig);
+            vm.state.graphKeys.forEach(function(key) {
+                vm[key] = angular.copy(chartConfig);
+                vm.changeDetection[key] = function(config) {
+                    var same = true;
+                    if (config.series.length) {
+                        same = !State.changed[key];
+                        State.changed[key] = false;
+                    }
+                    return same;
+                };
+            });
 
             var colors = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9',
                 '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
@@ -59,50 +65,56 @@
             State.brokers.forEach(function (broker, index) {
                 var color = colors[index % colors.length];
 
-
-                vm.allMoneyCumulativesConfig.series.push({
+                vm.allMoneyCumulative.series.push({
+                    id: 'allMoneyCumulative_' + broker.id,
                     name: broker.name,
                     color: color,
                     data: broker.graphData.allMoneyCumulative,
                     pointStart: vm.start,
                     pointInterval: vm.duration
                 });
-                vm.retailMoneyCumulativesConfig.series.push({
+                vm.retailMoneyCumulative.series.push({
+                    id: 'retailMoneyCumulative_' + broker.id,
                     name: broker.name,
                     color: color,
                     data: broker.graphData.retailMoneyCumulative,
                     pointStart: vm.start,
                     pointInterval: vm.duration
                 });
-                vm.retailMoneysConfig.series.push({
+                vm.retailMoney.series.push({
+                    id: 'retailMoney_' + broker.id,
                     name: broker.name,
                     color: color,
                     data: broker.graphData.retailMoney,
                     pointStart: vm.start,
                     pointInterval: vm.duration
                 });
-                vm.retailKwhCumulativesConfig.series.push({
+                vm.retailKwhCumulative.series.push({
+                    id: 'retailKwhCumulative_' + broker.id,
                     name: broker.name,
                     color: color,
                     data: broker.graphData.retailKwhCumulative,
                     pointStart: vm.start,
                     pointInterval: vm.duration
                 });
-                vm.retailKwhsConfig.series.push({
+                vm.retailKwh.series.push({
+                    id: 'retailKwh_' + broker.id,
                     name: broker.name,
                     color: color,
                     data: broker.graphData.retailKwh,
                     pointStart: vm.start,
                     pointInterval: vm.duration
                 });
-                vm.subscriptionsConfig.series.push({
+                vm.subscription.series.push({
+                    id: 'subscription_' + broker.id,
                     name: broker.name,
                     color: color,
                     data: broker.graphData.subscription,
                     pointStart: vm.start,
                     pointInterval: vm.duration
                 });
-                vm.subscriptionCumulativesConfig.series.push({
+                vm.subscriptionCumulative.series.push({
+                    id: 'subscriptionCumulative_' + broker.id,
                     name: broker.name,
                     color: color,
                     data: broker.graphData.subscriptionCumulative,
