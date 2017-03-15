@@ -365,6 +365,7 @@ public class TariffMarketService
         }
       }
     }
+    // TODO - should this 'else' be here? Should this loop not be unconditional?
     else {
       for (Rate rate : spec.getRates()) {
         if (rate.getDailyBegin() >= 24 || rate.getDailyEnd() >= 24 ||
