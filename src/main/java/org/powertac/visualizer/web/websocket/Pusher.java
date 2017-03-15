@@ -10,7 +10,7 @@ import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
 import org.powertac.visualizer.web.dto.InitMessage;
 import org.powertac.visualizer.web.dto.Message;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
@@ -23,7 +23,7 @@ public class Pusher {
     private static final String TOPIC_MESSAGE = "/topic/push";
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private SimpMessageSendingOperations messagingTemplate;
 
     @Autowired
     private VisualizerService visualizerService;
