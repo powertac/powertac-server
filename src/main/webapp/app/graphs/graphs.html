@@ -29,31 +29,41 @@
                 <div class="col-md-12">
                     <h2>Money</h2>
                     <p class="lead">Cumulative</p>
-                    <highchart config="vm.allMoneyCumulativesConfig" class="col-md-12 highchart"></highchart>
+                    <highchart config="vm.allMoneyCumulative"
+                               change-detection="vm.changeDetection['allMoneyCumulative']"
+                               class="col-md-12 highchart"></highchart>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <h2>Retail Money</h2>
                     <p class="lead">Per time slot</p>
-                    <highchart config="vm.retailMoneysConfig" class="col-md-12 highchart"></highchart>
+                    <highchart config="vm.retailMoney"
+                               change-detection="vm.changeDetection['retailMoney']"
+                               class="col-md-12 highchart"></highchart>
                 </div>
                 <div class="col-md-6">
                     <h2>Retail Money</h2>
                     <p class="lead">Cumulative Money</p>
-                    <highchart config="vm.retailMoneyCumulativesConfig" class="col-md-12 highchart"></highchart>
+                    <highchart config="vm.retailMoneyCumulative"
+                               change-detection="vm.changeDetection['retailMoneyCumulative']"
+                               class="col-md-12 highchart"></highchart>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <h2>Retail energy</h2>
                     <p class="lead">Per time slot kWh</p>
-                    <highchart config="vm.retailKwhsConfig" class="col-md-12 highchart"></highchart>
+                    <highchart config="vm.retailKwh"
+                               change-detection="vm.changeDetection['retailKwh']"
+                               class="col-md-12 highchart"></highchart>
                 </div>
                 <div class="col-md-6">
                     <h2>Retail energy</h2>
                     <p class="lead">Cumulative kWh</p>
-                    <highchart config="vm.retailKwhCumulativesConfig" class="col-md-12 highchart"></highchart>
+                    <highchart config="vm.retailKwhCumulative"
+                               change-detection="vm.changeDetection['retailKwhCumulative']"
+                               class="col-md-12 highchart"></highchart>
                 </div>
             </div>
 
@@ -61,12 +71,16 @@
                 <div class="col-md-6">
                     <h2>Subscriptions</h2>
                     <p class="lead">Per time slot</p>
-                    <highchart config="vm.subscriptionsConfig" class="col-md-12 highchart"></highchart>
+                    <highchart config="vm.subscription"
+                               change-detection="vm.changeDetection['subscription']"
+                               class="col-md-12 highchart"></highchart>
                 </div>
                 <div class="col-md-6">
                     <h2>Subscriptions</h2>
                     <p class="lead">Cumulative subscriptions</p>
-                    <highchart config="vm.subscriptionCumulativesConfig" class="col-md-12 highchart"></highchart>
+                    <highchart config="vm.subscriptionCumulative"
+                               change-detection="vm.changeDetection['subscriptionCumulative']"
+                               class="col-md-12 highchart"></highchart>
                 </div>
             </div>
         </div>

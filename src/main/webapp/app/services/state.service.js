@@ -18,22 +18,32 @@
         service.prevStatus = '';
         service.gameStatusStyle = 'default';
 
+        service.graphKeys = [
+            'allMoneyCumulative',
+            'retailMoneyCumulative',
+            'retailMoney',
+            'retailKwhCumulative',
+            'retailKwh',
+            'subscription',
+            'subscriptionCumulative'
+        ];
+
+        service.changed = Object.keys(initGraphData()).reduce(function(map, key) {
+            map[key] = false;
+            return map;
+        }, {});
+
         Push.receive().then(null, null, function (obj) {
             handlePushMessage(obj);
         });
-        
+
         Push.onConnectionChanged(setConnected);
 
         function initGraphData () {
-            return {
-                'allMoneyCumulative': [0],
-                'retailMoneyCumulative': [0],
-                'retailMoney': [0],
-                'retailKwhCumulative': [0],
-                'retailKwh': [0],
-                'subscription': [0],
-                'subscriptionCumulative': [0]
-            };
+            return service.graphKeys.reduce(function(map, key) {
+                map[key] = [0];
+                return map;
+            }, {});
         }
 
         function initRetail (retail) {
@@ -59,7 +69,7 @@
                 'graphData': initGraphData()
             };
         }
-        
+
         function setConnected(connected) {
             if (connected) {
                 setStatus(service.prevStatus);
@@ -105,6 +115,11 @@
             // process customer ticks:
             snapshot.tickValueCustomers.forEach(function (customerTick) {
                 processCustomerTick(customerTick);
+            });
+
+            // mark as dirty
+            Object.keys(service.changed).forEach(function(key) {
+                service.changed[key] = true;
             });
         };
 
