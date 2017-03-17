@@ -16,7 +16,7 @@
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
     <version>1.4.0-SNAPSHOT</version>
-    <relativePath />
+    <relativePath>../powertac-parent/</relativePath>
   </parent>
 
 
@@ -145,9 +145,9 @@
 
 
   <scm>
-    <connection>scm:git:git//github.com/powertac/broker-core.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/broker-core.git</developerConnection>
-    <url>https://github.com/powertac/broker-core/</url>
+    <connection>scm:git:git//github.com/powertac/powertac-core.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-core.git</developerConnection>
+    <url>https://github.com/powertac/powertac-core/</url>
   </scm>
 
 </project>

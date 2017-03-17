@@ -729,9 +729,9 @@
 
 
   <scm>
-    <connection>scm:git:git//github.com/powertac/powertac-parent.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/powertac-parent.git</developerConnection>
-    <url>https://github.com/powertac/powertac-parent/</url>
+    <connection>scm:git:git//github.com/powertac/powertac-core.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-core.git</developerConnection>
+    <url>https://github.com/powertac/powertac-core</url>
   </scm>
 
 

@@ -16,7 +16,7 @@
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
     <version>1.4.0-SNAPSHOT</version>
-    <relativePath />
+    <relativePath>../powertac-parent/</relativePath>
   </parent>
 
 
@@ -221,9 +221,9 @@
 
 
   <scm>
-    <connection>scm:git:git//github.com/powertac/common.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
-    <url>https://github.com/powertac/common/</url>
+    <connection>scm:git:git//github.com/powertac/powertac-core.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-core.git</developerConnection>
+    <url>https://github.com/powertac/powertac-core/</url>
   </scm>
 
 
