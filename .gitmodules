@@ -1,6 +1,3 @@
-[submodule "powertac-aop"]
-	path = powertac-aop
-	url = https://github.com/powertac/powertac-aop.git
 [submodule "common"]
 	path = common
 	url = https://github.com/powertac/common.git
