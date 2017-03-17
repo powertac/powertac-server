@@ -4,7 +4,6 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>powertac-aop</artifactId>
-  <version>1.4.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Power TAC aspect-oriented programming</name>
@@ -140,7 +139,7 @@
     <connection>scm:git:git//github.com/powertac/powertac-aop.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-aop.git</developerConnection>
     <url>https://github.com/powertac/powertac-aop/</url>
-    <tag>HEAD</tag>
+    <tag>powertac-aop-1.4.1</tag>
   </scm>
 
 
