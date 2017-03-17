@@ -1,0 +1,27 @@
+# IntelliJ IDEA project files
+*.iml
+*.ipr
+*.iws
+.idea/
+.classpath
+.project
+
+# Deployment directories
+target/
+activemq-data/
+log/
+.settings/
+
+# OS generated files
+.DS_Store?
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+*.log
+
+# Compiled source
+*.class
+
+# Cobertura generated files
+cobertura.ser
