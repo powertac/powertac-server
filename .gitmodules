@@ -1,6 +1,3 @@
-[submodule "powertac-parent"]
-	path = powertac-parent
-	url = https://github.com/powertac/powertac-parent.git
 [submodule "powertac-aop"]
 	path = powertac-aop
 	url = https://github.com/powertac/powertac-aop.git
