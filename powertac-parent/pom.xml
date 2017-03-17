@@ -619,6 +619,7 @@
           <artifactId>maven-release-plugin</artifactId>
           <version>${maven-release.version}</version>
           <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
             <mavenExecutorId>forked-path</mavenExecutorId>
             <useReleaseProfile>false</useReleaseProfile>
             <arguments>${sonatype.release.args} -Psonatype-release</arguments>
