@@ -1,3 +1,0 @@
-[submodule "broker-core"]
-	path = broker-core
-	url = https://github.com/powertac/broker-core.git
