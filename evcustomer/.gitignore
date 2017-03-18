@@ -1,0 +1,34 @@
+# IntelliJ IDEA project files
+*.iml
+*.ipr
+*.iws
+.idea/
+.project
+.classpath
+
+# editor temp files
+*~
+*.swp
+
+# Deployment directories and runtime artifacts
+bin/
+target/
+logs/
+log/
+.settings/
+.springBeans
+
+# OS generated files
+.DS_Store?
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+*.log
+*~
+
+# Compiled source
+*.class
+
+# Cobertura generated files
+cobertura.ser
