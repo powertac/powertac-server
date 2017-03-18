@@ -1,0 +1,90 @@
+<div ng-cloak>
+    <p class="">
+        Game status:
+        <span class="label label-{{vm.state.gameStatusStyle}}">
+            {{vm.state.gameStatus || '(loading...)'}}
+        </span>
+    </p>
+
+    <div ng-switch="vm.state.gameStatus">
+        <div ng-switch-when="IDLE">
+            <p>No game is currently running.</p>
+            <p ng-show="{{CONFIG.mode!=='tournament'}}">
+                You can start one in the <a class="alert-link" ui-sref="games">Games</a> tab.
+            </p>
+        </div>
+
+        <div ng-switch-when="WAITING">
+            <p>Game <i>{{vm.state.gameName}}</i> is currently waiting for brokers to connect.</p>
+        </div>
+
+        <div ng-switch-when="FAILED">
+            <p>Oops, something has gone wrong! Check the console for more info.</p>
+        </div>
+
+        <div ng-switch-default>
+            <h2>Current Game: {{vm.state.gameName || 'N/A'}}</h2>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Money</h2>
+                    <p class="lead">Cumulative</p>
+                    <highchart config="vm.allMoneyCumulative"
+                               change-detection="vm.changeDetection['allMoneyCumulative']"
+                               class="col-md-12 highchart"></highchart>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Retail Money</h2>
+                    <p class="lead">Per time slot</p>
+                    <highchart config="vm.retailMoney"
+                               change-detection="vm.changeDetection['retailMoney']"
+                               class="col-md-12 highchart"></highchart>
+                </div>
+                <div class="col-md-6">
+                    <h2>Retail Money</h2>
+                    <p class="lead">Cumulative Money</p>
+                    <highchart config="vm.retailMoneyCumulative"
+                               change-detection="vm.changeDetection['retailMoneyCumulative']"
+                               class="col-md-12 highchart"></highchart>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Retail energy</h2>
+                    <p class="lead">Per time slot kWh</p>
+                    <highchart config="vm.retailKwh"
+                               change-detection="vm.changeDetection['retailKwh']"
+                               class="col-md-12 highchart"></highchart>
+                </div>
+                <div class="col-md-6">
+                    <h2>Retail energy</h2>
+                    <p class="lead">Cumulative kWh</p>
+                    <highchart config="vm.retailKwhCumulative"
+                               change-detection="vm.changeDetection['retailKwhCumulative']"
+                               class="col-md-12 highchart"></highchart>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Subscriptions</h2>
+                    <p class="lead">Per time slot</p>
+                    <highchart config="vm.subscription"
+                               change-detection="vm.changeDetection['subscription']"
+                               class="col-md-12 highchart"></highchart>
+                </div>
+                <div class="col-md-6">
+                    <h2>Subscriptions</h2>
+                    <p class="lead">Cumulative subscriptions</p>
+                    <highchart config="vm.subscriptionCumulative"
+                               change-detection="vm.changeDetection['subscriptionCumulative']"
+                               class="col-md-12 highchart"></highchart>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <jhi-alert></jhi-alert>
+</div>
