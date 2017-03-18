@@ -1,9 +1,7 @@
 # Don't commit changes to these files out unless you know what you are doing
 .classpath
 .project
-.gitmodules
 rw.gitmodules
-accounting
 auctioneer
 default-broker
 distribution-utility
