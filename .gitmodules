@@ -14,9 +14,6 @@
     path = visualizer
     url = https://github.com/powertac/visualizer.git
     branch = master
-[submodule "logtool-core"]
-	path = logtool-core
-	url = https://github.com/powertac/logtool-core.git
 [submodule "visualizer2"]
 	path = visualizer2
 	url = https://github.com/powertac/visualizer2.git
