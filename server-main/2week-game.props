@@ -1,0 +1,7 @@
+common.competition.minimumTimeslotCount = 336
+common.competition.expectedTimeslotCount = 344
+#server.visualizerProxyService.remoteVisualizer = true
+#server.visualizerProxyService.visualizerQueueName = remote-visualizer
+server.competitionControlService.loginTimeout = 20000
+#factoredcustomer.config.allocationDetailsLogging = true
+distributionutility.distributionUtilityService.useCapacityFee = true

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jms="http://www.springframework.org/schema/jms" xmlns:amq="http://activemq.apache.org/schema/core"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	                    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	                    http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms.xsd
+	                    http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core-5.3.0.xsd">
+
+  <context:annotation-config />
+  <context:component-scan base-package="org.powertac">
+    <context:exclude-filter type="regex"
+                            expression="org.powertac.visualizer.*" />       
+  </context:component-scan>
+  <!-- <context:component-scan base-package="org.powertac" /> -->
+
+  <!-- A connection to ActiveMQ -->
+  <bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory"
+        p:brokerURL="tcp://localhost:61616" p:useAsyncSend="true" p:consumerFailoverRedeliveryWaitPeriod="1000" />
+
+  <!-- A cached connection to wrap the ActiveMQ connection -->
+  <bean id="jmsFactory" class="org.springframework.jms.connection.CachingConnectionFactory"
+        p:targetConnectionFactory-ref="amqConnectionFactory"
+        p:sessionCacheSize="10" />
+
+  <!-- A JmsTemplate instance that uses the cached connection and destination -->
+  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate"
+        p:connectionFactory-ref="jmsFactory" />
+
+  <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
+
+  <!-- need explicit list of beans that have properties to set -->
+  <bean id="competitionControlService"
+        class="org.powertac.server.CompetitionControlService">
+    <property name="timeslotPhaseCount" value="5" />
+    <property name="alwaysAuthorizedBrokers">
+      <list>
+        <value>default broker</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="auctionService" 
+        class="org.powertac.auctioneer.AuctionService">
+    <property name="timeslotPhase" value="1" />
+  </bean>
+
+  <bean id="weatherService" 
+        class="org.powertac.server.WeatherService">
+    <property name="timeslotPhase" value="1" />
+  </bean>
+
+  <bean id="householdCustomerService"
+        class="org.powertac.householdcustomer.HouseholdCustomerService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
+  <bean id="officeComplexCustomerService"
+        class="org.powertac.officecomplexcustomer.OfficeComplexCustomerService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
+  <bean id="factoredCustomerService"
+        class="org.powertac.factoredcustomer.FactoredCustomerService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
+  <bean id="customerModelService"
+        class="org.powertac.customer.CustomerModelService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
+  <bean id="balancingMarketService"
+        class="org.powertac.balancemkt.BalancingMarketService">
+    <property name="timeslotPhase" value="3" />
+  </bean>
+
+  <bean id="distributionUtilityService"
+        class="org.powertac.distributionutility.DistributionUtilityService">
+    <property name="timeslotPhase" value="4" />
+  </bean>
+
+  <bean id="tariffMarketService"
+        class="org.powertac.tariffmarket.TariffMarketService">
+    <property name="timeslotPhase" value="4" />
+  </bean>
+
+  <bean id="simpleGencoService"
+        class="org.powertac.genco.SimpleGencoService">
+    <property name="timeslotPhase" value="5" />
+  </bean>
+
+  <bean id="accountingService"
+        class="org.powertac.accounting.AccountingService">
+    <property name="timeslotPhase" value="5" />
+  </bean>
+
+</beans>
