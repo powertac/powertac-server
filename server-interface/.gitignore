@@ -1,27 +1,22 @@
-# Don't commit changes to these files out unless you know what you are doing
-.classpath
-.project
-rw.gitmodules
-
 # IntelliJ IDEA project files
 *.iml
 *.ipr
 *.iws
 .idea/
 
-# editor temp files
-*~
+# Eclipse project files
+.project
+.classpath
 
-# Deployment directories and runtime artifacts
-bin/
+# Deployment directories
 target/
 activemq-data/
-logs/
 log/
 .settings/
-server-main/boot-data.xml
-*.jar
-*.asc
+.springBeans/
+
+# Editor backups
+*~
 
 # OS generated files
 .DS_Store?

@@ -1,0 +1,5 @@
+32:Foo::3::new::
+2249:org.powertac.common.RandomSeed::1::init::Foo::3::test::-7938709514410200953
+44:Bar::9::foobar::some stuff::otherstuff
+2249:org.powertac.common.RandomSeed::2::init::Bar::42::more test::2904941806851623619
+3333:org.powertac.common.Empty::0::junk::garbage::3::4::5

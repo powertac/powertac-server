@@ -1,7 +1,3 @@
-[submodule "server-interface"]
-    path = server-interface
-    url = https://github.com/powertac/server-interface.git
-    branch = master
 [submodule "server-main"]
     path = server-main
     url = https://github.com/powertac/server-main.git
