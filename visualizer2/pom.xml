@@ -1086,9 +1086,9 @@
     </profiles>
 
     <scm>
-        <connection>scm:git:git//github.com/powertac/visualizer2.git</connection>
-        <developerConnection>scm:git:git@github.com:powertac/visualizer2.git</developerConnection>
-        <url>https://github.com/powertac/visualizer2</url>
+        <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+        <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+        <url>https://github.com/powertac/powertac-server/</url>
     </scm>
 
 </project>

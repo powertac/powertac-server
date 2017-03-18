@@ -106,9 +106,9 @@
 
 
   <scm>
-    <connection>scm:git:git//github.com/powertac/server-main.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/server-main.git</developerConnection>
-    <url>https://github.com/powertac/server-main/</url>
+    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <url>https://github.com/powertac/powertac-server/</url>
   </scm>
 
 </project>

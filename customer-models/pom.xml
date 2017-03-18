@@ -68,9 +68,9 @@
 
 
   <scm>
-    <connection>scm:git:git//github.com/powertac/customer-models.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/customer-models.git</developerConnection>
-    <url>https://github.com/powertac/customer-models/</url>
+    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <url>https://github.com/powertac/powertac-server/</url>
   </scm>
 
 

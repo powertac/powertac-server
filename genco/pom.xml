@@ -51,9 +51,9 @@
 
 
   <scm>
-    <connection>scm:git:git//github.com/powertac/genco.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/genco.git</developerConnection>
-    <url>https://github.com/powertac/genco/</url>
+    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <url>https://github.com/powertac/powertac-server/</url>
   </scm>
 
 </project>
