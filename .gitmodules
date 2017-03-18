@@ -2,10 +2,6 @@
     path = server-interface
     url = https://github.com/powertac/server-interface.git
     branch = master
-[submodule "default-broker"]
-    path = default-broker
-    url = https://github.com/powertac/default-broker.git
-    branch = master
 [submodule "distribution-utility"]
     path = distribution-utility
     url = https://github.com/powertac/distribution-utility.git

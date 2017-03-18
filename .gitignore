@@ -2,7 +2,6 @@
 .classpath
 .project
 rw.gitmodules
-default-broker
 distribution-utility
 genco
 household-customer
