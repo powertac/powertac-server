@@ -34,10 +34,6 @@
     path = visualizer
     url = https://github.com/powertac/visualizer.git
     branch = master
-[submodule "customer-models"]
-    path = customer-models
-    url = https://github.com/powertac/customer-models.git
-    branch = master
 [submodule "evcustomer"]
     path = evcustomer
     url = https://github.com/powertac/evcustomer.git
