@@ -2,10 +2,6 @@
     path = server-interface
     url = https://github.com/powertac/server-interface.git
     branch = master
-[submodule "genco"]
-    path = genco
-    url = https://github.com/powertac/genco.git
-    branch = master
 [submodule "household-customer"]
     path = household-customer
     url = https://github.com/powertac/household-customer.git

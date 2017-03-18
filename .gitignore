@@ -2,7 +2,6 @@
 .classpath
 .project
 rw.gitmodules
-genco
 household-customer
 server-interface
 
