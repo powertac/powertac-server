@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mockito="http://www.mockito.org/spring/mockito"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	       http://www.springframework.org/schema/beans/spring-beans.xsd
+	       http://www.springframework.org/schema/context 
+	       http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	       http://www.mockito.org/spring/mockito 
+	       http://www.mockito.org/spring/mockito.xsd">
+
+	<bean id="brokerProxy" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
+	</bean>
+
+	<bean id="competitionControl" class="org.mockito.Mockito"
+	      factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+	</bean>
+  
+        <bean id="accountingService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.Accounting" />
+        </bean>
+        
+        <bean id="tariffMarketService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
+        </bean>
+        
+        <bean id="capacityControlService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.CapacityControl" />
+        </bean>
+        
+        <bean id="serverPropertiesService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+        </bean>
+
+	<context:annotation-config />
+
+	<bean id="springApplicationContext"
+	      class="org.powertac.common.spring.SpringApplicationContext" />
+
+	<bean id="brokerRepo"
+	      class="org.powertac.common.repo.BrokerRepo">
+	</bean>
+        
+        <bean id="balancingMarketService"
+              class="org.powertac.balancemkt.BalancingMarketService">
+        </bean>
+
+	<bean id="tariffRepo"
+	      class="org.powertac.common.repo.TariffRepo">
+	</bean>
+
+        <bean id="tariffSubscriptionRepo"
+              class="org.powertac.common.repo.TariffSubscriptionRepo">
+        </bean>
+
+        <bean id="orderbookRepo"
+              class="org.powertac.common.repo.OrderbookRepo">
+        </bean>
+
+	<bean id="randomSeedRepo"
+	      class="org.powertac.common.repo.RandomSeedRepo">
+	</bean>
+
+	<bean id="timeService"
+	      class="org.powertac.common.TimeService">
+	</bean>
+
+	<bean id="timeslotRepo"
+	      class="org.powertac.common.repo.TimeslotRepo">
+	</bean>
+</beans>
