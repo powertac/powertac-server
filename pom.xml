@@ -42,7 +42,7 @@
     <module>logtool-core</module>
     <module>server-main</module>
 <!--    <module>visualizer</module> -->
-    <module>visualizer2</module>
+<!--    <module>visualizer2</module> -->
   </modules>
 
   <!-- Common dependencies across all server modules -->
