@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <config>
+      <allocationDetailsLogging>true</allocationDetailsLogging>
+      <capacityDetailsLogging>false</capacityDetailsLogging>
+      <usageChargesLogging>false</usageChargesLogging>
+
+      <structureTypes>
+        CustomerStructure,TariffSubscriberStructure,
+        CapacityStructure,DefaultCapacityBundle,
+        ProbabilityDistribution,TimeseriesGenerator,
+        ProfileOptimizerStructure
+      </structureTypes>
+    </config>
+
+    <customerStructure>
+      <instances>
+        BrooksideHomes,FrostyStorage,MedicalCenter,WindmillCoOp
+      </instances>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <instances>
+        BrooksideHomes,FrostyStorage,
+        MedicalCenter-1,MedicalCenter-2,
+        WindmillCoOp-1,WindmillCoOp-2
+      </instances>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <instances>
+        BrooksideHomes,
+        FrostyStorage1,FrostyStorage2,FrostyStorage3,
+        MedicalCenter-1,MedicalCenter-2,
+        WindmillCoOp-1,WindmillCoOp-2
+      </instances>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <instances>
+        BrooksideHomes,FrostyStorage,MedicalCenter-1,MedicalCenter-2,
+        WindmillCoOp-1,WindmillCoOp-2
+      </instances>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <instances>
+        BrooksideHomesInertia,
+        FrostyStorageInertia,FrostyStorage1Population,
+        FrostyStorage2Population,FrostyStorage3Population,
+        MedicalCenter-1Inertia,MedicalCenter-1Population,
+        MedicalCenter-2Inertia,MedicalCenter-2Population,
+        WindmillCoOp-1Inertia,WindmillCoOp-1Population,
+        WindmillCoOp-2Inertia,WindmillCoOp-2Population
+      </instances>
+    </probabilityDistribution>
+
+    <timeseriesGenerator>
+      <instances>
+        BrooksideHomesPopulation
+      </instances>
+    </timeseriesGenerator>
+  </factoredcustomer>
+</factoredcustomer-root>

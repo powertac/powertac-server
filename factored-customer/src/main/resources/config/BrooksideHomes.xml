@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <BrooksideHomes>
+        <!-- RESIDENTIAL -->
+        <count>1</count>
+        <creatorKey>LEARNING</creatorKey>
+        <bundleCount>1</bundleCount>
+      </BrooksideHomes>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <BrooksideHomes>
+        <count>1</count>
+        <population>30000</population>
+        <type>CONSUMPTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>true</isAdaptive>
+      </BrooksideHomes>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <BrooksideHomes>
+        <baseCapacityType>TIMESERIES</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
+        <hourlySkew>
+          1.0,1.0,1.0,1.0,1.0,1.0,0.5,1.0,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,0.5,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+        </hourlySkew>
+        
+        <temperatureInfluence>DEVIATION</temperatureInfluence>
+        <temperatureReference>20</temperatureReference>
+        <temperatureMap>
+          -50~-21:+0.005,
+          -20~0:+0.01,
+          1~16:+0.02,
+          17~24:0.00,
+          25~35:+0.01,
+          36~50:+0.005
+        </temperatureMap>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>00~23:-0.15</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>-0.01</elasticityRatio>
+        <elasticityRange>0.9~1.0</elasticityRange>
+      </BrooksideHomes>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <BrooksideHomes>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.75</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.9</logitChoiceRationality>
+      </BrooksideHomes>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <BrooksideHomesInertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.7</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </BrooksideHomesInertia>
+    </probabilityDistribution>
+
+    <timeseriesGenerator>
+      <BrooksideHomesPopulation>
+        <y0>1.4</y0>
+        <yd>0.00723,0.01762,-0.01768,0.00814,-0.00925,-0.01074,0.00563</yd>
+        <yh>
+          -0.10155,-0.02691,-0.06633,-0.04194,0.10463,0.05717,0.17041,
+          0.04501,-0.08065,-0.01920,-0.10155,-0.02691,-0.06633,-0.04194,
+          0.10463,0.05717,0.17041,0.04501,-0.08065,-0.01920,-0.10155,
+          -0.02691,-0.06633,-0.04194
+        </yh>
+        <phi1>0.16428</phi1>
+        <Phi1>0.68743</Phi1>
+        <theta1>-0.01602</theta1>
+        <Theta1>0.05889</Theta1>
+        <sigma>0.47687</sigma>
+        <lambda>0</lambda>
+        <gamma>0.5</gamma>
+        <refSeries>
+          8914.034,13638.91,18052.42,21641.86,23255.32,22380.8,19443.25,
+          15250.57,12611.11,11751.6,10521.88,10044.4,10702.34,11250.78,
+          13354.4,15438.26,14921.13,15477.4,13069.81,13061.01,9292.47,
+          9008.329,8897.753,8823.831,9115.92,10278.13,14989.66,18858.69,
+          23202.37,24187.39,24376.63,20623.77,17909.49,13572.77,11975.81,
+          10243.05,11926.86,17569.58,17257.17,16611.74,12423.77,11753.3,
+          10442.22,9183.137,9725.739,9809.689,8958.795,8644.652
+        </refSeries>
+      </BrooksideHomesPopulation>
+    </timeseriesGenerator>
+
+    <profileOptimizerStructure>
+      <BrooksideHomes>
+        <receiveRecommendations>true</receiveRecommendations>
+        <permutationRule>ALL_SHIFTS</permutationRule>
+
+        <reactivityFactor>1.0</reactivityFactor>
+        <receptivityFactor>1.0</receptivityFactor>
+        <rationalityFactor>1.0</rationalityFactor>
+
+        <usageChargeStance>NEUTRAL</usageChargeStance>
+
+        <profileChangeWeight>-0.001</profileChangeWeight>
+        <bundleValueWeight>1.0</bundleValueWeight>
+      </BrooksideHomes>
+    </profileOptimizerStructure>
+  </factoredcustomer>
+</factoredcustomer-root>

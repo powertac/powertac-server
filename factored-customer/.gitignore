@@ -1,0 +1,39 @@
+# IntelliJ IDEA project files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Eclipse project files
+.project
+.classpath
+
+# Local files
+fcm-tasks.txt
+fcm-boot-data.csv
+FactoredCustomers_save.xml
+FactoredCustomers_temp.xml
+
+# Deployment directories
+target/
+activemq-data/
+log/
+.settings/
+.springBeans
+
+# Editor backups
+*~
+
+# OS generated files
+.DS_Store?
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+*.log
+
+# Compiled source
+*.class
+
+# Cobertura generated files
+cobertura.ser

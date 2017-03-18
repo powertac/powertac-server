@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <MedicalCenter>
+        <count>1</count>
+        <creatorKey/>
+        <!-- COMMERCIAL -->
+        <bundleCount>2</bundleCount>
+      </MedicalCenter>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <MedicalCenter-1>
+        <id>1</id>
+        <count>1</count>
+        <population>1</population>
+        <type>CONSUMPTION</type>
+        <multiContracting>false</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </MedicalCenter-1>
+
+      <MedicalCenter-2>
+        <id>2</id>
+        <count>1</count>
+        <population>1</population>
+        <type>SOLAR_PRODUCTION</type>
+        <multiContracting>false</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </MedicalCenter-2>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <MedicalCenter-1>
+        <baseCapacityType>POPULATION</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,0.9,0.9</dailySkew>
+        <hourlySkew>
+          0.7,0.7,0.7,0.7,0.7,0.8,0.9,1.0,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.9,0.8,0.7,0.7,0.7
+        </hourlySkew>
+
+        <temperatureInfluence>DEVIATION</temperatureInfluence>
+        <temperatureReference>20</temperatureReference>
+        <temperatureMap>
+          -50~-21: +0.005,
+          -20~0: +0.01,
+          1~16: +0.02,
+          17~24: 0.00,
+          25~35: +0.01,
+          36~50: +0.005
+        </temperatureMap>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>
+          00~05: -0.10,
+          06~19: -0.20,
+          20~23: -0.10
+        </benchmarkRates>
+        <elasticityModelType>STEPWISE</elasticityModelType>
+        <elasticityMap>1.3: 0.8, 1.5: 0.7</elasticityMap>
+      </MedicalCenter-1>
+
+      <MedicalCenter-2>
+        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
+        <hourlySkew>
+          0.0,0.0,0.0,0.0,0.0,0.0,0.5,1.0,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,1.0,0.5,0.0,0.0,0.0,0.0,0.0,0.0
+        </hourlySkew>
+
+        <temperatureInfluence>NONE</temperatureInfluence>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>DIRECT</cloudCoverInfluence>
+        <cloudCoverMap>
+          0~40: 1.0,
+          41~60: 0.95,
+          61~75: 0.9,
+          76~90: 0.8,
+          91~100: 0.7
+        </cloudCoverMap>
+
+        <benchmarkRates>00~23: 0.08</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>-0.0001</elasticityRatio>
+        <elasticityRange>0.9~1.0</elasticityRange>
+      </MedicalCenter-2>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <MedicalCenter-1>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.75</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.9</logitChoiceRationality>
+      </MedicalCenter-1>
+
+      <MedicalCenter-2>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.6</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.95</logitChoiceRationality>
+      </MedicalCenter-2>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <MedicalCenter-1Inertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.5</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </MedicalCenter-1Inertia>
+      <MedicalCenter-1Population>
+        <distribution>NORMAL</distribution>
+        <mean>5000</mean>
+        <stdDev>500</stdDev>
+      </MedicalCenter-1Population>
+
+      <MedicalCenter-2Inertia>
+        <distribution>POINTMASS</distribution>
+        <value>0.5</value>
+      </MedicalCenter-2Inertia>
+      <MedicalCenter-2Population>
+        <distribution>NORMAL</distribution>
+        <mean>1000</mean>
+        <stdDev>50</stdDev>
+      </MedicalCenter-2Population>
+    </probabilityDistribution>
+  </factoredcustomer>
+</factoredcustomer-root>
