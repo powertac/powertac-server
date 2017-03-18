@@ -29,7 +29,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>${powertac.version}</version>
     </dependency>
 
     <dependency>
