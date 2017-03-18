@@ -1,7 +1,3 @@
-[submodule "visualizer"]
-    path = visualizer
-    url = https://github.com/powertac/visualizer.git
-    branch = master
 [submodule "visualizer2"]
 	path = visualizer2
 	url = https://github.com/powertac/visualizer2.git
