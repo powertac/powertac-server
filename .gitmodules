@@ -6,10 +6,6 @@
     path = server-main
     url = https://github.com/powertac/server-main.git
     branch = master
-[submodule "officecomplex-customer"]
-    path = officecomplex-customer
-    url = https://github.com/powertac/officecomplex-customer.git
-    branch = master
 [submodule "visualizer"]
     path = visualizer
     url = https://github.com/powertac/visualizer.git
