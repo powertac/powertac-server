@@ -16,7 +16,6 @@
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
     <version>1.4.0-SNAPSHOT</version>
-    <relativePath>../powertac-parent/</relativePath>
   </parent>
 
 
