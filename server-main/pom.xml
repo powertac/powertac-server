@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +13,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-server</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.1</version>
   </parent>
 
 
@@ -25,62 +23,62 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>accounting</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>auctioneer</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>default-broker</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>distribution-utility</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>household-customer</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>factored-customer</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>officecomplex-customer</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>balancing-market</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>customer-models</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>evcustomer</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
 
     <!-- Messaging -->
@@ -109,6 +107,7 @@
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
     <url>https://github.com/powertac/powertac-server/</url>
+    <tag>powertac-server-1.4.1</tag>
   </scm>
 
 </project>
