@@ -15,7 +15,7 @@
 
   <name>Power TAC parent</name>
   <description>Properties, plugin- and dependency management for Power TAC</description>
-  <url>https://github.com/powertac/powertac-parent/</url>
+  <url>https://github.com/powertac/powertac-core/</url>
 
 
   <!-- Require more or less recent Maven version -->

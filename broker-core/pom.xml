@@ -10,7 +10,7 @@
 
   <name>Power TAC broker-core</name>
   <description>Common core of a Power TAC broker implementation</description>
-  <url>https://github.com/powertac/broker-core/</url>
+  <url>https://github.com/powertac/powertac-core/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

@@ -23,8 +23,9 @@
   <groupId>org.powertac</groupId>
   <artifactId>powertac-core</artifactId>
   <packaging>pom</packaging>
-  <name>Power TAC core modules</name>
 
+  <name>Power TAC core modules</name>
+  <url>https://github.com/powertac/powertac-core/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

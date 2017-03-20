@@ -10,7 +10,7 @@
 
   <name>Power TAC aspect-oriented programming</name>
   <description>Aspects and related classes, interfaces, annotations</description>
-  <url>https://github.com/powertac/powertac-aop/</url>
+  <url>https://github.com/powertac/powertac-core/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
