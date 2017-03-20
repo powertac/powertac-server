@@ -10,7 +10,7 @@
 
   <name>Power TAC distribution utility</name>
   <description>Models the regulated monopoly that owns and maintains the distribution infrastructure.</description>
-  <url>https://github.com/powertac/distribution-utility/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

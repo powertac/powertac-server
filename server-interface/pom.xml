@@ -10,7 +10,7 @@
 
   <name>Power TAC server interface</name>
   <description>Interfaces and domain types shared by multiple server components</description>
-  <url>https://github.com/powertac/server-interface/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

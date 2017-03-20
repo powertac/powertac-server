@@ -10,7 +10,7 @@
 
   <name>Power TAC household customer</name>
   <description>Bottom-up model of a household energy customer</description>
-  <url>https://github.com/powertac/household-customer/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

@@ -10,7 +10,7 @@
 
   <name>Power TAC logtool core</name>
   <description>Tool for analyzing state logs produced by the Power TAC server</description>
-  <url>https://github.com/powertac/logtool-core/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
