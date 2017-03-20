@@ -19,11 +19,10 @@
   <name>Power TAC server modules</name>
   <url>https://github.com/powertac/powertac-server/</url>
 
-  <!-- Do we need this? -->
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.1</version>
     <relativePath />
   </parent>
 
@@ -52,7 +51,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
-      <version>1.4.0-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
 
     <!-- Testing - not inherited from common due to test scope -->
