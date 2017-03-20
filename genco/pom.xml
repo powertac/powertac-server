@@ -10,7 +10,7 @@
 
   <name>Power TAC genco</name>
   <description>Models of simple wholesale power producers, and a wholesale buyer</description>
-  <url>https://github.com/powertac/genco/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

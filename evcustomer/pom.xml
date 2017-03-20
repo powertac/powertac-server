@@ -9,7 +9,7 @@
 
   <name>Power TAC ev customer</name>
   <description>Bottom-up model of an electric vehicle customer</description>
-  <url>https://github.com/powertac/evcustomer/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

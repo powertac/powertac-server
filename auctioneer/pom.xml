@@ -10,7 +10,7 @@
 
   <name>Power TAC wholesale market</name>
   <description>Simulation of day-ahead wholesale market for trading electric power</description>
-  <url>https://github.com/powertac/auctioneer/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <artifactId>powertac-server</artifactId>

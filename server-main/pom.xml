@@ -10,7 +10,7 @@
 
   <name>Power TAC server main</name>
   <description>Top-level module of the Power TAC simulation server</description>
-  <url>https://github.com/powertac/server-main/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

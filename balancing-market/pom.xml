@@ -10,7 +10,7 @@
 
   <name>Power TAC intra-hour market-based balancing</name>
   <description>Balances supply and demand in the current timeslot</description>
-  <url>https://github.com/powertac/balancing-market/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

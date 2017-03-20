@@ -10,7 +10,7 @@
 
   <name>Power TAC factored customer</name>
   <description>Top-down statistical model framework for different classes of customers.</description>
-  <url>https://github.com/powertac/factored-customer/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>

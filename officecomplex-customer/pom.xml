@@ -10,7 +10,7 @@
 
   <name>Power TAC office complex customer</name>
   <description>Bottom-up model of an office complex energy customer</description>
-  <url>https://github.com/powertac/officecomplex-customer/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
