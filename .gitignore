@@ -1,20 +1,51 @@
-*.class
-*~
+# Editor etc
+**/*~
+**/*.swp
+**/*.bak
 
 # Mobile Tools for Java (J2ME)
-.mtj.tmp/
+**/.mtj.tmp/
 
 # Package Files #
-*.jar
-*.war
-*.ear
+**/*.jar
+**/*.war
+**/*.ear
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+**/hs_err_pid*
 
-# maven artifacts
-target/
+# Build artifacts
+**/bin/
+**/*.class
 
-# eclipse artifacts
-.classpath
-.project
+# Run artifacts
+**/log/
+**/*.log
+
+# Release artifacts
+**/release.properties
+**/pom.xml.releaseBackup
+
+# Maven artifacts
+**/target/
+
+# Eclipse artifacts
+**/.project
+**/.classpath
+**/.factorypath
+**/.settings/
+
+# IDEA artifacts
+.idea/
+**/*.iml
+**/*.iws
+**/*.ipr
+**/*.ids
+**/*.orig
+
+# OS artifacts
+**/.DS_Store
+**/Thumbs.db
+**/Desktop.ini
+
+
