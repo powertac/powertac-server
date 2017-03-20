@@ -71,8 +71,7 @@ gulp.task('template:test', function () {
 });
 
 gulp.task('inject', function(cb) {
-    runSequence('inject:dep', 'inject:app');
-    cb();
+    runSequence('inject:dep', 'inject:app', cb);
 });
 
 gulp.task('inject:dep', ['inject:test', 'inject:vendor']);
@@ -81,10 +80,7 @@ gulp.task('inject:app', inject.app);
 
 gulp.task('inject:vendor', inject.vendor);
 
-gulp.task('inject:test', function(cb) {
-    runSequence('template:test', inject.test);
-    cb();
-});
+gulp.task('inject:test', ['template:test'], inject.test);
 
 gulp.task('inject:troubleshoot', inject.troubleshoot);
 
