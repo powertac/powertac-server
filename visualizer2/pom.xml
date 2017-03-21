@@ -418,8 +418,12 @@
             <url>http://repo.spring.io/milestone</url>
         </repository>
         <repository>
-            <id>sonatype</id>
+            <id>sonatype-nexus-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>sonatype-nexus-releases</id>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
         </repository>
     </repositories>
     <pluginRepositories>
