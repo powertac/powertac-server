@@ -65,26 +65,6 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${maven-javadoc.version}</version>
-          <executions>
-            <execution>
-              <id>aggregate</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>aggregate</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
-
 
   <scm>
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
