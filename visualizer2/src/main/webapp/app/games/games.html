@@ -111,7 +111,7 @@
                     <td class="form-inline">
                       <input class="form-control" id="brokerInput" ng-model="vm.brokerName"
                              placeholder="Enter broker name ..."
-                             ng-pattern="/^[a-zA-Z0-9]*$/"
+                             ng-pattern="/^[a-zA-Z0-9\\-_]*$/"
                              ng-keyup="$event.keyCode === 13 && vm.brokerName && vm.addBroker(vm.brokerName)" />
                       <button type="button" class="btn btn-default" ng-disabled="!vm.brokerName"
                               ng-click="vm.addBroker(vm.brokerName)">
