@@ -9,25 +9,21 @@
       To generate javadocs, mvn javadoc:aggregate
    -->
 
-  <groupId>org.powertac</groupId>
   <artifactId>powertac-server</artifactId>
   <version>1.4.2-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Power TAC server modules</name>
 
-  <!-- Do we need this? -->
+  <name>Power TAC server modules</name>
+  <url>https://github.com/powertac/powertac-server/</url>
+
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2-SNAPSHOT</version>
     <relativePath />
   </parent>
 
-  <properties>
-    <powertac-server.version>${project.version}</powertac-server.version>
-  </properties>
-
-  <!-- server components -->
+  <!-- Server components -->
   <modules>
     <module>server-interface</module>
     <module>accounting</module>
@@ -48,12 +44,11 @@
   </modules>
 
   <!-- Common dependencies across all server modules -->
-
   <dependencies>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
-      <version>1.4.2-SNAPSHOT</version>
+      <version>1.4.1</version>
     </dependency>
 
     <!-- Testing - not inherited from common due to test scope -->
@@ -66,36 +61,6 @@
       <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
-
-  <build>
-  <pluginManagement>
-    <plugins>
-      <plugin>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc.version}</version>
-        <configuration>
-          <includeDependencySources>true</includeDependencySources>
-          <additionalDependencies>
-            <additionalDependency>
-              <groupId>org.powertac</groupId>
-              <artifactId>common</artifactId>
-              <version>${powertac.version}</version>
-            </additionalDependency>
-          </additionalDependencies>
-        </configuration>
-        <executions>
-          <execution>
-            <id>aggregate</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>aggregate</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </pluginManagement>
-  </build>
 
 
   <scm>

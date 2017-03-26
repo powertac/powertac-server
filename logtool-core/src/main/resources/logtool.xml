@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+                      http://www.springframework.org/schema/beans/spring-beans.xsd
+                      http://www.springframework.org/schema/context
+                      http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <context:annotation-config />
+
+  <!--  no component-scan  -->
+
+  <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
+
+  <!-- need explicit list of beans -->
+  <bean id="logtoolCore" class="org.powertac.logtool.LogtoolCore" />
+  <bean id="domainObjectReader" class="org.powertac.logtool.common.DomainObjectReader" />
+  <bean id="domainBuilder" class="org.powertac.logtool.common.DomainBuilder" />
+
+  <!-- repos and other common elements -->
+  <bean id="timeService" class="org.powertac.common.TimeService" />
+  <bean id="springApplicationContext" class="org.powertac.common.spring.SpringApplicationContext" />
+  <bean id="brokerRepo" class="org.powertac.common.repo.BrokerRepo" />
+  <bean id="tariffRepo" class="org.powertac.common.repo.TariffRepo" />
+  <bean id="customerRepo" class="org.powertac.common.repo.CustomerRepo" />
+  <bean id="orderbookRepo" class="org.powertac.common.repo.OrderbookRepo" />
+  <bean id="timeslotRepo" class="org.powertac.common.repo.TimeslotRepo" />
+  <bean id="bootstrapDataRepo" class="org.powertac.common.repo.BootstrapDataRepo" />
+  <bean id="xmlMessageConverter" class="org.powertac.common.XMLMessageConverter" />
+
+</beans>

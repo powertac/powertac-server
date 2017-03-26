@@ -1,46 +1,51 @@
-# Don't commit changes to these files out unless you know what you are doing
-.classpath
-.project
-.gitmodules
-rw.gitmodules
-accounting
-auctioneer
-default-broker
-distribution-utility
-genco
-household-customer
-server-interface
+# Editor etc
+**/*~
+**/*.swp
+**/*.bak
 
-# IntelliJ IDEA project files
-*.iml
-*.ipr
-*.iws
+# Mobile Tools for Java (J2ME)
+**/.mtj.tmp/
+
+# Package Files #
+**/*.jar
+**/*.war
+**/*.ear
+
+# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+**/hs_err_pid*
+
+# Build artifacts
+**/bin/
+**/*.class
+
+# Run artifacts
+**/log/
+**/*.log
+
+# Release artifacts
+**/release.properties
+**/pom.xml.releaseBackup
+
+# Maven artifacts
+**/target/
+
+# Eclipse artifacts
+**/.project
+**/.classpath
+**/.factorypath
+**/.settings/
+
+# IDEA artifacts
 .idea/
+**/*.iml
+**/*.iws
+**/*.ipr
+**/*.ids
+**/*.orig
 
-# editor temp files
-*~
+# OS artifacts
+**/.DS_Store
+**/Thumbs.db
+**/Desktop.ini
 
-# Deployment directories and runtime artifacts
-bin/
-target/
-activemq-data/
-logs/
-log/
-.settings/
-server-main/boot-data.xml
-*.jar
-*.asc
 
-# OS generated files
-.DS_Store?
-.DS_Store
-ehthumbs.db
-Icon?
-Thumbs.db
-*.log
-
-# Compiled source
-*.class
-
-# Cobertura generated files
-cobertura.ser

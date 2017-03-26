@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	       http://www.springframework.org/schema/beans/spring-beans.xsd
+	       http://www.springframework.org/schema/context 
+	       http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+	       >
+
+  <bean id="accountingService" name="mockAccounting" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.powertac.common.interfaces.Accounting" />
+  </bean>      
+  <bean id="tariffMarketService" name="mockTariffMarket" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
+  </bean>      
+
+  <bean id="competitionControl" class="org.mockito.Mockito" factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+  </bean>   
+
+  <bean id="serverPropertiesService" name="mockServerProperties" class="org.mockito.Mockito" factory-method="mock">
+   <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+  </bean>
+
+  <context:annotation-config />
+  <context:component-scan base-package="org.powertac" />
+
+  <bean id="springApplicationContext" class="org.powertac.common.spring.SpringApplicationContext"/>
+</beans>

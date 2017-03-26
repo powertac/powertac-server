@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <DowntownOffices>
+        <!-- COMMERCIAL -->
+        <count>1</count>
+        <creatorKey/>
+        <bundleCount>1</bundleCount>
+      </DowntownOffices>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <DowntownOffices>
+        <count>1</count>
+        <population>30</population>
+        <type>CONSUMPTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </DowntownOffices>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <DowntownOffices>
+        <baseCapacityType>POPULATION</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,0.6,0.6</dailySkew>
+        <hourlySkew>
+          0.3,0.3,0.3,0.3,0.4,0.5,0.6,0.8,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,1.0,0.9,0.7,0.5,0.4,0.3,0.3,0.3
+        </hourlySkew>
+
+        <temperatureInfluence>DEVIATION</temperatureInfluence>
+        <temperatureReference>20</temperatureReference>
+        <temperatureMap>
+          -50~-21: +0.005,
+          -20~0: +0.01,
+          1~16: +0.02,
+          17~24: 0.00,
+          25~35: +0.01,
+          36~50: +0.005</temperatureMap>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>
+          00~05: -0.10,
+          06~19: -0.20,
+          20~23: -0.10
+        </benchmarkRates>
+        <elasticityModelType>STEPWISE</elasticityModelType>
+        <elasticityMap>1.5: 0.98, 2.0: 0.96</elasticityMap>
+      </DowntownOffices>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <DowntownOffices>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.8</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.9</logitChoiceRationality>
+      </DowntownOffices>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <DowntownOfficesInertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.6</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </DowntownOfficesInertia>
+      <DowntownOfficesPopulation>
+        <distribution>NORMAL</distribution>
+        <mean>8000</mean>
+        <stdDev>500</stdDev>
+      </DowntownOfficesPopulation>
+    </probabilityDistribution>
+  </factoredcustomer>
+</factoredcustomer-root>
