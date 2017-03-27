@@ -23,6 +23,10 @@
     <relativePath />
   </parent>
 
+  <properties>
+    <powertac-server.version>1.4.2-SNAPSHOT</powertac-server.version>
+  </properties>
+
   <!-- Server components -->
   <modules>
     <module>server-interface</module>
