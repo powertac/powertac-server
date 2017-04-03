@@ -66,8 +66,8 @@ public class PowerTacServer
     try (AbstractApplicationContext context =
              new ClassPathXmlApplicationContext("powertac.xml")) {
 
-      String username = System.getProperty("http.proxyUser");
-      String password = System.getProperty("http.proxyPassword");
+      String username = System.getProperty("http.proxyUser", "");
+      String password = System.getProperty("http.proxyPassword", "");
       if (!username.isEmpty()) {
         Authenticator.setDefault(new ProxyAuthenticator(username, password));
       }
