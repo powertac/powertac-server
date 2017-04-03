@@ -15,6 +15,10 @@
  */
 package org.powertac.samplebroker.core;
 
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+
+
 /**
  * This is the top level of the Power TAC server.
  * @author John Collins
@@ -28,10 +32,32 @@ public class BrokerMain
    */
   public static void main (String[] args)
   {
+    String username = System.getProperty("java.net.socks.username", "");
+    String password = System.getProperty("java.net.socks.password", "");
+    if (!username.isEmpty()) {
+      Authenticator.setDefault(new ProxyAuthenticator(username, password));
+    }
+
     BrokerRunner runner = new BrokerRunner();
     runner.processCmdLine(args);
     
     // if we get here, it's time to exit
     System.exit(0);
+  }
+
+  private static class ProxyAuthenticator extends Authenticator
+  {
+    private String userName, password;
+
+    private ProxyAuthenticator (String userName, String password)
+    {
+      this.userName = userName;
+      this.password = password;
+    }
+
+    protected PasswordAuthentication getPasswordAuthentication ()
+    {
+      return new PasswordAuthentication(userName, password.toCharArray());
+    }
   }
 }
