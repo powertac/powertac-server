@@ -566,21 +566,6 @@
           <configuration>
             <failOnError>false</failOnError>
             <additionalparam>-Xdoclint:none</additionalparam>
-	    <includeDependencySources>true</includeDependencySources>
-	    <dependencySourceExcludes>
-	      <dependencySourceExclude>org.apache.commons:*</dependencySourceExclude>
-	      <dependencySourceExclude>org.springframework:*</dependencySourceExclude>
-	      <dependencySourceExclude>junit:*</dependencySourceExclude>
-	      <dependencySourceExclude>org.mockito:*</dependencySourceExclude>
-	      <dependencySourceExclude>org.apache.activemq:*</dependencySourceExclude>
-	      <dependencySourceExclude>com.thoughtworks.xstream:*</dependencySourceExclude>
-	      <dependencySourceExclude>org.apache.logging.log4j:*</dependencySourceExclude>
-	      <dependencySourceExclude>commons-logging:*</dependencySourceExclude>
-	      <dependencySourceExclude>org.slf4j:*</dependencySourceExclude>
-	      <dependencySourceExclude>commons-beanutils:*</dependencySourceExclude>
-	      <dependencySourceExclude>net.sf.jopt-simple:*</dependencySourceExclude>
-	      <dependencySourceExclude>joda-time:*</dependencySourceExclude>
-	    </dependencySourceExcludes>
           </configuration>
           <executions>
             <execution>
