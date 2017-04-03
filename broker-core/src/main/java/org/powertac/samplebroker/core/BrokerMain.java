@@ -32,8 +32,8 @@ public class BrokerMain
    */
   public static void main (String[] args)
   {
-    String username = System.getProperty("java.net.socks.username");
-    String password = System.getProperty("java.net.socks.password");
+    String username = System.getProperty("java.net.socks.username", "");
+    String password = System.getProperty("java.net.socks.password", "");
     if (!username.isEmpty()) {
       Authenticator.setDefault(new ProxyAuthenticator(username, password));
     }
