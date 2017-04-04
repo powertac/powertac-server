@@ -574,13 +574,6 @@
                 <goal>jar</goal>
               </goals>
             </execution>
-            <execution>
-              <id>aggregate</id>
-              <phase>site</phase>
-              <goals>
-                <goal>aggregate</goal>
-              </goals>
-            </execution>
           </executions>
         </plugin>
 
@@ -594,9 +587,20 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc.version}</version>
+                <reportSets>
+                  <reportSet>
+                    <reports>
+                      <report>aggregate</report>
+                    </reports>
+                  </reportSet>
+                </reportSets>
                 <configuration>
                   <failOnError>false</failOnError>
                   <additionalparam>-Xdoclint:none</additionalparam>
+                  <includeDependencySources>true</includeDependencySources>
+                  <dependencySourceIncludes>
+                    <dependencySourceInclude>org.powertac:*</dependencySourceInclude>
+                  </dependencySourceIncludes>
                 </configuration>
               </plugin>
             </reportPlugins>
