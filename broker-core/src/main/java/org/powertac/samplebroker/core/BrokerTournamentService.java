@@ -15,14 +15,6 @@
  */
 package org.powertac.samplebroker.core;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Date;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
@@ -30,6 +22,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Date;
+
+
 /**
  * @author Erik Onarheim
  */
@@ -52,67 +53,66 @@ public class BrokerTournamentService
   private String tourneyName = null;
 
   @ConfigurableValue(valueType = "String",
-          description = "Response type to receive from the TS xml or json")
+      description = "Response type to receive from the TS xml or json")
   private String responseType = "xml";
 
   // If set to negative number infinite retries
   @ConfigurableValue(valueType = "Integer",
-          description = "Maximum number of tries to connect to Tournament Scheduler")
+      description = "Maximum number of tries to connect to Tournament Scheduler")
   private int maxTry = 50;
 
-  public void init()
+  public void init ()
   {
     brokerPropertiesService.configureMe(this);
   }
 
-  public String getResponseType()
-  {
-    return responseType;
-  }
-
-  public int getMaxTry()
-  {
-    return maxTry;
-  }
-  
   public String getJmsUrl ()
   {
     return jmsUrl;
   }
-  
+
   public String getServerQueueName ()
   {
     return serverQueueName;
   }
-  
+
   public String getBrokerQueueName ()
   {
     return brokerQueueName;
   }
 
   // Spins current login attemt for n seconds and url to retry
-  private void spin(int seconds)
+  private void spin (int seconds)
   {
     try {
       Thread.sleep(seconds * 1000);
-    } catch (InterruptedException e) {
+    }
+    catch (InterruptedException e) {
       // insomnia -- unable to sleep
       e.printStackTrace();
     }
   }
 
-  private boolean loginMaybe(String tsUrl)
+  private boolean loginMaybe (String tsUrl)
   {
+    if (responseType.compareTo("xml") != 0) {
+      // TODO Only xml is supported by TS -- get rid of responseType config?
+      log.fatal("Error: invalid responseType " + this.responseType);
+      return false;
+    }
+
     try {
-      // Build proper connection string to tournament scheduler for
-      // login
+      // Build proper connection string to tournament scheduler for login
       String restAuthToken = "authToken=" + this.authToken;
       String restTourneyName = "requestJoin=" + this.tourneyName;
       String restResponseType = "type=" + this.responseType;
-      String finalUrl = tsUrl + "?" + restAuthToken + "&" + restTourneyName + "&"
-              + restResponseType;
-      log.info("Connecting to TS with " + finalUrl);
-      log.info("Tournament : " + this.tourneyName);
+      String finalUrl = tsUrl + "?" + restAuthToken + "&" + restTourneyName
+          + "&" + restResponseType;
+
+      System.out.printf("Connecting to TS at %s\nTournament : %s\n",
+          tsUrl, tourneyName);
+      log.info("Connecting to TS at " + finalUrl);
+      log.info("Tournament : " + tourneyName);
 
       URL url = new URL(finalUrl);
       URLConnection conn = url.openConnection();
@@ -120,68 +120,55 @@ public class BrokerTournamentService
       // Get the response
       InputStream input = conn.getInputStream();
 
-      if (this.responseType.compareTo("xml") == 0) {
-        System.out.println("Parsing message..");
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
-                .newInstance();
-        DocumentBuilder docBuilder = docBuilderFactory
-                .newDocumentBuilder();
-        Document doc = docBuilder.parse(input);
+      System.out.println("Parsing message..");
+      DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
+          .newInstance();
+      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+      Document doc = docBuilder.parse(input);
+      doc.getDocumentElement().normalize();
 
-        doc.getDocumentElement().normalize();
-        System.out.println("login response: " + doc.toString());
+      // Three different message types
+      Node retryNode = doc.getElementsByTagName("retry").item(0);
+      Node loginNode = doc.getElementsByTagName("login").item(0);
+      Node doneNode = doc.getElementsByTagName("done").item(0);
 
-        // Three different message types
-        Node retryNode = doc.getElementsByTagName("retry").item(0);
-        Node loginNode = doc.getElementsByTagName("login").item(0);
-        Node doneNode = doc.getElementsByTagName("done").item(0);
+      if (retryNode != null) {
+        String checkRetry = retryNode.getFirstChild().getNodeValue();
+        System.out.println("No games available at this moment");
+        System.out.println("Retry in " + checkRetry + " seconds\n");
+        log.info("Retry message received for : " + checkRetry
+            + " seconds");
 
-        if (retryNode != null) {
-          String checkRetry = retryNode.getFirstChild()
-                  .getNodeValue();
-          log.info("Retry message received for : " + checkRetry
-                   + " seconds");
-          System.out.println("Retry message received for : "
-                  + checkRetry + " seconds");
-          // Received retry message spin and try again
-          spin(Integer.parseInt(checkRetry));
-          return false;
-        }
-        else if (loginNode != null) {
-          System.out.println("Login response received!");
-          log.info("Login response received! ");
-
-          String checkJmsUrl = doc.getElementsByTagName("jmsUrl").item(0).getFirstChild().getNodeValue();
-          jmsUrl = checkJmsUrl;
-          log.info("jmsUrl=" + checkJmsUrl);
-
-          String checkBrokerQueue = doc.getElementsByTagName("queueName").item(0).getFirstChild().getNodeValue();
-          brokerQueueName = checkBrokerQueue;
-          log.info("brokerQueueName=" + checkBrokerQueue);
-
-          String checkServerQueue = doc.getElementsByTagName("serverQueue").item(0).getFirstChild().getNodeValue();
-          serverQueueName = checkServerQueue;
-          log.info("serverQueueName=" + checkServerQueue);
-
-          System.out.printf("Login message received!\n  jmsUrl=%s\n  queueName=%s\n  serverQueue=%s\n",
-                            checkJmsUrl, checkBrokerQueue, checkServerQueue);
-          return true;
-        }
-        else if (doneNode != null) {
-          System.out.println("Recieved Done Message no more games!");
-          maxTry=0;
-          return false;
-        }
-        else {
-          log.fatal("Invalid message type recieved");
-          return false;
-        }
-      }
-      else {
-        // TODO Only xml is supported by TS -- get rid of responseType config?
-        log.fatal("Error: invalid responseType " + this.responseType);
+        // Received retry message spin and try again
+        spin(Integer.parseInt(checkRetry));
         return false;
       }
+
+      if (loginNode != null) {
+        jmsUrl = getValue(doc, "jmsUrl");
+        brokerQueueName = getValue(doc, "queueName");
+        serverQueueName = getValue(doc, "serverQueue");
+
+        System.out.printf("Login response received!" +
+                "\n  jmsUrl=%s\n  queueName=%s\n  serverQueue=%s\n",
+                jmsUrl, brokerQueueName, serverQueueName);
+        log.info("Login response received!");
+        log.info("  jmsUrl=" + jmsUrl);
+        log.info("  brokerQueueName=" + brokerQueueName);
+        log.info("  serverQueueName=" + serverQueueName);
+
+        return true;
+      }
+
+      if (doneNode != null) {
+        System.out.println("Received Done Message, no more games!");
+        log.info("Received Done Message, no more games!");
+        maxTry = 0;
+        return false;
+      }
+
+      log.fatal("Invalid message type received");
+      return false;
     }
     catch (Exception e) { // exception hit return false
       maxTry--;
@@ -189,33 +176,24 @@ public class BrokerTournamentService
       e.printStackTrace();
       log.fatal("Error making connection to Tournament Scheduler");
       log.fatal(e.getMessage());
-      // Sleep and wait for network
-      try {
-        Thread.sleep(20000);
-      }
-      catch (InterruptedException e1) {
-        e1.printStackTrace();
-        return false;
-      }
+      spin(20);
       return false;
     }
   }
 
   // Returns true on success, dies on failure
-  public boolean login(String tournamentName,
-                       String tsUrl,
-                       String authToken,
-                       long quittingTime)
+  public boolean login (String tournamentName,
+                        String tsUrl,
+                        String authToken,
+                        long quittingTime)
   {
     this.tourneyName = tournamentName;
     this.authToken = authToken;
-    
-    if (this.authToken != null && tsUrl != null) {
-      while (maxTry > 0 &&
-              (quittingTime == 0l || new Date().getTime() < quittingTime)) {
-        System.out.println("Connecting to TS at " + tsUrl);
-        System.out.println("Tournament : " + tourneyName);
 
+    if (this.authToken != null && tsUrl != null) {
+      System.out.println();
+      while (maxTry > 0 &&
+          (quittingTime == 0l || new Date().getTime() < quittingTime)) {
         if (loginMaybe(tsUrl)) {
           log.info("Login Successful!");
           return true;
@@ -230,5 +208,10 @@ public class BrokerTournamentService
       System.exit(0);
     }
     return false;
+  }
+
+  private String getValue (Document doc, String tag)
+  {
+    return doc.getElementsByTagName(tag).item(0).getFirstChild().getNodeValue();
   }
 }
