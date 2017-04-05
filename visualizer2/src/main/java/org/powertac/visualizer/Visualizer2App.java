@@ -1,14 +1,15 @@
 package org.powertac.visualizer;
 
-import org.powertac.visualizer.config.ApplicationProperties;
-import org.powertac.visualizer.config.DefaultProfileUtil;
 
 import io.github.jhipster.config.JHipsterConstants;
-
+import org.powertac.util.ProxyAuthenticator;
+import org.powertac.visualizer.config.ApplicationProperties;
+import org.powertac.visualizer.config.DefaultProfileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.*;
+import org.springframework.boot.actuate.autoconfigure.MetricFilterAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.MetricRepositoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
@@ -68,6 +69,9 @@ public class Visualizer2App {
      * @throws UnknownHostException if the local host name could not be resolved into an address
      */
     public static void main(String[] args) throws UnknownHostException {
+        // Check for proxy settings, useSocks=false for visaulizer
+        new ProxyAuthenticator(false);
+
         SpringApplication app = new SpringApplication(Visualizer2App.class);
         DefaultProfileUtil.addDefaultProfile(app);
         Environment env = app.run(args).getEnvironment();

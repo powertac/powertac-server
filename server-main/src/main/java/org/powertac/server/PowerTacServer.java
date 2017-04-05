@@ -18,8 +18,7 @@ package org.powertac.server;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
+import org.powertac.util.ProxyAuthenticator;
 
 
 /**
@@ -65,12 +64,8 @@ public class PowerTacServer
   {
     try (AbstractApplicationContext context =
              new ClassPathXmlApplicationContext("powertac.xml")) {
-
-      String username = System.getProperty("http.proxyUser", "");
-      String password = System.getProperty("http.proxyPassword", "");
-      if (!username.isEmpty()) {
-        Authenticator.setDefault(new ProxyAuthenticator(username, password));
-      }
+      // Check for proxy settings, useSocks=false for server
+      new ProxyAuthenticator(false);
 
       context.registerShutdownHook();
 
@@ -81,22 +76,6 @@ public class PowerTacServer
 
       // if we get here, it's time to exit
       System.exit(0);
-    }
-  }
-
-  private static class ProxyAuthenticator extends Authenticator
-  {
-    private String userName, password;
-
-    private ProxyAuthenticator (String userName, String password)
-    {
-      this.userName = userName;
-      this.password = password;
-    }
-
-    protected PasswordAuthentication getPasswordAuthentication ()
-    {
-      return new PasswordAuthentication(userName, password.toCharArray());
     }
   }
 }
