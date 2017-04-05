@@ -15,8 +15,7 @@
  */
 package org.powertac.samplebroker.core;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
+import org.powertac.util.ProxyAuthenticator;
 
 
 /**
@@ -25,39 +24,18 @@ import java.net.PasswordAuthentication;
  */
 public class BrokerMain
 {
-  //static private Logger log = Logger.getLogger(BrokerMain.class);
-
   /**
    * Sets up the broker. Single command-line arg is the username
    */
   public static void main (String[] args)
   {
-    String username = System.getProperty("java.net.socks.username", "");
-    String password = System.getProperty("java.net.socks.password", "");
-    if (!username.isEmpty()) {
-      Authenticator.setDefault(new ProxyAuthenticator(username, password));
-    }
+    // Check for proxy settings, useSocks=true for brokers
+    new ProxyAuthenticator(true);
 
     BrokerRunner runner = new BrokerRunner();
     runner.processCmdLine(args);
-    
+
     // if we get here, it's time to exit
     System.exit(0);
-  }
-
-  private static class ProxyAuthenticator extends Authenticator
-  {
-    private String userName, password;
-
-    private ProxyAuthenticator (String userName, String password)
-    {
-      this.userName = userName;
-      this.password = password;
-    }
-
-    protected PasswordAuthentication getPasswordAuthentication ()
-    {
-      return new PasswordAuthentication(userName, password.toCharArray());
-    }
   }
 }
