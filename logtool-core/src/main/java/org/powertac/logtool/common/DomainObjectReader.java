@@ -15,6 +15,8 @@
  */
 package org.powertac.logtool.common;
 
+import static org.powertac.util.MessageDispatcher.dispatch;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -30,15 +32,16 @@ import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-
 import org.joda.time.Instant;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
+import org.powertac.common.msg.SimEnd;
+import org.powertac.common.msg.SimStart;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.PowerTypeConverter;
 import org.powertac.du.DefaultBroker;
-
+import org.powertac.logtool.LogtoolContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -66,9 +69,11 @@ public class DomainObjectReader
   HashSet<Class<?>> noIdTypes;
   PowerTypeConverter ptConverter = new PowerTypeConverter();
 
-  // listeners
+  // listeners can be the old-style NewObjectListeners, or they can be
+  // LogtoolContext instances with handleMessage() methods
   HashMap<Class<?>, ArrayList<NewObjectListener>> newObjectListeners;
-  
+  HashMap<Class<?>, ArrayList<LogtoolContext>> messageListeners;
+
   /**
    * Default constructor
    */
@@ -106,9 +111,12 @@ public class DomainObjectReader
     noIdTypes = new HashSet<>();
     noIdTypes.add(TimeService.class);
     noIdTypes.add(BalanceReport.class);
+    noIdTypes.add(SimStart.class);
+    noIdTypes.add(SimEnd.class);
 
     // set up listener list
     newObjectListeners = new HashMap<Class<?>, ArrayList<NewObjectListener>>();
+    messageListeners = new HashMap<Class<?>, ArrayList<LogtoolContext>>();
   }
   
   /**
@@ -120,13 +128,27 @@ public class DomainObjectReader
                                          Class<?> type)
   {
     ArrayList<NewObjectListener> list = newObjectListeners.get(type);
-    if (null == list){
+    if (null == list) {
       list = new ArrayList<NewObjectListener>();
       newObjectListeners.put(type, list);
     }
     list.add(listener);
   }
-  
+
+  /**
+   * Registers the given LogtoolContext as a messageListener. Incoming messages
+   * must be dispatched using util.MessageDispatcher
+   */
+  public void registerMessageListener (LogtoolContext listener, Class<?> type)
+  {
+    ArrayList<LogtoolContext> list = messageListeners.get(type);
+    if (null == list) {
+      list = new ArrayList<LogtoolContext>();
+      messageListeners.put(type, list);
+    }
+    list.add(listener);
+  }
+
   /**
    * Converts a line from the log to an object.
    * Each line is of the form<br>
@@ -274,6 +296,12 @@ public class DomainObjectReader
   
   private void fireNewObjectEvent (Object thing)
   {
+    dispatchNewObjectListeners(thing);
+    dispatchMessageListeners(thing);
+  }
+
+  private void dispatchNewObjectListeners(Object thing)
+  {
     ArrayList<NewObjectListener> listeners =
             newObjectListeners.get(thing.getClass());
     if (null == listeners)
@@ -292,7 +320,18 @@ public class DomainObjectReader
       }
     }
   }
-  
+
+  private void dispatchMessageListeners(Object thing)
+  {
+    ArrayList<LogtoolContext> listeners =
+        messageListeners.get(thing.getClass());
+    if (null != listeners) {
+      for (Object target: listeners) {
+        dispatch(target, "handleMessage", thing);
+      }
+    }
+  }
+
   private Object constructInstance (Class<?> clazz, String[] args)
           throws MissingDomainObject
   {

@@ -15,6 +15,9 @@
  */
 package org.powertac.logtool;
 
+import java.lang.reflect.Method;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.logtool.common.DomainObjectReader;
 import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.ifc.Analyzer;
@@ -31,21 +34,45 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public abstract class LogtoolContext
 {
+  static Logger log = LogManager.getLogger(LogtoolContext.class);
 
   ApplicationContext context;
   LogtoolCore core;
 
   /** Set up the Spring context */
   protected void initialize() {
-    ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("logtool.xml");
+    ClassPathXmlApplicationContext ctx =
+        new ClassPathXmlApplicationContext("logtool.xml");
     ctx.registerShutdownHook();
     setContext(ctx);
+    // register handlers
+    registerMessageHandlers();
   }
 
   protected void setContext(ApplicationContext context) {
     this.context = context;
     // find the LogtoolCore bean
-    this.core = (LogtoolCore)context.getBeansOfType(LogtoolCore.class).values().toArray()[0];
+    this.core =
+        (LogtoolCore)context.getBeansOfType(LogtoolCore.class).values().toArray()[0];
+  }
+  /**
+   * Finds all the handleMessage() methdods and registers them.
+   */
+  private void registerMessageHandlers ()
+  {
+    Class<?> thingClass = this.getClass();
+    log.info("Analyzing class {}", thingClass.getName());
+    Method[] methods = thingClass.getMethods();
+    for (Method method : methods) {
+      if (method.getName().equals("handleMessage")) {
+        Class<?>[] args = method.getParameterTypes();
+        if (1 == args.length) {
+          log.info("Register " + this.getClass().getSimpleName()
+                   + ".handleMessage(" + args[0].getSimpleName() + ")");
+          registerMessageListener(args[0]);
+        }
+      }
+    }
   }
 
   /**
@@ -91,5 +118,11 @@ public abstract class LogtoolContext
   {
     DomainObjectReader dor = (DomainObjectReader) getBean("domainObjectReader");
     dor.registerNewObjectListener(listener, type);
+  }
+
+  protected void registerMessageListener (Class<?> type)
+  {
+    DomainObjectReader dor = (DomainObjectReader) getBean("domainObjectReader");
+    dor.registerMessageListener(this, type);
   }
 }

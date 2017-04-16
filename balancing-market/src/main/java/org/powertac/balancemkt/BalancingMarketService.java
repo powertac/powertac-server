@@ -264,8 +264,8 @@ implements BalancingMarket, SettlementContext, InitializationService
   }
 
   /**
-   * Returns the spot market price - the clearing price for the current timeslot
-   * in the most recent trading period.
+   * Returns the spot market price per kWh -
+   * This is the most recent valid clearing price for the current timeslot.
    */
   double getSpotPrice ()
   {
@@ -284,8 +284,8 @@ implements BalancingMarket, SettlementContext, InitializationService
   }
 
   /**
-   * Returns the maximum price for energy in the current timeslot.
-   * Units are per kWh
+   * Returns the zero-quantity price for up-regulation energy
+   * in the current timeslot. Units are per kWh
    */
   @Override
   public double getPPlus ()
@@ -307,7 +307,8 @@ implements BalancingMarket, SettlementContext, InitializationService
   }
 
   /**
-   * Returns the minimum price for energy in the current timeslot
+   * Returns the zero-quantity price for down-regulation energy
+   * in the current timeslot. Price is per kWh.
    */
   @Override
   public double getPMinus ()
@@ -328,12 +329,20 @@ implements BalancingMarket, SettlementContext, InitializationService
     return -result / rmPremium / 1000.0;
   }
 
+  /**
+   * Returns the slope of up-regulation energy purchased through the
+   * wholesale ancillary services market.
+   */
   @Override
   public double getPPlusPrime ()
   {
     return pPlusPrime;
   }
 
+  /**
+   * Returns the slope of down-regulation energy sold through the
+   * wholesale ancillary services market.
+   */
   @Override
   public double getPMinusPrime ()
   {
