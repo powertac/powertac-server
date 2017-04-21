@@ -26,6 +26,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.ContextService;
@@ -74,6 +75,14 @@ public class SimpleGencoService
   private CpGenco cpGenco; // only one of these
   private MisoBuyer misoBuyer;
 
+  @ConfigurableValue(valueType = "Boolean",
+      description = "If true, use the CpGenco to generate the supply price curve")
+  private boolean useCpGenco = true;
+
+  @ConfigurableValue(valueType = "Boolean",
+      description = "If true, use the MisoBuyer to load the wholesale market")
+  private boolean useMisoBuyer = true;
+
   private ApplicationContext context;
 
   /**
@@ -92,6 +101,8 @@ public class SimpleGencoService
   {
     super.init();
     int seedId = 0;
+    // configure the service
+    serverConfig.configureMe(this);
     // create the genco list
     gencos = new ArrayList<Genco>();
     Collection<?> gencoColl = serverConfig.configureInstances(Genco.class);
@@ -109,16 +120,20 @@ public class SimpleGencoService
     brokerRepo.add(buyer);
     gencos.add(buyer);
     buyer.init(brokerProxyService, seedId++, randomSeedRepo);
-    // configure the lmp genco
-    cpGenco = new CpGenco("lmp");
-    serverConfig.configureMe(cpGenco);
-    cpGenco.init(brokerProxyService, seedId++, randomSeedRepo, timeslotRepo);
-    brokerRepo.add(cpGenco);
-    // configure the MISO demand generator
-    misoBuyer= new MisoBuyer("miso");
-    serverConfig.configureMe(misoBuyer);
-    misoBuyer.init(brokerProxyService, seedId++, this);
-    brokerRepo.add(misoBuyer);
+    if (useCpGenco) {
+      // configure the lmp genco
+      cpGenco = new CpGenco("lmp");
+      serverConfig.configureMe(cpGenco);
+      cpGenco.init(brokerProxyService, seedId++, randomSeedRepo, timeslotRepo);
+      brokerRepo.add(cpGenco);
+    }
+    if (useMisoBuyer) {
+      // configure the MISO demand generator
+      misoBuyer= new MisoBuyer("miso");
+      serverConfig.configureMe(misoBuyer);
+      misoBuyer.init(brokerProxyService, seedId++, this);
+      brokerRepo.add(misoBuyer);
+    }
     return "Genco";
   }
 

@@ -78,6 +78,10 @@ public class CpGenco extends Broker
   private int ringOffset = -1; // uninitialized
   private int lastTsGenerated = -1;
 
+  /** add a knee to the curve where slope rises */
+  private double kneeDemand = 25.0;
+  private double kneeSlope = 5.0;
+
   /** random-walk parameters */
   private double rwaSigma = 0.004;
   private double rwaOffset = 0.0025;
@@ -433,6 +437,46 @@ public class CpGenco extends Broker
   }
 
   /**
+   * Congestion threshold at which slope increases
+   */
+  public double getKneeDemand ()
+  {
+    return kneeDemand;
+  }
+
+  /**
+   * Fluent setter for the congestion threshold
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "congestion demand threshold")
+  @StateChange
+  public CpGenco withKneeDemand (double demand)
+  {
+    this.kneeDemand = demand;
+    return this;
+  }
+
+  /**
+   * Congestion threshold at which slope increases
+   */
+  public double getKneeSlope()
+  {
+    return kneeSlope;
+  }
+
+  /**
+   * Fluent setter for the congestion threshold
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "congestion demand slope multiplier")
+  @StateChange
+  public CpGenco withKneeSlope (double mult)
+  {
+    this.kneeSlope = mult;
+    return this;
+  }
+
+  /**
    * Function of the form price = a*qty^2 + b*qty + c
    * Probably this should be done with Newton-Rapson, but it's a pain
    * to re-define the polynomial for each bid.
@@ -444,7 +488,7 @@ public class CpGenco extends Broker
     double b = 1.0;
     double c = 1.0;
 
-    final double x0 = 25; //20; // 10; // 30; // 0;// 35; //50;
+    //final double kneeDemand = 25; //20; // 10; // 30; // 0;// 35; //50;
 
     boolean validateCoefficients (List<String> coefficients)
     {
@@ -472,7 +516,7 @@ public class CpGenco extends Broker
       double cOrig = c;
       double priceIntervalOrig = priceInterval;
 
-      if (startX >= x0) {
+      if (startX >= kneeDemand) {
         scaleCoefficients(); 
       }
 
@@ -502,8 +546,7 @@ public class CpGenco extends Broker
       double bOrig = b;
       double cOrig = c;
       double priceIntervalOrig = priceInterval;
-    
-      if (x >= x0) {
+      if (x >= kneeDemand) {
         scaleCoefficients(); 
       }
     
@@ -518,10 +561,10 @@ public class CpGenco extends Broker
     }
 
     private void scaleCoefficients() {
-      double y0 = a * x0 * x0 + b * x0 + c;
-      a *= 5; // 4; // 3; // 4; // 3; // 2;
-      b *= 5; // 4; // 3; // 4; // 3; // 2;
-      c = y0 - a * x0 * x0 - b * x0;
+      double y0 = a * kneeDemand * kneeDemand + b * kneeDemand + c;
+      a *= kneeSlope; // 4; // 3; // 4; // 3; // 2;
+      b *= kneeSlope; // 4; // 3; // 4; // 3; // 2;
+      c = y0 - a * kneeDemand * kneeDemand - b * kneeDemand;
       priceInterval *= 2;
     }
   }
