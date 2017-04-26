@@ -19,7 +19,10 @@ import org.powertac.util.ProxyAuthenticator;
 
 
 /**
- * This is the top level of the Power TAC server.
+ * This is the top level of a Power TAC broker implementation. Command-line
+ * processing and all other functions are delegated to an instance of
+ * BrokerRunner.
+ * 
  * @author John Collins
  */
 public class BrokerMain

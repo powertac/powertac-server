@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2017 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.powertac.samplebroker.interfaces;
-
 /**
- * Interface for services that need to be called when the final
- * TimeslotComplete message has been received from the server
- * in each timeslot.
- * 
- * @author John Collins
+ * Interfaces that can be implemented by broker behavioral modules,
+ * connecting them to the core and the server.
  */
-public interface Activatable
-{
-  /**
-   * Called once/timeslot after the TimeslotComplete message has been
-   * received. This message is guaranteed to arrive after all the server's
-   * messages for the given timeslot have arrived.
-   */
-  public void activate(int timeslot);
-}
+package org.powertac.samplebroker.interfaces;

@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Receives incoming jms messages for the broker
+ * Receives incoming jms messages for the broker and deserializes them.
  * @author Nguyen Nguyen, John Collins
  */
 @Service

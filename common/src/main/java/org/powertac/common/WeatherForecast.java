@@ -28,7 +28,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
-* A collection of weatherReports giving hourly forecasts for future timeslot.
+* A collection of weatherForecastPredictions giving hourly forecasts for
+* future timeslots.
 *
 * @author Erik Onarheim and Josh Edeen
 */

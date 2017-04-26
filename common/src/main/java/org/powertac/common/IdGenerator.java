@@ -18,8 +18,10 @@ package org.powertac.common;
 
 /**
  * Generates numeric ID values for domain types. ID values are of the
- * form xA+B, where x is the multiplier, A is a prefix, and B is the 
- * value of a counter.
+ * form xA+B, where x is the multiplier, A is an integer prefix, and B is the 
+ * value of a counter incremented with each call. The use of a prefix allows
+ * the server to give each broker a space of ID values and prevent collisions.
+ * 
  * @author John Collins
  */
 public class IdGenerator 

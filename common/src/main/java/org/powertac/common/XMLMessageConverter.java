@@ -44,7 +44,11 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.SystemPropertyUtils;
 
 import com.thoughtworks.xstream.XStream;
-
+/**
+ * Initializes the XStream message serialization system
+ * 
+ * @author John Collins
+ */
 @Service("xmlMessageConverter")
 public class XMLMessageConverter 
 {

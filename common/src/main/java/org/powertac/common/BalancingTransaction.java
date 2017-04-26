@@ -22,7 +22,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * Represents the final supply/demand
+ * Represents the broker's final supply/demand
  * imbalance in the current timeslot, and the Distribution Utility's charge
  * for this imbalance.
  *

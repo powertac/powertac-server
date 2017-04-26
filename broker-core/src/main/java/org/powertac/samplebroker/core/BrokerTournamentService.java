@@ -32,6 +32,10 @@ import java.util.Date;
 
 
 /**
+ * Logs a broker into a tournament server, retrieving tournament-specific
+ * and game-specific configuration data from the server. This data can then
+ * be used to log into a simulation.
+ * 
  * @author Erik Onarheim
  */
 @Service

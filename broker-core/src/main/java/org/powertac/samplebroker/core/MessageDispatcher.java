@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service;
  * which passes the registrations to this router. For this to work, 
  * registered components must implement a handleMessage(msg) method that
  * takes the specified type as its single argument.
+ * 
  * @author John Collins
  */
 @Service

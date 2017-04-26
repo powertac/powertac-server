@@ -36,7 +36,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 /**
- * @author jcollins
+ * Supports annotation-based configuration of broker components from 
+ * properties or xml config files.
+ * 
+ * @author John Collins
  */
 @Service
 public class BrokerPropertiesService

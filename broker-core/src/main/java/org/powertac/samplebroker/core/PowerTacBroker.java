@@ -54,7 +54,8 @@ import org.springframework.stereotype.Service;
 /**
  * This is the top-level controller for the broker. It sets up the other
  * components, maintains the clock, and terminates when the SimEnd message
- * is received.
+ * is received. It also implements the BrokerContext interface, delivering
+ * services to broker behavior modules.
  * 
  * @author John Collins
  */

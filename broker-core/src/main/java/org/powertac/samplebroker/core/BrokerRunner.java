@@ -31,7 +31,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Multi-session broker runner. The Spring context is re-built for each
- * session.
+ * session. By default, one session runs and the broker exits. Alternatively,
+ * the broker will start a new session after the previous session finishes,
+ * based on a specified count or time period in hours.  
+ * 
  * @author John Collins
  */
 public class BrokerRunner

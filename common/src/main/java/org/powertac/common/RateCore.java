@@ -21,7 +21,9 @@ import org.powertac.common.state.XStreamStateLoggable;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * @author jcollins
+ * Common supertype of Rate classes, holds tariff ID for this rate.
+ * 
+ * @author John Collins
  */
 public class RateCore extends XStreamStateLoggable
 {

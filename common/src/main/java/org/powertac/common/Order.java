@@ -41,7 +41,11 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  * of the broker's account to the other party in the transaction. So a buy order
  * is indicated by a positive energy quantity, and a sell order is indicated by
  * a negative energy quantity.
- * 
+ * <p>
+ * Note that the limitPrice field is a Double, not a double. A market order
+ * will have null in this field, and will be sorted first by the auctioneer
+ * for both buy and sell orders.
+ * <p>
  * State log fields for readResolve():<br>
  * new(long brokerId, long timeslotId, double mwh, Double limitPrice)
  *

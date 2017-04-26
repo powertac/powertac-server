@@ -35,6 +35,8 @@ import java.util.concurrent.Executor;
 
 
 /**
+ * Manages the JMS connection to a simulation server.
+ * 
  * @author Nguyen Nguyen, John Collins
  */
 @Service
