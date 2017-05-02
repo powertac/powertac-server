@@ -45,13 +45,15 @@ public class LogtoolExecutor extends NoopAnalyzer {
 
     @Override
     public void report() {
-        log.info("Finished replay of : " + logName);
+        log.info("Finished replay of " + logName);
     }
 
     // This suppresses all events until the first TimeslotUpdate. At that point
     // it sends the current competition object, and commences forwarding all
     // events from there on out.
-    private class ObjectHandler implements NewObjectListener {
+    protected class ObjectHandler
+    extends NoopAnalyzer.ObjectHandler {
+
         private boolean ignore = true;
 
         @Override
@@ -62,6 +64,7 @@ public class LogtoolExecutor extends NoopAnalyzer {
                     objListener.handleNewObject(Competition.currentCompetition());
                     ignore = false;
                 } else {
+                    log.warn("Ignoring message " + thing.getClass().getName());
                     return;
                 }
             }

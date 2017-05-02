@@ -32,7 +32,7 @@ public class NoopAnalyzer extends LogtoolContext implements Analyzer
     log.info("Finished replay");
   }
 
-  private class ObjectHandler implements NewObjectListener
+  protected class ObjectHandler implements NewObjectListener
   {
     @Override
     public void handleNewObject (Object thing)

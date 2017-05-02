@@ -38,6 +38,7 @@ public abstract class LogtoolContext
 
   ApplicationContext context;
   LogtoolCore core;
+  DomainObjectReader dor;
 
   /** Set up the Spring context */
   protected void initialize() {
@@ -45,18 +46,21 @@ public abstract class LogtoolContext
         new ClassPathXmlApplicationContext("logtool.xml");
     ctx.registerShutdownHook();
     setContext(ctx);
+  }
+
+  protected void setContext(ApplicationContext context) {
+    if (this.context != null) {
+      log.warn("Resetting application context!");
+      log.debug("Current context " + this.context.getClass().getName());
+      log.debug("New context " + context.getClass().getName());
+    }
+    this.context = context;
     // register handlers
     registerMessageHandlers();
   }
 
-  protected void setContext(ApplicationContext context) {
-    this.context = context;
-    // find the LogtoolCore bean
-    this.core =
-        (LogtoolCore)context.getBeansOfType(LogtoolCore.class).values().toArray()[0];
-  }
   /**
-   * Finds all the handleMessage() methdods and registers them.
+   * Finds all the handleMessage() methods and registers them.
    */
   private void registerMessageHandlers ()
   {
@@ -87,10 +91,21 @@ public abstract class LogtoolContext
    */
   protected LogtoolCore getCore ()
   {
-    if (context == null) {
-      initialize();
+    if (core == null) {
+      core = (LogtoolCore) getBean("logtoolCore");
     }
     return core;
+  }
+
+  /**
+   * Returns DomainObjectReader instance
+   */
+  protected DomainObjectReader getDomainObjectReader ()
+  {
+    if (dor == null) {
+      dor = (DomainObjectReader) getBean("domainObjectReader");
+    }
+    return dor;
   }
 
   /**
@@ -98,6 +113,9 @@ public abstract class LogtoolContext
    */
   protected Object getBean (String beanName)
   {
+    if (context == null) {
+      initialize();
+    }
     return context.getBean(beanName);
   }
   
@@ -116,13 +134,13 @@ public abstract class LogtoolContext
   protected void registerNewObjectListener (NewObjectListener listener,
                                             Class<?> type)
   {
-    DomainObjectReader dor = (DomainObjectReader) getBean("domainObjectReader");
+    DomainObjectReader dor = getDomainObjectReader();
     dor.registerNewObjectListener(listener, type);
   }
 
   protected void registerMessageListener (Class<?> type)
   {
-    DomainObjectReader dor = (DomainObjectReader) getBean("domainObjectReader");
+    DomainObjectReader dor = getDomainObjectReader();
     dor.registerMessageListener(this, type);
   }
 }
