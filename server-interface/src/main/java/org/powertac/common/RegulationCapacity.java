@@ -29,7 +29,7 @@ import org.powertac.common.state.Domain;
  * 
  * @author John Collins
  */
-@Domain
+@Domain(fields = {"subId", "upRegulationCapacity", "downRegulationCapacity"})
 public class RegulationCapacity
 {
   protected static Logger log = LogManager.getLogger(RegulationCapacity.class.getName());
@@ -38,6 +38,8 @@ public class RegulationCapacity
 
   // ignore small numbers
   private static double epsilon = 1e-10;
+
+  private long subId = 0l;
 
   private double upRegulationCapacity = 0.0;
 
@@ -68,6 +70,14 @@ public class RegulationCapacity
     }
     this.upRegulationCapacity = upRegulationCapacity;
     this.downRegulationCapacity = downRegulationCapacity;
+  }
+
+  /**
+   * Default constructor
+   */
+  public RegulationCapacity ()
+  {
+    super();
   }
 
   public long getId ()

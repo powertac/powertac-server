@@ -350,6 +350,7 @@ public class DomainObjectReader
       // correct length of parameter list -
       // now try to resolve the types.
       // If we get a MissingDomainObject exception, keep going.
+      
       try {
         params = resolveArgs(types, args);
       }
@@ -422,6 +423,9 @@ public class DomainObjectReader
           types[i] = fields[i].getType();
         }
       }
+      if (types.length != args.length)
+        log.error("RR arg mismatch class {}, {} fields, args {}",
+                  clazz.getName(), fields.length, args);
       Object[] data = resolveArgs(types, args);
       if (null == data) {
         log.error("Could not resolve args for " + clazz.getName());
