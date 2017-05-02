@@ -160,6 +160,9 @@ public class LogtoolCore
     Reader inputReader;
     String line = null;
 
+    log.info("Reading state log from stream for {}",
+             tools[0].getClass().getName());
+    simEnd = false;
     try {
       // Stack compression logic if appropriate
       try {
@@ -199,6 +202,7 @@ public class LogtoolCore
       inputReader = new InputStreamReader(inputStream);
       builder.setup();
       for (Analyzer tool: tools) {
+        log.info("Setting up {}", tool.getClass().getName());
         tool.setup();
       }
       BufferedReader in = new BufferedReader(inputReader);
