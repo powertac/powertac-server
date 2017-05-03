@@ -52,9 +52,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * This is the top-level controller for the broker. It sets up the other
- * components, maintains the clock, and terminates when the SimEnd message
- * is received. It also implements the BrokerContext interface, delivering
+ * This is the top-level controller for a single broker session.
+ * It sets up the other components, maintains the clock, and terminates
+ * the session when the SimEnd message is received.
+ * It also implements the BrokerContext interface, delivering
  * services to broker behavior modules.
  * 
  * @author John Collins
