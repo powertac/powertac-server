@@ -226,12 +226,15 @@ public class MessageHandler {
             // make sure we have this tariff
             TariffSpecification newSpec = ttx.getTariffSpec();
             if (newSpec == null) {
-                log.error("TariffTransaction type=" + ttx.getTxType() + " for unknown spec");
+                log.error("TariffTransaction type={} for unknown spec",
+                          ttx.getTxType());
             } else {
                 Tariff oldSpec = tariffRepo.findById(newSpec.getId());
-                if (oldSpec == null) {
+                if (oldSpec == null &&
+                    !newSpec.getBroker().getUsername().equals("default broker")) {
                   if (!Type.PUBLISH.equals(ttx.getTxType())) {
-                    log.error("Incoming spec " + newSpec.getId() + " not matched in repo");
+                    log.error("Incoming spec {} for {} not matched in repo",
+                              newSpec.getId(), ttx.getBroker().getUsername());
                   }
                 }
             }
