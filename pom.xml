@@ -23,9 +23,13 @@
     <relativePath />
   </parent>
 
-  <properties>
-    <powertac-server.version>1.4.2</powertac-server.version>
-  </properties>
+  <!-- Common dependencies across all server modules -->
+  <dependencies>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>common</artifactId>
+      <version>1.4.2</version>
+    </dependency>
 
   <!-- Server components -->
   <modules>
@@ -46,14 +50,6 @@
     <module>visualizer</module>
     <module>visualizer2</module>
   </modules>
-
-  <!-- Common dependencies across all server modules -->
-  <dependencies>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>common</artifactId>
-      <version>1.4.2-SNAPSHOT</version>
-    </dependency>
 
     <!-- Testing - not inherited from common due to test scope -->
     <dependency>
