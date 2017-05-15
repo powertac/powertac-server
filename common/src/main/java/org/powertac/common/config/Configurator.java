@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration2.AbstractConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -267,10 +268,10 @@ public class Configurator
     Configuration subset = extractSubsetForClassname(classname);
     // we should have a clause with the key "instances" giving the item
     // names, and a set of clauses for each item
-    List<?> names = subset.getList("instances");
+    List<Object> names = subset.getList("instances");
+    names = names.stream().filter(n -> !n.toString().isEmpty()).collect(Collectors.toList());
     if (names.size() == 0) {
       log.warn("No instance names specified for class " + classname);
-      return null;
     }
     // for each name, create an instance, add it to the result, and
     // configure it.
@@ -278,7 +279,7 @@ public class Configurator
     for (Object name : names) {
       try {
         Constructor<?> constructor = type.getConstructor(String.class);
-        Object item = constructor.newInstance((String)name);
+        Object item = constructor.newInstance((String) name);
         itemMap.put((String)name, item);
       }
       catch (Exception e) {
