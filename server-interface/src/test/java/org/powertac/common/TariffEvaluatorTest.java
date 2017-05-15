@@ -185,10 +185,10 @@ public class TariffEvaluatorTest
   @Test
   public void testScaleFactor ()
   {
-    assertEquals("default scale factor", 48.0 / (7 * 24.0),
+    assertEquals("default scale factor", (7 * 24.0) / 48.0,
                  evaluator.getScaleFactor(), 1e-6);
     evaluator.setProfileLength(14 * 24);
-    assertEquals("default scale factor", 48.0 / (14 * 24.0),
+    assertEquals("default scale factor", (14 * 24.0) / 48.0,
                  evaluator.getScaleFactor(), 1e-6);
   }
 
@@ -203,15 +203,15 @@ public class TariffEvaluatorTest
     Tariff tariff1 = new Tariff(ts1);
     initTariff(tariff1);
     assertEquals("positive signup, default duration",
-                 2.0 * 48.0 / (7 * 24.0),
+                 2.0 * (7 * 24.0) / 48.0,
                  evaluator.computeSignupCost(tariff1), 1e-6);
     evaluator.withPreferredContractDuration(14);
     assertEquals("positive signup, longer pref duration", 
-                 2.0 * 48.0 / (7 * 24.0),
+                 2.0 * (7 * 24.0) / 48.0,
                  evaluator.computeSignupCost(tariff1), 1e-6);
     evaluator.setProfileLength(14 * 24);
     assertEquals("positive signup, longer pref duration", 
-                 2.0 * 48.0 / (14 * 24.0),
+                 2.0 * (14 * 24.0) / 48.0,
                  evaluator.computeSignupCost(tariff1), 1e-6);
   }
 
@@ -264,15 +264,15 @@ public class TariffEvaluatorTest
     Tariff tariff1 = new Tariff(ts);
     initTariff(tariff1);
     assertEquals("positive withdraw cost, default dur",
-                 2.0 * 2.0 / 7.0,
+                 2.0 * 7.0 / 2.0,
                  evaluator.computeWithdrawCost(tariff1), 1e-6);
     evaluator.withPreferredContractDuration(14);
     assertEquals("positive withdraw cost, longer dur",
-                 2.0 * 2.0 / 7.0,
+                 2.0 * 7.0 / 2.0,
                  evaluator.computeWithdrawCost(tariff1), 1e-6);
     evaluator.setProfileLength(14 * 24);
     assertEquals("positive withdraw cost, longer dur",
-                 2.0 * 2.0 / 14.0,
+                 2.0 * 14.0 / 2.0,
                  evaluator.computeWithdrawCost(tariff1), 1e-6);
   }
 
@@ -312,11 +312,11 @@ public class TariffEvaluatorTest
     Tariff tariff1 = new Tariff(ts);
     initTariff(tariff1);
     assertEquals("negative withdraw cost, default dur",
-                 -2.0 * (2.0 / 7.0) * (8.0 / 4.0),
+                 -2.0 * (7.0 / 2.0) * (8.0 / 4.0),
                  evaluator.computeWithdrawCost(tariff1), 1e-6);
     evaluator.withPreferredContractDuration(14);
     assertEquals("negative withdraw cost, longer dur",
-                 -2.0 * (2.0 / 7.0) * (8.0 / 14.0),
+                 -2.0 * (7.0 / 2.0) * (8.0 / 14.0),
                  evaluator.computeWithdrawCost(tariff1), 1e-6);
   }
 
@@ -556,7 +556,7 @@ public class TariffEvaluatorTest
     TariffSpecification jimTS =
             new TariffSpecification(jim, PowerType.CONSUMPTION).
                                     withMinDuration(TimeService.DAY * 5).
-                                    withEarlyWithdrawPayment(2.0).
+                                    withEarlyWithdrawPayment(40.0).
                                     addRate(new Rate().withValue(-0.6));
     Tariff jimTariff = new Tariff(jimTS);
     initTariff(jimTariff);
@@ -996,7 +996,7 @@ public class TariffEvaluatorTest
     TariffSpecification jimTS =
             new TariffSpecification(jim,
                                     PowerType.CONSUMPTION).
-                                    withMinDuration(TimeService.DAY * 2).
+                                    withMinDuration(TimeService.DAY * 1).
                                     withEarlyWithdrawPayment(-50.0).
                                     withSignupPayment(50.0).
                                     addRate(new Rate().withValue(-0.4));
@@ -1021,7 +1021,7 @@ public class TariffEvaluatorTest
 
     double[] profile = {1.0, 2.0};
     cma.capacityProfile = new CapacityProfile(profile, start);
-    cma.setChoiceSamples(0.4, 0.6);
+    cma.setChoiceSamples(0.45, 0.55);
 
     // capture calls to tariffMarket
     final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();

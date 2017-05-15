@@ -303,12 +303,12 @@ public class TariffEvaluator
   }
 
   /**
-   * Returns the eval scale factor, the ratio of the stdDuration to the
-   * preferredDuration.
+   * Returns the eval scale factor, the ratio of the preferred duration
+   * (as determined by the profile length) to the standard duration.
    */
   double getScaleFactor ()
   {
-    return (double)stdDuration * 24.0 / (double)getProfileLength();
+    return (double)getProfileLength() / ((double)stdDuration * 24.0);
   }
 
   /**
@@ -450,9 +450,13 @@ public class TariffEvaluator
                   accessor.getBrokerSwitchFactor(revoked);
         }
         signupCost = computeSignupCost(tariff);
+        double withdrawCost = computeWithdrawCost(tariff);
         cost += signupCost;
         cost += withdraw0; // withdraw from current tariff
-        cost += computeWithdrawCost(tariff);
+        cost += withdrawCost;
+        log.debug("current {}, alt {} signup={}, withdraw0={}, withdraw={}",
+                 currentTariff.getSpecId(), tariff.getSpecId(),
+                 signupCost, withdraw0, withdrawCost);
         if (Double.isNaN(cost)) {
           log.error(getName() + ": cost is NaN for tariff "
                     + tariff.getId());
