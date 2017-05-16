@@ -62,10 +62,12 @@ public class EmbeddedService {
     private VisualizerProxy visualizerProxy;
 
     private Thread replayGameThread;
+    private LogtoolExecutor logtoolExecutor;
 
     @PostConstruct
     private void afterPropertiesSet() {
         visualizerProxy.registerVisualizerMessageListener(messageDispatcher);
+        logtoolExecutor = new LogtoolExecutor();
     }
 
     private Game currentGame;
@@ -199,17 +201,20 @@ public class EmbeddedService {
                 stateCfg.setLevel(Level.OFF);
                 ctx.updateLoggers();
 
-                LogtoolExecutor logtoolExecutor = new LogtoolExecutor();
+                // Replay the game
                 String error = logtoolExecutor.readLog(source, messageDispatcher);
                 if (error != null) {
                   log.error("Error during replay: " + error);
                 }
-                replayGameThread = null;
 
                 // Restore log levels
                 traceCfg.setLevel(traceLevel);
                 stateCfg.setLevel(stateLevel);
                 ctx.updateLoggers();
+
+                synchronized (this) {
+                  replayGameThread = null;
+                }
 
                 visualizerService.setState(VisualizerState.FINISHED);
             }
@@ -231,13 +236,16 @@ public class EmbeddedService {
 
         // relevant for replay games
         if (replayGameThread != null) {
-            try {
-                replayGameThread.interrupt();
-                replayGameThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            synchronized(replayGameThread) {
+                try {
+                    logtoolExecutor.interrupt();
+                    replayGameThread.interrupt();
+                    replayGameThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                replayGameThread = null;
             }
-            replayGameThread = null;
         }
 
         visualizerService.setState(VisualizerState.FINISHED);
