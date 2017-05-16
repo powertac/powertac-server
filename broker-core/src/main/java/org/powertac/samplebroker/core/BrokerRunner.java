@@ -76,6 +76,7 @@ public class BrokerRunner
     String queueName = null;
     String serverQueue = null;
     Integer repeatCount = 1;
+    Integer repeatHours = 0;
     long end = 0l;
     
     try {
@@ -98,7 +99,7 @@ public class BrokerRunner
         System.out.println("  repeat " + repeatCount + " times");
       }
       else if (options.has(repeatHoursOption)) {
-        Integer repeatHours = options.valueOf(repeatCountOption);
+        repeatHours = options.valueOf(repeatHoursOption);
         System.out.println("  repeat for " + repeatHours + " hours");
         long now = new Date().getTime();
         end = now + 1000 * 3600 * repeatHours;

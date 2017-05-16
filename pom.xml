@@ -32,27 +32,22 @@
 
   <!-- Shared properties -->
   <properties>
+    <!-- Inherited version id -->
+    <powertac.version>1.4.3-SNAPSHOT</powertac.version>
 
     <!-- Frameworks -->
-
     <java.version>1.8</java.version>
     <maven.version>3.2.1</maven.version>
-
     <spring.version>4.3.6.RELEASE</spring.version>
 
-
     <!-- Build layout -->
-
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
     <sonatype.snapshot.url>https://oss.sonatype.org/content/repositories/snapshots/</sonatype.snapshot.url>
     <sonatype.release.url>https://oss.sonatype.org/content/repositories/releases/</sonatype.release.url>
     <sonatype.staging.url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</sonatype.staging.url>
     <sonatype.release.args />
 
-
     <!-- Managed common dependency versions -->
-
     <aspectj.version>1.8.10</aspectj.version>
 
     <active-mq.version>5.14.3</active-mq.version>
@@ -72,9 +67,7 @@
     <jopt-simple.version>5.0.3</jopt-simple.version>
     <joda-time.version>2.9.7</joda-time.version>
 
-
     <!-- Managed common plugin versions -->
-
     <maven-compiler.version>3.5.1</maven-compiler.version>
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
