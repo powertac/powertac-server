@@ -48,6 +48,12 @@ public class LogtoolExecutor extends NoopAnalyzer {
         log.info("Finished replay of " + logName);
     }
 
+    public void interrupt() {
+      getCore().interrupt();
+      log.info("Interrupted replay of " + logName);
+    }
+    
+
     // This suppresses all events until the first TimeslotUpdate. At that point
     // it sends the current competition object, and commences forwarding all
     // events from there on out.

@@ -61,7 +61,8 @@ public class LogtoolCore
   private DomainBuilder builder;
 
   private boolean simEnd = false;
-  
+  private boolean isInterrupted = false;
+
   static private CompressorStreamFactory compressFactory = new CompressorStreamFactory();
   static private ArchiveStreamFactory archiveFactory = new ArchiveStreamFactory();
 
@@ -163,6 +164,8 @@ public class LogtoolCore
     log.info("Reading state log from stream for {}",
              tools[0].getClass().getName());
     simEnd = false;
+    isInterrupted = false;
+
     try {
       // Stack compression logic if appropriate
       try {
@@ -208,6 +211,12 @@ public class LogtoolCore
       BufferedReader in = new BufferedReader(inputReader);
       int lineNumber = 0;
       while (!simEnd) {
+        synchronized(this) {
+          if (isInterrupted) {
+            in.close();
+            break;
+          }
+        }
         line = in.readLine();
         if (null == line) {
           log.info("Last line " + lineNumber);
@@ -230,6 +239,9 @@ public class LogtoolCore
     return null;
   }
 
+  public synchronized void interrupt() {
+    isInterrupted = true;
+  }
 
   class SimEndHandler implements NewObjectListener
   {

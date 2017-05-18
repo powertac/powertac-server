@@ -1,8 +1,12 @@
 package org.powertac.visualizer.service_ptac;
 
 import org.apache.commons.io.FileExistsException;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.visualizer.config.Constants;
 import org.powertac.server.CompetitionControlService;
@@ -58,10 +62,12 @@ public class EmbeddedService {
     private VisualizerProxy visualizerProxy;
 
     private Thread replayGameThread;
+    private LogtoolExecutor logtoolExecutor;
 
     @PostConstruct
     private void afterPropertiesSet() {
         visualizerProxy.registerVisualizerMessageListener(messageDispatcher);
+        logtoolExecutor = new LogtoolExecutor();
     }
 
     private Game currentGame;
@@ -181,12 +187,35 @@ public class EmbeddedService {
             public void run() {
                 // No SimStart and SimEnd when extracting log
                 visualizerService.setState(VisualizerState.RUNNING);
-                LogtoolExecutor logtoolExecutor = new LogtoolExecutor();
+
+                // Get the logger levels so we can restore them later
+                LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+                Configuration cfg = ctx.getConfiguration();
+                LoggerConfig traceCfg = cfg.getLoggerConfig("Log");
+                LoggerConfig stateCfg = cfg.getLoggerConfig("State");
+                Level traceLevel = traceCfg.getLevel();
+                Level stateLevel = stateCfg.getLevel();
+
+                // Switch off logs
+                traceCfg.setLevel(Level.OFF);
+                stateCfg.setLevel(Level.OFF);
+                ctx.updateLoggers();
+
+                // Replay the game
                 String error = logtoolExecutor.readLog(source, messageDispatcher);
                 if (error != null) {
                   log.error("Error during replay: " + error);
                 }
-                replayGameThread = null;
+
+                // Restore log levels
+                traceCfg.setLevel(traceLevel);
+                stateCfg.setLevel(stateLevel);
+                ctx.updateLoggers();
+
+                synchronized (this) {
+                  replayGameThread = null;
+                }
+
                 visualizerService.setState(VisualizerState.FINISHED);
             }
         };
@@ -207,13 +236,16 @@ public class EmbeddedService {
 
         // relevant for replay games
         if (replayGameThread != null) {
-            try {
-                replayGameThread.interrupt();
-                replayGameThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            synchronized(replayGameThread) {
+                try {
+                    logtoolExecutor.interrupt();
+                    replayGameThread.interrupt();
+                    replayGameThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                replayGameThread = null;
             }
-            replayGameThread = null;
         }
 
         visualizerService.setState(VisualizerState.FINISHED);

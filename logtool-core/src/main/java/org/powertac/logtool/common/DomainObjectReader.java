@@ -291,7 +291,7 @@ public class DomainObjectReader
   {
     Instant value = Instant.parse(time);
     timeService.setCurrentTime(value);
-    log.info("time set to " + time);
+    log.debug("time set to " + time);
   }
   
   private void fireNewObjectEvent (Object thing)
