@@ -218,6 +218,17 @@ public class ConfiguratorTest
   }
 
   @Test
+  public void testConfigInstanceNull ()
+  {
+    TreeMap<String,String> map = new TreeMap<String, String>();
+    MapConfiguration conf = new MapConfiguration(map);
+    Configurator uut = new Configurator();
+    uut.setConfiguration(conf);
+    Collection<?> result = uut.configureInstances(ConfigInstance.class);
+    assertEquals("zero instances", 0, result.size());
+  }
+
+  @Test
   public void testConfigNamedInstance ()
   {
     TreeMap<String,String> map = new TreeMap<String, String>();
