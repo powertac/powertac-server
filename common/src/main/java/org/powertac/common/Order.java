@@ -102,6 +102,10 @@ public class Order extends XStreamStateLoggable
     this.broker = broker;
     this.timeslot = timeslot;
     this.mWh = mWh;
+    if (null != limitPrice && limitPrice.isNaN()) {
+      log.error("Limit price is NaN");
+      limitPrice = null;
+    }
     this.limitPrice = limitPrice;
     // check for minimum order qty - should we adjust?
     double min = Competition.currentCompetition().getMinimumOrderQuantity();
@@ -159,7 +163,10 @@ public class Order extends XStreamStateLoggable
 
   public Double getLimitPrice ()
   {
-    return limitPrice;
+    if (null == limitPrice || limitPrice.isNaN())
+      return null;
+    else
+      return limitPrice;
   }
   
   @Override

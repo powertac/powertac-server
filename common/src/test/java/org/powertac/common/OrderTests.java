@@ -85,7 +85,18 @@ public class OrderTests
     assertEquals("correct quantity", 0.5, mo.getMWh(), 1e-6);
     assertNull("null price", mo.getLimitPrice());
   }
-  
+
+  @Test
+  public void testOrderNaN ()
+  {
+    Order mo = new Order(broker, timeslotNum, 0.5, Double.NaN);
+    assertNotNull("created something", mo);
+    assertEquals("correct broker", broker, mo.getBroker());
+    assertEquals("correct timeslot", timeslot, mo.getTimeslot());
+    assertEquals("correct quantity", 0.5, mo.getMWh(), 1e-6);
+    assertNull("null price", mo.getLimitPrice());
+  }
+
   @Test
   public void testOrderMin ()
   {
