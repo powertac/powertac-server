@@ -363,7 +363,8 @@ public class TariffEvaluator
       double withdrawCost = subTariff.getEarlyWithdrawPayment();
       int committedCount = subscription.getCustomersCommitted();
       int expiredCount = subscription.getExpiredCustomerCount();
-      if (withdrawCost == 0.0 || expiredCount == committedCount) {
+      if (withdrawCost == 0.0 ||
+          (expiredCount > 0 && expiredCount == committedCount)) {
         // no need to worry about expiration
         evaluateAlternativeTariffs(subscription, actualInertia,
                                    0.0, committedCount,
@@ -407,6 +408,10 @@ public class TariffEvaluator
                                            EvalData defaultEval,
                                            Set<Tariff> initialTariffs)
   {
+    if (0 == population) {
+      log.info("eval tariffs for zero population {}", customerInfo.getName());
+      return;
+    }
     //log.info("evaluateAlternativeTariffs(" + current.getTariff().getId() + ")");
     // Associate each alternate tariff with its utility value
     TreeSet<TariffUtility> evals = new TreeSet<>();

@@ -135,6 +135,12 @@ implements InitializationService
   private int assessmentInterval = 168;
   private Integer timeslotOffset = null;
 
+  @ConfigurableValue(valueType = "Integer",
+      publish = true,
+      description = "Number of peaks assessed")
+  private int assessmentCount = 3;
+
+
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Std deviation coefficient (nu)")
@@ -343,7 +349,8 @@ implements InitializationService
         // sort the peak events and assess charges
         peaks.sort(null);
         Map<Broker, Double> brokerCharge = new HashMap<Broker, Double>();
-        for (PeakEvent peak: peaks.subList(0, Math.min(3, peaks.size()))) {
+        for (PeakEvent peak: peaks.subList(0, Math.min(assessmentCount,
+                                                       peaks.size()))) {
           double excess = peak.value - threshold;
           double charge = excess * feePerPoint;
           for (Broker broker: brokerList) {
@@ -640,9 +647,9 @@ implements InitializationService
     @Override
     public int compareTo (PeakEvent o)
     {
-      if (this.value > o.value)
+      if (this.value < o.value)
         return 1;
-      else if (this.value < o.value)
+      else if (this.value > o.value)
         return -1;
       else
         // make comparison consistent with equals
