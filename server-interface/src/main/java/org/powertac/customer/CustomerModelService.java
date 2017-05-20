@@ -16,6 +16,7 @@
 package org.powertac.customer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -112,8 +113,9 @@ implements InitializationService, BootstrapState, NewTariffListener,
     Iterator<AbstractCustomer> modelIterator = loader.iterator();
     while (modelIterator.hasNext()) {
       AbstractCustomer modelEx = modelIterator.next();
-      for (Object modelObj:
-           serverConfig.configureInstances(modelEx.getClass())) {
+      Collection<?> instances =
+          serverConfig.configureInstances(modelEx.getClass());
+      for (Object modelObj: instances) {
         AbstractCustomer model = (AbstractCustomer) modelObj;
         log.info("Adding model " + model.getName());
         models.add(model);

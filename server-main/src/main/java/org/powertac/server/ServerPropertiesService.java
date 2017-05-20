@@ -206,7 +206,8 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   public Collection<?> configureInstances (Class<?> target)
   {
     lazyInit();
-    return configurator.configureInstances(target);
+    Collection<?> result = configurator.configureInstances(target);
+    return result;
   }
 
   @Override
