@@ -225,6 +225,7 @@ public class ConfiguratorTest
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureInstances(ConfigInstance.class);
+    assertNotNull("non-null result", result);
     assertEquals("zero instances", 0, result.size());
   }
 

@@ -252,14 +252,14 @@ public class Configurator
    * constructors, and are expected to show up in the configuration as
    * instance names in clauses of the form
    * pkg.class.name.property = value.
-   * Returns null in case instances cannot be created.
+   * Returns empty list in case instances cannot be created.
    */
   public Collection<?> configureInstances (Class<?> type)
   {
     // If we don't have a configuration, we cannot do much.
     if (config == null) {
       log.error("Cannot configure - no Configuration set");
-      return null;
+      return new ArrayList<Object>();
     }
 
     // compute the key for the instance list
@@ -272,6 +272,7 @@ public class Configurator
     names = names.stream().filter(n -> !n.toString().isEmpty()).collect(Collectors.toList());
     if (names.size() == 0) {
       log.warn("No instance names specified for class " + classname);
+      return names;
     }
     // for each name, create an instance, add it to the result, and
     // configure it.
