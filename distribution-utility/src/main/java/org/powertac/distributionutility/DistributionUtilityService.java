@@ -149,7 +149,7 @@ implements InitializationService
   @ConfigurableValue (valueType = "Double",
       publish = true,
       description = "Per-point fee (lambda)")
-  private double feePerPoint = -180.0;
+  private double feePerPoint = -18.0;
 
   // peak-demand dataset
   private double[] netDemand;
