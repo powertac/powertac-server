@@ -623,11 +623,10 @@ public class TariffEvaluator
     if (defaultCost == 0) {
       // this means that capacity is 0, so we don't want any changes
       // so return small utility
+      log.warn("default cost is zero");
       return 0;
     }
-    double ndiff = (defaultCost - cost) / defaultCost;
-    if (customerInfo.getPowerType().isProduction())
-      ndiff = -ndiff;
+    double ndiff = (cost - defaultCost) / Math.abs(defaultCost);
     return ndiff;
   }
 
