@@ -169,11 +169,6 @@ public class MessageHandler {
         perTimeslotUpdate();
     }
 
-    /**
-     * CashPosition is the last message sent by Accounting. This is normally
-     * when any broker would submit its bids, so that's when this VizBroker will
-     * do it.
-     */
     public synchronized void handleMessage(TimeslotComplete tc) {
         if (tc.getTimeslotIndex() == currentTimeslot) {
             notifyAll();
@@ -188,6 +183,11 @@ public class MessageHandler {
         customer.setBootstrapNetUsage(Arrays.stream(cbd.getNetUsage()).boxed().collect(Collectors.toList()));
     }
 
+    /**
+     * CashPosition is the last message sent by Accounting. This is normally
+     * when any broker would submit its bids, so that's when this VizBroker will
+     * do it.
+     */
     public void handleMessage(CashPosition cp) {
         org.powertac.common.Broker ptacBroker = cp.getBroker();
 
