@@ -7,6 +7,8 @@
 
     Push.$inject = ['$http', '$cookies', '$q', '$timeout', '$log', 'DEBUG_INFO_ENABLED'];
 
+    var clientId = Math.round((Math.random() * Number.MAX_SAFE_INTEGER)).toString(36);
+
     function Push ($http, $cookies, $q, $timeout, $log, DEBUG_INFO_ENABLED) {
         var service = {
             receive: receive,
@@ -53,6 +55,8 @@
             delay = RECONNECT_TIMEOUT_START;
             socket.stomp.subscribe(TOPIC, function (data) {
                 listener.notify(getMessage(data.body));
+            }, {
+                id: clientId
             });
         }
 
