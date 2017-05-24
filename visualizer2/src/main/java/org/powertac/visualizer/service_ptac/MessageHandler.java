@@ -80,7 +80,7 @@ public class MessageHandler {
         // TODO not used?
     }
 
-    public void handleMessage(org.powertac.common.Competition c) {
+    public synchronized void handleMessage(org.powertac.common.Competition c) {
         // create vizCompetition
         org.powertac.common.Competition.setCurrent(c);
         currentCompetition.setCurrent(c);
@@ -106,7 +106,7 @@ public class MessageHandler {
      * Receives the SimPause message, used to pause the clock. While the clock
      * is paused, the broker needs to ignore the local clock.
      */
-    public void handleMessage(SimPause sp) {
+    public synchronized void handleMessage(SimPause sp) {
         // local brokers can ignore this.
         // log.debug("Paused at " +
         // timeService.getCurrentDateTime().toString());
@@ -116,7 +116,7 @@ public class MessageHandler {
     /**
      * Receives the SimResume message, used to update the clock.
      */
-    public void handleMessage(SimResume sr) {
+    public synchronized void handleMessage(SimResume sr) {
         // local brokers don't need to handle this
         log.trace("SimResume received");
         // pausedAt = 0;
@@ -128,7 +128,7 @@ public class MessageHandler {
      * Receives the SimStart message, used to start the clock. The server's
      * clock offset is subtracted from the start time indicated by the server.
      */
-    public void handleMessage(SimStart ss) {
+    public synchronized void handleMessage(SimStart ss) {
         log.debug("SimStart received - start time is " + ss.getStart().toString());
         visualizerService.setState(VisualizerState.RUNNING);
     }
@@ -136,7 +136,7 @@ public class MessageHandler {
     /**
      * Receives the SimEnd message, which ends the broker session.
      */
-    public void handleMessage(SimEnd se) {
+    public synchronized void handleMessage(SimEnd se) {
         log.info("SimEnd received");
         visualizerService.setState(VisualizerState.FINISHED);
     }
@@ -178,7 +178,7 @@ public class MessageHandler {
 
     }
 
-    public void handleMessage(CustomerBootstrapData cbd) {
+    public synchronized void handleMessage(CustomerBootstrapData cbd) {
         Customer customer = customerRepo.findByName(cbd.getCustomerName());
         customer.setBootstrapNetUsage(Arrays.stream(cbd.getNetUsage()).boxed().collect(Collectors.toList()));
     }
@@ -188,7 +188,7 @@ public class MessageHandler {
      * when any broker would submit its bids, so that's when this VizBroker will
      * do it.
      */
-    public void handleMessage(CashPosition cp) {
+    public synchronized void handleMessage(CashPosition cp) {
         org.powertac.common.Broker ptacBroker = cp.getBroker();
 
         // we only care about standard (retail+wholesale) brokers
