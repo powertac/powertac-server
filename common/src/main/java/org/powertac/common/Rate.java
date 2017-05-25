@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2013 by the original author or authors.
+ * Copyright (c) 2011 - 2017 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -725,7 +725,7 @@ public class Rate extends RateCore
     if (dailyBegin > MAX_HOURS)
       dailyBegin = dailyBegin % (MAX_HOURS + 1);
     if (dailyEnd > MAX_HOURS)
-      dailyEnd = dailyEnd % (MAX_DAYS + 1);
+      dailyEnd = dailyEnd % (MAX_HOURS + 1);
     if (weeklyBegin > MAX_DAYS)
       weeklyBegin = ((weeklyBegin - 1) % MAX_DAYS) + 1;
     if (weeklyEnd> MAX_DAYS)
