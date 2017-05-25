@@ -77,13 +77,13 @@ public class RateTests
     Rate r = new Rate().withValue(Double.NaN);
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
-    assertFalse("Invalid numeric value", r.isValid(null));
+    assertFalse("Invalid numeric value", r.isValid(PowerType.CONSUMPTION));
 
     r.withValue(Double.POSITIVE_INFINITY);
-    assertFalse("Invalid Infinity", r.isValid(null));
+    assertFalse("Invalid Infinity", r.isValid(PowerType.CONSUMPTION));
 
     r.withValue(Double.NEGATIVE_INFINITY);
-    assertFalse("Invalid Infinity 2", r.isValid(null));
+    assertFalse("Invalid Infinity 2", r.isValid(PowerType.CONSUMPTION));
   }
 
   // Test a rate that applies between 6:00 and 8:00
@@ -103,7 +103,26 @@ public class RateTests
     assertFalse("Does not apply at 9:00", r.applies(new DateTime(2012, 3, 3, 9, 0, 0, 0, DateTimeZone.UTC)));
     assertFalse("Does not apply at 8:00", r.applies(new DateTime(2012, 1, 3, 8, 0, 0, 0, DateTimeZone.UTC)));
   }
-  
+
+  // Test a rate that applies between 6:00 and 8:00
+  @Test
+  public void testDailyRateOverflow ()
+  {
+    timeService.setCurrentTime(new DateTime(2011,1,10,5,0,0,0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121)
+        .withDailyBegin(30)
+        .withDailyEnd(8);
+    ReflectionTestUtils.setField(r, "timeService", timeService);
+    assertTrue("Rate valid", r.isValid(PowerType.CONSUMPTION));
+
+    assertTrue("Rate is fixed", r.isFixed());
+    assertFalse("Does not apply now", r.applies());
+    assertTrue("Applies at 6:00", r.applies(new DateTime(2012, 2, 2, 6, 0, 0, 0, DateTimeZone.UTC)));
+    assertTrue("Applies at 7:59", r.applies(new DateTime(2012, 2, 3, 7, 59, 0, 0, DateTimeZone.UTC)));
+    assertFalse("Does not apply at 9:00", r.applies(new DateTime(2012, 3, 3, 9, 0, 0, 0, DateTimeZone.UTC)));
+    assertFalse("Does not apply at 8:00", r.applies(new DateTime(2012, 1, 3, 8, 0, 0, 0, DateTimeZone.UTC)));
+  }
+
   // Test a rate that applies between 22:00 and 5:00
   @Test
   public void testDailyRateOverMidnight ()

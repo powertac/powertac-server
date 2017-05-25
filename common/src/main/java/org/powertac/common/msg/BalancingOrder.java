@@ -24,17 +24,18 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Represents an offer of balancing capacity from a broker to the DU.
- * Applicable only to tariffs that have a Rate with non-zero xxx,  for
+ * Applicable only to tariffs that have a RegulationRate or a Rate with
+ * non-zero maxCurtailment,  for
  * the current timeslot, and a non-empty set of customer subscriptions.
  * 
  * A BalancingOrder can specify up-regulation by curtailment
- * (0 < exerciseRatio <= 1), by discharging a battery
+ * (0 < exerciseRatio <= 1), or by discharging a battery
  * (1 < exerciseRatio <= 2). A BalancingOrder can specify down-regulation
  * (-1 <= exerciseRatio < 0), which translates to charging a battery (possibly
  * faster than its default charge rate) or to dumping thermal energy into some
  * type of thermal storage device (e.g. making more ice or raising the
  * temperature of a water heater).
- *   
+ *
  * The Broker specifies that proportion of the remaining curtailable capacity
  * (remaining after possible application of an economic control) that can be
  * curtailed for balancing purposes, but note that the actual curtailment

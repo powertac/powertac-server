@@ -170,7 +170,7 @@ public class TariffTests
     te.getUsageCharge(3.0, 20.0, true);
     assertEquals("realized price 3", -0.131, te.getRealizedPrice(), 1e-6);
   }
-  
+
   // time-of-use rates: -0.15/kwh 7:00-18:00, -0.08/kwh 18:00-7:00
   @Test
   public void testTimeOfUseDaily ()
@@ -180,7 +180,7 @@ public class TariffTests
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     Tariff te = new Tariff(tariffSpec);
-    te.init();
+    assertTrue("valid Tariff", te.init());
     assertEquals("noon price", -3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
     assertEquals("realized price", -0.15, te.getRealizedPrice(), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
@@ -194,7 +194,33 @@ public class TariffTests
     assertEquals("realized price 4", -4.8/39.0, te.getRealizedPrice(), 1e-6);
     assertTrue("covered", te.isCovered());
   }
-  
+
+  // time-of-use rates: -0.15/kwh 7:00-18:00, -0.08/kwh 18:00-7:00
+  @Test
+  public void testTimeOfUseDailyOverlap ()
+  {
+    Rate r1 = new Rate().withDailyBegin(0).withDailyEnd(6).withValue(-0.2);
+    Rate r2 = new Rate().withDailyBegin(6).withDailyEnd(21).withValue(-0.5);
+    Rate r3 = new Rate().withDailyBegin(21).withDailyEnd(24).withValue(-0.2); 
+    tariffSpec.addRate(r1);
+    tariffSpec.addRate(r2);
+    tariffSpec.addRate(r3);
+    Tariff te = new Tariff(tariffSpec);
+    assertTrue("valid", te.init());
+    assertEquals("noon price", -10.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
+    assertEquals("realized price", -0.5, te.getRealizedPrice(), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("18:00 price", -5.0, te.getUsageCharge(10.0, 220.0, true), 1e-6);
+    assertEquals("realized price 2", -0.5, te.getRealizedPrice(), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("midnight price", -1.0, te.getUsageCharge(5.0, 230.0, true), 1e-6);
+    assertEquals("realized price 3", -16.0/35.0, te.getRealizedPrice(), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 2, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("7:00 price", -2.0, te.getUsageCharge(4.0, 235.0, true), 1e-6);
+    assertEquals("realized price 4", -18.0/39.0, te.getRealizedPrice(), 1e-6);
+    assertTrue("covered", te.isCovered());
+  }
+
   // time-of-use rates: 0.15/kwh 7:00-18:00, 0.08/kwh 19:00-7:00
   @Test
   public void testTimeOfUseDailyGap ()

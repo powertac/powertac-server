@@ -20,7 +20,6 @@ import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
@@ -29,6 +28,7 @@ import org.joda.time.Instant;
 import org.joda.time.ReadablePartial;
 import org.joda.time.base.AbstractDateTime;
 import org.joda.time.base.AbstractInstant;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -682,7 +682,14 @@ public class Rate extends RateCore
    * must be between minValue and maxValue, and noticeInterval must be
    * non-negative. 
    */
+  static int MAX_HOURS = 23;
+  static int MAX_DAYS = 7;
   public boolean isValid(TariffSpecification spec)
+  {
+    return isValid(spec.getPowerType());
+  }
+
+  public boolean isValid(PowerType powerType)
   {
     // numeric sanity test
     if (Double.isNaN(minValue) || Double.isNaN(maxValue)
@@ -705,19 +712,28 @@ public class Rate extends RateCore
     }
     // tier tests
     if (Double.isNaN(tierThreshold)
-        || (spec.getPowerType().isConsumption() && tierThreshold < 0.0)) {
+        || (powerType.isConsumption() && tierThreshold < 0.0)) {
       log.warn("Negative tier threshold for consumption rate");
       return false;
     }
     if (Double.isNaN(tierThreshold)
-        || (spec.getPowerType().isProduction() && tierThreshold > 0.0)) {
+        || (powerType.isProduction() && tierThreshold > 0.0)) {
       log.warn("Positive tier threshold for production rate");
       return false;
     }
+    // begin/end values -- we only care about values > 0
+    if (dailyBegin > MAX_HOURS)
+      dailyBegin = dailyBegin % (MAX_HOURS + 1);
+    if (dailyEnd > MAX_HOURS)
+      dailyEnd = dailyEnd % (MAX_DAYS + 1);
+    if (weeklyBegin > MAX_DAYS)
+      weeklyBegin = ((weeklyBegin - 1) % MAX_DAYS) + 1;
+    if (weeklyEnd> MAX_DAYS)
+      weeklyEnd= ((weeklyEnd- 1) % MAX_DAYS) + 1;
     // non-fixed rates
     if (isFixed())
       return true;
-    double sgn = spec.getPowerType().isConsumption()? -1.0: 1.0;
+    double sgn = powerType.isConsumption()? -1.0: 1.0;
     // maxValue
     if (sgn * maxValue < sgn * minValue) {
       log.warn("maxValue " + maxValue + " out of range");

@@ -149,6 +149,10 @@ public class Tariff
     offerDate = timeService.getCurrentTime();
 
     // make sure this tariff is valid before adding it to the repo
+    for (Rate r: tariffSpec.getRates()) {
+      if (!r.isValid(tariffSpec.getPowerType()))
+        return false;
+    }
     analyze();
     if (!isCovered())
       return false;

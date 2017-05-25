@@ -22,7 +22,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * Represents a curtailment of energy by the DU as part of its balancing process.
+ * Represents up-regulation or down-regulation by the DU as part of its
+ * balancing process.
  * A BalancingControlEvent can only be used by the DU in response to a
  * BalancingOrder issued by a Broker, and only if needed to resolve an
  * imbalance.
@@ -40,7 +41,7 @@ public class BalancingControlEvent extends ControlEvent
   private double payment = 0.0;
   
   /**
-   * Creates a new BalancingControlEvent to represent a curtailment in the 
+   * Creates a new BalancingControlEvent to represent regulation in the 
    * current timeslot. Presumably this will be generated AFTER the customer
    * models have run in the timeslot, so the customer models must adapt their
    * behavior in the following timeslot to accommodate a curtailment that has 
