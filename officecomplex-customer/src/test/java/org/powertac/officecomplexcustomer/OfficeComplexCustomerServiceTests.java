@@ -530,11 +530,11 @@ public class OfficeComplexCustomerServiceTests
     }
 
     Rate r1 =
-      new Rate().withFixed(false).withValue(.1).withMaxValue(.2)
-              .withExpectedMean(.15).withDailyBegin(0).withDailyEnd(13);
+      new Rate().withFixed(false).withValue(-.1).withMaxValue(-.2)
+              .withExpectedMean(-.15).withDailyBegin(0).withDailyEnd(13);
     Rate r2 =
-      new Rate().withFixed(false).withValue(.15).withMaxValue(.9)
-              .withExpectedMean(.2).withDailyBegin(14).withDailyEnd(23);
+      new Rate().withFixed(false).withValue(-.15).withMaxValue(-.9)
+              .withExpectedMean(-.2).withDailyBegin(14).withDailyEnd(23);
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)

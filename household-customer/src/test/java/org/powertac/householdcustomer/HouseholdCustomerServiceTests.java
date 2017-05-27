@@ -491,11 +491,13 @@ public class HouseholdCustomerServiceTests
     }
 
     Rate r1 =
-      new Rate().withFixed(false).withValue(.1).withMaxValue(.2)
-              .withExpectedMean(.15).withDailyBegin(0).withDailyEnd(13);
+      new Rate().withFixed(false).withValue(-.1).withMaxValue(-.2)
+              .withExpectedMean(-.15).withDailyBegin(0).withDailyEnd(13);
+    assertTrue(r1.isValid(PowerType.CONSUMPTION));
     Rate r2 =
-      new Rate().withFixed(false).withValue(.15).withMaxValue(.9)
-              .withExpectedMean(.2).withDailyBegin(14).withDailyEnd(23);
+      new Rate().withFixed(false).withValue(-.15).withMaxValue(-.9)
+              .withExpectedMean(-.2).withDailyBegin(14).withDailyEnd(23);
+    assertTrue(r2.isValid(PowerType.CONSUMPTION));
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
@@ -503,10 +505,10 @@ public class HouseholdCustomerServiceTests
               .withMinDuration(TimeService.WEEK * 8).addRate(r2).addRate(r1);
 
     Tariff tariff1 = new Tariff(tsc1);
-    tariff1.init();
+    assertTrue("valid tariff1", tariff1.init());
     tariff1.setState(Tariff.State.OFFERED);
 
-    assertEquals("Four consumption tariffs", 2, tariffRepo.findAllTariffs()
+    assertEquals("Two consumption tariffs", 2, tariffRepo.findAllTariffs()
             .size());
 
     assertNotNull("first tariff found", tariff1);
