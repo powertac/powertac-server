@@ -148,6 +148,9 @@ public class EvCustomer
     // For now all risk attitudes have same probability
     riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
 
+    // The up-regulation and down-regulation values are equal magnitude, which
+    // means this is NOT a vehicle-to-grid setup. It just means charging can
+    // be curtailed.
     customerInfo = new CustomerInfo(name, 1).
         withPowerType(PowerType.ELECTRIC_VEHICLE).
         withControllableKW(-car.getHomeChargeKW()).
