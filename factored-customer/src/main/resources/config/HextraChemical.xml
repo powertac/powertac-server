@@ -15,6 +15,7 @@
         <count>1</count>
         <population>5</population>
         <type>INTERRUPTIBLE_CONSUMPTION</type>
+	<customerSize>LARGE</customerSize>
         <multiContracting>true</multiContracting>
         <canNegotiate>false</canNegotiate>
         <isAdaptive>false</isAdaptive>

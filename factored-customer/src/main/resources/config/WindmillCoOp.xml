@@ -15,6 +15,7 @@
         <count>1</count>
         <population>50</population>
         <type>WIND_PRODUCTION</type>
+	<customerSize>LARGE</customerSize>
         <multiContracting>true</multiContracting>
         <canNegotiate>false</canNegotiate>
         <isAdaptive>false</isAdaptive>
@@ -24,6 +25,7 @@
         <count>1</count>
         <population>40</population>
         <type>WIND_PRODUCTION</type>
+	<customerSize>LARGE</customerSize>
         <multiContracting>true</multiContracting>
         <canNegotiate>false</canNegotiate>
         <isAdaptive>false</isAdaptive>

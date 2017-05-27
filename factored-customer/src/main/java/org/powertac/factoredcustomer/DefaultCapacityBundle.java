@@ -49,10 +49,13 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   protected int population;
   @ConfigurableValue(valueType = "String")
   protected String type;
+  @ConfigurableValue(valueType = "String")
+  protected String customerSize = "SMALL";
   @ConfigurableValue(valueType = "Boolean")
   protected boolean multiContracting;
   @ConfigurableValue(valueType = "Boolean")
   protected boolean canNegotiate;
+  
 
   @ConfigurableValue(valueType = "Boolean")
   protected boolean isAdaptive;
@@ -78,6 +81,7 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
 
     customerInfo = new CustomerInfo(name, this.population)
         .withPowerType(PowerType.valueOf(this.type))
+        .withCustomerClass(CustomerInfo.CustomerClass.valueOf(customerSize))
         .withMultiContracting(this.multiContracting)
         .withCanNegotiate(this.canNegotiate);
 

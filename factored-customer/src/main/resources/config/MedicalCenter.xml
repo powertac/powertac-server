@@ -15,6 +15,7 @@
         <count>1</count>
         <population>1</population>
         <type>CONSUMPTION</type>
+	<customerSize>LARGE</customerSize>
         <multiContracting>false</multiContracting>
         <canNegotiate>false</canNegotiate>
         <isAdaptive>false</isAdaptive>
