@@ -93,7 +93,7 @@ public class RateTests
     timeService.setCurrentTime(new DateTime(2011,1,10,5,0, 0, 0, DateTimeZone.UTC));
     Rate r = new Rate().withValue(0.121)
         .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC));
+        .withDailyEnd(new DateTime(2011, 1, 1, 7, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -109,18 +109,7 @@ public class RateTests
   public void testDailyRateOverflow ()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,5,0,0,0, DateTimeZone.UTC));
-    Rate r = new Rate().withValue(0.121)
-        .withDailyBegin(30)
-        .withDailyEnd(8);
-    ReflectionTestUtils.setField(r, "timeService", timeService);
-    assertTrue("Rate valid", r.isValid(PowerType.CONSUMPTION));
-
-    assertTrue("Rate is fixed", r.isFixed());
-    assertFalse("Does not apply now", r.applies());
-    assertTrue("Applies at 6:00", r.applies(new DateTime(2012, 2, 2, 6, 0, 0, 0, DateTimeZone.UTC)));
-    assertTrue("Applies at 7:59", r.applies(new DateTime(2012, 2, 3, 7, 59, 0, 0, DateTimeZone.UTC)));
-    assertFalse("Does not apply at 9:00", r.applies(new DateTime(2012, 3, 3, 9, 0, 0, 0, DateTimeZone.UTC)));
-    assertFalse("Does not apply at 8:00", r.applies(new DateTime(2012, 1, 3, 8, 0, 0, 0, DateTimeZone.UTC)));
+    assertNull("invalid time", new Rate().withValue(0.121).withDailyBegin(30));
   }
 
   // Test a rate that applies between 22:00 and 5:00
@@ -130,7 +119,7 @@ public class RateTests
     timeService.setCurrentTime(new DateTime(2011,1,10,21,0,0,0,DateTimeZone.UTC));
     Rate r = new Rate().withValue(0.121) 
         .withDailyBegin(new DateTime(2011, 1, 1, 22, 0, 0, 0, DateTimeZone.UTC))
-        .withDailyEnd(new DateTime(2011, 1, 2, 5, 0, 0, 0, DateTimeZone.UTC));
+        .withDailyEnd(new DateTime(2011, 1, 2, 4, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -162,7 +151,8 @@ public class RateTests
   public void testWeeklyRateSun()
   {
     Rate r = new Rate().withValue(0.121)
-        .withWeeklyBegin(new DateTime(2011, 1, 16, 22, 0, 0, 0, DateTimeZone.UTC));
+        .withWeeklyBegin(new DateTime(2011, 1, 16, 22, 0, 0, 0, DateTimeZone.UTC))
+        .withWeeklyEnd(new DateTime(2011, 1, 16, 22, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -203,9 +193,9 @@ public class RateTests
     assertFalse("Does not apply on Sunday", r.applies(new DateTime(2011, 1, 30, 12, 0, 0, 0, DateTimeZone.UTC)));
     assertFalse("Does not apply Mon morning", r.applies(new DateTime(2011, 1, 31, 7, 59, 0, 0, DateTimeZone.UTC)));
     assertTrue("Starts Mon 8:00", r.applies(new DateTime(2011, 1, 31, 8, 0, 0, 0, DateTimeZone.UTC)));
-    assertTrue("Applies Mon 16:59", r.applies(new DateTime(2011, 1, 31, 16, 59, 0, 0, DateTimeZone.UTC)));
-    assertFalse("Does not apply Mon 17:00", r.applies(new DateTime(2011, 1, 31, 17, 0, 0, 0, DateTimeZone.UTC)));
-    assertTrue("Applies Fri 16:59", r.applies(new DateTime(2011, 1, 28, 16, 59, 0, 0, DateTimeZone.UTC)));
+    assertTrue("Applies Mon 17:59", r.applies(new DateTime(2011, 1, 31, 17, 59, 0, 0, DateTimeZone.UTC)));
+    assertFalse("Does not apply Mon 18:00", r.applies(new DateTime(2011, 1, 31, 18, 0, 0, 0, DateTimeZone.UTC)));
+    assertTrue("Applies Fri 17:59", r.applies(new DateTime(2011, 1, 28, 17, 59, 0, 0, DateTimeZone.UTC)));
   }
   
   // Test a rate that applies between 6:00 and 8:00,

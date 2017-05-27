@@ -84,7 +84,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  * For <code>dailyBegin</code> / <code>dailyEnd</code>, the values
  * are integer hours in the range 0:23. A <code>Rate</code> that applies from 
  * 22:00 in the evening until 6:00 the next morning would have 
- * <code>dailyBegin=22</code> and <code>dailyEnd=6</code>.
+ * <code>dailyBegin=22</code> and <code>dailyEnd=5</code>.
  * Weekly begin/end specifications are integers in the range 1:7, with 1=Monday.</p>
  * <p>
  * It is possible for multiple rates to be applicable at any given combination
@@ -110,15 +110,16 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 public class Rate extends RateCore
 {
   static private Logger log = LogManager.getLogger(Rate.class.getName());
+  public static final int NO_TIME = -1;
 
   @XStreamAsAttribute
-  private int weeklyBegin = -1; // weekly applicability
+  private int weeklyBegin = NO_TIME; // weekly applicability
   @XStreamAsAttribute
-  private int weeklyEnd = -1;
+  private int weeklyEnd = NO_TIME;
   @XStreamAsAttribute
-  private int dailyBegin = -1; // daily applicability
+  private int dailyBegin = NO_TIME; // daily applicability
   @XStreamAsAttribute
-  private int dailyEnd = -1;
+  private int dailyEnd = NO_TIME;
   @XStreamAsAttribute
   private double tierThreshold = 0.0; // tier applicability
   @XStreamAsAttribute
@@ -160,10 +161,12 @@ public class Rate extends RateCore
    */
   public Rate withWeeklyBegin (AbstractDateTime begin)
   {
-    if (begin != null) {
-      return withWeeklyBegin(begin.getDayOfWeek());
+    if (null == begin) {
+      log.error("Null value for weeklyBegin");
+      weeklyBegin = NO_TIME;
+      return null;
     }
-    return this;
+    return withWeeklyBegin(begin.getDayOfWeek());
   }
 
   /**
@@ -172,19 +175,28 @@ public class Rate extends RateCore
    */
   public Rate withWeeklyBegin (ReadablePartial begin)
   {
-    if (begin != null) {
-      return withWeeklyBegin(begin.get(DateTimeFieldType.dayOfWeek()));
+    if (null == begin) {
+      log.error("Null value for weeklyBegin");
+      weeklyBegin = NO_TIME;
+      return null;
     }
-    return this;
+    return withWeeklyBegin(begin.get(DateTimeFieldType.dayOfWeek()));
   }
 
   /**
    * Sets the day of the week on which this Rate comes into effect. Note that
    * a value of 1 represents Monday, while 7 represents Sunday.
    */
+  static final int MIN_DAY = 1;
+  static final int MAX_DAY = 7;
   @StateChange
   public Rate withWeeklyBegin (int begin)
   {
+    if (begin < MIN_DAY || begin > MAX_DAY) {
+      log.error("Invalid value {} for weeklyBegin", begin);
+      weeklyBegin = NO_TIME;
+      return null;
+    }
     weeklyBegin = begin;
     return this;
   }
@@ -200,10 +212,11 @@ public class Rate extends RateCore
    */
   public Rate withWeeklyEnd (AbstractDateTime end)
   {
-    if (end!= null) {
-      return withWeeklyEnd(end.getDayOfWeek());
+    if (null == end) {
+      log.error("Null value for weeklyEnd");
+      weeklyEnd = NO_TIME;
     }
-    return this;
+    return withWeeklyEnd(end.getDayOfWeek());
   }
 
   /**
@@ -220,11 +233,18 @@ public class Rate extends RateCore
 
   /**
    * Sets the weekly end of applicability for this Rate. A value
-   * of 1 represents Monday, and 7 represents Sunday.
+   * of 1 represents Monday, and 7 represents Sunday. Values outside this range
+   * will result in weeklyEnd being restored to its default value of NO_TIME, an
+   * error in the log, and a return value of null.
    */
   @StateChange
   public Rate withWeeklyEnd (int end)
   {
+    if (end < MIN_DAY || end > MAX_DAY) {
+      log.error("Invalid value {} for weeklyEnd", end);
+      weeklyEnd = NO_TIME;
+      return null;
+    }
     weeklyEnd = end;
     return this;
   }
@@ -239,10 +259,12 @@ public class Rate extends RateCore
    */
   public Rate withDailyBegin (AbstractDateTime begin)
   {
-    if (begin != null) {
-      return withDailyBegin(begin.getHourOfDay());
+    if (null == begin) {
+      log.error("Null value for dailyBegin");
+      dailyBegin = NO_TIME;
+      return null;
     }
-    return this;
+    return withDailyBegin(begin.getHourOfDay());
   }
 
   /**
@@ -250,19 +272,28 @@ public class Rate extends RateCore
    */
   public Rate withDailyBegin (ReadablePartial begin)
   {
-    if (begin != null) {
-      return withDailyBegin(begin.get(DateTimeFieldType.hourOfDay()));
+    if (null == begin) {
+      log.error("Null value for dailyBegin");
+      dailyBegin = NO_TIME;
+      return null;
     }
-    return this;
+    return withDailyBegin(begin.get(DateTimeFieldType.hourOfDay()));
   }
 
   /**
    * Sets the time of day when this Rate comes into effect as hours
    * since midnight.
    */
+  static final int MIN_HOUR = 0;
+  static final int MAX_HOUR = 23;
   @StateChange
   public Rate withDailyBegin (int begin)
   {
+    if (begin < MIN_HOUR || begin > MAX_HOUR) {
+      log.error("invalid value {} for dailyBegin", begin);
+      dailyBegin = NO_TIME;
+      return null;
+    }
     dailyBegin = begin;
     return this;
   }
@@ -277,10 +308,12 @@ public class Rate extends RateCore
    */
   public Rate withDailyEnd (AbstractDateTime end)
   {
-    if (end != null) {
-      return withDailyEnd(end.getHourOfDay());
+    if (null == end) {
+      log.error("Null value for dailyEnd");
+      dailyEnd = NO_TIME;
+      return null;
     }
-    return this;
+    return withDailyEnd(end.getHourOfDay());
   }
 
   /**
@@ -288,10 +321,12 @@ public class Rate extends RateCore
    */
   public Rate withDailyEnd (ReadablePartial end)
   {
-    if (end != null) {
-      return withDailyEnd(end.get(DateTimeFieldType.hourOfDay()));
+    if (null == end) {
+      log.error("Null value for dailyEnd");
+      dailyEnd = NO_TIME;
+      return null;
     }
-    return this;
+    return withDailyEnd(end.get(DateTimeFieldType.hourOfDay()));
   }
 
   /**
@@ -301,6 +336,11 @@ public class Rate extends RateCore
   @StateChange
   public Rate withDailyEnd (int end)
   {
+    if (end < MIN_HOUR | end > MAX_HOUR) {
+      log.error("invalid value {} for dailyEnd", end);
+      dailyEnd = NO_TIME;
+      return null;
+    }
     dailyEnd = end;
     return this;
   }
@@ -543,11 +583,8 @@ public class Rate extends RateCore
 
     // check weekly applicability
     int day = time.getDayOfWeek();
-    if (weeklyBegin == -1) {
+    if (weeklyBegin == NO_TIME || weeklyEnd == NO_TIME) {
       appliesWeekly = true;
-    }
-    else if (weeklyEnd == -1) {
-      appliesWeekly = (day == weeklyBegin);
     }
     else if (weeklyEnd >= weeklyBegin) {
       appliesWeekly = (day >= weeklyBegin && day <= weeklyEnd);
@@ -558,16 +595,16 @@ public class Rate extends RateCore
 
     // check daily applicability
     int hour = time.getHourOfDay();
-    if (dailyBegin == -1 || dailyEnd == -1) {
+    if (dailyBegin == NO_TIME || dailyEnd == NO_TIME) {
       appliesDaily = true;
     }
     else if (dailyEnd > dailyBegin) {
       // Interval does not span midnight
-      appliesDaily = ((hour >= dailyBegin) && (hour < dailyEnd));
+      appliesDaily = ((hour >= dailyBegin) && (hour <= dailyEnd));
     }
     else {
       // Interval spans midnight
-      appliesDaily = ((hour >= dailyBegin) || (hour < dailyEnd));
+      appliesDaily = ((hour >= dailyBegin) || (hour <= dailyEnd));
     }
 
     return (appliesWeekly && appliesDaily);
@@ -682,8 +719,6 @@ public class Rate extends RateCore
    * must be between minValue and maxValue, and noticeInterval must be
    * non-negative. 
    */
-  static int MAX_HOURS = 23;
-  static int MAX_DAYS = 7;
   public boolean isValid(TariffSpecification spec)
   {
     return isValid(spec.getPowerType());
@@ -721,15 +756,19 @@ public class Rate extends RateCore
       log.warn("Positive tier threshold for production rate");
       return false;
     }
-    // begin/end values -- we only care about values > 0
-    if (dailyBegin > MAX_HOURS)
-      dailyBegin = dailyBegin % (MAX_HOURS + 1);
-    if (dailyEnd > MAX_HOURS)
-      dailyEnd = dailyEnd % (MAX_HOURS + 1);
-    if (weeklyBegin > MAX_DAYS)
-      weeklyBegin = ((weeklyBegin - 1) % MAX_DAYS) + 1;
-    if (weeklyEnd> MAX_DAYS)
-      weeklyEnd= ((weeklyEnd- 1) % MAX_DAYS) + 1;
+    // begin/end values must be consistent
+    if ((dailyBegin != NO_TIME && dailyEnd == NO_TIME) ||
+        (dailyBegin == NO_TIME && dailyEnd != NO_TIME)) {
+        log.error("invalid daily begin/end values: {}, {}",
+                  dailyBegin, dailyEnd);
+        return false;
+    }
+    if ((weeklyBegin != NO_TIME && weeklyEnd == NO_TIME) ||
+        (weeklyBegin == NO_TIME && weeklyEnd != NO_TIME)) {
+        log.error("invalid weekly begin/end values: {}, {}",
+                  weeklyBegin, weeklyEnd);
+        return false;
+    }
     // non-fixed rates
     if (isFixed())
       return true;

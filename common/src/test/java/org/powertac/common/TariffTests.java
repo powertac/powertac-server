@@ -201,7 +201,7 @@ public class TariffTests
   {
     Rate r1 = new Rate().withDailyBegin(0).withDailyEnd(6).withValue(-0.2);
     Rate r2 = new Rate().withDailyBegin(6).withDailyEnd(21).withValue(-0.5);
-    Rate r3 = new Rate().withDailyBegin(21).withDailyEnd(24).withValue(-0.2); 
+    Rate r3 = new Rate().withDailyBegin(21).withDailyEnd(0).withValue(-0.2); 
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
