@@ -138,7 +138,8 @@ public class Tariff
   /**
    * Initializes tariff by building the rate map. Must be called before
    * usage charges can be computed. This is not in the constructor because
-   * of testability problems.
+   * of testability problems. Return value is true just in case the
+   * initialization succeeds.
    */
   public boolean init ()
   {
