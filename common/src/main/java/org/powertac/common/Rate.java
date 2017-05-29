@@ -729,31 +729,52 @@ public class Rate extends RateCore
     // numeric sanity test
     if (Double.isNaN(minValue) || Double.isNaN(maxValue)
         || Double.isNaN(expectedMean)) {
-      log.warn("numeric insanity: ("
+      log.error("numeric insanity: ("
           + minValue + "," + maxValue + "," + expectedMean + ")");
       return false;
     }
     if (Double.isInfinite(minValue) || Double.isInfinite(maxValue)
         || Double.isInfinite(expectedMean)) {
-      log.warn("Infinite value: ("
+      log.error("Infinite value: ("
           + minValue + "," + maxValue + "," + expectedMean + ")");
       return false;
     }
     // curtailment test
     if (Double.isNaN(maxCurtailment)
         || maxCurtailment < 0.0 || maxCurtailment > 1.0) {
-      log.warn("Curtailment ratio " + maxCurtailment + " out of range");
+      log.error("Curtailment ratio " + maxCurtailment + " out of range");
       return false;
     }
     // tier tests
     if (Double.isNaN(tierThreshold)
         || (powerType.isConsumption() && tierThreshold < 0.0)) {
-      log.warn("Negative tier threshold for consumption rate");
+      log.error("Negative tier threshold for consumption rate");
       return false;
     }
     if (Double.isNaN(tierThreshold)
         || (powerType.isProduction() && tierThreshold > 0.0)) {
-      log.warn("Positive tier threshold for production rate");
+      log.error("Positive tier threshold for production rate");
+      return false;
+    }
+    // range check on begin/end values
+    if ((dailyBegin != NO_TIME && dailyBegin < MIN_HOUR) ||
+        dailyBegin > MAX_HOUR) {
+      log.error("dailyBegin out of range: {}", dailyBegin);
+      return false;
+    }
+    if ((dailyEnd != NO_TIME && dailyEnd < MIN_HOUR) ||
+        dailyEnd > MAX_HOUR) {
+      log.error("dailyEnd out of range: {}", dailyEnd);
+      return false;
+    }
+    if ((weeklyBegin != NO_TIME && weeklyBegin < MIN_DAY) ||
+        weeklyBegin > MAX_DAY) {
+      log.error("weeklyBegin out of range: {}", weeklyBegin);
+      return false;
+    }
+    if ((weeklyEnd!= NO_TIME && weeklyEnd< MIN_DAY) ||
+        weeklyEnd> MAX_DAY) {
+      log.error("weeklyEnd out of range: {}", weeklyEnd);
       return false;
     }
     // begin/end values must be consistent
@@ -785,7 +806,7 @@ public class Rate extends RateCore
     }
     // noticeInterval
     if (noticeInterval < 0l) {
-      log.warn("negative notice interval " + noticeInterval);
+      log.error("negative notice interval " + noticeInterval);
       return false;
     }
     return true;
