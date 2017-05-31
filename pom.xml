@@ -7,7 +7,7 @@
 
   <groupId>org.powertac</groupId>
   <artifactId>powertac-parent</artifactId>
-  <version>1.4.3-SNAPSHOT</version>
+  <version>1.4.3</version>
   <packaging>pom</packaging>
 
   <name>Power TAC parent</name>
@@ -738,7 +738,7 @@
     <connection>scm:git:git//github.com/powertac/powertac-core.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-core.git</developerConnection>
     <url>https://github.com/powertac/powertac-core</url>
-    <tag>HEAD</tag>
+    <tag>powertac-parent-1.4.3</tag>
   </scm>
 
 
