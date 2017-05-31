@@ -19,12 +19,12 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
-    <version>1.4.3-SNAPSHOT</version>
+    <version>1.4.3</version>
     <relativePath />
   </parent>
 
   <properties>
-    <powertac.version>1.4.3-SNAPSHOT</powertac.version>
+    <powertac.version>1.4.3</powertac.version>
     <powertac-server.version>1.4.3-SNAPSHOT</powertac-server.version>
   </properties>
 
