@@ -18,17 +18,35 @@
         service.prevStatus = '';
         service.gameStatusStyle = 'default';
 
-        service.graphKeys = [
-            'allMoneyCumulative',
-            'retailMoneyCumulative',
-            'retailMoney',
-            'retailKwhCumulative',
-            'retailKwh',
-            'subscription',
-            'subscriptionCumulative'
-        ];
+        service.retailGraphKeys = {
+            'allMoneyCumulative': {},
+            'retailMoney': {},
+            'retailMoneyCumulative': {},
+            'retailKwh': {},
+            'retailKwhCumulative': {},
+            'subscription': {},
+            'subscriptionCumulative': {}
+        };
 
-        service.changed = Object.keys(initGraphData()).reduce(function(map, key) {
+        service.wholesaleGraphKeys = {
+            'wholesaleMoney': {},
+            'wholesaleMoneyCumulative': {},
+            'wholesaleMwh': {},
+            'wholesaleMwhCumulative': {},
+            'wholesalePrice': {},
+            'wholesalePriceBuy': {},
+            'wholesalePriceSell': {},
+        };
+
+        service.allGraphKeys = {};
+        Object.keys(service.retailGraphKeys).forEach(function(key) {
+            service.allGraphKeys[key] = service.retailGraphKeys[key];
+        });
+        Object.keys(service.wholesaleGraphKeys).forEach(function(key) {
+            service.allGraphKeys[key] = service.wholesaleGraphKeys[key];
+        });
+
+        service.changed = Object.keys(service.allGraphKeys).reduce(function(map, key) {
             map[key] = false;
             return map;
         }, {});
@@ -39,8 +57,8 @@
 
         Push.onConnectionChanged(setConnected);
 
-        function initGraphData () {
-            return service.graphKeys.reduce(function(map, key) {
+        function initGraphData (keys) {
+            return Object.keys(keys).reduce(function(map, key) {
                 map[key] = [0];
                 return map;
             }, {});
@@ -56,6 +74,15 @@
             return retail;
         }
 
+        function initWholesale (wholesale) {
+            wholesale.mwh = 0;
+            wholesale.m = 0;
+            wholesale.p = NaN;
+            wholesale.pb = NaN;
+            wholesale.ps = NaN;
+            return wholesale;
+        }
+
         function aggCustomer (powerType) {
             return {
                 'genericPowerType': '',
@@ -66,7 +93,7 @@
                 'customerClass': [],
                 'population': 0,
                 'retail': initRetail({}),
-                'graphData': initGraphData()
+                'graphData': initGraphData(service.retailGraphKeys)
             };
         }
 
@@ -131,9 +158,11 @@
                 // send a property unless it has a value.)
                 broker.cash = 0;
                 broker.retail = initRetail(broker.retail);
+                broker.wholesale = initWholesale(broker.wholesale);
 
                 // add some arrays for graphs:
-                broker.graphData = initGraphData();
+                broker.graphData = initGraphData(service.allGraphKeys);
+
 
                 // add to service.brokers collection:
                 service.brokers[broker.id] = broker;
@@ -141,29 +170,54 @@
         }
 
         function processBrokerTick (brokerTick) {
-            var retail = brokerTick.retail;
             var broker = service.brokers[brokerTick.id];
+            var retail = brokerTick.retail;
+            var wholesale = brokerTick.wholesale;
 
             var cash = brokerTick.hasOwnProperty('cash') ? brokerTick.cash : 0;
             broker.cash = cash;
             broker.graphData.allMoneyCumulative.push(cash);
 
             var sub = retail.hasOwnProperty('sub') ? retail.sub : 0;
-            broker.retail.sub += sub;
+            if (!isNaN(sub)) {
+                broker.retail.sub += sub;
+            }
             broker.graphData.subscription.push(sub);
             broker.graphData.subscriptionCumulative.push(broker.retail.sub);
 
-            var kwh = retail.hasOwnProperty('kwh') ? retail.kwh : 0;
-            broker.retail.kwh += kwh;
-            broker.graphData.retailKwh.push(kwh);
+            var rkwh = retail.hasOwnProperty('kwh') ? retail.kwh : 0;
+            broker.retail.kwh += rkwh;
+            broker.graphData.retailKwh.push(rkwh);
             broker.graphData.retailKwhCumulative.push(broker.retail.kwh);
 
-            var m = retail.hasOwnProperty('m') ? retail.m : 0;
-            broker.retail.m += m;
-            broker.graphData.retailMoney.push(m);
+            var rm = retail.hasOwnProperty('m') ? retail.m : 0;
+            broker.retail.m += rm;
+            broker.graphData.retailMoney.push(rm);
             broker.graphData.retailMoneyCumulative.push(broker.retail.m);
 
-            if (retail.hasOwnProperty('actTx')) {
+            var wmwh = wholesale.hasOwnProperty('mwh') ? wholesale.mwh : 0;
+            broker.wholesale.mwh += wmwh;
+            broker.graphData.wholesaleMwh.push(wmwh);
+            broker.graphData.wholesaleMwhCumulative.push(broker.wholesale.mwh);
+
+            var wm = wholesale.hasOwnProperty('m') ? wholesale.m : 0;
+            broker.wholesale.m += wm;
+            broker.graphData.wholesaleMoney.push(wm);
+            broker.graphData.wholesaleMoneyCumulative.push(broker.wholesale.m);
+
+            var p = wholesale && wholesale.hasOwnProperty('p') ? wholesale.p : NaN;
+            broker.wholesale.p = isNaN(p) ? null : p;
+            broker.graphData.wholesalePrice.push(broker.wholesale.p);
+
+            var pb = wholesale && wholesale.hasOwnProperty('pb') ? wholesale.pb : NaN;
+            broker.wholesale.pb = isNaN(pb) ? null : pb;
+            broker.graphData.wholesalePriceBuy.push(broker.wholesale.pb);
+
+            var ps = wholesale && wholesale.hasOwnProperty('ps') ? wholesale.ps : NaN;
+            broker.wholesale.ps = isNaN(ps) ? null : ps;
+            broker.graphData.wholesalePriceSell.push(broker.wholesale.ps);
+
+            if (retail && retail.hasOwnProperty('actTx')) {
                 broker.retail.actTx += retail.actTx;
             }
             if (retail.hasOwnProperty('rvkTx')) {
@@ -265,6 +319,7 @@
                 processCompetition(message.competition);
                 processBrokers(message.brokers);
                 processCustomers(message.customers);
+
                 message.snapshots.forEach(function (snapshot) {
                     processSnapshot(snapshot);
                 });

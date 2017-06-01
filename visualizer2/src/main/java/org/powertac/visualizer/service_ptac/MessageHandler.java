@@ -3,6 +3,7 @@ package org.powertac.visualizer.service_ptac;
 import org.joda.time.Instant;
 import org.powertac.common.CashPosition;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.MarketTransaction;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffTransaction.Type;
@@ -12,13 +13,13 @@ import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.domain.RetailKPIHolder;
 import org.powertac.visualizer.domain.Broker;
 import org.powertac.visualizer.domain.Customer;
 import org.powertac.visualizer.domain.Tariff;
 import org.powertac.visualizer.domain.TickSnapshot;
+import org.powertac.visualizer.domain.WholesaleKPIHolder;
 import org.powertac.visualizer.repository_ptac.BrokerRepository;
 import org.powertac.visualizer.repository_ptac.CustomerRepository;
 import org.powertac.visualizer.repository_ptac.TariffRepository;
@@ -98,6 +99,7 @@ public class MessageHandler {
         }
 
         currentInstant = null;
+        currentTimeslot = c.getBootstrapTimeslotCount() + c.getBootstrapDiscardedTimeslots() - 1;
 
         log.info("VizCompetition received");
     }
@@ -143,9 +145,7 @@ public class MessageHandler {
 
     /**
      * Updates the sim clock on receipt of the TimeslotUpdate message, which
-     * should be the first to arrive in each timeslot. We have to disable all
-     * the timeslots prior to the first enabled slot, then create and enable all
-     * the enabled slots.
+     * should be the first to arrive in each timeslot.
      */
     public synchronized void handleMessage(TimeslotUpdate tu) {
         if (currentInstant == null) {
@@ -165,17 +165,9 @@ public class MessageHandler {
             return;
         }
 
-        currentInstant = tu.getPostedTime();
         perTimeslotUpdate();
-    }
-
-    public synchronized void handleMessage(TimeslotComplete tc) {
-        if (tc.getTimeslotIndex() == currentTimeslot) {
-            notifyAll();
-        }
-
-        // perTimeslotUpdate();
-
+        currentInstant = tu.getPostedTime();
+        currentTimeslot++;
     }
 
     public synchronized void handleMessage(CustomerBootstrapData cbd) {
@@ -300,6 +292,17 @@ public class MessageHandler {
         broker.getRetail().incrementRevokedTariffs();
     }
 
+    /** Handles a wholesale MarketTransaction */
+    public synchronized void handleMessage(MarketTransaction mtx) {
+        Broker broker = brokerRepo.findByName(mtx.getBroker().getUsername());
+        if (broker != null) {
+            broker.getWholesale().addTransaction(mtx);
+        } /* else if (mtx.getPrice() * mtx.getMWh() >= 0) {
+          System.out.print("Weird MarketTx for broker " + mtx.getBroker().getUsername() + ": ");
+          System.out.println("  #" + mtx.getTimeslotIndex() + "\t " + mtx.getBroker().getUsername() + "\t " + mtx.getMWh() + " @ " + mtx.getPrice());
+        } */
+    }
+
     private void perTimeslotUpdate() {
         TickSnapshot ts = new TickSnapshot(currentInstant.getMillis());
         tickSnapshotRepo.save(ts);
@@ -307,9 +310,11 @@ public class MessageHandler {
         // reset per time slot KPI values:
         for (Broker broker : brokerRepo.findAll()) {
             TickValueBroker tv = new TickValueBroker(broker,
-                    new RetailKPIHolder(broker.getRetail()));
+                    new RetailKPIHolder(broker.getRetail()),
+                    new WholesaleKPIHolder(broker.getWholesale(), currentTimeslot));
             ts.getTickValueBrokers().add(tv);
             broker.getRetail().resetCurrentValues();
+            broker.getWholesale().resetCurrentValues();
         }
 
         for (Customer customer : customerRepo.findAll()) {

@@ -86,7 +86,7 @@ public class VisualizerService {
 
     public void newRun() {
         init();
-        // TODO Reset current competion
+        // TODO Reset current competition
     }
 
     public void init() {
@@ -97,7 +97,6 @@ public class VisualizerService {
       repositories = context.getBeansOfType(RecycleRepository.class).values();
     }
 
-    @SuppressWarnings("rawtypes")
     public void recycleAll() {
         for (RecycleRepository<?> repository: repositories) {
             repository.recycle();

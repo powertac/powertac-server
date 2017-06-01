@@ -116,6 +116,6 @@ public class Tariff {
     }
 
     public static void recycle() {
-        idCounter = 1;
+        idCounter = 0;
     }
 }

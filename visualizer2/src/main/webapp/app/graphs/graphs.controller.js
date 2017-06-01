@@ -12,6 +12,7 @@
 
         vm.state = State;
         vm.changeDetection = {};
+        vm.tab = 'retail';
 
         var chartConfig = {
             chart: {
@@ -40,7 +41,7 @@
         };
 
         function initCharts () {
-            vm.state.graphKeys.forEach(function(key) {
+            Object.keys(vm.state.allGraphKeys).forEach(function(key) {
                 vm[key] = angular.copy(chartConfig);
                 vm.changeDetection[key] = function(config) {
                     var same = true;
@@ -65,62 +66,26 @@
             State.brokers.forEach(function (broker, index) {
                 var color = colors[index % colors.length];
 
-                vm.allMoneyCumulative.series.push({
-                    id: 'allMoneyCumulative_' + broker.id,
-                    name: broker.name,
-                    color: color,
-                    data: broker.graphData.allMoneyCumulative,
-                    pointStart: vm.start,
-                    pointInterval: vm.duration
+                Object.keys(vm.state.allGraphKeys).forEach(function(key) {
+                    vm[key].series.push(angular.extend(
+                        {
+                            id: key + '_' + broker.id,
+                            name: broker.name,
+                            color: color,
+                            data: broker.graphData[key],
+                            pointStart: vm.start,
+                            pointInterval: vm.duration,
+                            type: 'line',
+                            marker: { enabled: true, radius: 1 },
+                            lineWidth: 1,
+                            states: {
+                                hover: { lineWidth: 1 }
+                            }
+                        },
+                        vm.state.allGraphKeys[key]
+                    ));
                 });
-                vm.retailMoneyCumulative.series.push({
-                    id: 'retailMoneyCumulative_' + broker.id,
-                    name: broker.name,
-                    color: color,
-                    data: broker.graphData.retailMoneyCumulative,
-                    pointStart: vm.start,
-                    pointInterval: vm.duration
-                });
-                vm.retailMoney.series.push({
-                    id: 'retailMoney_' + broker.id,
-                    name: broker.name,
-                    color: color,
-                    data: broker.graphData.retailMoney,
-                    pointStart: vm.start,
-                    pointInterval: vm.duration
-                });
-                vm.retailKwhCumulative.series.push({
-                    id: 'retailKwhCumulative_' + broker.id,
-                    name: broker.name,
-                    color: color,
-                    data: broker.graphData.retailKwhCumulative,
-                    pointStart: vm.start,
-                    pointInterval: vm.duration
-                });
-                vm.retailKwh.series.push({
-                    id: 'retailKwh_' + broker.id,
-                    name: broker.name,
-                    color: color,
-                    data: broker.graphData.retailKwh,
-                    pointStart: vm.start,
-                    pointInterval: vm.duration
-                });
-                vm.subscription.series.push({
-                    id: 'subscription_' + broker.id,
-                    name: broker.name,
-                    color: color,
-                    data: broker.graphData.subscription,
-                    pointStart: vm.start,
-                    pointInterval: vm.duration
-                });
-                vm.subscriptionCumulative.series.push({
-                    id: 'subscriptionCumulative_' + broker.id,
-                    name: broker.name,
-                    color: color,
-                    data: broker.graphData.subscriptionCumulative,
-                    pointStart: vm.start,
-                    pointInterval: vm.duration
-                });
+
             });
         }
 

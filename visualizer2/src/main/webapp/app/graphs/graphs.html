@@ -34,55 +34,132 @@
                                class="col-md-12 highchart"></highchart>
                 </div>
             </div>
+
             <div class="row">
-                <div class="col-md-6">
-                    <h2>Retail Money</h2>
-                    <p class="lead">Per time slot</p>
-                    <highchart config="vm.retailMoney"
-                               change-detection="vm.changeDetection['retailMoney']"
-                               class="col-md-12 highchart"></highchart>
-                </div>
-                <div class="col-md-6">
-                    <h2>Retail Money</h2>
-                    <p class="lead">Cumulative Money</p>
-                    <highchart config="vm.retailMoneyCumulative"
-                               change-detection="vm.changeDetection['retailMoneyCumulative']"
-                               class="col-md-12 highchart"></highchart>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <h2>Retail energy</h2>
-                    <p class="lead">Per time slot kWh</p>
-                    <highchart config="vm.retailKwh"
-                               change-detection="vm.changeDetection['retailKwh']"
-                               class="col-md-12 highchart"></highchart>
-                </div>
-                <div class="col-md-6">
-                    <h2>Retail energy</h2>
-                    <p class="lead">Cumulative kWh</p>
-                    <highchart config="vm.retailKwhCumulative"
-                               change-detection="vm.changeDetection['retailKwhCumulative']"
-                               class="col-md-12 highchart"></highchart>
+                <hr />
+                <div class="col-md-12">
+                    <ul class="nav nav-pills">
+                        <li role="presentation" class="{{vm.tab === 'retail' ? 'active' : ''}}">
+                            <a ng-click="vm.tab = 'retail'">Retail</a>
+                        </li>
+                        <li role="presentation" class="{{vm.tab === 'wholesale' ? 'active' : ''}}">
+                            <a ng-click="vm.tab = 'wholesale'">Wholesale</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <h2>Subscriptions</h2>
-                    <p class="lead">Per time slot</p>
-                    <highchart config="vm.subscription"
-                               change-detection="vm.changeDetection['subscription']"
-                               class="col-md-12 highchart"></highchart>
+            <div ng-show="vm.tab === 'retail'">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2>Retail Money</h2>
+                        <p class="lead">Per time slot</p>
+                        <highchart config="vm.retailMoney"
+                                   change-detection="vm.changeDetection['retailMoney']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                    <div class="col-md-6">
+                        <h2>Retail Money</h2>
+                        <p class="lead">Cumulative Money</p>
+                        <highchart config="vm.retailMoneyCumulative"
+                                   change-detection="vm.changeDetection['retailMoneyCumulative']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <h2>Subscriptions</h2>
-                    <p class="lead">Cumulative subscriptions</p>
-                    <highchart config="vm.subscriptionCumulative"
-                               change-detection="vm.changeDetection['subscriptionCumulative']"
-                               class="col-md-12 highchart"></highchart>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2>Retail Energy</h2>
+                        <p class="lead">Per time slot kWh</p>
+                        <highchart config="vm.retailKwh"
+                                   change-detection="vm.changeDetection['retailKwh']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                    <div class="col-md-6">
+                        <h2>Retail Energy</h2>
+                        <p class="lead">Cumulative kWh</p>
+                        <highchart config="vm.retailKwhCumulative"
+                                   change-detection="vm.changeDetection['retailKwhCumulative']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2>Subscriptions</h2>
+                        <p class="lead">Per time slot</p>
+                        <highchart config="vm.subscription"
+                                   change-detection="vm.changeDetection['subscription']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                    <div class="col-md-6">
+                        <h2>Subscriptions</h2>
+                        <p class="lead">Cumulative subscriptions</p>
+                        <highchart config="vm.subscriptionCumulative"
+                                   change-detection="vm.changeDetection['subscriptionCumulative']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
                 </div>
             </div>
+
+            <div ng-show="vm.tab === 'wholesale'">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2>Wholesale Money</h2>
+                        <p class="lead">Per time slot</p>
+                        <highchart config="vm.wholesaleMoney"
+                                   change-detection="vm.changeDetection['wholesaleMoney']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                    <div class="col-md-6">
+                        <h2>Wholesale Money</h2>
+                        <p class="lead">Cumulative Money</p>
+                        <highchart config="vm.wholesaleMoneyCumulative"
+                                   change-detection="vm.changeDetection['wholesaleMoneyCumulative']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2>Wholesale Energy</h2>
+                        <p class="lead">Per time slot MWh</p>
+                        <highchart config="vm.wholesaleMwh"
+                                   change-detection="vm.changeDetection['wholesaleMwh']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                    <div class="col-md-6">
+                        <h2>Wholesale Energy</h2>
+                        <p class="lead">Cumulative MWh</p>
+                        <highchart config="vm.wholesaleMwhCumulative"
+                                   change-detection="vm.changeDetection['wholesaleMwhCumulative']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2>Wholesale Mean Buying Price</h2>
+                        <p class="lead">Per MWh</p>
+                        <highchart config="vm.wholesalePriceBuy"
+                                   change-detection="vm.changeDetection['wholesalePriceBuy']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                    <div class="col-md-6">
+                        <h2>Wholesale Mean Selling Price</h2>
+                        <p class="lead">Per MWh</p>
+                        <highchart config="vm.wholesalePriceSell"
+                                   change-detection="vm.changeDetection['wholesalePriceSell']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h2>Wholesale Mean Overall Price</h2>
+                        <p class="lead">Per MWh</p>
+                        <highchart config="vm.wholesalePrice"
+                                   change-detection="vm.changeDetection['wholesalePrice']"
+                                   class="col-md-12 highchart"></highchart>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
     <br />
