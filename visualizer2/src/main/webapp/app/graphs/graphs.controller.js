@@ -28,12 +28,64 @@
                 series: {
                     type: 'line',
                     lineWidth: 0,
-                }
+                },
+                height: 16
             },
             series: [],
             title: {
                 text: ''
             },
+            tooltip: {
+                useHTML: true,
+                shared: true,
+                formatter: function() {
+                    var head = '<small>' + Highcharts.dateFormat('%e %b %Y &nbsp; %H:%M', new Date(this.x)) + '</small>' +
+                        '<table style="min-width: 150px"><tr><td colspan="3">&nbsp;</td></tr>';
+                    var rows = [];
+                    this.points.forEach(function(point) {
+                        var symbol;
+
+                        switch (point.series.symbol) {
+                            case 'diamond':
+                                symbol = '&#9670';
+                                break;
+                            case 'square':
+                                symbol = '&#9632';
+                                break;
+                            case 'triangle':
+                                symbol = '&#9650';
+                                break;
+                            case 'triangle-down':
+                                symbol = '&#9660';
+                                break;
+                            case 'circle':
+                            default:
+                                symbol = '&#9679';
+                                break;
+                        }
+
+                        rows.push([point.y,
+                            '<tr>' +
+                            '<td style="color: ' + point.series.color + '">' + symbol + '</td>' +
+                            '<td>' + point.series.name + '</td>' +
+                            '<td style="text-align: right"><b>' + point.y.toFixed(2) + '</b></td>' +
+                            '</tr>']);
+                    });
+
+                    var foot = '</table>';
+
+                    // Sort rows
+                    rows = rows.sort(function(a, b) {
+                        return b[0] - a[0];
+                    }).map(function(a) {
+                        return a[1];
+                    });
+
+                    return head + rows.join('') + foot;
+                }
+
+            },
+            plotOptions: { series: { states: { hover: { lineWidth: 2 } } } },
             chartType: 'stock',
             credits: {
                 enabled: false
