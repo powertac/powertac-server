@@ -1,7 +1,5 @@
 package org.powertac.visualizer.domain;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,14 +13,13 @@ import org.powertac.visualizer.web.dto.TickValueCustomer;
  *
  * @author Jurica Babic, Govert Buijs, Erik Kemperman
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TickSnapshot {
 
     private long timeInstance;
     private List<TickValueBroker> tickValueBrokers;
     private List<TickValueCustomer> tickValueCustomers;
 
-    protected TickSnapshot() {
+    public TickSnapshot() {
 
     }
 

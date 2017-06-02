@@ -40,6 +40,9 @@ public class WholesaleKPIHolder {
     @JsonProperty("ps")
     private double priceSell = Double.NaN; // mean price per bought mwh for current timeslot
 
+    @JsonIgnore
+    private boolean empty;
+
     public WholesaleKPIHolder() {
         super();
         mtxs = new TreeMap<>();
@@ -59,6 +62,7 @@ public class WholesaleKPIHolder {
         price = 0;
         priceBuy = 0;
         priceSell = 0;
+        empty = true;
         for (Map.Entry<Integer, LinkedList<MarketTransaction>> e : persist.mtxs.entrySet()) {
             Integer slot = e.getKey();
             if (slot.intValue() < timeslot) {
@@ -86,6 +90,7 @@ public class WholesaleKPIHolder {
                 }
                 if (total > 0) {
                     price /= total;
+                    empty = false;
                     if (totalBuy > 0) {
                         priceBuy /= totalBuy;
                     } else {
@@ -138,6 +143,10 @@ public class WholesaleKPIHolder {
 
     public double getCash() {
         return money;
+    }
+
+    public boolean isEmpty() {
+        return empty;
     }
 }
 

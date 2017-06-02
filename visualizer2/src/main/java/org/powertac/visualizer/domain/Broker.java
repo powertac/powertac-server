@@ -21,9 +21,9 @@ public class Broker {
     private RetailKPIHolder retail = new RetailKPIHolder();
     private WholesaleKPIHolder wholesale = new WholesaleKPIHolder();
 
-    private double cash = 0;
+    private double cash = 0.0;
 
-    protected Broker() {
+    public Broker() {
 
     }
 

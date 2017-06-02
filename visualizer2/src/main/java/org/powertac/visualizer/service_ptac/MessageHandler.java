@@ -320,7 +320,9 @@ public class MessageHandler {
         for (Customer customer : customerRepo.findAll()) {
             TickValueCustomer tv = new TickValueCustomer(customer.getId(),
                     new RetailKPIHolder(customer.getRetail()));
-            ts.getTickValueCustomers().add(tv);
+            if (!tv.isEmpty()) {
+                ts.getTickValueCustomers().add(tv);
+            }
             customer.getRetail().resetCurrentValues();
         }
 

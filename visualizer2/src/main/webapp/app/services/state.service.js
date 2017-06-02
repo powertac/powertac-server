@@ -10,6 +10,7 @@
         var service = this;
 
         service.brokers = [];
+        service.customers = [];
         service.aggCustomers = [];
         service.timeInstances = [];
         service.gameName = '';
@@ -140,8 +141,20 @@
             });
 
             // process customer ticks:
+            missing = Object.keys(service.customers).reduce(function(missing, id) {
+                missing[id] = true;
+                return missing;
+            }, {});
             snapshot.tickValueCustomers.forEach(function (customerTick) {
+                missing[customerTick.id] = false;
                 processCustomerTick(customerTick);
+            });
+            Object.keys(missing).forEach(function(id) {
+                if (missing[id]) {
+                    processCustomerTick({
+                        id: id
+                    });
+                }
             });
 
             // mark as dirty
@@ -178,29 +191,27 @@
             broker.cash = cash;
             broker.graphData.allMoneyCumulative.push(cash);
 
-            var sub = retail.hasOwnProperty('sub') ? retail.sub : 0;
-            if (!isNaN(sub)) {
-                broker.retail.sub += sub;
-            }
+            var sub = retail && retail.hasOwnProperty('sub') ? retail.sub : 0;
+            broker.retail.sub += sub;
             broker.graphData.subscription.push(sub);
             broker.graphData.subscriptionCumulative.push(broker.retail.sub);
 
-            var rkwh = retail.hasOwnProperty('kwh') ? retail.kwh : 0;
+            var rkwh = retail && retail.hasOwnProperty('kwh') ? retail.kwh : 0;
             broker.retail.kwh += rkwh;
             broker.graphData.retailKwh.push(rkwh);
             broker.graphData.retailKwhCumulative.push(broker.retail.kwh);
 
-            var rm = retail.hasOwnProperty('m') ? retail.m : 0;
+            var rm = retail && retail.hasOwnProperty('m') ? retail.m : 0;
             broker.retail.m += rm;
             broker.graphData.retailMoney.push(rm);
             broker.graphData.retailMoneyCumulative.push(broker.retail.m);
 
-            var wmwh = wholesale.hasOwnProperty('mwh') ? wholesale.mwh : 0;
+            var wmwh = wholesale && wholesale.hasOwnProperty('mwh') ? wholesale.mwh : 0;
             broker.wholesale.mwh += wmwh;
             broker.graphData.wholesaleMwh.push(wmwh);
             broker.graphData.wholesaleMwhCumulative.push(broker.wholesale.mwh);
 
-            var wm = wholesale.hasOwnProperty('m') ? wholesale.m : 0;
+            var wm = wholesale && wholesale.hasOwnProperty('m') ? wholesale.m : 0;
             broker.wholesale.m += wm;
             broker.graphData.wholesaleMoney.push(wm);
             broker.graphData.wholesaleMoneyCumulative.push(broker.wholesale.m);
@@ -220,10 +231,10 @@
             if (retail && retail.hasOwnProperty('actTx')) {
                 broker.retail.actTx += retail.actTx;
             }
-            if (retail.hasOwnProperty('rvkTx')) {
+            if (retail && retail.hasOwnProperty('rvkTx')) {
                 broker.retail.rvkTx += retail.rvkTx;
             }
-            if (retail.hasOwnProperty('pubTx')) {
+            if (retail && retail.hasOwnProperty('pubTx')) {
                 broker.retail.pubTx += retail.pubTx;
             }
         }
@@ -253,6 +264,9 @@
                 service.aggCustomers[powerIndex].ids.push(customer.id);
                 service.aggCustomers[powerIndex].customerClass = customer.customerClass;
                 service.aggCustomers[powerIndex].population += customer.population;
+
+                customer.retail = initRetail(customer.retail);
+                service.customers[customer.id] = customer;
             });
         }
 
@@ -277,32 +291,32 @@
             var aggCustomer = service.aggCustomers[powerIndex];
             var lastIndex = aggCustomer.graphData.subscription.length - 1;
 
-            if (retail.hasOwnProperty('sub')) {
+            if (retail && retail.hasOwnProperty('sub')) {
                 aggCustomer.retail.sub += retail.sub;
                 aggCustomer.graphData.subscription[lastIndex] += retail.sub;
                 aggCustomer.graphData.subscriptionCumulative[lastIndex] += retail.sub;
             }
 
-            if (retail.hasOwnProperty('kwh')) {
+            if (retail && retail.hasOwnProperty('kwh')) {
                 aggCustomer.retail.kwh += retail.kwh;
                 aggCustomer.graphData.retailKwh[lastIndex] += retail.kwh;
                 aggCustomer.graphData.retailKwhCumulative[lastIndex] += retail.kwh;
             }
 
-            if (retail.hasOwnProperty('m')) {
+            if (retail && retail.hasOwnProperty('m')) {
                 aggCustomer.retail.m += retail.m;
                 aggCustomer.graphData.retailMoney[lastIndex] += retail.m;
                 aggCustomer.graphData.retailMoneyCumulative[lastIndex] += retail.m;
             }
 
-            if (retail.hasOwnProperty('actTx')) {
+            if (retail && retail.hasOwnProperty('actTx')) {
                 aggCustomer.retail.actTx += retail.actTx;
             }
 
-            if (retail.hasOwnProperty('rvkTx')) {
+            if (retail && retail.hasOwnProperty('rvkTx')) {
                 aggCustomer.retail.rvkTx += retail.rvkTx;
             }
-            if (retail.hasOwnProperty('pubTx')) {
+            if (retail && retail.hasOwnProperty('pubTx')) {
                 aggCustomer.retail.pubTx += retail.pubTx;
             }
         }
