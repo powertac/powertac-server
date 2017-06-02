@@ -40,7 +40,7 @@
                 shared: true,
                 formatter: function() {
                     var head = '<small>' + Highcharts.dateFormat('%e %b %Y &nbsp; %H:%M', new Date(this.x)) + '</small>' +
-                        '<table style="min-width: 150px"><tr><td colspan="3">&nbsp;</td></tr>';
+                        '<table style="min-width: 175px"><tr><td colspan="3">&nbsp;</td></tr>';
                     var rows = [];
                     this.points.forEach(function(point) {
                         var symbol;
@@ -64,11 +64,13 @@
                                 break;
                         }
 
+                        var value = point.y.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
                         rows.push([point.y,
                             '<tr>' +
-                            '<td style="color: ' + point.series.color + '">' + symbol + '</td>' +
-                            '<td>' + point.series.name + '</td>' +
-                            '<td style="text-align: right"><b>' + point.y.toFixed(2) + '</b></td>' +
+                            '<td style="text-align: center; color: ' + point.series.color + '">' + symbol + '</td>' +
+                            '<td style="text-align: left">' + point.series.name + '</td>' +
+                            '<td style="text-align: right"><b>' + value + '</b></td>' +
                             '</tr>']);
                     });
 
