@@ -10,7 +10,7 @@
    -->
 
   <artifactId>powertac-server</artifactId>
-  <version>1.4.4-SNAPSHOT</version>
+  <version>1.4.4</version>
   <packaging>pom</packaging>
 
   <name>Power TAC server modules</name>
@@ -70,7 +70,7 @@
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
     <url>https://github.com/powertac/powertac-server/</url>
-    <tag>HEAD</tag>
+    <tag>powertac-server-1.4.4</tag>
   </scm>
 
 </project>
