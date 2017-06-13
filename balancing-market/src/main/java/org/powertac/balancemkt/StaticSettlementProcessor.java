@@ -613,7 +613,8 @@ public class StaticSettlementProcessor extends SettlementProcessor
       double mp2 = getMarginalPrice(startX + exercisedCapacity);
       double cost = mp2 * exercisedCapacity + // for exercisedCapacity
             startX * (mp2 - mp1);    // extra cost for any earlier dummy orders
-      return Math.signum(exercisedCapacity) * cost;
+      //return Math.signum(exercisedCapacity) * cost;
+      return cost;
     }
 
     @Override

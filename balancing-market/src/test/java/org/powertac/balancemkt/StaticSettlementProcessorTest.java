@@ -123,8 +123,8 @@ public class StaticSettlementProcessorTest
     pminus = -1.0;
     pminusPrime = -1.0;
     uut.settle(context, brokerData);
-    assertEquals("b1 pays 3", 3.0, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("b2 pays 3", 3.0, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("b1 pays 3", -3.0, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("b2 pays 3", -3.0, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Example 1 spec, slope = 0, imbalance = -18
@@ -311,9 +311,9 @@ public class StaticSettlementProcessorTest
     //                   + "," + ci4.getBalanceChargeP1()
     //                   + ")");
     assertEquals("b1.p1 = 0", 0.0, ci1.getBalanceChargeP1(), 1e-4);
-    assertEquals("b2.p1 = 0.116", 0.116, ci2.getBalanceChargeP1(), 1e-4);
-    assertEquals("b3.p1 = -0.232", -0.232, ci3.getBalanceChargeP1(), 1e-4);
-    assertEquals("b4.p1 = -0.406", -0.406, ci4.getBalanceChargeP1(), 1e-4);
+    assertEquals("b2.p1 = 0.116", 0.07476, ci2.getBalanceChargeP1(), 1e-4);
+    assertEquals("b3.p1 = -0.232", 0.0025778, ci3.getBalanceChargeP1(), 1e-4);
+    assertEquals("b4.p1 = -0.406", -0.26164, ci4.getBalanceChargeP1(), 1e-4);
   }
 
   // Example 1 spec, slope = 0, imbalance = +180
@@ -391,9 +391,9 @@ public class StaticSettlementProcessorTest
                        + "," + ci4.getBalanceChargeP1()
                        + ")");
     assertEquals("b1.p1 = 0.0", 0.0, ci1.getBalanceChargeP1(), 1e-4);
-    assertEquals("b2.p1 = 0.12", 0.12, ci2.getBalanceChargeP1(), 1e-4);
-    assertEquals("b3.p1 = -0.24", -0.24, ci3.getBalanceChargeP1(), 1e-4);
-    assertEquals("b4.p1 = -0.42", -0.42, ci4.getBalanceChargeP1(), 1e-4);
+    assertEquals("b2.p1 = 0.0", 0.0, ci2.getBalanceChargeP1(), 1e-4);
+    assertEquals("b3.p1 = -0.24", 0.10667, ci3.getBalanceChargeP1(), 1e-4);
+    assertEquals("b4.p1 = -0.42", 0.0, ci4.getBalanceChargeP1(), 1e-4);
   }
 
   // problem 3 from https://docs.google.com/spreadsheet/ccc?key=0AnOwYcSnDi0ZdDVNWjN4Q1FRTGdUTHhSLW9WVmF5Snc
@@ -582,8 +582,8 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 20.0);
     brokerData.add(ci2);
     uut.settle(context, brokerData);
-    assertEquals("-.15 for b1", 0.15, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("0.3 for b2", -0.3, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("-.15 for b1", -0.15, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("0.3 for b2", 0.3, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Simple balancing, positive net imbalance, non-zero slope
@@ -597,8 +597,8 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 20.0);
     brokerData.add(ci2);
     uut.settle(context, brokerData);
-    assertEquals("-.14 for b1", 0.14, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("0.28 for b2", -0.28, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("-.14 for b1", -0.14, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("0.28 for b2", 0.28, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Simple balancing, large positive net imbalance, non-zero slope
@@ -615,8 +615,8 @@ public class StaticSettlementProcessorTest
     // balancing cost = price * qty = 0.189 * -1990 = 376.11
     // b1.p1 = cost * -10 / -1990 = 1.89
     // b2.p1 = cost * 2000 / -1990 = -378
-    assertEquals("1.89 for b1", -1.89, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("-378 for b2", 378.0, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("1.89 for b1", 1.89, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("-378 for b2", -378.0, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Simple balancing, net imbalance, single balancing order for b1
@@ -707,8 +707,8 @@ public class StaticSettlementProcessorTest
     uut.settle(context, brokerData);
     verify(capacityControlService, never())
       .exerciseBalancingControl(isA(BalancingOrder.class), anyDouble(), anyDouble());
-    assertEquals("b1.p1", -0.24, ci1.getBalanceChargeP1(), 1e-5);
-    assertEquals("b2.p1", -0.12, ci2.getBalanceChargeP1(), 1e-5);
+    assertEquals("b1.p1", 0.24, ci1.getBalanceChargeP1(), 1e-5);
+    assertEquals("b2.p1", 0.12, ci2.getBalanceChargeP1(), 1e-5);
  }
 
   // Simple balancing, net imbalance, single balancing order for b1
@@ -730,8 +730,8 @@ public class StaticSettlementProcessorTest
     uut.settle(context, brokerData);
     verify(capacityControlService)
       .exerciseBalancingControl(eq(bo1), eq(-5.0), eq(-0.0325, 1e-5));
-    assertEquals("b1.p1", -0.133333, ci1.getBalanceChargeP1(), 1e-5);
-    assertEquals("b2.p1", -0.063333, ci2.getBalanceChargeP1(), 1e-5);
+    assertEquals("b1.p1", 0.133333, ci1.getBalanceChargeP1(), 1e-5);
+    assertEquals("b2.p1", 0.041667, ci2.getBalanceChargeP1(), 1e-5);
  }
 
   // Simple balancing, net imbalance, single balancing order for b1
