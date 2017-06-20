@@ -98,6 +98,9 @@
             Object.keys(vm.state.allGraphKeys).forEach(function(key) {
                 vm[key] = angular.copy(chartConfig);
                 vm.changeDetection[key] = function(config) {
+                    if (!key.startsWith(vm.tab) && !key.startsWith('all')) {
+                        return true;
+                    }
                     var same = true;
                     if (config.series.length) {
                         same = !State.changed[key];

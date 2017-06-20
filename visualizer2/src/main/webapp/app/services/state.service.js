@@ -20,13 +20,12 @@
         service.gameStatusStyle = 'default';
 
         service.retailGraphKeys = {
-            'allMoneyCumulative': {},
             'retailMoney': {},
             'retailMoneyCumulative': {},
             'retailKwh': {},
             'retailKwhCumulative': {},
-            'subscription': {},
-            'subscriptionCumulative': {}
+            'retailSubscription': {},
+            'retailSubscriptionCumulative': {}
         };
 
         service.wholesaleGraphKeys = {
@@ -39,7 +38,9 @@
             'wholesalePriceSell': {},
         };
 
-        service.allGraphKeys = {};
+        service.allGraphKeys = {
+            'allMoneyCumulative': {},
+        };
         Object.keys(service.retailGraphKeys).forEach(function(key) {
             service.allGraphKeys[key] = service.retailGraphKeys[key];
         });
@@ -193,8 +194,8 @@
 
             var sub = retail && retail.hasOwnProperty('sub') ? retail.sub : 0;
             broker.retail.sub += sub;
-            broker.graphData.subscription.push(sub);
-            broker.graphData.subscriptionCumulative.push(broker.retail.sub);
+            broker.graphData.retailSubscription.push(sub);
+            broker.graphData.retailSubscriptionCumulative.push(broker.retail.sub);
 
             var rkwh = retail && retail.hasOwnProperty('kwh') ? retail.kwh : 0;
             broker.retail.kwh += rkwh;
@@ -271,10 +272,10 @@
         }
 
         function prepareCustomer (customer) {
-            var lastIndex = customer.graphData.subscription.length - 1;
-            customer.graphData.subscription.push(0);
-            customer.graphData.subscriptionCumulative.push(
-                customer.graphData.subscriptionCumulative[lastIndex]);
+            var lastIndex = customer.graphData.retailSubscription.length - 1;
+            customer.graphData.retailSubscription.push(0);
+            customer.graphData.retailSubscriptionCumulative.push(
+                customer.graphData.retailSubscriptionCumulative[lastIndex]);
 
             customer.graphData.retailKwh.push(0);
             customer.graphData.retailKwhCumulative.push(
@@ -289,12 +290,12 @@
             var retail = customerTick.retail;
             var powerIndex = service.powerTypeMap[customerTick.id];
             var aggCustomer = service.aggCustomers[powerIndex];
-            var lastIndex = aggCustomer.graphData.subscription.length - 1;
+            var lastIndex = aggCustomer.graphData.retailSubscription.length - 1;
 
             if (retail && retail.hasOwnProperty('sub')) {
                 aggCustomer.retail.sub += retail.sub;
-                aggCustomer.graphData.subscription[lastIndex] += retail.sub;
-                aggCustomer.graphData.subscriptionCumulative[lastIndex] += retail.sub;
+                aggCustomer.graphData.retailSubscription[lastIndex] += retail.sub;
+                aggCustomer.graphData.retailSubscriptionCumulative[lastIndex] += retail.sub;
             }
 
             if (retail && retail.hasOwnProperty('kwh')) {
