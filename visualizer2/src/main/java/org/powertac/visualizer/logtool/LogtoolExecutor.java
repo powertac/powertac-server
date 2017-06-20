@@ -15,6 +15,7 @@ public class LogtoolExecutor extends NoopAnalyzer {
     static private Logger log = LoggerFactory.getLogger(LogtoolExecutor.class);
 
     private NewObjectListener objListener;
+    private ObjectHandler objectHandler;
     private String logName;
 
     /**
@@ -40,17 +41,22 @@ public class LogtoolExecutor extends NoopAnalyzer {
     public void setup ()
     {
       log.info("Starting replay of " + logName);
-      registerNewObjectListener(new ObjectHandler(), null);
+      if (objectHandler == null) {
+        objectHandler = new ObjectHandler();
+        registerNewObjectListener(objectHandler, null);
+      }
     }
 
     @Override
     public void report() {
         log.info("Finished replay of " + logName);
+        objectHandler.ignore = true;
     }
 
     public void interrupt() {
       getCore().interrupt();
       log.info("Interrupted replay of " + logName);
+      objectHandler.ignore = true;
     }
     
 
