@@ -27,6 +27,8 @@ import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -72,6 +74,12 @@ public class LogtoolCore
   public LogtoolCore ()
   {
     super();
+  }
+
+  @PostConstruct
+  public void postConstruct() {
+    reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
+    builder.setup();
   }
 
   /**
@@ -157,7 +165,6 @@ public class LogtoolCore
    */
   public String readStateLog (InputStream inputStream, Analyzer... tools)
   {
-    reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
     Reader inputReader;
     String line = null;
 
@@ -203,7 +210,6 @@ public class LogtoolCore
 
       // Now go read the state-log
       inputReader = new InputStreamReader(inputStream);
-      builder.setup();
       for (Analyzer tool: tools) {
         log.info("Setting up {}", tool.getClass().getName());
         tool.setup();
