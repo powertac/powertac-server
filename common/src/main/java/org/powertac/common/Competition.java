@@ -379,15 +379,23 @@ public class Competition //implements Serializable
 
   /**
    * Fluent setter for simulation base time that takes a String, interpreted
-   * as a standard DateTimeFormat as yyy-MM-dd.
+   * as a standard DateTimeFormat as yyy-MM-dd. If that fails, try to parse
+   * the string as a regular (long) timestamp.
    */
   @ConfigurableValue(valueType = "String",
     description = "Scenario start time of the bootstrap portion of a simulation")
   public Competition withSimulationBaseTime (String baseTime)
   {
-    DateTimeZone.setDefault(DateTimeZone.UTC);
-    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-    return withSimulationBaseTime(fmt.parseDateTime(baseTime).toInstant()); 
+    Instant instant;
+    try {
+      DateTimeZone.setDefault(DateTimeZone.UTC);
+      DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+      instant = fmt.parseDateTime(baseTime).toInstant();
+    } catch (IllegalArgumentException e) {
+      // Try to interpret the string as a long timestamp instead
+      instant = new Instant(Long.parseLong(baseTime));
+    }
+    return withSimulationBaseTime(instant);
   }
 
   /**
