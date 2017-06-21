@@ -13,18 +13,19 @@
         vm.state = State;
         vm.changeDetection = {};
         vm.tab = 'retail';
+        vm.graphs = {};
 
-        var colors = [ '#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9',
+        vm.colors = [ '#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9',
             '#f15c80', '#e4d354', '#2b908f', '#91e8e1','#f45b5b'];
 
-        var symbolMap = {
+        vm.symbolMap = {
             'circle': '&#9679',
             'square': '&#9632',
             'diamond': '&#9670',
             'triangle': '&#9650',
             'triangle-down': '&#9660'
         };
-        var symbols = Object.keys(symbolMap);
+        vm.symbols = Object.keys(vm.symbolMap);
 
         var chartConfig = {
             chart: {
@@ -55,7 +56,7 @@
                         '<table style="min-width: 175px"><tr><td colspan="3">&nbsp;</td></tr>';
                     var rows = [];
                     this.points.forEach(function(point) {
-                        var symbol = symbolMap[point.series.symbol];
+                        var symbol = vm.symbolMap[point.series.symbol];
                         var value = point.y.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
                         rows.push([point.y,
@@ -86,9 +87,24 @@
             }
         };
 
+        vm.toggleBroker = function (index) {
+            var broker = State.brokers[index];
+            var enabled = !broker.enabled;
+            broker.enabled = enabled;
+            Object.keys(vm.graphs).forEach(function(key) {
+                vm.graphs[key].series.some(function(series, index) {
+                    if (series.id === key + '_' + broker.id) {
+                        series.visible = broker.enabled;
+                        return true;
+                    }
+                });
+                State.changed[key] = true;
+            });
+        };
+
         function initCharts () {
             Object.keys(vm.state.allGraphKeys).forEach(function(key) {
-                vm[key] = angular.copy(chartConfig);
+                vm.graphs[key] = angular.copy(chartConfig);
                 vm.changeDetection[key] = function(config) {
                     if (!key.startsWith(vm.tab) && !key.startsWith('all')) {
                         return true;
@@ -111,11 +127,11 @@
                 }
             }
             State.brokers.forEach(function (broker, index) {
-                var color = colors[index % colors.length];
-                var symbol = symbols[index % symbols.length];
+                var color = vm.colors[index % vm.colors.length];
+                var symbol = vm.symbols[index % vm.symbols.length];
 
                 Object.keys(vm.state.allGraphKeys).forEach(function(key) {
-                    vm[key].series.push(angular.extend(
+                    vm.graphs[key].series.push(angular.extend(
                         {
                             id: key + '_' + broker.id,
                             name: broker.name,
@@ -125,6 +141,7 @@
                                 radius: 1,
                                 symbol: symbol
                             },
+                            visible: broker.enabled,
                             data: broker.graphData[key],
                             pointStart: vm.start,
                             pointInterval: vm.duration,

@@ -88,7 +88,6 @@
       } else {
         vm.replayUrl = vm.replayUrlTemp = url;
       }
-      console.log('set', url, vm.replayUrl);
     }
 
     function start () {

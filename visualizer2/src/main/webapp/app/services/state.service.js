@@ -177,6 +177,8 @@
                 // add some arrays for graphs:
                 broker.graphData = initGraphData(service.allGraphKeys);
 
+                // begin with every broker enabled / checked
+                broker.enabled = true;
 
                 // add to service.brokers collection:
                 service.brokers[broker.id] = broker;
