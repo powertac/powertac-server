@@ -14,6 +14,18 @@
         vm.changeDetection = {};
         vm.tab = 'retail';
 
+        var colors = [ '#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9',
+            '#f15c80', '#e4d354', '#2b908f', '#91e8e1','#f45b5b'];
+
+        var symbolMap = {
+            'circle': '&#9679',
+            'square': '&#9632',
+            'diamond': '&#9670',
+            'triangle': '&#9650',
+            'triangle-down': '&#9660'
+        };
+        var symbols = Object.keys(symbolMap);
+
         var chartConfig = {
             chart: {
                 animation: false,
@@ -43,27 +55,7 @@
                         '<table style="min-width: 175px"><tr><td colspan="3">&nbsp;</td></tr>';
                     var rows = [];
                     this.points.forEach(function(point) {
-                        var symbol;
-
-                        switch (point.series.symbol) {
-                            case 'diamond':
-                                symbol = '&#9670';
-                                break;
-                            case 'square':
-                                symbol = '&#9632';
-                                break;
-                            case 'triangle':
-                                symbol = '&#9650';
-                                break;
-                            case 'triangle-down':
-                                symbol = '&#9660';
-                                break;
-                            case 'circle':
-                            default:
-                                symbol = '&#9679';
-                                break;
-                        }
-
+                        var symbol = symbolMap[point.series.symbol];
                         var value = point.y.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
                         rows.push([point.y,
@@ -110,8 +102,6 @@
                 };
             });
 
-            var colors = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9',
-                '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
             if (vm.state.competition && vm.state.competition.simulationBaseTime) {
                 vm.duration = vm.state.competition.timeslotDuration; // one hour
                 vm.start = vm.state.competition.simulationBaseTime.millis;
@@ -122,6 +112,7 @@
             }
             State.brokers.forEach(function (broker, index) {
                 var color = colors[index % colors.length];
+                var symbol = symbols[index % symbols.length];
 
                 Object.keys(vm.state.allGraphKeys).forEach(function(key) {
                     vm[key].series.push(angular.extend(
@@ -129,11 +120,15 @@
                             id: key + '_' + broker.id,
                             name: broker.name,
                             color: color,
+                            marker: {
+                                enabled: true,
+                                radius: 1,
+                                symbol: symbol
+                            },
                             data: broker.graphData[key],
                             pointStart: vm.start,
                             pointInterval: vm.duration,
                             type: 'line',
-                            marker: { enabled: true, radius: 1 },
                             lineWidth: 1,
                             states: {
                                 hover: { lineWidth: 1 }
