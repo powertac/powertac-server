@@ -52,7 +52,7 @@
                 useHTML: true,
                 shared: true,
                 formatter: function() {
-                    var head = '<small>' + Highcharts.dateFormat('%e %b %Y &nbsp; %H:%M', new Date(this.x)) + '</small>' +
+                    var head = '<small>' + Highcharts.dateFormat('%e %b %Y &nbsp; %H:%M', this.x) + '</small>' +
                         '<table style="min-width: 175px"><tr><td colspan="3">&nbsp;</td></tr>';
                     var rows = [];
                     this.points.forEach(function(point) {

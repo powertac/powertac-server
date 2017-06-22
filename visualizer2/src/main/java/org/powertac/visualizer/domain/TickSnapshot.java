@@ -16,6 +16,7 @@ import org.powertac.visualizer.web.dto.TickValueCustomer;
 public class TickSnapshot {
 
     private long timeInstance;
+    private int timeSlot;
     private List<TickValueBroker> tickValueBrokers;
     private List<TickValueCustomer> tickValueCustomers;
 
@@ -23,15 +24,17 @@ public class TickSnapshot {
 
     }
 
-    public TickSnapshot(long timeInstance, List<TickValueBroker> brokerTicks,
+    public TickSnapshot(long timeInstance, int timeSlot, List<TickValueBroker> brokerTicks,
             List<TickValueCustomer> customerTicks) {
         this.timeInstance = timeInstance;
+        this.timeSlot = timeSlot;
         this.tickValueBrokers = brokerTicks;
         this.tickValueCustomers = customerTicks;
     }
 
-    public TickSnapshot(long timeInstance) {
+    public TickSnapshot(long timeInstance, int timeSlot) {
         this.timeInstance = timeInstance;
+        this.timeSlot = timeSlot;
         this.tickValueBrokers = new ArrayList<>();
         this.tickValueCustomers = new ArrayList<>();
     }
@@ -42,6 +45,14 @@ public class TickSnapshot {
 
     public void setTimeInstance(long timeInstance) {
         this.timeInstance = timeInstance;
+    }
+
+    public int getTimeSlot() {
+      return timeSlot;
+    }
+
+    public void setTimeSlot(int timeSlot) {
+      this.timeSlot = timeSlot;
     }
 
     public List<TickValueBroker> getTickValueBrokers() {

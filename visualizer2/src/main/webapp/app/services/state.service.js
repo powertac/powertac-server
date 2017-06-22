@@ -14,6 +14,9 @@
         service.aggCustomers = [];
         service.timeInstances = [];
         service.gameName = '';
+        service.time = '';
+        service.timeSlot = '';
+        service.timeInstance = '';
         service.queue = [];
         service.gameStatus = '';
         service.prevStatus = '';
@@ -61,7 +64,7 @@
 
         function initGraphData (keys) {
             return Object.keys(keys).reduce(function(map, key) {
-                map[key] = [0];
+                map[key] = [];
                 return map;
             }, {});
         }
@@ -129,7 +132,10 @@
         }
 
         function processSnapshot (snapshot) {
-            service.timeInstances.push(new Date(snapshot.timeInstance));
+            service.timeSlot = snapshot.timeSlot;
+            service.timeInstance = new Date(snapshot.timeInstance);
+            service.timeInstances.push(service.timeInstance);
+            service.timeString = '#' + service.timeSlot + ' | ' + Highcharts.dateFormat('%e %b %Y %H:%M', service.timeInstance) + ' UTC';
 
             // process broker ticks:
             snapshot.tickValueBrokers.forEach(function (brokerTick) {

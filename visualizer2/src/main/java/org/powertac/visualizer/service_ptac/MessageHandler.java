@@ -150,9 +150,8 @@ public class MessageHandler {
     public synchronized void handleMessage(TimeslotUpdate tu) {
         if (currentInstant == null) {
             // skip reporting on a very first timeslot update
-            currentInstant = tu.getPostedTime();
             // but send a control message so the front-end can be initialized:
-
+            currentInstant = tu.getPostedTime();
             InitMessage initMessage = new InitMessage(
                     visualizerService.getState(), currentCompetition,
                     brokerRepo.findAll(), customerRepo.findAll(),
@@ -164,10 +163,9 @@ public class MessageHandler {
 
             return;
         }
-
-        perTimeslotUpdate();
         currentInstant = tu.getPostedTime();
         currentTimeslot++;
+        perTimeslotUpdate();
     }
 
     public synchronized void handleMessage(CustomerBootstrapData cbd) {
@@ -304,7 +302,7 @@ public class MessageHandler {
     }
 
     private void perTimeslotUpdate() {
-        TickSnapshot ts = new TickSnapshot(currentInstant.getMillis());
+        TickSnapshot ts = new TickSnapshot(currentInstant.getMillis(), currentTimeslot);
         tickSnapshotRepo.save(ts);
 
         // reset per time slot KPI values:

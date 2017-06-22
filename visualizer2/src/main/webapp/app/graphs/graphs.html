@@ -24,6 +24,7 @@
 
         <div ng-switch-default>
             <h2>Current Game: {{vm.state.gameName || 'N/A'}}</h2>
+            <p class="lead">Current Time: {{vm.state.timeString}}</p>
 
             <div class="row">
                 <div class="col-md-1 broker broker-{{vm.state.brokers[$index].enabled ? 'enabled' : 'disabled'}}"
