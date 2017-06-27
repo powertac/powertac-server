@@ -56,7 +56,7 @@ public class JmsManagementService
   private boolean servingJms = true;
   private String jmsBrokerUrl = "tcp://localhost:61616";
   private String jmsBrokerName = "simJmsProvider";
-  private long maxQueueDepth = 1000;
+  private long maxQueueDepth = 10000;
 
   private BrokerService getProvider ()
   {
