@@ -1,6 +1,7 @@
 package org.powertac.visualizer.domain;
 
 import org.powertac.visualizer.domain.RetailKPIHolder;
+import org.powertac.visualizer.domain.WholesaleKPIHolder;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -18,10 +19,11 @@ public class Broker {
     private String name;
 
     private RetailKPIHolder retail = new RetailKPIHolder();
+    private WholesaleKPIHolder wholesale = new WholesaleKPIHolder();
 
-    private double cash = 0;
+    private double cash = 0.0;
 
-    protected Broker() {
+    public Broker() {
 
     }
 
@@ -52,6 +54,14 @@ public class Broker {
 
     public void setRetail(RetailKPIHolder retailKPIHolder) {
         this.retail = retailKPIHolder;
+    }
+    
+    public WholesaleKPIHolder getWholesale() {
+      return wholesale;
+    }
+  
+    public void setWholesale(WholesaleKPIHolder wholesaleKPIHolder) {
+        this.wholesale = wholesaleKPIHolder;
     }
 
     public static void recycle() {

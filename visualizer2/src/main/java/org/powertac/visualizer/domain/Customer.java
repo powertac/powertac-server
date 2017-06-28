@@ -57,11 +57,11 @@ public class Customer {
     @JsonIgnore
     private List<Double> bootstrapNetUsage;
 
-    private RetailKPIHolder retailKPIHolder = new RetailKPIHolder();
+    private RetailKPIHolder retail = new RetailKPIHolder();
 
     private String customerClass;
 
-    protected Customer() {
+    public Customer() {
 
     }
 
@@ -143,11 +143,11 @@ public class Customer {
     }
 
     public RetailKPIHolder getRetail() {
-        return retailKPIHolder;
+        return retail;
     }
 
     public void setRetail(RetailKPIHolder retailKPIHolder) {
-        this.retailKPIHolder = retailKPIHolder;
+        this.retail = retailKPIHolder;
     }
 
     public static void recycle() {

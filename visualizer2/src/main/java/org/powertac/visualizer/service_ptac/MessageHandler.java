@@ -3,6 +3,7 @@ package org.powertac.visualizer.service_ptac;
 import org.joda.time.Instant;
 import org.powertac.common.CashPosition;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.MarketTransaction;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffTransaction.Type;
@@ -12,13 +13,13 @@ import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.domain.RetailKPIHolder;
 import org.powertac.visualizer.domain.Broker;
 import org.powertac.visualizer.domain.Customer;
 import org.powertac.visualizer.domain.Tariff;
 import org.powertac.visualizer.domain.TickSnapshot;
+import org.powertac.visualizer.domain.WholesaleKPIHolder;
 import org.powertac.visualizer.repository_ptac.BrokerRepository;
 import org.powertac.visualizer.repository_ptac.CustomerRepository;
 import org.powertac.visualizer.repository_ptac.TariffRepository;
@@ -80,7 +81,7 @@ public class MessageHandler {
         // TODO not used?
     }
 
-    public void handleMessage(org.powertac.common.Competition c) {
+    public synchronized void handleMessage(org.powertac.common.Competition c) {
         // create vizCompetition
         org.powertac.common.Competition.setCurrent(c);
         currentCompetition.setCurrent(c);
@@ -98,6 +99,7 @@ public class MessageHandler {
         }
 
         currentInstant = null;
+        currentTimeslot = c.getBootstrapTimeslotCount() + c.getBootstrapDiscardedTimeslots() - 1;
 
         log.info("VizCompetition received");
     }
@@ -106,7 +108,7 @@ public class MessageHandler {
      * Receives the SimPause message, used to pause the clock. While the clock
      * is paused, the broker needs to ignore the local clock.
      */
-    public void handleMessage(SimPause sp) {
+    public synchronized void handleMessage(SimPause sp) {
         // local brokers can ignore this.
         // log.debug("Paused at " +
         // timeService.getCurrentDateTime().toString());
@@ -116,7 +118,7 @@ public class MessageHandler {
     /**
      * Receives the SimResume message, used to update the clock.
      */
-    public void handleMessage(SimResume sr) {
+    public synchronized void handleMessage(SimResume sr) {
         // local brokers don't need to handle this
         log.trace("SimResume received");
         // pausedAt = 0;
@@ -128,7 +130,7 @@ public class MessageHandler {
      * Receives the SimStart message, used to start the clock. The server's
      * clock offset is subtracted from the start time indicated by the server.
      */
-    public void handleMessage(SimStart ss) {
+    public synchronized void handleMessage(SimStart ss) {
         log.debug("SimStart received - start time is " + ss.getStart().toString());
         visualizerService.setState(VisualizerState.RUNNING);
     }
@@ -136,23 +138,20 @@ public class MessageHandler {
     /**
      * Receives the SimEnd message, which ends the broker session.
      */
-    public void handleMessage(SimEnd se) {
+    public synchronized void handleMessage(SimEnd se) {
         log.info("SimEnd received");
         visualizerService.setState(VisualizerState.FINISHED);
     }
 
     /**
      * Updates the sim clock on receipt of the TimeslotUpdate message, which
-     * should be the first to arrive in each timeslot. We have to disable all
-     * the timeslots prior to the first enabled slot, then create and enable all
-     * the enabled slots.
+     * should be the first to arrive in each timeslot.
      */
     public synchronized void handleMessage(TimeslotUpdate tu) {
         if (currentInstant == null) {
             // skip reporting on a very first timeslot update
-            currentInstant = tu.getPostedTime();
             // but send a control message so the front-end can be initialized:
-
+            currentInstant = tu.getPostedTime();
             InitMessage initMessage = new InitMessage(
                     visualizerService.getState(), currentCompetition,
                     brokerRepo.findAll(), customerRepo.findAll(),
@@ -164,9 +163,14 @@ public class MessageHandler {
 
             return;
         }
-
         currentInstant = tu.getPostedTime();
+        currentTimeslot++;
         perTimeslotUpdate();
+    }
+
+    public synchronized void handleMessage(CustomerBootstrapData cbd) {
+        Customer customer = customerRepo.findByName(cbd.getCustomerName());
+        customer.setBootstrapNetUsage(Arrays.stream(cbd.getNetUsage()).boxed().collect(Collectors.toList()));
     }
 
     /**
@@ -174,21 +178,7 @@ public class MessageHandler {
      * when any broker would submit its bids, so that's when this VizBroker will
      * do it.
      */
-    public synchronized void handleMessage(TimeslotComplete tc) {
-        if (tc.getTimeslotIndex() == currentTimeslot) {
-            notifyAll();
-        }
-
-        // perTimeslotUpdate();
-
-    }
-
-    public void handleMessage(CustomerBootstrapData cbd) {
-        Customer customer = customerRepo.findByName(cbd.getCustomerName());
-        customer.setBootstrapNetUsage(Arrays.stream(cbd.getNetUsage()).boxed().collect(Collectors.toList()));
-    }
-
-    public void handleMessage(CashPosition cp) {
+    public synchronized void handleMessage(CashPosition cp) {
         org.powertac.common.Broker ptacBroker = cp.getBroker();
 
         // we only care about standard (retail+wholesale) brokers
@@ -300,22 +290,37 @@ public class MessageHandler {
         broker.getRetail().incrementRevokedTariffs();
     }
 
+    /** Handles a wholesale MarketTransaction */
+    public synchronized void handleMessage(MarketTransaction mtx) {
+        Broker broker = brokerRepo.findByName(mtx.getBroker().getUsername());
+        if (broker != null) {
+            broker.getWholesale().addTransaction(mtx);
+        } /* else if (mtx.getPrice() * mtx.getMWh() >= 0) {
+          System.out.print("Weird MarketTx for broker " + mtx.getBroker().getUsername() + ": ");
+          System.out.println("  #" + mtx.getTimeslotIndex() + "\t " + mtx.getBroker().getUsername() + "\t " + mtx.getMWh() + " @ " + mtx.getPrice());
+        } */
+    }
+
     private void perTimeslotUpdate() {
-        TickSnapshot ts = new TickSnapshot(currentInstant.getMillis());
+        TickSnapshot ts = new TickSnapshot(currentInstant.getMillis(), currentTimeslot);
         tickSnapshotRepo.save(ts);
 
         // reset per time slot KPI values:
         for (Broker broker : brokerRepo.findAll()) {
             TickValueBroker tv = new TickValueBroker(broker,
-                    new RetailKPIHolder(broker.getRetail()));
+                    new RetailKPIHolder(broker.getRetail()),
+                    new WholesaleKPIHolder(broker.getWholesale(), currentTimeslot));
             ts.getTickValueBrokers().add(tv);
             broker.getRetail().resetCurrentValues();
+            broker.getWholesale().resetCurrentValues();
         }
 
         for (Customer customer : customerRepo.findAll()) {
             TickValueCustomer tv = new TickValueCustomer(customer.getId(),
                     new RetailKPIHolder(customer.getRetail()));
-            ts.getTickValueCustomers().add(tv);
+            if (!tv.isEmpty()) {
+                ts.getTickValueCustomers().add(tv);
+            }
             customer.getRetail().resetCurrentValues();
         }
 

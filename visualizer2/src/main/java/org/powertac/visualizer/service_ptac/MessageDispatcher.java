@@ -96,9 +96,9 @@ implements VisualizerMessageListener, NewObjectListener {
             log.debug("Could not find exact match: " + nsm.toString());
         } catch (InvocationTargetException ite) {
             Throwable thr = ite.getTargetException();
-            log.error("Cannot call " + methodName + ": " + thr + "\n");
+            log.error("Cannot call " + methodName + ": " + thr + "\n", ite);
         } catch (Exception ex) {
-            log.error("Exception calling message processor: " + ex.toString());
+            log.error("Exception calling message processor: " + ex.toString(), ex);
         }
         return result;
     }

@@ -1,7 +1,5 @@
 package org.powertac.visualizer.domain;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,26 +13,28 @@ import org.powertac.visualizer.web.dto.TickValueCustomer;
  *
  * @author Jurica Babic, Govert Buijs, Erik Kemperman
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TickSnapshot {
 
     private long timeInstance;
+    private int timeSlot;
     private List<TickValueBroker> tickValueBrokers;
     private List<TickValueCustomer> tickValueCustomers;
 
-    protected TickSnapshot() {
+    public TickSnapshot() {
 
     }
 
-    public TickSnapshot(long timeInstance, List<TickValueBroker> brokerTicks,
+    public TickSnapshot(long timeInstance, int timeSlot, List<TickValueBroker> brokerTicks,
             List<TickValueCustomer> customerTicks) {
         this.timeInstance = timeInstance;
+        this.timeSlot = timeSlot;
         this.tickValueBrokers = brokerTicks;
         this.tickValueCustomers = customerTicks;
     }
 
-    public TickSnapshot(long timeInstance) {
+    public TickSnapshot(long timeInstance, int timeSlot) {
         this.timeInstance = timeInstance;
+        this.timeSlot = timeSlot;
         this.tickValueBrokers = new ArrayList<>();
         this.tickValueCustomers = new ArrayList<>();
     }
@@ -45,6 +45,14 @@ public class TickSnapshot {
 
     public void setTimeInstance(long timeInstance) {
         this.timeInstance = timeInstance;
+    }
+
+    public int getTimeSlot() {
+      return timeSlot;
+    }
+
+    public void setTimeSlot(int timeSlot) {
+      this.timeSlot = timeSlot;
     }
 
     public List<TickValueBroker> getTickValueBrokers() {

@@ -26,6 +26,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -36,6 +39,9 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.common.msg.SimEnd;
+import org.powertac.common.msg.SimStart;
+import org.powertac.common.repo.DomainRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.logtool.common.DomainObjectReader;
 import org.powertac.logtool.common.MissingDomainObject;
 import org.powertac.logtool.common.DomainBuilder;
@@ -72,6 +78,13 @@ public class LogtoolCore
   public LogtoolCore ()
   {
     super();
+  }
+
+  @PostConstruct
+  public void postConstruct() {
+    reader.registerNewObjectListener(new SimStartHandler(), SimStart.class);
+    reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
+    builder.setup();
   }
 
   /**
@@ -157,7 +170,6 @@ public class LogtoolCore
    */
   public String readStateLog (InputStream inputStream, Analyzer... tools)
   {
-    reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
     Reader inputReader;
     String line = null;
 
@@ -203,7 +215,6 @@ public class LogtoolCore
 
       // Now go read the state-log
       inputReader = new InputStreamReader(inputStream);
-      builder.setup();
       for (Analyzer tool: tools) {
         log.info("Setting up {}", tool.getClass().getName());
         tool.setup();
@@ -241,6 +252,18 @@ public class LogtoolCore
 
   public synchronized void interrupt() {
     isInterrupted = true;
+  }
+
+  class SimStartHandler implements NewObjectListener
+  {
+    @Override
+    public void handleNewObject (Object thing) {
+      List<DomainRepo> repos =
+        SpringApplicationContext.listBeansOfType(DomainRepo.class);
+      for (DomainRepo repo : repos) {
+        repo.recycle();
+      }
+    }
   }
 
   class SimEndHandler implements NewObjectListener

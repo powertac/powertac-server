@@ -364,4 +364,27 @@ label {
     height: 400px;
 }
 
+.broker {
+    cursor:hand;
+    font-size: 12px;
+    font-weight: bold;
+    min-height: 42px;
+    text-align: center;
+    outline: none;
+    -moz-user-select: none;
+    -ie-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.broker-enabled {
+    opacity: 1;
+}
+.broker-disabled {
+    opacity: 0.42;
+}
+
+.broker:hover {
+    background: #eee;
+}
+
 /* jhipster-needle-css-add-main JHipster will add new css style */

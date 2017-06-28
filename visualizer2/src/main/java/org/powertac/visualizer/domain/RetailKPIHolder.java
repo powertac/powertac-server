@@ -1,5 +1,6 @@
 package org.powertac.visualizer.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -27,8 +28,12 @@ public class RetailKPIHolder {
     @JsonProperty("pubTx")
     private int publishedTariffs;
 
+    @JsonIgnore
+    private boolean empty;
+
     public RetailKPIHolder() {
         super();
+        resetCurrentValues();
     }
 
     public RetailKPIHolder(RetailKPIHolder retailKPIHolder) {
@@ -38,24 +43,7 @@ public class RetailKPIHolder {
         activeTariffs = retailKPIHolder.getActiveTariffs();
         revokedTariffs = retailKPIHolder.getRevokedTariffs();
         publishedTariffs = retailKPIHolder.getPublishedTariffs();
-    }
-
-    // Adds new individuals to the count
-    public void signup(int population) {
-        subscribedPopulation += population;
-    }
-
-    // Removes individuals from the count
-    public void withdraw(int population) {
-        subscribedPopulation -= population;
-    }
-
-    // VizCustomer produces or consumes power. We assume the kwh value is
-    // negative
-    // for production, positive for consumption
-    public void produceConsume(double txKwh, double txMoney) {
-        kwh += txKwh;
-        money += txMoney;
+        empty = retailKPIHolder.empty;
     }
 
     public void resetCurrentValues() {
@@ -64,38 +52,65 @@ public class RetailKPIHolder {
         money = 0.0;
         revokedTariffs = 0;
         publishedTariffs = 0;
+        empty = true;
+    }
+
+    // Adds new individuals to the count
+    public void signup(int population) {
+        subscribedPopulation += population;
+        empty = empty && subscribedPopulation == 0;
+    }
+
+    // Removes individuals from the count
+    public void withdraw(int population) {
+        subscribedPopulation -= population;
+        empty = empty && subscribedPopulation == 0;
+    }
+
+    // VizCustomer produces or consumes power. We assume the kwh value is
+    // negative
+    // for production, positive for consumption
+    public void produceConsume(double txKwh, double txMoney) {
+        kwh += txKwh;
+        money += txMoney;
+        empty = empty && kwh == 0.0 && money == 0.0;
     }
 
     public void incrementRevokedTariffs() {
         revokedTariffs++;
+        empty = false;
     }
 
     public void incrementPublishedTariffs() {
         publishedTariffs++;
+        empty = false;
     }
 
     public int getSubscribedPopulation() {
         return subscribedPopulation;
     }
 
-    public void setSubscribedPopulation(int subscribedPopulation) {
-        this.subscribedPopulation = subscribedPopulation;
+    public void setSubscribedPopulation(int population) {
+        subscribedPopulation = population;
+        empty = empty && subscribedPopulation == 0;
     }
 
     public double getKwh() {
         return kwh;
     }
 
-    public void setKwh(Double kwh) {
+    public void setKwh(double kwh) {
         this.kwh = kwh;
+        empty = empty && kwh == 0.0;
     }
 
     public Double getMoney() {
         return money;
     }
 
-    public void setMoney(Double money) {
+    public void setMoney(double money) {
         this.money = money;
+        empty = empty && money == 0.0;
     }
 
     public int getActiveTariffs() {
@@ -104,6 +119,7 @@ public class RetailKPIHolder {
 
     public void setActiveTariffs(int activeTariffs) {
         this.activeTariffs = activeTariffs;
+        empty = empty && activeTariffs == 0;
     }
 
     public int getRevokedTariffs() {
@@ -112,6 +128,7 @@ public class RetailKPIHolder {
 
     public void setRevokedTariffs(int revokedTariffs) {
         this.revokedTariffs = revokedTariffs;
+        empty = empty && revokedTariffs == 0;
     }
 
     public int getPublishedTariffs() {
@@ -120,6 +137,7 @@ public class RetailKPIHolder {
 
     public void setPublishedTariffs(int publishedTariffs) {
         this.publishedTariffs = publishedTariffs;
+        empty = empty && publishedTariffs == 0;
     }
 
     @Override
@@ -129,36 +147,8 @@ public class RetailKPIHolder {
                 + kwh + ", money=" + money + "]";
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        RetailKPIHolder other = (RetailKPIHolder) obj;
-        if (activeTariffs != other.activeTariffs) {
-            return false;
-        }
-        if (Double.doubleToLongBits(kwh) != Double.doubleToLongBits(other.kwh)) {
-            return false;
-        }
-        if (Double.doubleToLongBits(money) != Double.doubleToLongBits(other.money)) {
-            return false;
-        }
-        if (publishedTariffs != other.publishedTariffs) {
-            return false;
-        }
-        if (revokedTariffs != other.revokedTariffs) {
-            return false;
-        }
-        if (subscribedPopulation != other.subscribedPopulation) {
-            return false;
-        }
-        return true;
+    public boolean isEmpty() {
+      return empty;
     }
+
 }

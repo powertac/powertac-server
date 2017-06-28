@@ -2,6 +2,9 @@ package org.powertac.visualizer.domain;
 
 import org.powertac.common.TariffSpecification;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 /**
  *
  * Copy of {@link org.powertac.common.TariffSpecification}}
@@ -9,6 +12,7 @@ import org.powertac.common.TariffSpecification;
  * @author Jurica Babic, Govert Buijs, Erik Kemperman
  *
  */
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Tariff {
 
     private static long idCounter = 0;
@@ -48,7 +52,8 @@ public class Tariff {
 
     private RetailKPIHolder retailKPIHolder = new RetailKPIHolder();
 
-    protected Tariff() {
+    public Tariff() {
+
     }
 
     public Tariff(Broker broker, TariffSpecification spec) {
@@ -116,6 +121,6 @@ public class Tariff {
     }
 
     public static void recycle() {
-        idCounter = 1;
+        idCounter = 0;
     }
 }

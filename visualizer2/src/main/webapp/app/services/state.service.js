@@ -10,25 +10,48 @@
         var service = this;
 
         service.brokers = [];
+        service.customers = [];
         service.aggCustomers = [];
         service.timeInstances = [];
         service.gameName = '';
+        service.time = '';
+        service.timeSlot = '';
+        service.timeInstance = '';
         service.queue = [];
         service.gameStatus = '';
         service.prevStatus = '';
         service.gameStatusStyle = 'default';
 
-        service.graphKeys = [
-            'allMoneyCumulative',
-            'retailMoneyCumulative',
-            'retailMoney',
-            'retailKwhCumulative',
-            'retailKwh',
-            'subscription',
-            'subscriptionCumulative'
-        ];
+        service.retailGraphKeys = {
+            'retailMoney': {},
+            'retailMoneyCumulative': {},
+            'retailKwh': {},
+            'retailKwhCumulative': {},
+            'retailSubscription': {},
+            'retailSubscriptionCumulative': {}
+        };
 
-        service.changed = Object.keys(initGraphData()).reduce(function(map, key) {
+        service.wholesaleGraphKeys = {
+            'wholesaleMoney': {},
+            'wholesaleMoneyCumulative': {},
+            'wholesaleMwh': {},
+            'wholesaleMwhCumulative': {},
+            'wholesalePrice': {},
+            'wholesalePriceBuy': {},
+            'wholesalePriceSell': {},
+        };
+
+        service.allGraphKeys = {
+            'allMoneyCumulative': {},
+        };
+        Object.keys(service.retailGraphKeys).forEach(function(key) {
+            service.allGraphKeys[key] = service.retailGraphKeys[key];
+        });
+        Object.keys(service.wholesaleGraphKeys).forEach(function(key) {
+            service.allGraphKeys[key] = service.wholesaleGraphKeys[key];
+        });
+
+        service.changed = Object.keys(service.allGraphKeys).reduce(function(map, key) {
             map[key] = false;
             return map;
         }, {});
@@ -39,9 +62,9 @@
 
         Push.onConnectionChanged(setConnected);
 
-        function initGraphData () {
-            return service.graphKeys.reduce(function(map, key) {
-                map[key] = [0];
+        function initGraphData (keys) {
+            return Object.keys(keys).reduce(function(map, key) {
+                map[key] = [];
                 return map;
             }, {});
         }
@@ -56,6 +79,15 @@
             return retail;
         }
 
+        function initWholesale (wholesale) {
+            wholesale.mwh = 0;
+            wholesale.m = 0;
+            wholesale.p = NaN;
+            wholesale.pb = NaN;
+            wholesale.ps = NaN;
+            return wholesale;
+        }
+
         function aggCustomer (powerType) {
             return {
                 'genericPowerType': '',
@@ -66,7 +98,7 @@
                 'customerClass': [],
                 'population': 0,
                 'retail': initRetail({}),
-                'graphData': initGraphData()
+                'graphData': initGraphData(service.retailGraphKeys)
             };
         }
 
@@ -100,7 +132,10 @@
         }
 
         function processSnapshot (snapshot) {
-            service.timeInstances.push(new Date(snapshot.timeInstance));
+            service.timeSlot = snapshot.timeSlot;
+            service.timeInstance = new Date(snapshot.timeInstance);
+            service.timeInstances.push(service.timeInstance);
+            service.timeString = '#' + service.timeSlot + ' | ' + Highcharts.dateFormat('%e %b %Y %H:%M', service.timeInstance) + ' UTC';
 
             // process broker ticks:
             snapshot.tickValueBrokers.forEach(function (brokerTick) {
@@ -113,8 +148,20 @@
             });
 
             // process customer ticks:
+            missing = Object.keys(service.customers).reduce(function(missing, id) {
+                missing[id] = true;
+                return missing;
+            }, {});
             snapshot.tickValueCustomers.forEach(function (customerTick) {
+                missing[customerTick.id] = false;
                 processCustomerTick(customerTick);
+            });
+            Object.keys(missing).forEach(function(id) {
+                if (missing[id]) {
+                    processCustomerTick({
+                        id: id
+                    });
+                }
             });
 
             // mark as dirty
@@ -131,9 +178,13 @@
                 // send a property unless it has a value.)
                 broker.cash = 0;
                 broker.retail = initRetail(broker.retail);
+                broker.wholesale = initWholesale(broker.wholesale);
 
                 // add some arrays for graphs:
-                broker.graphData = initGraphData();
+                broker.graphData = initGraphData(service.allGraphKeys);
+
+                // begin with every broker enabled / checked
+                broker.enabled = true;
 
                 // add to service.brokers collection:
                 service.brokers[broker.id] = broker;
@@ -141,35 +192,58 @@
         }
 
         function processBrokerTick (brokerTick) {
-            var retail = brokerTick.retail;
             var broker = service.brokers[brokerTick.id];
+            var retail = brokerTick.retail;
+            var wholesale = brokerTick.wholesale;
 
             var cash = brokerTick.hasOwnProperty('cash') ? brokerTick.cash : 0;
             broker.cash = cash;
             broker.graphData.allMoneyCumulative.push(cash);
 
-            var sub = retail.hasOwnProperty('sub') ? retail.sub : 0;
+            var sub = retail && retail.hasOwnProperty('sub') ? retail.sub : 0;
             broker.retail.sub += sub;
-            broker.graphData.subscription.push(sub);
-            broker.graphData.subscriptionCumulative.push(broker.retail.sub);
+            broker.graphData.retailSubscription.push(sub);
+            broker.graphData.retailSubscriptionCumulative.push(broker.retail.sub);
 
-            var kwh = retail.hasOwnProperty('kwh') ? retail.kwh : 0;
-            broker.retail.kwh += kwh;
-            broker.graphData.retailKwh.push(kwh);
+            var rkwh = retail && retail.hasOwnProperty('kwh') ? retail.kwh : 0;
+            broker.retail.kwh += rkwh;
+            broker.graphData.retailKwh.push(rkwh);
             broker.graphData.retailKwhCumulative.push(broker.retail.kwh);
 
-            var m = retail.hasOwnProperty('m') ? retail.m : 0;
-            broker.retail.m += m;
-            broker.graphData.retailMoney.push(m);
+            var rm = retail && retail.hasOwnProperty('m') ? retail.m : 0;
+            broker.retail.m += rm;
+            broker.graphData.retailMoney.push(rm);
             broker.graphData.retailMoneyCumulative.push(broker.retail.m);
 
-            if (retail.hasOwnProperty('actTx')) {
+            var wmwh = wholesale && wholesale.hasOwnProperty('mwh') ? wholesale.mwh : 0;
+            broker.wholesale.mwh += wmwh;
+            broker.graphData.wholesaleMwh.push(wmwh);
+            broker.graphData.wholesaleMwhCumulative.push(broker.wholesale.mwh);
+
+            var wm = wholesale && wholesale.hasOwnProperty('m') ? wholesale.m : 0;
+            broker.wholesale.m += wm;
+            broker.graphData.wholesaleMoney.push(wm);
+            broker.graphData.wholesaleMoneyCumulative.push(broker.wholesale.m);
+
+            var p = wholesale && wholesale.hasOwnProperty('p') ? wholesale.p : NaN;
+            broker.wholesale.p = isNaN(p) ? null : p;
+            broker.graphData.wholesalePrice.push(broker.wholesale.p);
+
+            var pb = wholesale && wholesale.hasOwnProperty('pb') ? wholesale.pb : NaN;
+            broker.wholesale.pb = isNaN(pb) ? null : pb;
+            broker.graphData.wholesalePriceBuy.push(broker.wholesale.pb);
+
+            var ps = wholesale && wholesale.hasOwnProperty('ps') ? wholesale.ps : NaN;
+            broker.wholesale.ps = isNaN(ps) ? null : ps;
+            broker.graphData.wholesalePriceSell.push(broker.wholesale.ps);
+
+            if (retail && retail.hasOwnProperty('actTx')) {
                 broker.retail.actTx += retail.actTx;
             }
-            if (retail.hasOwnProperty('rvkTx')) {
+            if (retail && retail.hasOwnProperty('rvkTx')) {
                 broker.retail.rvkTx += retail.rvkTx;
             }
-            if (retail.hasOwnProperty('pubTx')) {
+            if (retail && retail.hasOwnProperty('pubTx')) {
                 broker.retail.pubTx += retail.pubTx;
             }
         }
@@ -199,14 +273,17 @@
                 service.aggCustomers[powerIndex].ids.push(customer.id);
                 service.aggCustomers[powerIndex].customerClass = customer.customerClass;
                 service.aggCustomers[powerIndex].population += customer.population;
+
+                customer.retail = initRetail(customer.retail);
+                service.customers[customer.id] = customer;
             });
         }
 
         function prepareCustomer (customer) {
-            var lastIndex = customer.graphData.subscription.length - 1;
-            customer.graphData.subscription.push(0);
-            customer.graphData.subscriptionCumulative.push(
-                customer.graphData.subscriptionCumulative[lastIndex]);
+            var lastIndex = customer.graphData.retailSubscription.length - 1;
+            customer.graphData.retailSubscription.push(0);
+            customer.graphData.retailSubscriptionCumulative.push(
+                customer.graphData.retailSubscriptionCumulative[lastIndex]);
 
             customer.graphData.retailKwh.push(0);
             customer.graphData.retailKwhCumulative.push(
@@ -221,34 +298,34 @@
             var retail = customerTick.retail;
             var powerIndex = service.powerTypeMap[customerTick.id];
             var aggCustomer = service.aggCustomers[powerIndex];
-            var lastIndex = aggCustomer.graphData.subscription.length - 1;
+            var lastIndex = aggCustomer.graphData.retailSubscription.length - 1;
 
-            if (retail.hasOwnProperty('sub')) {
+            if (retail && retail.hasOwnProperty('sub')) {
                 aggCustomer.retail.sub += retail.sub;
-                aggCustomer.graphData.subscription[lastIndex] += retail.sub;
-                aggCustomer.graphData.subscriptionCumulative[lastIndex] += retail.sub;
+                aggCustomer.graphData.retailSubscription[lastIndex] += retail.sub;
+                aggCustomer.graphData.retailSubscriptionCumulative[lastIndex] += retail.sub;
             }
 
-            if (retail.hasOwnProperty('kwh')) {
+            if (retail && retail.hasOwnProperty('kwh')) {
                 aggCustomer.retail.kwh += retail.kwh;
                 aggCustomer.graphData.retailKwh[lastIndex] += retail.kwh;
                 aggCustomer.graphData.retailKwhCumulative[lastIndex] += retail.kwh;
             }
 
-            if (retail.hasOwnProperty('m')) {
+            if (retail && retail.hasOwnProperty('m')) {
                 aggCustomer.retail.m += retail.m;
                 aggCustomer.graphData.retailMoney[lastIndex] += retail.m;
                 aggCustomer.graphData.retailMoneyCumulative[lastIndex] += retail.m;
             }
 
-            if (retail.hasOwnProperty('actTx')) {
+            if (retail && retail.hasOwnProperty('actTx')) {
                 aggCustomer.retail.actTx += retail.actTx;
             }
 
-            if (retail.hasOwnProperty('rvkTx')) {
+            if (retail && retail.hasOwnProperty('rvkTx')) {
                 aggCustomer.retail.rvkTx += retail.rvkTx;
             }
-            if (retail.hasOwnProperty('pubTx')) {
+            if (retail && retail.hasOwnProperty('pubTx')) {
                 aggCustomer.retail.pubTx += retail.pubTx;
             }
         }
@@ -265,6 +342,7 @@
                 processCompetition(message.competition);
                 processBrokers(message.brokers);
                 processCustomers(message.customers);
+
                 message.snapshots.forEach(function (snapshot) {
                     processSnapshot(snapshot);
                 });
