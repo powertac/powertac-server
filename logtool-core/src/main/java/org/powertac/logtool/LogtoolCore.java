@@ -213,6 +213,13 @@ public class LogtoolCore
         // Stream not archived (or unknown archiving scheme)
       }
 
+      // Recycle repos from previous session
+      List<DomainRepo> repos =
+          SpringApplicationContext.listBeansOfType(DomainRepo.class);
+        for (DomainRepo repo : repos) {
+          repo.recycle();
+        }
+
       // Now go read the state-log
       inputReader = new InputStreamReader(inputStream);
       for (Analyzer tool: tools) {
@@ -258,11 +265,6 @@ public class LogtoolCore
   {
     @Override
     public void handleNewObject (Object thing) {
-      List<DomainRepo> repos =
-        SpringApplicationContext.listBeansOfType(DomainRepo.class);
-      for (DomainRepo repo : repos) {
-        repo.recycle();
-      }
     }
   }
 
