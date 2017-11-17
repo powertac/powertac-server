@@ -23,7 +23,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Tariffs are composed of Rates, including RegulationRates.
- * A RegulationRate specifies exercise ratios and payments for
+ * A RegulationRate specifies payments for
  * up-regulation and down-regulation
  * that might be used for balancing and might be different from the payments
  * for ordinary consumption and/or production.

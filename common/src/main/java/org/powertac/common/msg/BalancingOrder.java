@@ -76,7 +76,8 @@ public class BalancingOrder extends TariffUpdate
    * with values between 1.0 and 2.0. Down-regulation (charging a battery or
    * dumping energy into a thermal storage device) is represented by values
    * between -1.0 and 0.0. In most cases, a broker should expect to be paid
-   * for up-regulation, and to pay for down-regulation.
+   * (positive price) for up-regulation, and to pay (negative price) 
+   * for down-regulation.
    */
   public BalancingOrder (Broker broker, TariffSpecification tariff,
                          double exerciseRatio, double price)
@@ -97,7 +98,7 @@ public class BalancingOrder extends TariffUpdate
   }
   
   /**
-   * Valid if exerciseRatio between 0 and 1
+   * Valid if exerciseRatio between 0 and 2
    */
   @Override
   public boolean isValid()
