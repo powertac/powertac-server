@@ -34,6 +34,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.Broker;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
+import org.powertac.common.RegulationRate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffMessage;
 import org.powertac.common.TariffSpecification;
@@ -365,17 +366,37 @@ public class TariffMarketService
         }
       }
     }
-    // TODO - should this 'else' be here? Should this loop not be unconditional?
-    else {
-      for (Rate rate : spec.getRates()) {
-        if (rate.getDailyBegin() >= 24 || rate.getDailyEnd() >= 24 ||
-                rate.getWeeklyBegin() == 0 || rate.getWeeklyBegin() > 7 ||
-                rate.getWeeklyEnd() == 0 || rate.getWeeklyEnd() > 7) {
-          log.warn("invalid rate for spec " + spec.getId());
-          send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                                TariffStatus.Status.invalidTariff)
-              .withMessage("spec has invalid Rate"));
-          return;
+    //validate rates
+    for (Rate rate : spec.getRates()) {
+      if (rate.getDailyBegin() >= 24 || rate.getDailyEnd() >= 24 ||
+              rate.getWeeklyBegin() == 0 || rate.getWeeklyBegin() > 7 ||
+              rate.getWeeklyEnd() == 0 || rate.getWeeklyEnd() > 7) {
+        log.warn("invalid rate for spec " + spec.getId());
+        send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                              TariffStatus.Status.invalidTariff)
+            .withMessage("spec has invalid Rate"));
+        return;
+      }
+    }
+    for (RegulationRate regRate : spec.getRegulationRates()) {
+      if (regRate.getResponse() == RegulationRate.ResponseTime.SECONDS) {
+        log.warn("discarding fast-response RegulationRate tariff {}",
+                 spec.getId());
+        continue;
+      }
+      if (spec.getPowerType().isStorage()) {
+        // Automatic composition of balancing orders -- see Issue #946
+        if (regRate.getUpRegulationPayment() != 0.0) {
+          BalancingOrder bo =
+              new BalancingOrder(spec.getBroker(), spec, 2.0,
+                                 regRate.getUpRegulationPayment());
+          tariffRepo.addBalancingOrder(bo);
+        }
+        if (regRate.getDownRegulationPayment() != 0.0) {
+          BalancingOrder bo =
+              new BalancingOrder(spec.getBroker(), spec, -1.0,
+                                 regRate.getDownRegulationPayment());
+          tariffRepo.addBalancingOrder(bo);
         }
       }
     }
@@ -507,9 +528,14 @@ public class TariffMarketService
     }
     capacityControlService.postEconomicControl(msg);
   }
-  
+
   /**
-   * Processes an incoming BalancingOrder by storing it in the tariffRepo
+   * Processes an incoming BalancingOrder by storing it in the tariffRepo.
+   * Balancing orders can be used for interruptible tariffs, but not in the
+   * presence of RegulationRates. For tariffs with RegulationRates, the
+   * BalancingOrders are automatically constructed from the RRs. In other words,
+   * BalancingOrders can be used to permit up-regulation through curtailment, but 
+   * not if the customer expects to be paid for the balancing events.
    */
   public synchronized void handleMessage (BalancingOrder msg)
   {
@@ -517,6 +543,37 @@ public class TariffMarketService
     if (result.tariff == null) {
       send(result.message);
       return;
+    }
+    else {
+      // not allowed if tariff has RegulationRates
+      if (result.tariff.hasRegulationRate()) {
+        result.message.withMessage("Cannot use BO with RegulationRate")
+        .setStatus(TariffStatus.Status.unsupported);
+        send(result.message);
+        return;
+      }
+      // not allowed if no rates allow curtailment
+      boolean curtailmentAllowed = false;
+      for (Rate rate: result.tariff.getTariffSpecification().getRates()) {
+        if (rate.getMaxCurtailment() > 0.0) {
+          curtailmentAllowed = true;
+          break;
+        }
+      }
+      if (!curtailmentAllowed) {
+        result.message.withMessage("Cannot use BO without curtailment")
+        .setStatus(TariffStatus.Status.unsupported);
+        send(result.message);
+        return;
+      }
+      // range check for exercise ratio
+      if (msg.getExerciseRatio() <= 0.0 || msg.getExerciseRatio() > 1.0) {
+        result.message.withMessage("Exercise ratio "
+            + msg.getExerciseRatio() + " out of range")
+            .setStatus(TariffStatus.Status.unsupported);
+        send(result.message);
+        return;
+      }
     }
     tariffRepo.addBalancingOrder(msg);
   }
@@ -833,7 +890,9 @@ public class TariffMarketService
                                   new TariffStatus(broker, update.getTariffId(), update.getId(),
                                                    TariffStatus.Status.invalidTariff));
     }
-    return new ValidationResult(tariff, null);
+    return new ValidationResult(tariff,
+                                new TariffStatus(broker, update.getTariffId(), update.getId(),
+                                                 TariffStatus.Status.success));
   }
 
   // data structure for message validation result
