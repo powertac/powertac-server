@@ -378,17 +378,29 @@ public class TariffMarketService
         return;
       }
     }
+    tariffRepo.addSpecification(spec);
+    Tariff tariff = new Tariff(spec);
+    if (!tariff.init()) {
+      log.warn("incomplete coverage in multi-rate tariff " + spec.getId());
+      tariffRepo.removeTariff(tariff);
+      send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                            TariffStatus.Status.invalidTariff)
+          .withMessage("incomplete coverage in multi-rate tariff"));
+      return;
+    }
     for (RegulationRate regRate : spec.getRegulationRates()) {
       if (regRate.getResponse() == RegulationRate.ResponseTime.SECONDS) {
         log.warn("discarding fast-response RegulationRate tariff {}",
                  spec.getId());
         continue;
       }
-      if (spec.getPowerType().isStorage()) {
+      if (spec.getPowerType().isInterruptible()
+          || spec.getPowerType().isStorage()) {
         // Automatic composition of balancing orders -- see Issue #946
         if (regRate.getUpRegulationPayment() != 0.0) {
           BalancingOrder bo =
-              new BalancingOrder(spec.getBroker(), spec, 2.0,
+              new BalancingOrder(spec.getBroker(), spec,
+                                 (spec.getPowerType().isStorage()? 2.0: 1.0),
                                  regRate.getUpRegulationPayment());
           tariffRepo.addBalancingOrder(bo);
         }
@@ -399,16 +411,6 @@ public class TariffMarketService
           tariffRepo.addBalancingOrder(bo);
         }
       }
-    }
-    tariffRepo.addSpecification(spec);
-    Tariff tariff = new Tariff(spec);
-    if (!tariff.init()) {
-      log.warn("incomplete coverage in multi-rate tariff " + spec.getId());
-      tariffRepo.removeTariff(tariff);
-      send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                            TariffStatus.Status.invalidTariff)
-          .withMessage("incomplete coverage in multi-rate tariff"));
-      return;
     }
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,

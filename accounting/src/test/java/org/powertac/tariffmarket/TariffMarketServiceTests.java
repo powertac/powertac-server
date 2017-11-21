@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -935,7 +936,7 @@ public class TariffMarketServiceTests
     assertEquals("default production tariff", tp1, tariffMarketService.getDefaultTariff(PowerType.PRODUCTION));
     assertEquals("solar tariff is default production", tp1, tariffMarketService.getDefaultTariff(PowerType.SOLAR_PRODUCTION));
   }
-  
+
   // test balancing orders
   @Test
   public void testBalancingOrder ()
@@ -1075,6 +1076,43 @@ public class TariffMarketServiceTests
 
     orders = tariffRepo.getBalancingOrders();
     assertEquals("no orders", 0, orders.size());
+  }
+
+  // test balancing orders
+  @Test
+  public void testRegRateStorage ()
+  {
+    initializeService();
+    Collection<BalancingOrder> orders = tariffRepo.getBalancingOrders();
+    assertEquals("no orders yet", 0, orders.size());
+
+    TariffSpecification tsc1 = new TariffSpecification(broker,
+                                                       PowerType.ELECTRIC_VEHICLE) 
+        .withExpiration(start.plus(TimeService.WEEK))
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(0.222))
+        .addRate(new RegulationRate()
+                     .withUpRegulationPayment(0.2)
+                     .withDownRegulationPayment(-0.02));
+    tariffMarketService.handleMessage(tsc1);
+
+    orders = tariffRepo.getBalancingOrders();
+    assertEquals("two orders", 2, orders.size());
+    // make the first one be the up-regulation BO
+    ArrayList<BalancingOrder> bos = new ArrayList<>(orders);
+    if (bos.get(0).getExerciseRatio() < 0.0) {
+      Collections.reverse(bos);
+    }
+    assertEquals("up-reg exercise ratio", 2.0,
+                 bos.get(0).getExerciseRatio(), 1e-6);
+    assertEquals("up-reg price", 0.2,
+                 bos.get(0).getPrice(), 1e-6);
+    assertEquals("up-reg tariff", tsc1.getId(), bos.get(0).getTariffId());
+    assertEquals("down-reg exercise ratio", -1.0,
+                 bos.get(1).getExerciseRatio(), 1e-6);
+    assertEquals("down-reg price", -0.02,
+                 bos.get(1).getPrice(), 1e-6);
+    assertEquals("up-reg tariff", tsc1.getId(), bos.get(1).getTariffId());
   }
 
   class MockCC implements CompetitionControl
