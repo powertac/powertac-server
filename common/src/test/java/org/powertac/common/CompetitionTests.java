@@ -132,6 +132,32 @@ public class CompetitionTests
   }
 
   @Test
+  public void testSetSimulationBaseTimeYmd ()
+  {
+    Competition c1 = Competition.newInstance("c1");
+    Instant base = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    assertEquals("default base", base, c1.getSimulationBaseTime());
+    String newBase = "2010-06-22";
+    Competition cx = c1.withSimulationBaseTime(newBase);
+    assertEquals("correct return", c1, cx);
+    assertEquals("new base", base.plus(TimeService.DAY).getMillis(),
+                 c1.getSimulationBaseTime().getMillis());
+  }
+
+  @Test
+  public void testSetSimulationBaseTimeString ()
+  {
+    Competition c1 = Competition.newInstance("c1");
+    Instant base = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    assertEquals("default base", base, c1.getSimulationBaseTime());
+    String newBase = Long.toString(base.plus(TimeService.DAY).getMillis());
+    Competition cx = c1.withSimulationBaseTime(newBase);
+    assertEquals("correct return", c1, cx);
+    assertEquals("new base", base.plus(TimeService.DAY).getMillis(),
+                 c1.getSimulationBaseTime().getMillis());
+  }
+
+  @Test
   public void testSetSimulationRate ()
   {
     Competition c1 = Competition.newInstance("c1");
