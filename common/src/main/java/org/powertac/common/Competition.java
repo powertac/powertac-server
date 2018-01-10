@@ -366,20 +366,8 @@ public class Competition //implements Serializable
   }
 
   /**
-   * Fluent setter for simulation base time. This is the start of a simulation
-   * scenario, in the sim world, at the beginning of a bootstrap session. So if
-   * the bootstrap session collects data for 14 days, with an addional day of 
-   * discarded data at the beginning, it is 15 days before the start of a
-   * normal sim. 
-   */
-  public Competition withSimulationBaseTime (Instant simulationBaseTime)
-  {
-    return withSimulationBaseTime(simulationBaseTime.getMillis());
-  }
-
-  /**
    * Fluent setter for simulation base time that takes a String, interpreted
-   * as a standard DateTimeFormat as yyy-MM-dd. If that fails, try to parse
+   * as a standard DateTimeFormat as yyyy-MM-dd. If that fails, try to parse
    * the string as a regular (long) timestamp.
    */
   @ConfigurableValue(valueType = "String",
@@ -396,6 +384,18 @@ public class Competition //implements Serializable
       instant = new Instant(Long.parseLong(baseTime));
     }
     return withSimulationBaseTime(instant);
+  }
+
+  /**
+   * Fluent setter for simulation base time. This is the start of a simulation
+   * scenario, in the sim world, at the beginning of a bootstrap session. So if
+   * the bootstrap session collects data for 14 days, with an addional day of 
+   * discarded data at the beginning, it is 15 days before the start of a
+   * normal sim. 
+   */
+  public Competition withSimulationBaseTime (Instant simulationBaseTime)
+  {
+    return withSimulationBaseTime(simulationBaseTime.getMillis());
   }
 
   /**
