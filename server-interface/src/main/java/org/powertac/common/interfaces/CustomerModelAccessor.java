@@ -48,7 +48,8 @@ public interface CustomerModelAccessor
   public CapacityProfile getCapacityProfile (Tariff tariff);
 
   /**
-   * Returns the inconvenience of switching brokers. The value may depend
+   * Returns a [0,1] value representing the inconvenience of switching brokers.
+   * The value may depend
    * on whether the current subscription is being switched to a superseding
    * tariff as a result of revocation.
    */
@@ -66,5 +67,9 @@ public interface CustomerModelAccessor
    */
   public double getInertiaSample();
 
+  /**
+   * Returns a [0,1] value representing the inconvenience of dealing with
+   * curtailment in exchange for a lower price.
+   */
   public double getShiftingInconvenienceFactor(Tariff tariff);
 }

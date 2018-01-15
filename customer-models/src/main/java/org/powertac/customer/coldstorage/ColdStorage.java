@@ -46,6 +46,7 @@ import org.powertac.common.state.StateChange;
 import org.powertac.customer.AbstractCustomer;
 
 /**
+ * *** Description is incorrect ***
  * Model of a cold-storage warehouse with multiple refrigeration units.
  * The size of the refrigeration units is specified as stockCapacity. The
  * number is indeterminate - as many as needed will be used, depending on
