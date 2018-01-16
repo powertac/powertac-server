@@ -36,11 +36,6 @@ public class StepInfo
   // current timeslot: immutable
   private Timeslot timeslot;
 
-  void setTimeslot (Timeslot timeslot)
-  {
-    this.timeslot = timeslot;
-  }
-
   // current tariff subscription: immutable
   private TariffSubscription subscription;
 
