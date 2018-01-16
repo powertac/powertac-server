@@ -234,6 +234,7 @@ public class Village extends AbstractCustomer
     typeList.add("SS");
 
     Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      @Override
       public int compare (CustomerInfo customer1, CustomerInfo customer2)
       {
         return customer1.getName().compareToIgnoreCase(customer2.getName());
@@ -329,6 +330,8 @@ public class Village extends AbstractCustomer
                     - VillageConstants.MIN_DEFAULT_DURATION)
                 + VillageConstants.MIN_DEFAULT_DURATION;
 
+      // TODO - Fragile use of arbitrary naming convention. Perhaps Village
+      // should keep track of its own Customer instances?
       List<CustomerInfo> customer =
         service.getCustomerRepo().findByName(name + " " + type + " Base");
 
@@ -1221,7 +1224,13 @@ public class Village extends AbstractCustomer
       log.debug("Consumption Load for Customer " + customer.toString() + ": "
                 + load + " for subscriptions " + subscriptions.toString());
 
-      if (subscriptions != null && subscriptions.size() != 0) {
+      if (subscriptions == null || subscriptions.size() < 1) {
+        log.error("No subscriptions for customer {}", customer.toString());
+      }
+      else if (subscriptions.size() > 1) {
+        log.error("Multiple subscriptions for customer {}", customer.toString());
+      }
+      else {
         subscriptions.get(0).usePower(load);
       }
     }
@@ -1639,8 +1648,7 @@ public class Village extends AbstractCustomer
 
     double[] newControllableLoad = nonDominantUsage;
     int dayTemp =
-      day
-              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+      day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     Vector<Household> houses = new Vector<Household>();
 
@@ -1801,28 +1809,23 @@ public class Village extends AbstractCustomer
               % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     for (CustomerInfo customer: getCustomerInfos()) {
-
       if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION) {
-
         List<TariffSubscription> subs =
           service.getTariffSubscriptionRepo()
           .findActiveSubscriptionsForCustomer(customer);
 
         long curt =
-          (long) subs.get(0).getCurtailment() * VillageConstants.THOUSAND;
+          (long) (subs.get(0).getRegulation()
+              * customer.getPopulation()
+              * VillageConstants.THOUSAND);
         log.debug(this.toString() + " Subscription " + subs.get(0).toString()
                   + " Curtailment " + curt);
 
         if (curt > 0) {
-
           String temp = houseMapping.get(customer);
-
           String type = temp.substring(0, 2);
-
-          curtailControllableConsumption(dayTemp, hour, type, -(long) (curt));
-          curtailControllableConsumption(nextDayTemp, nextHour, type,
-                                         (long) (curt));
-
+          curtailControllableConsumption(dayTemp, hour, type, -curt);
+          curtailControllableConsumption(nextDayTemp, nextHour, type, curt);
         }
       }
 
