@@ -266,7 +266,7 @@ public class CompetitionControlService
     if (null != queueName && !queueName.isEmpty())
       serverQueueName = queueName;
   }
-  
+
   /**
    * Runs a simulation that is already set up. This is intended to be called
    * from a method that knows whether we are running a bootstrap sim or a 
@@ -274,6 +274,12 @@ public class CompetitionControlService
    */
   @Override
   public void runOnce (boolean bootstrapMode)
+  {
+    runOnce(bootstrapMode, false);
+  }
+
+  @Override
+  public void runOnce (boolean bootstrapMode, boolean dumpConfigOnly)
   {
     this.bootstrapMode = bootstrapMode;
     competition = Competition.currentCompetition();
@@ -304,6 +310,11 @@ public class CompetitionControlService
 
     if (!setup()) {
       simRunning = false;
+      return;
+    }
+    else if (dumpConfigOnly) {
+      // we are done
+      configService.finishConfigOutput();
       return;
     }
 

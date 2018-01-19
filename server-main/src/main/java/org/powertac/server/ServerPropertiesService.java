@@ -17,7 +17,9 @@ package org.powertac.server;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -57,9 +59,10 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   private Configurator configurator;
   private ConfigurationPublisher publisher;
   private ConfigurationPublisher bootstrapStateRecorder = null;
-  
+  private PrintWriter configDumpFile = null;
+
   private boolean initialized = false;
-  
+
   /**
    * Default constructor
    */
@@ -83,7 +86,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     bootstrapStateRecorder = null;
     initialized = false;
   }
-  
+
   /**
    * Loads the properties from classpath, default config file,
    * and user-specified config file, just in case it's not already been
@@ -103,12 +106,9 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
 
     // Load custom (.xml and .properties) properties files
     // We need to do this before the default config and classpath props
-    FileFilter filter = new FileFilter() {
-      public boolean accept(File file) {
-        return file.exists() && !file.isDirectory() &&
-            !file.getName().equals("server.properties");
-      }
-    };
+    FileFilter filter =
+        file -> (file.exists() && !file.isDirectory() &&
+                 !file.getName().equals("server.properties"));
     File[] files =  new File("config/").listFiles(filter);
     if (files != null) {
       for (File file : files) {
@@ -163,6 +163,9 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
 
     // set up the configurator
     configurator.setConfiguration(config);
+    if (null != configDumpFile) {
+      configurator.setConfigOutput(new ConfigurationDumper(configDumpFile));
+    }
   }
 
   public void setUserConfig (URL userConfigURL)
@@ -172,6 +175,29 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     config.addConfiguration(Configurator.readProperties(userConfigURL));
     log.debug("setUserConfig " + userConfigURL);
     lazyInit();
+  }
+
+  // Called only if we wish to dump the full config.
+  // Only works if called before initialization.
+  public void setConfigOutput (String filename)
+  {
+    if (null == filename) {
+      log.error("Null filename for config dump");
+      return;
+    }
+    try {
+      configDumpFile = new PrintWriter(new File(filename));
+    }
+    catch(FileNotFoundException fnf) {
+      log.error("Could not open config dump file {}", filename);
+    }
+  }
+
+  public void finishConfigOutput ()
+  {
+    if (null != configDumpFile) {
+      configDumpFile.close();
+    }
   }
 
   /**
@@ -220,7 +246,6 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   @Override
   public void publishConfiguration (Object target)
   {
-    //lazyInit();
     configurator.gatherPublishedConfiguration(target, publisher);
   }
 
@@ -360,6 +385,47 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     Properties getConfig ()
     {
       return publishedConfig;
+    }
+  }
+
+  class ConfigurationDumper implements ConfigurationRecorder
+  {
+    PrintWriter destination;
+
+    ConfigurationDumper (PrintWriter output)
+    {
+      destination = output;
+    }
+
+    @Override
+    public void recordItem (String key, Object value)
+    {
+      String val = value == null? "null" : value.toString();
+      destination.format("%s = %s\n", key, val);
+    }
+
+    @Override
+    public void recordMetadata (String key, String description,
+                                String valueType,
+                                boolean publish, boolean bootstrapState)
+    {
+      destination.format("# description: %s\n", description);
+      destination.format("# value type: %s\n", valueType);
+      destination.format("# publish %s; bootstrap-state %s\n",
+                         Boolean.toString(publish),
+                         Boolean.toString(bootstrapState));
+    }
+
+    @Override
+    public void recordInstanceList (String key, List<String> names)
+    {
+      destination.format("%s = ", key);
+      String delimiter = "";
+      for (String name : names) {
+        destination.format("%s%s", delimiter, name);
+        delimiter = ", ";
+      }
+      destination.println();
     }
   }
 }
