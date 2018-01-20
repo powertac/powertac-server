@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration2.AbstractConfiguration;
@@ -98,6 +99,11 @@ public class Configurator
   private HashMap<Class<?>, HashMap<String, ConfigurableProperty>> annotationMap;
   private HashSet<String> metadataSet;
   private ConfigurationRecorder configDump = null;
+
+  // To avoid duplication, we keep track of the names of instances we have
+  // already configured.
+  private HashMap<Class<?>, Set<String>> createdInstances;
+  private HashMap<Class<?>, Set<String>> configuredProps;
 
   private static final FileLocationStrategy fileLocationStrategy;
   private static final ListDelimiterHandler listDelimiterHandler;
@@ -192,6 +198,8 @@ public class Configurator
     super();
     annotationMap = new HashMap<>();
     metadataSet = new HashSet<>();
+    createdInstances = new HashMap<>();
+    configuredProps = new HashMap<>();
   }
 
   /**
@@ -280,6 +288,10 @@ public class Configurator
     Configuration subset = extractSubsetForClassname(classname);
     // we should have a clause with the key "instances" giving the item
     // names, and a set of clauses for each item
+    if (null == createdInstances.get(type)) {
+      createdInstances.put(type, new HashSet<>());
+    }
+    Set<String> existingNames = createdInstances.get(type);
     List<Object> rawNames = subset.getList("instances");
     List<String> names =
         rawNames.stream()
@@ -290,12 +302,13 @@ public class Configurator
       log.warn("No instance names specified for class " + classname);
       return names;
     }
-    // if we are dumping configuration, we need to dump this list
-    dumpInstanceListMaybe(type, names);
+    dumpInstanceListMaybe(type, existingNames, names);
+
     // for each name, create an instance, add it to the result, and
     // configure it.
     LinkedHashMap<String, Object> itemMap = new LinkedHashMap<String, Object>();
     for (String name : names) {
+      existingNames.add(name);
       try {
         Constructor<?> constructor = type.getConstructor(String.class);
         Object item = constructor.newInstance(name);
@@ -313,6 +326,21 @@ public class Configurator
       configureInstance(itemMap.get(name), subset.subset(name), name);
     }
     return itemMap.values();
+  }
+
+  // if we are dumping configuration, we need to dump this list, but only
+  // for the names not already dumped
+  private void dumpInstanceListMaybe (Class<?> type,
+                                      Set<String> existingNames,
+                                      List<String> names)
+  {
+    List<String> dumpNames =
+        names.stream()
+        .filter(n -> !existingNames.contains(n))
+        .collect(Collectors.toList());
+    if (dumpNames.size() > 0) {
+      dumpInstanceListMaybe(type, dumpNames);
+    }
   }
 
   /**
@@ -642,6 +670,22 @@ public class Configurator
       Class<?> clazz = thing.getClass();
       for (Iterator<?> keys = analysis.keySet().iterator(); keys.hasNext(); ) {
         String key = (String)keys.next();
+        if (null == name) {
+          name = "";
+        }
+        // Don't dump props for named instances we've already seen
+        String nameKey = name + "." + key;
+        Set<String> seen = configuredProps.get(clazz);
+        if (null == seen) {
+          seen = new HashSet<>();
+          configuredProps.put(clazz, seen);
+        }
+        else {
+          if (seen.contains(nameKey)) {
+            continue;
+          }
+        }
+        seen.add(nameKey);
         ConfigurableProperty cp = analysis.get(key);
 
         // metadata first -- we only need it once for each class-item
