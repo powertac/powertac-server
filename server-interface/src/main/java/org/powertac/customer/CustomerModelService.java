@@ -101,8 +101,6 @@ implements InitializationService, BootstrapState, NewTariffListener,
         || !completedInits.contains("TariffMarket"))
       return null;
     super.init();
-    //tariffMarketService.registerNewTariffListener(this);
-    //modelTypes = new ArrayList<Class<AbstractCustomerDeprecated>>();
     models = new ArrayList<AbstractCustomer>();
     // extract the model types
     ServiceLoader<AbstractCustomer> loader =

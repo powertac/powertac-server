@@ -402,6 +402,8 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     {
       String val = value == null? "null" : value.toString();
       destination.format("%s = %s\n", key, val);
+      // handy for debugging, remove for performance
+      destination.flush();
     }
 
     @Override
@@ -426,6 +428,8 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
         delimiter = ", ";
       }
       destination.println();
+      // handy for debugging, remove for performance
+      destination.flush();
     }
   }
 }
