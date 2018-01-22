@@ -65,9 +65,10 @@ public final class Config
   private Map<String, Map<String, StructureInstance>> structures;
 
   // Singleton constructor
-  private Config ()
+  private Config (ServerConfiguration source)
   {
     super();
+    serverConfiguration = source;
   }
 
   // =================== Accessors ====================
@@ -99,42 +100,32 @@ public final class Config
    * creation to allow testing without a full Spring setup. This version is
    * Deprecated! Please use configure(ServerConfiguration) instead.
    */
-  @Deprecated
-  public void configure ()
-  {
-    if (null == serverConfiguration) {
-      serverConfiguration = (ServerConfiguration)
-          SpringApplicationContext.getBean("serverPropertiesService");
-    }
-    if (null == serverConfiguration) {
-      // should not happen outside of testing
-      log.warn("Cannot find serverPropertiesService");
-    }
-    else {
-      serverConfiguration.configureMe(this);
-    }
-  }
+//  @Deprecated
+//  public void configure ()
+//  {
+//    if (null == serverConfiguration) {
+//      serverConfiguration = (ServerConfiguration)
+//          SpringApplicationContext.getBean("serverPropertiesService");
+//    }
+//    if (null == serverConfiguration) {
+//      // should not happen outside of testing
+//      log.warn("Cannot find serverPropertiesService");
+//    }
+//    else {
+//      serverConfiguration.configureMe(this);
+//    }
+//  }
 
   /**
    * Configures this instance from the given configuration service.
    */
-  public void configure (ServerConfiguration configSource)
+  public void configure ()
   {
-    serverConfiguration = configSource;
-    configSource.configureMe(this);
-  }
-
-  /**
-   * Retrieves the list of configured beans
-   */
-  public Map<String, Map<String, StructureInstance>> getStructures ()
-  {
-    // already configured
-    if (null != structures) {
-      return structures;
+    if (null == serverConfiguration) {
+      log.error("Config not initialized");
+      return;
     }
-
-    configure();
+    serverConfiguration.configureMe(this);
     structures = new HashMap<>();
 
     for (String classname : structureTypes) {
@@ -161,7 +152,18 @@ public final class Config
         log.error("Cannot find class " + classname);
       }
     }
+  }
 
+  /**
+   * Retrieves the list of configured beans
+   */
+  public Map<String, Map<String, StructureInstance>> getStructures ()
+  {
+    // already configured
+    if (null == structures) {
+      log.error("Call to getStructures() before initialization");
+      return null;
+    }
     return structures;
   }
 
@@ -171,14 +173,14 @@ public final class Config
   public synchronized static Config getInstance ()
   {
     if (null == instance) {
-      instance = new Config();
-      //instance.configure();
+      log.error("Unconfigured instance requested");
     }
     return instance;
   }
 
-  public synchronized static void recycle ()
+  public synchronized static void
+  initializeInstance (ServerConfiguration configSource)
   {
-    instance = null;
+    instance = new Config(configSource);
   }
 }

@@ -36,11 +36,11 @@ public class ConfigTest
   private DummyConfig configSvc;
 
   @Before
-  public void setUp () throws Exception
+  public void setUp ()
   {
     configSvc = new DummyConfig();
     configSvc.initialize();
-    Config.recycle();
+    Config.initializeInstance(configSvc);
   }
 
   @Test
@@ -57,7 +57,7 @@ public class ConfigTest
   public void testPropertyConfig ()
   {
     Config config = Config.getInstance();
-    config.configure(configSvc);
+    config.configure();
 
     assertEquals("ConfiguredValue allocationDetailsLogging",
         config.isAllocationDetailsLogging(), true);
@@ -74,7 +74,7 @@ public class ConfigTest
   public void testStructureKeys ()
   {
     Config config = Config.getInstance();
-    config.configure(configSvc);
+    config.configure();
 
     Set<String> names = config.getStructures().keySet();
 
@@ -100,7 +100,7 @@ public class ConfigTest
   public void testStructureConfig ()
   {
     Config config = Config.getInstance();
-    config.configure(configSvc);
+    config.configure();
     Map<String, Map<String, StructureInstance>> structures = config.getStructures();
 
     // Customer structures

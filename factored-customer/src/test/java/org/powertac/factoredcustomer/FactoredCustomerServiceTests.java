@@ -126,7 +126,6 @@ public class FactoredCustomerServiceTests
     tariffSubscriptionRepo.recycle();
     randomSeedRepo.recycle();
     timeslotRepo.recycle();
-    Config.recycle();
     reset(mockTariffMarket);
     reset(mockAccounting);
 
@@ -176,6 +175,7 @@ public class FactoredCustomerServiceTests
     // Initialize Config
     configSvc = new DummyConfig();
     configSvc.initialize();
+    Config.initializeInstance(configSvc);
   }
 
   @After

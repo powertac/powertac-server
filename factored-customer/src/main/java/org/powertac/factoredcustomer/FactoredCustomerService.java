@@ -117,9 +117,9 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
 
     registerAvailableCustomerCreators();
 
-    Config.recycle();
+    Config.initializeInstance(serverConfiguration);
     Config config = Config.getInstance();
-    config.configure(serverConfiguration);
+    config.configure();
     
     Map<String, StructureInstance> customerStructures =
         config.getStructures().get("CustomerStructure");
