@@ -231,7 +231,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
       double totalUsageCharge = 0.0;
       for (TariffSubscription subscription : subscriptions) {
         double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;
-        double currCapacity = usageSign * useCapacity(subscription, bundle);
+        CapacityAccumulator ca = useCapacity(subscription, bundle);
+        double currCapacity = usageSign * ca.getCapacity();
         if (Config.getInstance().isUsageChargesLogging()) {
           double charge =
               subscription.getTariff().getUsageCharge(currCapacity,
@@ -252,12 +253,12 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     }
   }
 
-  private double useCapacity (TariffSubscription subscription,
-                              CapacityBundle bundle)
+  private CapacityAccumulator useCapacity (TariffSubscription subscription,
+                                          CapacityBundle bundle)
   {
-    double capacity = 0;
+    CapacityAccumulator capacity = new CapacityAccumulator();
     for (CapacityOriginator capacityOriginator : bundle.getCapacityOriginators()) {
-      capacity += capacityOriginator.useCapacity(subscription);
+      capacity.add(capacityOriginator.useCapacity(subscription));
     }
     return capacity;
   }

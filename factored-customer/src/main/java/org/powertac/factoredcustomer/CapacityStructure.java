@@ -57,6 +57,14 @@ public final class CapacityStructure implements StructureInstance
   @ConfigurableValue(valueType = "List")
   private List<String> hourlySkew;
 
+  // Regulation capability
+  @ConfigurableValue(description="Lower limit on expected consumption",
+      valueType="Double")
+  private double upRegulationLimit = Double.MAX_VALUE;
+  @ConfigurableValue(description="Upper limit on expected consumption",
+      valueType="Double")
+  private double downRegulationLimit = -Double.MAX_VALUE;
+
   // Weather factors
   @ConfigurableValue(valueType = "String")
   private String temperatureInfluence;
@@ -145,6 +153,16 @@ public final class CapacityStructure implements StructureInstance
   public ProbabilityDistribution getBaseIndividualCapacity ()
   {
     return baseIndividualCapacity;
+  }
+
+  public double getUpRegulationLimit ()
+  {
+    return upRegulationLimit;
+  }
+
+  public double getDownRegulationLimit ()
+  {
+    return downRegulationLimit;
   }
 
   public double getPeriodicSkew (int day, int hour)

@@ -1,5 +1,5 @@
 /*
-* Copyright 2011, 2016 the original author or authors.
+* Copyright 2011-2018 the original authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import java.util.Random;
  * Extends @code{DefaultCapacityOriginator} to adapt to the learning behavior
  * of @code{LearningUtilityOptimizer}.
  *
- * @author Prashant Reddy
+ * @author Prashant Reddy and John Collins
  */
 //@Domain
 final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
@@ -251,7 +251,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
   }
 
   @Override
-  public double useCapacity (TariffSubscription subscription)
+  public CapacityAccumulator useCapacity (TariffSubscription subscription)
   {
     int timeslot = timeslotRepo.currentSerialNumber();
 
@@ -269,11 +269,12 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
           + forecastCapacity);
     }
 
-    adjustedCapacity = truncateTo2Decimals(adjustedCapacity);
-    actualCapacities.put(timeslot, adjustedCapacity);
+    CapacityAccumulator result =
+        addRegCapacityMaybe(subscription, timeslot, adjustedCapacity);
+    actualCapacities.put(timeslot, result.getCapacity());
     log.info(logIdentifier + ": Adjusted capacity for tariff "
-        + subscription.getTariff().getId() + " = " + adjustedCapacity);
-    return adjustedCapacity;
+        + subscription.getTariff().getId() + " = " + result.getCapacity());
+    return result;
   }
 
   // Daniel: some needed additions

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 by the original author or authors.
+ * Copyright (c) 2011-2018 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -345,17 +345,15 @@ public class TariffSubscription
   }
 
   /**
-   * Returns the regulation in aggregate kwh for the previous timeslot. 
+   * Returns the regulation in kwh, aggregated across the subscribed population,
+   * for the previous timeslot. 
    * Intended to be called by Customer models only. Value is non-negative for
-   * consumption power types, non-positive for production types.
-   * Note that this
-   * method is not idempotent; if you call it twice in the same timeslot, the
-   * second time returns zero.
+   * consumption power types, non-positive for production types. For storage
+   * types it may be positive or negative.
    * 
-   * @deprecated Use getRegulation() instead, but remember that it returns
-   * a per-member value, while this method returns an aggregate value.
+   * NOTE: this method is not idempotent; if you call it twice
+   * in the same timeslot, the second time returns zero.
    */
-  @Deprecated
   public synchronized double getCurtailment ()
   {
     double sgn = 1.0;
@@ -394,6 +392,10 @@ public class TariffSubscription
   /**
    * Communicates the ability of the customer model to handle regulation
    * requests. Quantities are per-member.
+   * 
+   * NOTE: This method must be called once/timeslot for any customer that
+   * offers regulation capacity, because otherwise the capacity will be
+   * carried over from the previous timeslot.
    */
   @StateChange
   public void setRegulationCapacity (RegulationCapacity capacity)

@@ -1,5 +1,5 @@
 /*
-* Copyright 2011, 2016 the original author or authors.
+* Copyright 2011-2018 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.powertac.factoredcustomer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
@@ -43,10 +44,10 @@ import java.util.Map;
 
 
 /**
- * Key class responsible for drawing from a base capacity and ajusting that
+ * Key class responsible for drawing from a base capacity and adjusting that
  * capacity in response to various static and dynamic factors for each timeslot.
  *
- * @author Prashant Reddy
+ * @author Prashant Reddy, John Collins
  */
 //@Domain
 class DefaultCapacityOriginator implements CapacityOriginator
@@ -71,6 +72,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
   protected final Map<Integer, Double> actualCapacities = new HashMap<>();
   protected final Map<Integer, Double> curtailedCapacities = new HashMap<>();
   protected final Map<Integer, Double> shiftedCurtailments = new HashMap<>();
+  protected RegulationCapacity currentRegCapacity = null;
 
   public DefaultCapacityOriginator (FactoredCustomerService service,
                                     CapacityStructure capacityStructure,
@@ -260,7 +262,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
   }
 
   @Override
-  public double useCapacity (TariffSubscription subscription)
+  public CapacityAccumulator useCapacity (TariffSubscription subscription)
   {
     int timeslot = timeslotRepo.currentSerialNumber();
 
@@ -268,15 +270,15 @@ class DefaultCapacityOriginator implements CapacityOriginator
     if (Double.isNaN(baseCapacity)) {
       throw new Error("Base capacity is NaN!");
     }
+    else if (parentBundle.getPowerType().isProduction()) {
+      // correct sign before going further
+      baseCapacity *= -1.0;
+    }
     logCapacityDetails(logIdentifier + ": Base capacity for timeslot "
         + timeslot + " = " + baseCapacity);
 
     // total adjusted capacity
     double adjustedCapacity = baseCapacity;
-    if (parentBundle.getPowerType().isInterruptible()) {
-      adjustedCapacity =
-          adjustCapacityForCurtailments(timeslot, adjustedCapacity, subscription);
-    }
     adjustedCapacity =
         adjustCapacityForPeriodicSkew(adjustedCapacity,
             timeService.getCurrentDateTime(), true);
@@ -285,16 +287,35 @@ class DefaultCapacityOriginator implements CapacityOriginator
     // capacity for this subscription
     adjustedCapacity =
         adjustCapacityForSubscription(timeslot, adjustedCapacity, subscription);
-    if (Double.isNaN(adjustedCapacity)) {
-      throw new Error("Adjusted capacity is NaN for base capacity = "
-          + baseCapacity);
-    }
 
-    adjustedCapacity = truncateTo2Decimals(adjustedCapacity);
-    actualCapacities.put(timeslot, adjustedCapacity);
+    CapacityAccumulator result =
+        addRegCapacityMaybe(subscription, timeslot, adjustedCapacity);
+
+    actualCapacities.put(timeslot, result.getCapacity());
     log.info(logIdentifier + ": Adjusted capacity for tariff "
-        + subscription.getTariff().getId() + " = " + adjustedCapacity);
-    return adjustedCapacity;
+        + subscription.getTariff().getId() + " = " + result.getCapacity());
+    return result;
+  }
+
+  protected CapacityAccumulator
+  addRegCapacityMaybe (TariffSubscription subscription,
+                       int timeslot,
+                       double adjustedCapacity)
+  {
+    // Deal with regulation
+    double upReg = 0.0;
+    double downReg = 0.0;
+    if (parentBundle.getPowerType().isInterruptible()) {
+      // compute regulation capacity before handling curtailment shifts
+      upReg = Math.max(0.0, (adjustedCapacity -
+          capacityStructure.getUpRegulationLimit()));
+      downReg = Math.min(0.0, (adjustedCapacity -
+          capacityStructure.getDownRegulationLimit()));
+      adjustedCapacity =
+          adjustCapacityForCurtailments(timeslot, adjustedCapacity, subscription);
+    }
+    return new CapacityAccumulator(truncateTo2Decimals(adjustedCapacity),
+                                   upReg, downReg);
   }
 
   private double adjustCapacityForCurtailments (int timeslot, double capacity,
