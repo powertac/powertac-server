@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
@@ -242,6 +243,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
           totalUsageCharge += charge;
         }
         subscription.usePower(currCapacity);
+        subscription.setRegulationCapacity(new RegulationCapacity(subscription,
+                                                                  ca.getUpRegulationCapacity(),
+                                                                  ca.getDownRegulationCapacity()));
         totalCapacity += currCapacity;
       }
       log.info(bundle.getName() + ": Total " + bundle.getPowerType()
