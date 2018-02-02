@@ -54,8 +54,13 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   @ConfigurableValue(valueType = "Boolean")
   protected boolean multiContracting;
   @ConfigurableValue(valueType = "Boolean")
-  protected boolean canNegotiate;
-  
+  protected boolean canNegotiate = false;
+  @ConfigurableValue(valueType = "Double")
+  protected double controllableKW = 0.0;
+  @ConfigurableValue(valueType = "Double")
+  protected double upRegulationKW = 0.0;
+  @ConfigurableValue(valueType = "Double")
+  protected double downRegulationKW = 0.0;
 
   @ConfigurableValue(valueType = "Boolean")
   protected boolean isAdaptive;
@@ -83,7 +88,10 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
         .withPowerType(PowerType.valueOf(this.type))
         .withCustomerClass(CustomerInfo.CustomerClass.valueOf(customerSize))
         .withMultiContracting(this.multiContracting)
-        .withCanNegotiate(this.canNegotiate);
+        .withCanNegotiate(this.canNegotiate)
+        .withControllableKW(controllableKW)
+        .withUpRegulationKW(upRegulationKW)
+        .withDownRegulationKW(downRegulationKW);
 
     Config config = Config.getInstance();
     Map<String, StructureInstance> subscribers =

@@ -94,7 +94,7 @@ public class DomainObjectReader
     // set up the ignore list
     ignores = new HashSet<>();
     ignores.add("org.powertac.common.Tariff");
-    ignores.add("org.powertac.common.TariffSubscription");
+    //ignores.add("org.powertac.common.TariffSubscription");
     //ignores.add("org.powertac.genco.Genco");
     ignores.add("org.powertac.common.Rate$ProbeCharge");
     ignores.add("org.powertac.common.msg.SimPause");

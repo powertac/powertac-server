@@ -93,6 +93,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
           subStructure.getTieredRateFactor(),
           subStructure.getVariablePricingFactor(),
           subStructure.getInterruptibilityFactor());
+      evaluator.initializeRegulationFactors(subStructure.getExpUpRegulation(),
+                                            0.0,
+                                            subStructure.getExpDownRegulation());
       evaluatorMap.put(bundle, evaluator);
     }
   }

@@ -56,6 +56,9 @@ public class TariffSubscription
   /** The tariff for which this subscription applies */
   private Tariff tariff;
 
+  // id of tariff to allow construction by log analyzer
+  private long tariffId;
+
   /** Total number of customers within a customer model that are committed 
    * to this tariff subscription. This needs to be a count, otherwise tiered 
    * rates cannot be applied properly. */
@@ -96,6 +99,20 @@ public class TariffSubscription
     super();
     this.customer = customer;
     this.tariff = tariff;
+    this.tariffId = tariff.getId();
+    expirations = new ArrayList<ExpirationRecord>();
+    setRegulationCap(new RegulationAccumulator(0.0, 0.0));
+  }
+
+  /**
+   * Alternate constructor for logtool analyzers in which Tariffs cannot
+   * be reconstructed.
+   */
+  public TariffSubscription (CustomerInfo customer, long tariffId)
+  {
+    super();
+    this.customer = customer;
+    this.tariffId = tariffId;
     expirations = new ArrayList<ExpirationRecord>();
     setRegulationCap(new RegulationAccumulator(0.0, 0.0));
   }
@@ -113,6 +130,11 @@ public class TariffSubscription
   public Tariff getTariff ()
   {
     return tariff;
+  }
+
+  public long getTariffId ()
+  {
+    return tariffId;
   }
 
   public int getCustomersCommitted ()
@@ -383,7 +405,7 @@ public class TariffSubscription
     return result;
   }
 
-  @StateChange
+  //@StateChange
   public void setRegulation (double newValue)
   {
     regulation = newValue;
@@ -397,7 +419,7 @@ public class TariffSubscription
    * offers regulation capacity, because otherwise the capacity will be
    * carried over from the previous timeslot.
    */
-  @StateChange
+  //@StateChange
   public void setRegulationCapacity (RegulationCapacity capacity)
   {
     regulationAccumulator = new RegulationAccumulator(capacity);

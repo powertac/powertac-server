@@ -61,6 +61,12 @@ public final class TariffSubscriberStructure implements StructureInstance
   private String allocationMethod;
   @ConfigurableValue(valueType = "Double")
   private double logitChoiceRationality;
+  @ConfigurableValue(description = "Expected per-timeslot up-regulation (neg)",
+          valueType = "Double")
+  private double expUpRegulation = 0.0;
+  @ConfigurableValue(description = "Expected per-timeslot down-regulation (pos)",
+          valueType = "Double")
+  private double expDownRegulation = 0.0;
 
   private ProbabilityDistribution inertiaDistribution;
 
@@ -170,5 +176,15 @@ public final class TariffSubscriberStructure implements StructureInstance
   public ProbabilityDistribution getInertiaDistribution ()
   {
     return inertiaDistribution;
+  }
+
+  public double getExpUpRegulation ()
+  {
+    return this.expUpRegulation;
+  }
+
+  public double getExpDownRegulation ()
+  {
+    return this.expDownRegulation;
   }
 }

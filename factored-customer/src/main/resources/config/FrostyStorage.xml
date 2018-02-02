@@ -18,6 +18,9 @@
 	<customerSize>LARGE</customerSize>
         <multiContracting>true</multiContracting>
         <canNegotiate>false</canNegotiate>
+        <controllableKW>-500</controllableKW>
+        <upRegulationKW>0</upRegulationKW>
+        <downRegulationKW>500</downRegulationKW>
         <isAdaptive>false</isAdaptive>
       </FrostyStorage>
     </defaultCapacityBundle>
@@ -144,6 +147,8 @@
         <allocationMethod>LOGIT_CHOICE</allocationMethod>
         <logitChoiceRationality>0.95</logitChoiceRationality>
         <!-- <interruptibilityFactor>0.05</interruptibilityFactor> -->
+        <expUpRegulation>-120.0</expUpRegulation>
+        <expDownRegulation>120.0</expDownRegulation>
       </FrostyStorage>
     </tariffSubscriberStructure>
 
