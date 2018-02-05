@@ -19,7 +19,7 @@
       <instances>FrostyStorage</instances>
 
       <FrostyStorage>
-        <count>1</count>
+        <!-- <count>1</count> -->
         <creatorKey/>
         <!-- COMMERCIAL -->
         <bundleCount>1</bundleCount>
@@ -32,7 +32,7 @@
       <FrostyStorage>
         <count>3</count>
         <population>3</population>
-        <type>INTERRUPTIBLE_CONSUMPTION</type>
+        <type>THERMAL_STORAGE_CONSUMPTION</type>
         <multiContracting>true</multiContracting>
         <canNegotiate>false</canNegotiate>
         <controllableKW>-500</controllableKW>

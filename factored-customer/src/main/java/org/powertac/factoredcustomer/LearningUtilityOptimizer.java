@@ -115,6 +115,9 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
      * (anti-herding)
      * make weighted recommendations to each capacity originator
      * + monitor deviation of actual from forecast and also from recommended
+     * 
+     * TODO - Iterating over CapacityOriginators is not correct for INDIVIDUAL
+     * originators. See #956.
      **/
 
     Map<CapacityOriginator, Map<TariffSubscription, List<CapacityProfile>>> permsPerSub =

@@ -47,4 +47,9 @@ public interface CapacityBundle
   ProfileOptimizerStructure getOptimizerStructure ();
 
   List<CapacityOriginator> getCapacityOriginators ();
+
+  /**
+   * True just in case all CapacityOriginators in this bundle are INDIVIDUAL
+   */
+  boolean isAllIndividual();
 }

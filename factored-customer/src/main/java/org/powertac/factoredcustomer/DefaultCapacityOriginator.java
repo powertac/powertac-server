@@ -285,9 +285,9 @@ class DefaultCapacityOriginator implements CapacityOriginator
             timeService.getCurrentDateTime(), true);
     adjustedCapacity = adjustCapacityForCurrentWeather(adjustedCapacity, true);
 
-    // capacity for this subscription
-    adjustedCapacity =
-        adjustCapacityForSubscription(timeslot, adjustedCapacity, subscription);
+    // moved up one level
+    //adjustedCapacity =
+    //    adjustCapacityForSubscription(timeslot, adjustedCapacity, subscription);
 
     CapacityAccumulator result =
         addRegCapacityMaybe(subscription, timeslot, adjustedCapacity);

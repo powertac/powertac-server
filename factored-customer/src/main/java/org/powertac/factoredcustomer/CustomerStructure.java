@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ import org.powertac.factoredcustomer.interfaces.StructureInstance;
 
 /**
  * Data-holder class for parsed configuration elements of one customer.
- * All members are declared final in the package scope.
  *
- * @author Prashant Reddy
+ * @author Prashant Reddy, John Collins
  */
 public final class CustomerStructure implements StructureInstance
 {
@@ -32,8 +31,11 @@ public final class CustomerStructure implements StructureInstance
 
   @ConfigurableValue(valueType = "String")
   private String creatorKey;
-  @ConfigurableValue(valueType = "Integer")
+
+  @ConfigurableValue(description = "deprecated, inaccessible",
+          valueType = "Integer")
   private int count = 1;
+
   @ConfigurableValue(valueType = "Integer")
   private int bundleCount = 1;
 
@@ -52,10 +54,11 @@ public final class CustomerStructure implements StructureInstance
     return creatorKey;
   }
 
-  public int getCount ()
-  {
-    return count;
-  }
+  // dead code
+  //public int getCount ()
+  //{
+  //  return count;
+  //}
 
   public int getBundleCount ()
   {

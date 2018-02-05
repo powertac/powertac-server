@@ -41,6 +41,7 @@ import org.powertac.factoredcustomer.interfaces.CapacityOriginator;
 import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -225,17 +226,31 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     usePower(timeslot);
   }
 
+  // TODO - needs fix for #956
   private void usePower (Timeslot timeslot)
   {
     for (CapacityBundle bundle : capacityBundles) {
       List<TariffSubscription> subscriptions =
-          getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(bundle
-              .getCustomerInfo());
+          getTariffSubscriptionRepo()
+          .findActiveSubscriptionsForCustomer(bundle.getCustomerInfo());
       double totalCapacity = 0.0;
       double totalUsageCharge = 0.0;
+      // copy the list so we can pull the INDIVIDUAL originators apart
+      ArrayList<CapacityOriginator> allOriginators =
+              new ArrayList<>(bundle.getCapacityOriginators());
+      int lastOriginator = 0;
       for (TariffSubscription subscription : subscriptions) {
         double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;
-        CapacityAccumulator ca = useCapacity(subscription, bundle);
+        List<CapacityOriginator> originators = allOriginators;
+        // for INDIVIDUAL originators, we pull the list apart and
+        // always pass the number equal to the subscribed population.
+        if (bundle.isAllIndividual()) {
+          originators =
+                  allOriginators.subList(lastOriginator,
+                                         lastOriginator + subscription.getCustomersCommitted());
+          lastOriginator += subscription.getCustomersCommitted();
+        }
+        CapacityAccumulator ca = useCapacity(subscription, originators);
         double currCapacity = usageSign * ca.getCapacity();
         if (Config.getInstance().isUsageChargesLogging()) {
           double charge =
@@ -261,12 +276,14 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   }
 
   private CapacityAccumulator useCapacity (TariffSubscription subscription,
-                                          CapacityBundle bundle)
+                                           List<CapacityOriginator> originators)
   {
     CapacityAccumulator capacity = new CapacityAccumulator();
-    for (CapacityOriginator capacityOriginator : bundle.getCapacityOriginators()) {
+    for (CapacityOriginator capacityOriginator : originators) {
       capacity.add(capacityOriginator.useCapacity(subscription));
     }
+    capacity.scale((double)subscription.getCustomersCommitted() /
+                   (double)originators.size());
     return capacity;
   }
 
@@ -370,6 +387,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
      * Is it correct to sum inconveniences over originators? currently every
      * shifting customer has 1 originator so this doesn't matter, but it might
      * change in the future.
+     * 
+     * TODO - this is not correct for INDIVIDUAL originators, since they
+     * subscribe individually to tariffs. See #956.
      */
     @Override
     public double getShiftingInconvenienceFactor (Tariff tariff)

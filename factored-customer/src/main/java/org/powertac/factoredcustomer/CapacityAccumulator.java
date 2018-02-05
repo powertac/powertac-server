@@ -28,13 +28,17 @@ public class CapacityAccumulator
   private double upRegulationCapacity = 0.0;
   private double downRegulationCapacity = 0.0;
 
-  // Creates an empty one
+  /**
+   * Creates an empty one
+   */
   public CapacityAccumulator ()
   {
     super();
   }
 
-  // Creates an instance with specific values
+  /**
+   * Creates an instance with specific values
+   */
   public CapacityAccumulator (double capacity,
                               double upRegCap,
                               double downRegCap)
@@ -45,13 +49,25 @@ public class CapacityAccumulator
     this.downRegulationCapacity = downRegCap;
   }
 
-  // Adds another to this one
+  /**
+   * Adds another CapacityAccumulator to this one.
+   */
   public CapacityAccumulator add (CapacityAccumulator other)
   {
     this.capacity += other.getCapacity();
     this.upRegulationCapacity += other.getUpRegulationCapacity();
     this.downRegulationCapacity += other.getDownRegulationCapacity();
     return this;
+  }
+
+  /**
+   * Scales values by ratio. Used to adjust for subscription ratios.
+   */
+  public void scale (double ratio)
+  {
+    capacity *= ratio;
+    upRegulationCapacity *= ratio;
+    downRegulationCapacity *= ratio;
   }
 
   // Field accessors

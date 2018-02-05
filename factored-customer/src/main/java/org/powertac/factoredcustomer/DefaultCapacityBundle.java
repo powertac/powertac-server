@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import java.util.Map;
  * type;
  * i.e., CONSUMPTION or PRODUCTION.
  *
- * @author Prashant Reddy
+ * @author Prashant Reddy, John Collins
  */
 //@Domain
 public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
@@ -77,6 +77,10 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
           valueType = "Double")
   protected double downRegulationKW = 0.0;
 
+  @ConfigurableValue(description = "",
+          valueType = "Double")
+  protected double storageCapacity = 0.0;
+
   @ConfigurableValue(valueType = "Boolean")
   protected boolean isAdaptive;
 
@@ -86,6 +90,9 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   private ProfileOptimizerStructure optimizerStructure;
 
   protected List<CapacityOriginator> capacityOriginators = new ArrayList<>();
+
+  // keep track of INDIVIDUAL status
+  private boolean allIndividual;
 
   public DefaultCapacityBundle (String name)
   {
@@ -98,6 +105,7 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   {
     this.service = service;
     this.customerStructure = customerStructure;
+    this.allIndividual = true;
 
     // look up enum values and check validity
     PowerType pt = PowerType.valueOf(this.type);
@@ -115,7 +123,8 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
         .withCanNegotiate(this.canNegotiate)
         .withControllableKW(controllableKW)
         .withUpRegulationKW(upRegulationKW)
-        .withDownRegulationKW(downRegulationKW);
+        .withDownRegulationKW(downRegulationKW)
+        .withStorageCapacity(storageCapacity);
 
     Config config = Config.getInstance();
     Map<String, StructureInstance> subscribers =
@@ -142,6 +151,7 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
 
     if (this.count > 1) {
       for (int j = 0; j < this.count; j++) {
+        // Bad smell - strong, undocumented assumption about naming in config file.
         CapacityStructure capacityStructure =
             (CapacityStructure) capacities.get(name + (j + 1));
         if (capacityStructure == null) {
@@ -149,9 +159,12 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
         }
         capacityStructure.initialize(service);
         capacityOriginators.add(createCapacityOriginator(capacityStructure));
+        if (!capacityStructure.isIndividual())
+          allIndividual = false;
       }
     }
     else {
+      allIndividual = false; // makes no sense for single instance
       CapacityStructure capacityStructure =
           (CapacityStructure) capacities.get(name);
       if (capacityStructure == null) {
@@ -213,5 +226,11 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   public List<CapacityOriginator> getCapacityOriginators ()
   {
     return capacityOriginators;
+  }
+
+  @Override
+  public boolean isAllIndividual ()
+  {
+    return allIndividual;
   }
 }
