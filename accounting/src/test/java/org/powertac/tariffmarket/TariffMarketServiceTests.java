@@ -1154,7 +1154,12 @@ public class TariffMarketServiceTests
 
     @Override
     public void runOnce (boolean bootstrapMode)
-    { 
+    {
+    }
+
+    @Override
+    public void runOnce (boolean bootstrapMode, boolean dumpConfigOnly)
+    {
     }
 
     @Override

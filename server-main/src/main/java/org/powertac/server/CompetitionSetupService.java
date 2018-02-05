@@ -151,6 +151,7 @@ public class CompetitionSetupService
 
   // handles the server CLI as described at
   // https://github.com/powertac/powertac-server/wiki/Server-configuration
+  // Remember that this can be called once/session, without a shutdown.
   private void processCli (String[] args)
   {
     // set up command-line options
@@ -178,17 +179,19 @@ public class CompetitionSetupService
         parser.accepts("input-queue").withRequiredArg().ofType(String.class);
     OptionSpec<String> brokerList =
         parser.accepts("brokers").withRequiredArg().withValuesSeparatedBy(',');
+    OptionSpec<String> configDump =
+        parser.accepts("config-dump").withRequiredArg().ofType(String.class);
 
     // do the parse
     OptionSet options = parser.parse(args);
 
     try {
       // process common options
-      seedSource = null;
       String logSuffix = options.valueOf(logSuffixOption);
       controllerURL = options.valueOf(controllerOption);
       String game = options.valueOf(gameOpt);
       String serverConfig = options.valueOf(serverConfigUrl);
+      seedSource = options.valueOf(seedData);
 
       if (null == game) {
         log.error("gameId not given");
@@ -210,7 +213,8 @@ public class CompetitionSetupService
                     game,
                     logSuffix,
                     options.valueOf(seedData),
-                    options.valueOf(weatherData));
+                    options.valueOf(weatherData),
+                    options.valueOf(configDump));
       }
       else if (options.has("sim")) {
         // sim session
@@ -222,10 +226,17 @@ public class CompetitionSetupService
                    options.valuesOf(brokerList),
                    options.valueOf(seedData),
                    options.valueOf(weatherData),
-                   options.valueOf(inputQueue));
+                   options.valueOf(inputQueue),
+                   options.valueOf(configDump));
+      }
+      else if (options.has("config-dump")) {
+        // just set up and dump config using a truncated boot session
+        bootSession(null, serverConfig, game,
+                    logSuffix, null, null,
+                    options.valueOf(configDump));
       }
       else {
-        // Must be either boot or sim
+        // Must be one of boot, sim, or config-dump
         System.err.println("Must provide either --boot or --sim to run server");
         System.exit(1);
       }
@@ -245,23 +256,37 @@ public class CompetitionSetupService
   }
 
   // ---------- top-level boot and sim session control ----------
+  /**
+   * Starts a boot session with the given arguments. If the bootFilename is
+   * null, then runs just far enough to dump the configuration and quits.
+   */
   @Override
   public String bootSession (String bootFilename, String config,
                              String game,
                              String logSuffix,
                              String seedData,
-                             String weatherData)
+                             String weatherData,
+                             String configDump)
   {
     String error = null;
+    String logPrefix = "boot-";
     try {
-      log.info("bootSession: bootFilename=" + bootFilename
-          + ", config=" + config
-          + ", game=" + game
-          + ", logSuffix=" + logSuffix);
+      if (null != bootFilename) {
+        log.info("bootSession: bootFilename={}, config={}, game={}, logSuffix={}",
+                 bootFilename, config, game, logSuffix);
+      }
+      else if (null == configDump) {
+        log.error("Nothing to do here, both bootFilename and configDump are null");
+        return ("Invalid boot session");
+      }
+      else {
+        log.info("config dump: config={}, configDump={}",
+                 config, configDump);
+        logPrefix = "config-";
+      }
       // process serverConfig now, because other options may override
       // parts of it
-      serverProps.recycle();
-      setConfigMaybe(config);
+      setupConfig(config, configDump);
 
       // Use weather file instead of webservice, this sets baseTime also
       useWeatherDataMaybe(weatherData, true);
@@ -274,18 +299,24 @@ public class CompetitionSetupService
 
       // set the logfile suffix
       ensureGameId(game);
-      setLogSuffix(logSuffix, "boot-" + gameId);
+      setLogSuffix(logSuffix, logPrefix + gameId);
 
-      File bootFile = new File(bootFilename);
-      if (!bootFile
-              .getAbsoluteFile()
-              .getParentFile()
-              .canWrite()) {
-        error = "Cannot write to bootstrap data file " + bootFilename;
-        System.out.println(error);
+      if (null != bootFilename) {
+        File bootFile = new File(bootFilename);
+        if (!bootFile
+            .getAbsoluteFile()
+            .getParentFile()
+            .canWrite()) {
+          error = "Cannot write to bootstrap data file " + bootFilename;
+          System.out.println(error);
+        }
+        else {
+          startBootSession(bootFile);
+        }
       }
       else {
-        startBootSession(bootFile);
+        // handle config-dump-only session
+        startBootSession(null);
       }
     }
     catch (NullPointerException npe) {
@@ -306,13 +337,25 @@ public class CompetitionSetupService
   }
 
   @Override
-  public String simSession (String bootData, String config, String jmsUrl,
-                     String game,
-                     String logSuffix,
-                     List<String> brokerUsernames,
-                     String seedData,
-                     String weatherData,
-                     String inputQueueName)
+  public String bootSession (String bootFilename, String configFilename,
+                             String gameId, String logfileSuffix,
+                             String seedData, String weatherData)
+  {
+    return bootSession(bootFilename, configFilename, gameId,
+                       logfileSuffix, seedData, weatherData, null);
+  }
+
+  @Override
+  public String simSession (String bootData,
+                            String config,
+                            String jmsUrl,
+                            String game,
+                            String logSuffix,
+                            List<String> brokerUsernames,
+                            String seedData,
+                            String weatherData,
+                            String inputQueueName,
+                            String configOutput)
   {
     String error = null;
     try {
@@ -326,8 +369,7 @@ public class CompetitionSetupService
                + ", inputQueue=" + inputQueueName);
       // process serverConfig now, because other options may override
       // parts of it
-      serverProps.recycle();
-      setConfigMaybe(config);
+      setupConfig(config, configOutput);
 
       // Use weather file instead of webservice, this sets baseTime also
       useWeatherDataMaybe(weatherData, false);
@@ -381,9 +423,25 @@ public class CompetitionSetupService
     return error;
   }
 
-  private void setConfigMaybe (String config)
+  @Override
+  public String simSession (String bootData, String config, String jmsUrl,
+                            String gameId, String logfileSuffix,
+                            List<String> brokerUsernames, String seedData,
+                            String weatherData, String inputQueueName)
+  {
+    return simSession(bootData, config, jmsUrl, gameId,
+                      logfileSuffix, brokerUsernames, seedData,
+                      weatherData, inputQueueName, null);
+  }
+
+  private void setupConfig (String config, String configDump)
           throws ConfigurationException, IOException
   {
+    serverProps.recycle();
+    if (null != configDump) {
+      serverProps.setConfigOutput(configDump);
+    }
+
     if (config == null)
       return;
     log.info("Reading configuration from " + config);
@@ -547,16 +605,21 @@ public class CompetitionSetupService
   }
 
   // Runs a bootstrap session
+  // If the bootstrapFile is null, then just configure and quit
   private void startBootSession (File bootstrapFile) throws IOException
   {
-    final FileWriter bootWriter = new FileWriter(bootstrapFile);
+    boolean dumpOnly = (null == bootstrapFile);
+    final FileWriter bootWriter =
+        dumpOnly ? null : new FileWriter(bootstrapFile);
     session = new Thread() {
       @Override
       public void run () {
         cc.setAuthorizedBrokerList(new ArrayList<String>());
         preGame();
-        cc.runOnce(true);
-        saveBootstrapData(bootWriter);
+        cc.runOnce(true, dumpOnly);
+        if (null != bootWriter) {
+          saveBootstrapData(bootWriter);
+        }
       }
     };
     session.start();

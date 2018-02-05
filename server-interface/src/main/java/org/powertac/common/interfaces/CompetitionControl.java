@@ -56,9 +56,12 @@ public interface CompetitionControl
   
   /**
    * Waits for broker login, then starts and runs a simulation.
+   * The second form allows for configuration dumps without actually running
+   * the simulation.
    */
   public void runOnce (boolean bootstrapMode);
-  
+  public void runOnce (boolean bootstrapMode, boolean dumpConfigOnly);
+
   /**
    * True if a simulation (boot or sim) session is currently running.
    */
