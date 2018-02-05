@@ -792,7 +792,13 @@ public class Tariff
   {
     return analyzed;
   }
-  
+
+  // Test support
+  void setTimeService (TimeService ts)
+  {
+    timeService = ts;
+  }
+
   /**
    * Holder for a {Rate, kwh} pair. A list of these can be used to represent
    * the ordered set of rates and quantities needed to determine price or
