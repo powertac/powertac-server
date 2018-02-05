@@ -16,6 +16,7 @@
 package org.powertac.common.config;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -24,12 +25,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration2.AbstractConfiguration;
@@ -48,7 +51,6 @@ import org.apache.commons.configuration2.io.CombinedLocationStrategy;
 import org.apache.commons.configuration2.io.FileLocationStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.powertac.util.Predicate;
 
 /**
@@ -95,6 +97,13 @@ public class Configurator
   // ConfigurableValue annotations.
   //@SuppressWarnings("rawtypes")
   private HashMap<Class<?>, HashMap<String, ConfigurableProperty>> annotationMap;
+  private HashSet<String> metadataSet;
+  private ConfigurationRecorder configDump = null;
+
+  // To avoid duplication, we keep track of the names of instances we have
+  // already configured.
+  private HashMap<Class<?>, Set<String>> createdInstances;
+  private HashMap<Class<?>, Set<String>> configuredProps;
 
   private static final FileLocationStrategy fileLocationStrategy;
   private static final ListDelimiterHandler listDelimiterHandler;
@@ -187,7 +196,10 @@ public class Configurator
   public Configurator ()
   {
     super();
-    annotationMap = new HashMap<Class<?>, HashMap<String, ConfigurableProperty>>();
+    annotationMap = new HashMap<>();
+    metadataSet = new HashSet<>();
+    createdInstances = new HashMap<>();
+    configuredProps = new HashMap<>();
   }
 
   /**
@@ -200,6 +212,14 @@ public class Configurator
       config.setListDelimiterHandler(listDelimiterHandler);
     }
     this.config = config;
+  }
+
+  /**
+   * Sets up an output stream for config dump.
+   */
+  public void setConfigOutput (ConfigurationRecorder configOutput)
+  {
+    configDump = configOutput;
   }
 
   /**
@@ -224,7 +244,7 @@ public class Configurator
     // instance name, or an instance name followed by a property name.
     // If they are all property names, we can proceed with the configuration.
     if (isSingletonConfig(subset)) {
-      configureInstance(thing, subset);
+      configureInstance(thing, subset, null);
     }
     else {
       // multi-instance config - should not get here
@@ -268,20 +288,31 @@ public class Configurator
     Configuration subset = extractSubsetForClassname(classname);
     // we should have a clause with the key "instances" giving the item
     // names, and a set of clauses for each item
-    List<Object> names = subset.getList("instances");
-    names = names.stream().filter(n -> !n.toString().isEmpty()).collect(Collectors.toList());
+    if (null == createdInstances.get(type)) {
+      createdInstances.put(type, new HashSet<>());
+    }
+    Set<String> existingNames = createdInstances.get(type);
+    List<Object> rawNames = subset.getList("instances");
+    List<String> names =
+        rawNames.stream()
+          .map(n -> n.toString())
+          .filter(n -> !n.isEmpty())
+          .collect(Collectors.toList());
     if (names.size() == 0) {
       log.warn("No instance names specified for class " + classname);
       return names;
     }
+    dumpInstanceListMaybe(type, existingNames, names);
+
     // for each name, create an instance, add it to the result, and
     // configure it.
     LinkedHashMap<String, Object> itemMap = new LinkedHashMap<String, Object>();
-    for (Object name : names) {
+    for (String name : names) {
+      existingNames.add(name);
       try {
         Constructor<?> constructor = type.getConstructor(String.class);
-        Object item = constructor.newInstance((String) name);
-        itemMap.put((String)name, item);
+        Object item = constructor.newInstance(name);
+        itemMap.put(name, item);
       }
       catch (Exception e) {
         log.error("Unable to create instance " + name + " of class " + type +
@@ -292,9 +323,24 @@ public class Configurator
     // We iterate through the map to avoid problems with items that did
     // not get created, although that seems far-fetched.
     for (String name : itemMap.keySet()) {
-      configureInstance(itemMap.get(name), subset.subset(name));
+      configureInstance(itemMap.get(name), subset.subset(name), name);
     }
     return itemMap.values();
+  }
+
+  // if we are dumping configuration, we need to dump this list, but only
+  // for the names not already dumped
+  private void dumpInstanceListMaybe (Class<?> type,
+                                      Set<String> existingNames,
+                                      List<String> names)
+  {
+    List<String> dumpNames =
+        names.stream()
+        .filter(n -> !existingNames.contains(n))
+        .collect(Collectors.toList());
+    if (dumpNames.size() > 0) {
+      dumpInstanceListMaybe(type, dumpNames);
+    }
   }
 
   /**
@@ -302,7 +348,7 @@ public class Configurator
    * we expect to see properties of the form
    * pkg.class.name.property = value
    * where name is the name of an instance in the list to be
-   * configured. These name must be accessible through a getName() method
+   * configured. These names must be accessible through a getName() method
    * on each instance.
    * It is an error if instances are not of the same class; in fact, the
    * class of the first instance in the list is used to form the pkg.class.
@@ -318,7 +364,7 @@ public class Configurator
       return null;
     }
 
-    // We have to have a non-empty list of instances for this to work
+    // We need a non-empty list of instances for this to work
     if (null == instances || 0 == instances.size()) {
       log.error("Cannot configure empty instance list");
       return null;
@@ -335,7 +381,7 @@ public class Configurator
       for (Object item : instances) {
         Object result = getNameMethod.invoke(item);
         String name = (String)result;
-        configureInstance(item, subset.subset(name));
+        configureInstance(item, subset.subset(name), name);
       }
     }
     catch (Exception e) {
@@ -360,12 +406,7 @@ public class Configurator
                                             ConfigurationRecorder recorder)
   {
     gatherConfiguration(thing, null, recorder,
-                        new Predicate<ConfigurableProperty>() {
-      @Override
-      public boolean apply (ConfigurableProperty prop) {
-        return prop.cv.publish();
-      }
-    });
+                        prop -> prop.cv.publish());
   }
 
   /**
@@ -381,12 +422,7 @@ public class Configurator
     }
     else {
     gatherConfiguration(thing, null, recorder,
-                        new Predicate<ConfigurableProperty>() {
-      @Override
-      public boolean apply (ConfigurableProperty prop) {
-        return prop.cv.bootstrapState();
-      }
-    });
+                        prop -> prop.cv.bootstrapState());
     }
   }
 
@@ -412,12 +448,7 @@ public class Configurator
           //log.info("gathering bootstrap state for " + thingClass.getName()
           //         + " " + name);
           gatherConfiguration(thing, (String)name, recorder,
-                              new Predicate<ConfigurableProperty>() {
-            @Override
-            public boolean apply (ConfigurableProperty prop) {
-              return prop.cv.bootstrapState();
-            }
-          });
+                              prop -> prop.cv.bootstrapState());
         }
       }
       catch (NoSuchMethodException e) {
@@ -469,6 +500,10 @@ public class Configurator
             throw new Exception("field and getter both null");
           }
           recorder.recordItem(key, value);
+          recorder.recordMetadata(key, cp.cv.description(),
+                                  cp.cv.valueType(),
+                                  cp.cv.publish(),
+                                  cp.cv.bootstrapState());
         }
         catch (IllegalArgumentException e) {
           log.error("cannot read published value: " + e.toString());
@@ -527,9 +562,11 @@ public class Configurator
   
   /**
    * Configures a single instance with a Configuration in which each
-   * key is a simple property name.
+   * key is a simple property name. For named instances the name is expected
+   * to be non-null; it will be used to compose property keys in the case where
+   * we are dumping the full configuration.
    */
-  private void configureInstance (Object thing, Configuration conf)
+  private void configureInstance (Object thing, Configuration conf, String name)
   {
     Map<String, ConfigurableProperty> analysis = getAnalysis(thing.getClass());
     for (Iterator<?> keys = conf.getKeys(); keys.hasNext(); ) {
@@ -543,44 +580,151 @@ public class Configurator
       }
       else {
         // Convert the value to the correct type, then call the method
-        ConfigurableValue cv = cp.cv;
-        String type = cv.valueType();
-        try { // lots of exceptions possible here
-          Object defaultValue = null;
-          if (cp.field != null) {
-            // handle configurable field
-            cp.field.setAccessible(true);
-            defaultValue = cp.field.get(thing);
-            Object configValue = extractConfigValue(conf, key, type, defaultValue);
-            cp.field.set(thing, configValue);
-          }
-          else if (cp.setter != null) {
-            if (cp.getter != null)
-              defaultValue = cp.getter.invoke(thing);
-            Object configValue = extractConfigValue(conf, key, type, defaultValue);
-            cp.setter.invoke(thing, configValue);
-          }
-          else {
-            // no field, no setter - should not happen
-            log.error("No field, no method for cv " + key);
-          }
-        }
-        catch (ClassNotFoundException cnf) {
-          log.error("Class " + type + " not found");
-        }
-        catch (IllegalArgumentException e) {
-          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
-        }
-        catch (IllegalAccessException e) {
-          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
-        }
-        catch (InvocationTargetException e) {
-          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
-        }
-        catch (NoSuchMethodException e) {
-          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
-        }
+        configureValue(thing, conf, key, cp);
       }
+    }
+    dumpConfigMaybe(thing, analysis, name);
+  }
+
+  // Here's where we actually set the value
+  private void configureValue (Object thing, Configuration conf, String key,
+                               ConfigurableProperty cp)
+  {
+    ConfigurableValue cv = cp.cv;
+    String type = cv.valueType();
+    try { // lots of exceptions possible here
+      Object defaultValue = null;
+      if (cp.field != null) {
+        // handle configurable field
+        cp.field.setAccessible(true);
+        defaultValue = cp.field.get(thing);
+        Object configValue = extractConfigValue(conf, key, type, defaultValue);
+        cp.field.set(thing, configValue);
+      }
+      else if (cp.setter != null) {
+        if (cp.getter != null)
+          defaultValue = cp.getter.invoke(thing);
+        Object configValue = extractConfigValue(conf, key, type, defaultValue);
+        cp.setter.invoke(thing, configValue);
+      }
+      else {
+        // no field, no setter - should not happen
+        log.error("No field, no method to set cv " + key);
+      }
+    }
+    catch (ClassNotFoundException cnf) {
+      log.error("Class " + type + " not found");
+    }
+    catch (IllegalArgumentException e) {
+      log.error("cannot configure {}: {}", key, getExceptionDetails(e));
+    }
+    catch (IllegalAccessException e) {
+      log.error("cannot configure {}: {}", key, getExceptionDetails(e));
+    }
+    catch (InvocationTargetException e) {
+      log.error("cannot configure {}: {}", key, getExceptionDetails(e));
+    }
+    catch (NoSuchMethodException e) {
+      log.error("cannot configure {}: {}", key, getExceptionDetails(e));
+    }
+  }
+
+  private Object extractValue (Object thing, ConfigurableProperty cp)
+  {
+    ConfigurableValue cv = cp.cv;
+    Object result = null;
+    String key = cp.cv.name();
+    try { // lots of exceptions possible here
+      if (cp.field != null) {
+        // handle configurable field
+        cp.field.setAccessible(true);
+        result = cp.field.get(thing);
+      }
+      else if (cp.getter != null) {
+        result = cp.getter.invoke(thing);
+      }
+      else {
+        // no field, no setter - should not happen
+        log.error("No field, no method to extract cv {}", key);
+      }
+    }
+    catch (IllegalArgumentException e) {
+      log.error("cannot extract {}: {}", key, getExceptionDetails(e));
+    }
+    catch (IllegalAccessException e) {
+      log.error("cannot configure {}: {}", key, getExceptionDetails(e));
+    }
+    catch (InvocationTargetException e) {
+      log.error("cannot configure {}: {}", key, getExceptionDetails(e));
+    }
+    return result;
+  }
+
+  // Dumps configuration if configDump is non-null.
+  // Note that the key needs to include the name of a named instance
+  private void dumpConfigMaybe (Object thing,
+                                Map<String, ConfigurableProperty> analysis,
+                                String name)
+  {
+    if (null != configDump) {
+      Class<?> clazz = thing.getClass();
+      for (Iterator<?> keys = analysis.keySet().iterator(); keys.hasNext(); ) {
+        String key = (String)keys.next();
+        if (null == name) {
+          name = "";
+        }
+        // Don't dump props for named instances we've already seen
+        String nameKey = name + "." + key;
+        Set<String> seen = configuredProps.get(clazz);
+        if (null == seen) {
+          seen = new HashSet<>();
+          configuredProps.put(clazz, seen);
+        }
+        else {
+          if (seen.contains(nameKey)) {
+            continue;
+          }
+        }
+        seen.add(nameKey);
+        ConfigurableProperty cp = analysis.get(key);
+
+        // metadata first -- we only need it once for each class-item
+        String mkey = composeKey(clazz.getName(), key, "");
+        if (!metadataSet.contains(mkey)) {
+          ConfigurableValue cv = cp.cv;
+          configDump.recordMetadata(mkey,
+                                    cv.description(),
+                                    cv.valueType(),
+                                    cv.publish(), cv.bootstrapState());
+          metadataSet.add(mkey);
+        }
+
+        configDump.recordItem(composeKey(clazz.getName(),
+                                         key, name),
+                              extractValue(thing, cp));
+      }
+    }
+  }
+
+  // Dumps an instance list
+  private void dumpInstanceListMaybe (Class<?> clazz, List<String> names)
+  {
+    if (null != configDump) {
+      configDump.recordInstanceList(classname2Key(clazz.getName()) + ".instances",
+                                    names);
+    }
+  }
+
+  // Composes a config key from class, instance name, and property name
+  String composeKey (String classname, String key, String name)
+  {
+    //String cn = classname.replaceFirst("org.powertac.", "");
+    //return decapitalizeClassname(cn) + "." + name + "." + key;
+    if (null == name || name.equals("")) {
+      return classname2Key(classname) + "." + key;
+    }
+    else {
+      return classname2Key(classname) + "." + name + "." + key;
     }
   }
 
@@ -735,6 +879,14 @@ public class Configurator
     StringBuilder sb = new StringBuilder();
     sb.append(Character.toLowerCase(first)).append(name.substring(1));
     return sb.toString();
+  }
+
+  private String classname2Key (String classname)
+  {
+    String cn = classname.replaceFirst("org.powertac.", "");
+    int cnpos = cn.lastIndexOf('.');
+    return cn.substring(0, cnpos) + "."
+        + decapitalize (cn.substring(cnpos + 1));
   }
 
   private String capitalize (String name)

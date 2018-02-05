@@ -26,17 +26,22 @@ public class ConfigInstance
 {
   public String name;
 
-  @ConfigurableValue(valueType = "Integer", bootstrapState = true)
-  int stateProp = 0;
+  @ConfigurableValue(description = "sample state", valueType = "Integer",
+      bootstrapState = true)
+  int stateProp = 1;
 
-  @ConfigurableValue(valueType = "Integer")
-  int simpleProp = 0;
+  @ConfigurableValue(description = "sample prop", valueType = "Integer")
+  int simpleProp = 2;
 
-  @ConfigurableValue(valueType = "Integer", bootstrapState = true)
-  int sequence = 0;
+  int sequence = 3;
 
-  @ConfigurableValue(valueType = "List", bootstrapState = true)
+  @ConfigurableValue(description = "list example", valueType = "List",
+      bootstrapState = true)
   List<String> coefficients = Arrays.asList(".1", "2.1");
+
+  @ConfigurableValue(description = "sample factor", valueType = "Double",
+      publish = true)
+  double factor = 4.5;
 
   public ConfigInstance (String name)
   {
@@ -54,6 +59,8 @@ public class ConfigInstance
     return sequence;
   }
 
+  @ConfigurableValue(description = "sample seq", valueType = "Integer",
+      bootstrapState = true)
   public void setSequence (int value)
   {
     sequence = value;

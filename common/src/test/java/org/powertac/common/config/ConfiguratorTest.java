@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
@@ -183,7 +184,7 @@ public class ConfiguratorTest
   }
 
   @Test
-  public void testConfigInstance ()
+  public void testConfigInstanceList ()
   {
     TreeMap<String,String> map = new TreeMap<String, String>();
     map.put("common.config.configInstance.instances", "x1, x2");
@@ -259,7 +260,7 @@ public class ConfiguratorTest
   }
 
   @Test
-  public void testBootstrapInstance ()
+  public void testBootstrapInstanceOrig ()
   {
     final TreeMap<String,Object> map = new TreeMap<String, Object>();
     ConfigurationRecorder cr =
@@ -280,9 +281,139 @@ public class ConfiguratorTest
     List<ConfigInstance> instances = Arrays.asList(ci1, ci2);
     Configurator uut = new Configurator();
     uut.gatherBootstrapState(instances, cr);
-    assertEquals("four entries", 6, map.size());
+    assertEquals("six entries", 6, map.size());
     assertEquals("a1.stateProp", -3,
                  map.get("common.config.configInstance.a1.stateProp"));
   }
 
+  @Test
+  public void testBootstrapList ()
+  {
+    Recorder cr = new Recorder();
+    ConfigInstance ci1 = new ConfigInstance("a1");
+    ci1.sequence = 3;
+    ci1.simpleProp = 21;
+    ci1.stateProp = -3;
+    ConfigInstance ci2 = new ConfigInstance("b1");
+    ci2.sequence = 4;
+    ci2.simpleProp = 31;
+    ci2.stateProp = -13;
+    List<ConfigInstance> instances = Arrays.asList(ci1, ci2);
+    Configurator uut = new Configurator();
+    uut.gatherBootstrapState(instances, cr);
+    assertEquals("six entries", 6, cr.items.size());
+    assertEquals("a1.stateProp", -3,
+                 cr.items.get("common.config.configInstance.a1.stateProp"));
+    assertEquals("b1.sequence", 4,
+                 cr.items.get("common.config.configInstance.b1.sequence"));
+    // simpleProp is not a bootstrap item
+    assertNull("b1.simpleProp",
+               cr.items.get("common.config.configInstance.b1.simpleProp"));
+  }
+
+  @Test
+  public void testConfigDump ()
+  {
+    Recorder cr = new Recorder();
+    Configurator uut = new Configurator();
+    uut.setConfigOutput(cr);
+
+    TreeMap<String,String> map = new TreeMap<String, String>();
+    map.put("common.config.configInstance.instances", "x1, x2");
+    map.put("common.config.configInstance.x1.simpleProp", "42");
+    map.put("common.config.configInstance.x1.sequence", "1");
+    map.put("common.config.configInstance.x1.coefficients", "0.2, 4.2");
+    map.put("common.config.configInstance.x2.simpleProp", "32");
+    map.put("common.config.configInstance.x2.sequence", "2");
+    map.put("common.config.configInstance.x2.coefficients", "4.2, 3.2");
+    MapConfiguration conf = new MapConfiguration(map);
+
+    uut.setConfiguration(conf);
+    Collection<?> result = uut.configureInstances(ConfigInstance.class);
+    assertEquals("two instances", 2, result.size());
+    assertEquals("10 in items", 10, cr.items.size());
+    assertEquals("x1.simpleProp", "42",
+                 cr.items.get("common.config.configInstance.x1.simpleProp").toString());
+    assertEquals("x2.coefficients", "[4.2, 3.2]",
+                 cr.items.get("common.config.configInstance.x2.coefficients").toString());
+    assertEquals("5 in metadata", 5, cr.metadata.size());
+    assertNull("no instance metadata",
+               cr.metadata.get("common.config.configInstance.x1.stateProp"));
+    assertEquals("simpleProp description", "sample state",
+                 cr.metadata.get("common.config.configInstance.stateProp").description);
+    assertEquals("x2.coefficients valueType", "List",
+                 cr.metadata.get("common.config.configInstance.coefficients").valueType);
+    assertTrue("x1.factor published",
+               cr.metadata.get("common.config.configInstance.factor").publish);
+    assertFalse("x2.sequence not published",
+                cr.metadata.get("common.config.configInstance.sequence").publish);
+    assertEquals("one instance list", 1,
+                 cr.instanceLists.size());
+    assertEquals("correct list", "[x1, x2]",
+                 cr.instanceLists.get("common.config.configInstance.instances").toString());
+  }
+
+  @Test
+  public void testComposeKey ()
+  {
+    Configurator uut = new Configurator();
+    ConfigInstance ci1 = new ConfigInstance("a1");
+    String ck1 = uut.composeKey(ci1.getClass().getName(), "prop", "name");
+    assertEquals("common.config.configInstance.name.prop", ck1);
+  }
+
+  //Test version of ConfigurationRecorder
+  class Recorder implements ConfigurationRecorder
+  {
+    Map<String, Object> items;
+    Map<String, RecordedMetadata> metadata;
+    Map<String, List<String>> instanceLists;
+
+    Recorder ()
+    {
+      super();
+      items = new TreeMap<>();
+      metadata = new TreeMap<>();
+      instanceLists = new TreeMap<>();
+    }
+
+    @Override
+    public void recordItem (String key, Object value)
+    {
+      items.put(key, value);
+    }
+
+    @Override
+    public void recordMetadata(String key, String description,
+                               String valueType,
+                               boolean publish, boolean bootstrapState)
+    {
+      metadata.put(key, (new RecordedMetadata(description, valueType,
+                                              publish, bootstrapState)));
+    }
+
+    @Override
+    public void recordInstanceList(String key, List<String> names)
+    {
+      instanceLists.put(key, names);
+    }
+  }
+
+  class RecordedMetadata
+  {
+    String description;
+    String valueType;
+    boolean publish;
+    boolean bootstrapState;
+
+    RecordedMetadata (String description, String valueType,
+                      boolean publish, boolean bootstrapState)
+    {
+      super();
+      this.description = description;
+      this.valueType = valueType;
+      this.publish = publish;
+      this.bootstrapState = bootstrapState;
+    }
+  }
 }
