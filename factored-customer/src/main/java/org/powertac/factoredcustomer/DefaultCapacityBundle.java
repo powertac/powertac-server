@@ -43,23 +43,38 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   private CustomerStructure customerStructure;
 
   protected String name;
-  @ConfigurableValue(valueType = "Integer")
+  @ConfigurableValue(description = "Number of capacity structures expected",
+          valueType = "Integer")
   protected int count;
+
   @ConfigurableValue(valueType = "Integer")
   protected int population;
-  @ConfigurableValue(valueType = "String")
+
+  @ConfigurableValue(description = "PowerType for this bundle",
+          valueType = "String")
   protected String type;
+
   @ConfigurableValue(valueType = "String")
   protected String customerSize = "SMALL";
-  @ConfigurableValue(valueType = "Boolean")
-  protected boolean multiContracting;
-  @ConfigurableValue(valueType = "Boolean")
+
+  @ConfigurableValue(description = "If true, then this bundle can divide itself among multiple tariffs",
+          valueType = "Boolean")
+  protected boolean multiContracting = false;
+
+  @ConfigurableValue(description = "Unsupported, value ignored",
+          valueType = "Boolean")
   protected boolean canNegotiate = false;
-  @ConfigurableValue(valueType = "Double")
+
+  @ConfigurableValue(description = "Maximum curtailment per timeslot",
+          valueType = "Double")
   protected double controllableKW = 0.0;
-  @ConfigurableValue(valueType = "Double")
+
+  @ConfigurableValue(description = "Maximum storage discharge per timeslot",
+          valueType = "Double")
   protected double upRegulationKW = 0.0;
-  @ConfigurableValue(valueType = "Double")
+
+  @ConfigurableValue(description = "Maximum down-regulation (energy absorbed) per timeslot",
+          valueType = "Double")
   protected double downRegulationKW = 0.0;
 
   @ConfigurableValue(valueType = "Boolean")
@@ -84,9 +99,18 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
     this.service = service;
     this.customerStructure = customerStructure;
 
+    // look up enum values and check validity
+    PowerType pt = PowerType.valueOf(this.type);
+    if (null == pt)
+      throw new Error("Invalid PowerType for " + name);
+    CustomerInfo.CustomerClass cc =
+            CustomerInfo.CustomerClass.valueOf(customerSize);
+    if (null == cc)
+      throw new Error("Invalid CustomerClass for " + name);
+
     customerInfo = new CustomerInfo(name, this.population)
-        .withPowerType(PowerType.valueOf(this.type))
-        .withCustomerClass(CustomerInfo.CustomerClass.valueOf(customerSize))
+        .withPowerType(pt)
+        .withCustomerClass(cc)
         .withMultiContracting(this.multiContracting)
         .withCanNegotiate(this.canNegotiate)
         .withControllableKW(controllableKW)

@@ -120,7 +120,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     Config.initializeInstance(serverConfiguration);
     Config config = Config.getInstance();
     config.configure();
-    
+
     Map<String, StructureInstance> customerStructures =
         config.getStructures().get("CustomerStructure");
 

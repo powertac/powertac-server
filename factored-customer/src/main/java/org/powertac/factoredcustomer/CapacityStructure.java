@@ -64,6 +64,9 @@ public final class CapacityStructure implements StructureInstance
   @ConfigurableValue(description="Upper limit on expected consumption",
       valueType="Double")
   private double downRegulationLimit = -Double.MAX_VALUE;
+  @ConfigurableValue(description = "Storage capacity in kWh",
+          valueType = "Double")
+  private double storageCapacity = 0.0;
 
   // Weather factors
   @ConfigurableValue(valueType = "String")
@@ -143,6 +146,15 @@ public final class CapacityStructure implements StructureInstance
   public BaseCapacityType getBaseCapacityType ()
   {
     return BaseCapacityType.valueOf(baseCapacityType);
+  }
+
+  /**
+   * True just in case the baseCapacityType is INDIVIDUAL
+   * @return
+   */
+  public boolean isIndividual ()
+  {
+    return (getBaseCapacityType() == BaseCapacityType.INDIVIDUAL);
   }
 
   public ProbabilityDistribution getBasePopulationCapacity ()

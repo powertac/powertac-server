@@ -220,10 +220,11 @@ class DefaultCapacityOriginator implements CapacityOriginator
         baseCapacity = capacityStructure.getBasePopulationCapacity().drawSample();
         break;
       case INDIVIDUAL:
-        for (int i = 0; i < parentBundle.getPopulation(); ++i) {
+        // #956
+        //for (int i = 0; i < parentBundle.getPopulation(); ++i) {
           baseCapacity +=
               capacityStructure.getBaseIndividualCapacity().drawSample();
-        }
+        //}
         break;
       case TIMESERIES:
         baseCapacity = getBaseCapacityFromTimeseries(timeslot);
@@ -311,6 +312,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
           capacityStructure.getUpRegulationLimit()));
       downReg = Math.min(0.0, (adjustedCapacity -
           capacityStructure.getDownRegulationLimit()));
+      log.info("{} regulation = {}:{}", parentBundle.getName(), upReg, downReg);
       adjustedCapacity =
           adjustCapacityForCurtailments(timeslot, adjustedCapacity, subscription);
     }
@@ -542,6 +544,12 @@ class DefaultCapacityOriginator implements CapacityOriginator
     if (Config.getInstance().isCapacityDetailsLogging()) {
       log.info(msg);
     }
+  }
+
+  @Override
+  public boolean isIndividual ()
+  {
+    return (capacityStructure.isIndividual());
   }
 
   @Override

@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <factoredcustomer-root>
   <factoredcustomer>
+
+    <config>
+      <allocationDetailsLogging>true</allocationDetailsLogging>
+      <capacityDetailsLogging>true</capacityDetailsLogging>
+      <usageChargesLogging>false</usageChargesLogging>
+
+      <structureTypes>
+        CustomerStructure,TariffSubscriberStructure,
+        CapacityStructure,DefaultCapacityBundle,
+        ProbabilityDistribution,TimeseriesGenerator,
+        ProfileOptimizerStructure
+      </structureTypes>
+    </config>
+
     <customerStructure>
+      <instances>FrostyStorage</instances>
+
       <FrostyStorage>
         <count>1</count>
         <creatorKey/>
@@ -11,17 +27,27 @@
     </customerStructure>
 
     <defaultCapacityBundle>
+      <instances>FrostyStorage</instances>
+
       <FrostyStorage>
         <count>3</count>
         <population>3</population>
         <type>INTERRUPTIBLE_CONSUMPTION</type>
         <multiContracting>true</multiContracting>
         <canNegotiate>false</canNegotiate>
+        <controllableKW>-500</controllableKW>
+        <upRegulationKW>0</upRegulationKW>
+        <downRegulationKW>500</downRegulationKW>
+        <storageCapacity>750</storageCapacity>
         <isAdaptive>false</isAdaptive>
       </FrostyStorage>
     </defaultCapacityBundle>
 
     <capacityStructure>
+      <instances>
+        FrostyStorage1,FrostyStorage2,FrostyStorage3
+      </instances>
+
       <FrostyStorage1>
         <baseCapacityType>INDIVIDUAL</baseCapacityType>
 
@@ -30,6 +56,9 @@
           0.7,0.6,0.6,0.6,0.6,0.7,0.7,0.8,0.8,0.8,0.8,0.8,
           0.8,0.9,0.9,1.0,1.0,0.9,0.8,0.8,0.8,0.7,0.7,0.7
         </hourlySkew>
+
+        <upRegulationLimit>1000.0</upRegulationLimit>
+        <downRegulationLimit>2000.0</downRegulationLimit>
 
         <temperatureInfluence>DEVIATION</temperatureInfluence>
         <temperatureReference>20</temperatureReference>
@@ -65,6 +94,9 @@
           0.8,0.9,0.9,1.0,1.0,0.9,0.8,0.8,0.8,0.7,0.7,0.7
         </hourlySkew>
 
+        <upRegulationLimit>1000.0</upRegulationLimit>
+        <downRegulationLimit>2000.0</downRegulationLimit>
+
         <temperatureInfluence>DEVIATION</temperatureInfluence>
         <temperatureReference>20</temperatureReference>
         <temperatureMap>
@@ -99,6 +131,9 @@
           0.8,0.9,0.9,1.0,1.0,0.9,0.8,0.8,0.8,0.7,0.7,0.7
         </hourlySkew>
 
+        <upRegulationLimit>1000.0</upRegulationLimit>
+        <downRegulationLimit>2000.0</downRegulationLimit>
+
         <temperatureInfluence>DEVIATION</temperatureInfluence>
         <temperatureReference>20</temperatureReference>
         <temperatureMap>
@@ -126,6 +161,7 @@
     </capacityStructure>
 
     <tariffSubscriberStructure>
+      <instances>FrostyStorage</instances>
       <FrostyStorage>
         <expMeanPriceWeight>0.6</expMeanPriceWeight>
         <maxValuePriceWeight>0.4</maxValuePriceWeight>
@@ -134,10 +170,17 @@
         <allocationMethod>LOGIT_CHOICE</allocationMethod>
         <logitChoiceRationality>0.95</logitChoiceRationality>
         <!-- <interruptibilityFactor>0.05</interruptibilityFactor> -->
+        <expUpRegulation>-120.0</expUpRegulation>
+        <expDownRegulation>120.0</expDownRegulation>
       </FrostyStorage>
     </tariffSubscriberStructure>
 
     <probabilityDistribution>
+      <instances>
+        FrostyStorageInertia,FrostyStorage1Population,
+        FrostyStorage2Population,FrostyStorage3Population
+      </instances>
+
       <FrostyStorageInertia>
         <distribution>INTERVAL</distribution>
         <mean>0.8</mean>

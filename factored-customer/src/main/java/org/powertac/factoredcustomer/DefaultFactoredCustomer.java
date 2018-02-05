@@ -168,4 +168,20 @@ class DefaultFactoredCustomer implements FactoredCustomer
   {
     return creator;
   }
+
+  // Test support, package visibility
+  CustomerStructure getCustomerStructure ()
+  {
+    return customerStructure;
+  }
+
+  List<CapacityBundle> getCapacityBundles()
+  {
+    return capacityBundles;
+  }
+
+  UtilityOptimizer getUtilityOptimizer ()
+  {
+    return utilityOptimizer;
+  }
 }

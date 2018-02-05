@@ -46,4 +46,10 @@ public interface CapacityOriginator
                                                TariffSubscription subscription);
 
   double getShiftingInconvenienceFactor (Tariff tariff);
+
+  /**
+   * True just in case the underlying CapacityStructure has a baseCapacityType of
+   * INDIVIDUAL.
+   */
+  boolean isIndividual();
 }
