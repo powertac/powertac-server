@@ -380,7 +380,7 @@ public class TariffEvaluationHelperTest
     tariffSpec.addRate(r);
     RegulationRate rr =
       new RegulationRate().withUpRegulationPayment(0.2)
-          .withDownRegulationPayment(0.05);
+          .withDownRegulationPayment(-0.05);
     tariffSpec.addRate(rr);
     tariff = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
@@ -410,15 +410,16 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    tariff.getUsageCharge(10000.0, 0.0, true);
+    double result = tariff.getUsageCharge(10000.0, 0.0, true);
+    assertEquals("correct usage charge", 10000.0 * -0.1, result, 1.0e-6);
 
     teh.init(.6, .4, .5, 10000.0);
     teh.initializeRegulationFactors(-2.0, 0.0, 1.0);
     double[] usage = {100.0, 200.0};
-    double result = teh.estimateCost(tariff, usage, start);
+    result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result",
-                 (- (100.0 - 2.0) * 0.1 + 2.0 * 0.2 + 0.04
-                  - (200.0 - 2.0) * 0.1 + 2.0 * 0.2 + 0.04),
+                 ((100.0 - 2.0 + 1.0) * -0.1 + 2.0 * 0.2 - 1.0 * 0.04
+                  + (200.0 - 2.0 + 1.0) * -0.1 + 2.0 * 0.2 - 1.0 * 0.04),
                   result, 1e-6);
   }
 }

@@ -345,12 +345,12 @@ public class Tariff
     }
     else {
       if (kwh < 0.0) {
-        // up-regulation
-        return kwh * regulationRate.getUpRegulationPayment();
+        // up-regulation: pos * pos
+        return -kwh * regulationRate.getUpRegulationPayment();
       }
       else {
-        // down-regulation
-        return -kwh * regulationRate.getDownRegulationPayment();
+        // down-regulation pos * neg
+        return kwh * regulationRate.getDownRegulationPayment();
       }
     }
   }
@@ -418,7 +418,7 @@ public class Tariff
   private double regulatedKWh(double kwh, TariffEvaluationHelper helper)
   {
     if (null != helper && kwh > 0.0)
-      return Math.max(0.0, kwh + helper.getExpectedCurtailment());
+      return Math.max(0.0, kwh + helper.getExpectedRegulation());
     return kwh;
   }
 
