@@ -456,7 +456,7 @@ public class TariffSubscriptionTests
         .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
-    assertEquals("correct charge", -4.5, chargeArg.getValue(), 1e-6);
+    assertEquals("correct charge", 4.5, chargeArg.getValue(), 1e-6);
     assertEquals("correct regulation", 3.0, sub.getRegulation(), 1e-6);
     assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
     cap = sub.getRemainingRegulationCapacity();

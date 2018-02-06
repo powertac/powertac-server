@@ -336,7 +336,7 @@ public class TariffEvaluator
 
     // Get the cost eval for the appropriate default tariff
     EvalData defaultEval = getDefaultTariffEval();
-    log.debug("customer {}: defaultEval={}",
+    log.info("customer {}: defaultEval={}",
               getName(), defaultEval.costEstimate);
     
     // ensure we have the cost eval for each of the new tariffs

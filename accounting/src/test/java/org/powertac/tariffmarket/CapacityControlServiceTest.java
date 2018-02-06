@@ -390,7 +390,7 @@ public class CapacityControlServiceTest
         assertEquals("correct kwh",
                      -15000.0/370.0, (Double) args[3], 1e-6);
         assertEquals("correct charge",
-                     0.05 * 15000.0/370.0, (Double) args[4], 1e-6);
+                     -0.05 * 15000.0/370.0, (Double) args[4], 1e-6);
 
         args = answers.get(customer2);
         assertNotNull("customer2 included", args);
@@ -401,7 +401,7 @@ public class CapacityControlServiceTest
         assertEquals("correct kwh",
                      -22000.0/370.0, (Double) args[3], 1e-6);
         assertEquals("correct charge",
-                     0.05 * 22000.0/370.0, (Double) args[4], 1e-6);
+                     -0.05 * 22000.0/370.0, (Double) args[4], 1e-6);
   }
 
   /**

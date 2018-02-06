@@ -15,6 +15,7 @@
  */
 package org.powertac.customer.model;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
@@ -148,8 +149,8 @@ implements CustomerModelAccessor
         .withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
     tariffEvaluator.initializeRegulationFactors(0.0,
-                                                maxDischargeKW * 0.5,
-                                                maxChargeKW * 0.5);
+                                                maxDischargeKW * 0.2 * chargeEfficiency,
+                                                maxChargeKW * 0.2);
   }
 
   // Gets a new random-number seeds just in case we don't already have them.
@@ -352,7 +353,10 @@ implements CustomerModelAccessor
   {
     Instant start =
         service.getTimeslotRepo().currentTimeslot().getStartInstant();
-    return new CapacityProfile (new double[] {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+    double drain = capacityKWh * (1.0 - chargeEfficiency) / 2.0;
+    double[] profile = new double[24];
+    Arrays.fill(profile, drain);
+    return new CapacityProfile (profile,
                                 start);
   }
 }
