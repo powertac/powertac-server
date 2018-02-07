@@ -118,7 +118,7 @@ public class TariffMarketService
   private List<Tariff> revokedTariffs = null;
   private Instant lastRevokeProcess = new Instant(0l);
 
-  // configuration
+  // configure tariff publication fees
   @ConfigurableValue(valueType = "Double",
       description = "low end of tariff publication fee range")
   private double minPublicationFee = -100.0;
@@ -132,6 +132,7 @@ public class TariffMarketService
       description = "set publication fee directly to override random selection")
   private Double publicationFee = null;
 
+  // configure tariff revocation fees
   @ConfigurableValue(valueType = "Double",
       description = "low end of tariff revocation fee range")
   private double minRevocationFee = -100.0;
@@ -272,7 +273,7 @@ public class TariffMarketService
   {
     return publicationInterval;
   }
-  
+
   @ConfigurableValue(valueType = "Integer",
       description = "Number of timeslots between tariff publication events. " +
                     "Must be at most 24.")
@@ -284,12 +285,12 @@ public class TariffMarketService
     }
     publicationInterval = interval;
   }
-  
+
   public int getPublicationOffset ()
   {
     return publicationOffset;
   }
-  
+
   @ConfigurableValue(valueType = "Integer",
       description = "Number of timeslots from the first timeslot to delay " +
           "the first publication event. It does not work well " +
