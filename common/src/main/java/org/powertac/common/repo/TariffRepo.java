@@ -29,7 +29,6 @@ import org.powertac.common.Broker;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalancingOrder;
 import org.springframework.stereotype.Service;
