@@ -71,6 +71,7 @@ public class TariffTests
   {
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(start);
+    Competition comp = Competition.newInstance("test");
     broker = new Broker ("testBroker");
     exp = new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
@@ -474,7 +475,7 @@ public class TariffTests
     assertEquals("18:00 charge, noon Sunday", -0.8,
       te.getUsageCharge(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);
   }
-  
+
   // single rate, interruptible
   @Test
   public void testSimpleCurtailment ()
@@ -497,7 +498,7 @@ public class TariffTests
     assertEquals("correct max curtailment 1", 9.0,
                  te.getMaxUpRegulation(30.0, 0.0), 1e-6);
   }
-  
+
   // single rate, not interruptible
   @Test
   public void testNoCurtailment ()
@@ -515,7 +516,7 @@ public class TariffTests
     assertEquals("correct max curtailment 1", 0.0,
                  te.getMaxUpRegulation(30.0, 0.0), 1e-6);
   }
-  
+
   // multiple rates, single tier, one rate interruptible
   @Test
   public void testMultiRateCurtailment ()
@@ -539,20 +540,26 @@ public class TariffTests
     assertEquals("noon price", -3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
     assertEquals("noon max curtailment", 3.0,
                  te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 1, 17, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("17:00 price", -3.0, te.getUsageCharge(20.0, 220.0, true), 1e-6);
+    assertEquals("17:00 max curtailment", 3.0,
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("18:00 price", -0.8, te.getUsageCharge(10.0, 220.0, true), 1e-6);
+    assertEquals("18:00 price", -0.8, te.getUsageCharge(10.0, 240.0, true), 1e-6);
     assertEquals("18:00 max curtailment", 15.0,
                  te.getMaxUpRegulation(30.0, 0.0), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price", -0.4, te.getUsageCharge(5.0, 230.0, true), 1e-6);
+    assertEquals("midnight price", -0.4, te.getUsageCharge(5.0, 250.0, true), 1e-6);
     assertEquals("midnight max curtailment", 15.0,
                  te.getMaxUpRegulation(30.0, 0.0), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("7:00 price", -0.6, te.getUsageCharge(4.0, 235.0, true), 1e-6);
+    assertEquals("7:00 price", -0.6, te.getUsageCharge(4.0, 255.0, true), 1e-6);
     assertEquals("7:00 max curtailment", 3.0,
                  te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    assertEquals("mean price", (11.0 * -.15 + 13.0 * -.08) / 24.0,
+                 te.getMeanConsumptionPrice(), 1e-6);
   }
-  
+
   // multiple rates, multiple tiers, upper tier interruptible
   @Test
   public void testMultiTierCurtailment ()
@@ -578,5 +585,63 @@ public class TariffTests
                  te.getMaxUpRegulation(4.0, 8.0), 1e-6);
     assertEquals("high curtailment", 2.0,
                  te.getMaxUpRegulation(4.0, 11.0), 1e-6);
+  }
+
+  // single rate, regulation rate, storage
+  @Test
+  public void testRegRate ()
+  {
+    TariffSpecification spec =
+        new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION)
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 8);
+    Rate r1 = new Rate()
+                  .withValue(-0.121)
+                  .withMaxCurtailment(0.3);
+    spec.addRate(r1);
+    RegulationRate rr1 = new RegulationRate()
+            .withResponse(RegulationRate.ResponseTime.MINUTES)
+            .withUpRegulationPayment(0.2)
+            .withDownRegulationPayment(-0.1);
+    spec.addRate(rr1);
+    Tariff te = new Tariff(spec);
+    te.init();
+    assertEquals("unconstrained up-reg", -20.0,
+                 te.applyUpRegulationPriceConstraint(-20.0), 1e-6);
+    assertEquals("correct up-reg charge", 4.0,
+                 te.getRegulationCharge(-20.0, 0.0, false), 1e-6);
+    assertEquals("unconstrained down-reg", 10.0,
+                 te.applyDownRegulationPriceConstraint(10.0), 1e-6);
+    assertEquals("correct down-reg charge", -3.0,
+                 te.getRegulationCharge(30.0, 0.0, false), 1e-6);
+  }
+
+  // single rate, regulation rate, storage
+  @Test
+  public void testBogusRegRate ()
+  {
+    TariffSpecification spec =
+        new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION)
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 8);
+    Rate r1 = new Rate()
+                  .withValue(-0.121)
+                  .withMaxCurtailment(0.3);
+    spec.addRate(r1);
+    RegulationRate rr1 = new RegulationRate()
+            .withResponse(RegulationRate.ResponseTime.MINUTES)
+            .withUpRegulationPayment(2.0)
+            .withDownRegulationPayment(-1.0);
+    spec.addRate(rr1);
+    Tariff te = new Tariff(spec);
+    te.init();
+    assertEquals("unconstrained up-reg", 0.0,
+                 te.applyUpRegulationPriceConstraint(-20.0), 1e-6);
+    assertEquals("correct up-reg charge", 0.0,
+                 te.getRegulationCharge(-20.0, 0.0, false), 1e-6);
+    assertEquals("unconstrained down-reg", 0.0,
+                 te.applyDownRegulationPriceConstraint(10.0), 1e-6);
+    assertEquals("correct down-reg charge", 0.0,
+                 te.getRegulationCharge(30.0, 0.0, false), 1e-6);
   }
 }

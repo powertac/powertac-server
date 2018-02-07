@@ -94,6 +94,13 @@ public class Tariff
   /** Tariff expiration date, possibly updated from original spec */
   private Instant expiration;
 
+  /** Mean consumption price, used to filter regulation behavior */
+  private double meanConsumptionPrice = 0.0;
+
+  /** Additional price margin for production tariffs */
+  // TODO - this should be a configurable parameter on TariffMarket
+  private double productionMargin = -1.5;
+
   /** Maximum future interval over which price can be known */
   //private Duration maxHorizon; 
 
@@ -125,6 +132,7 @@ public class Tariff
       rateIdMap.put(r.getId(), r);
     }
     for (RegulationRate r: spec.getRegulationRates()) {
+      // all but the first instance are ignored, with warning
       if (null != regulationRate) {
         log.warn("Multiple regulation rates on tariff " + getId());
       }
@@ -157,6 +165,7 @@ public class Tariff
     analyze();
     if (!isCovered())
       return false;
+    meanConsumptionPrice = computeMeanConsumptionPrice(rateMap);
 
     // it's good.
     tariffRepo.addTariff(this);
@@ -336,6 +345,9 @@ public class Tariff
    * Note that
    * negative values for kwh represent up-regulation, while positive values
    * represent down-regulation.
+   * Also note that regulation amounts are truncated if the payments exceed
+   * the ratios (to the energy prices in the tariff) specified by the max
+   * ratios in the tariff market.
    */
   public double getRegulationCharge (double kwh, double cumulativeUsage,
                                      boolean recordUsage)
@@ -343,16 +355,51 @@ public class Tariff
     if (null == regulationRate) {
       return getUsageCharge(-kwh, cumulativeUsage, recordUsage);
     }
-    else {
-      if (kwh < 0.0) {
-        // up-regulation: pos * pos
-        return -kwh * regulationRate.getUpRegulationPayment();
-      }
-      else {
-        // down-regulation pos * neg
-        return kwh * regulationRate.getDownRegulationPayment();
-      }
+
+    if (kwh < 0.0 && !isOverpricedUpRegulation()) {
+      // up-regulation: pos * pos
+      return -kwh * regulationRate.getUpRegulationPayment();
     }
+    else if (kwh > 0.0 && !isOverpricedDownRegulation()) {
+      // down-regulation pos * neg
+      return kwh * regulationRate.getDownRegulationPayment();
+    }
+    else
+      return 0.0;
+  }
+
+  /**
+   * Applies price constraint to up-regulation quantity.
+   */
+  public double applyUpRegulationPriceConstraint (double quantity)
+  {
+    if (isOverpricedUpRegulation())
+      return 0.0;
+    return quantity;
+  }
+
+  /**
+   * Applies price constraint to down-regulation quantity.
+   */
+  public double applyDownRegulationPriceConstraint (double quantity)
+  {
+    if (isOverpricedDownRegulation())
+      return 0.0;
+    return quantity;
+  }
+
+  private boolean isOverpricedUpRegulation ()
+  {
+    return regulationRate.getUpRegulationPayment()
+            > getMeanConsumptionPrice()
+            * Competition.currentCompetition().getMaxUpRegulationPaymentRatio();
+  }
+
+  private boolean isOverpricedDownRegulation ()
+  {
+    return regulationRate.getDownRegulationPayment()
+            < getMeanConsumptionPrice()
+            * Competition.currentCompetition().getMaxDownRegulationPaymentRatio();
   }
 
   /** 
@@ -449,7 +496,7 @@ public class Tariff
       return !(timeService.getCurrentTime().isBefore(getExpiration()));
     }
   }
-  
+
   @StateChange
   public void setExpiration (Instant newDate)
   {
@@ -460,7 +507,7 @@ public class Tariff
   {
     return offerDate;
   }
-  
+
   /**
    * True just in case the set of Rates cover all the possible hour
    * and tier slots. If false, then there is some combination of hour
@@ -528,6 +575,11 @@ public class Tariff
   public double getTotalUsage ()
   {
     return totalUsage;
+  }
+
+  public double getMeanConsumptionPrice ()
+  {
+    return meanConsumptionPrice;
   }
 
   public boolean isWeekly ()
@@ -663,7 +715,7 @@ public class Tariff
         value += rate.getWeeklyBegin() * 24;
       }
       if (rate.getTierThreshold() * tierSign > 0.0) {
-        // is this correct? Should the 7 apply only for a weekly rate?
+        // TODO is this correct? Should the 7 apply only for a weekly rate?
         value += tierIndexMap.get(rate.getTierThreshold() * tierSign) * 24 * weekMultiplier;
       }
       log.debug("inserting " + value + ", " + rate.getId());
@@ -791,6 +843,29 @@ public class Tariff
   public boolean isAnalyzed ()
   {
     return analyzed;
+  }
+
+  double computeMeanConsumptionPrice (Rate[][] map)
+  {
+    if (!analyzed) {
+      log.error("Tariff not analyzed, cannot compute mean consumption price");
+      return 0.0;
+    }
+    double mult = 1.0;
+    if (tariffSpec.getPowerType().isProduction())
+      mult = productionMargin;
+    double sum = 0.0;
+    int count = 0;
+    for (int i = 0; i < map[0].length; i++) {
+      // ignore higher tiers for now
+      count += 1;
+      Rate rate = map[0][i];
+      if (rate.isFixed())
+        sum += rate.getMinValue();
+      else
+        sum += rate.getExpectedMean();
+    }
+    return mult * sum / count;
   }
 
   // Test support

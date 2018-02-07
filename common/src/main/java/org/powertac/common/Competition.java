@@ -94,6 +94,22 @@ public class Competition //implements Serializable
   @XStreamAsAttribute
   private double minimumOrderQuantity = 0.01; // MWh
 
+  // Tariff evaluation parameters
+  /** Above this ratio, assume no up-regulation during evaluation. */
+  @XStreamAsAttribute
+  private double maxUpRegulationPaymentRatio = -6.0;
+
+  /** Above this ratio, customer will not offer down-regulation,
+      either during evaluation nor at runtime. */
+  @XStreamAsAttribute
+  private double maxDownRegulationPaymentRatio = 1.5;
+
+  /** Brokers typically pay less for production than they charge for
+      consumption. This ratio is an estimate of that margin that is used
+      to modify the constraints on up- and down- regulation behavior. */
+  @XStreamAsAttribute
+  private double estimatedConsumptionPremium = 2.0;
+
   /** the start time of the simulation scenario, in sim time. */
   @XStreamAsAttribute
   private Instant simulationBaseTime = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -341,6 +357,71 @@ public class Competition //implements Serializable
   public double getMinimumOrderQuantity ()
   {
     return minimumOrderQuantity;
+  }
+
+  /**
+   * Customers assume up-regulation will never clear if the regulation price
+   * is higher than the consumption price times this ratio, and so up-regulation
+   * will be ignored during tariff evaluation.
+   */
+  public double getMaxUpRegulationPaymentRatio ()
+  {
+    return maxUpRegulationPaymentRatio;
+  }
+
+  /**
+   * Fluent setter for the maximum ratio between consumption price and up-regulation
+   * price for which customers will include up-regulation in tariff evaluation.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "Limit on up-regulation payment ratio")
+  public Competition withMaxUpRegulationPaymentRatio (double value)
+  {
+    maxUpRegulationPaymentRatio = value;
+    return this;
+  }
+
+
+  /**
+   * If a tariff offers a down-regulation price larger (more negative) than the
+   * consumption price times this ratio, customers will not offer down-regulation,
+   * and will ignore down-regulation during tariff evaluation.
+   */
+  public double getMaxDownRegulationPaymentRatio ()
+  {
+    return maxDownRegulationPaymentRatio;
+  }
+
+  /**
+   * Fluent setter for the maximum down-regulation payment ratio.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "Limit on down-regulation payment")
+  public Competition withMaxDownRegulationPaymentRatio (double value)
+  {
+    maxDownRegulationPaymentRatio = value;
+    return this;
+  }
+
+  /**
+   * Brokers typically pay less for production than they charge for consumption.
+   * This ratio is an estimate of that margin that is used to modify the
+   * constraints on up- and down-regulation behavior.
+   */
+  public double getEstimatedConsumptionPremium ()
+  {
+    return estimatedConsumptionPremium;
+  }
+
+  /**
+   * Fluent setter for the estimated consumption price premium.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "Estimated ratio of consumption prices over production prices")
+  public Competition withEstimatedConsumptionPremium (double value)
+  {
+    estimatedConsumptionPremium = value;
+    return this;
   }
 
   /**

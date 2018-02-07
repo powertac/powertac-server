@@ -29,6 +29,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalancingOrder;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ import org.springframework.stereotype.Service;
 public class TariffRepo implements DomainRepo
 {
   static private Logger log = LogManager.getLogger(TariffRepo.class.getName());
-  
+
   private HashMap<Long, TariffSpecification> specs;
   private HashSet<Long> deletedTariffs;
   private HashMap<PowerType, Tariff> defaultTariffs;
@@ -49,7 +50,7 @@ public class TariffRepo implements DomainRepo
   private HashMap<Long, Rate> rates;
   private TreeMap<Long, BoPair> balancingOrders;
   private TreeMap<String, LinkedList<Tariff>> brokerTariffs;
-  
+
   public TariffRepo ()
   {
     super();
@@ -61,7 +62,7 @@ public class TariffRepo implements DomainRepo
     balancingOrders = new TreeMap<>();
     brokerTariffs = new TreeMap<>();
   }
-  
+
   /**
    * Adds a TariffSpecification to the repo just in case another spec
    * (or this one) has not already been added sometime in the past.
