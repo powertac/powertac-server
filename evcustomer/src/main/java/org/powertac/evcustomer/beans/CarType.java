@@ -40,6 +40,10 @@ public class CarType
   // configurable through setter
   private double awayChargeKW;    // Charging speed away from home
 
+  private double curtailmentFactor = -0.08; // expected curtailment as a function of HCK
+  private double dischargeFactor = -0.05;
+  private double downRegFactor = 0.10;
+
   private String name;
 
   /**
@@ -122,5 +126,41 @@ public class CarType
   public void setAwayChargeKW (double kw)
   {
     this.awayChargeKW = kw;
+  }
+
+  public double getCurtailmentFactor ()
+  {
+    return curtailmentFactor;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Expected curtailment per timeslot, as a ratio of homeChargeKW")
+  public void setCurtailmentFactor (double ratio)
+  {
+    curtailmentFactor = ratio;
+  }
+
+  public double getDischargeFactor ()
+  {
+    return dischargeFactor;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Expected V2G per timeslot as a fn of homeChargeKW")
+  public void setDischargeFactor (double ratio)
+  {
+    dischargeFactor = ratio;
+  }
+
+  public double getDownRegFactor ()
+  {
+    return downRegFactor;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "expected down regulation per timeslot as fn of homeChargeKW")
+  public void setDownRegFactor (double ratio)
+  {
+    downRegFactor = ratio;
   }
 }

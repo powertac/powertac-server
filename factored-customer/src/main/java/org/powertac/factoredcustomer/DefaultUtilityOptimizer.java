@@ -229,9 +229,6 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   // TODO - needs fix for #956
   private void usePower (Timeslot timeslot)
   {
-    if ("BrooksideHomes".equals(customerStructure.getName())) {
-      System.out.println("Brookside");
-    }
     for (CapacityBundle bundle : capacityBundles) {
       List<TariffSubscription> subscriptions =
           getTariffSubscriptionRepo()

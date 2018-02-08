@@ -185,6 +185,9 @@ public class EvCustomer
         .withRationality(config.getRationalityFactor())
         .withTariffEvalDepth(config.getTariffCount())
         .withTariffSwitchFactor(config.getBrokerSwitchFactor());
+    te.initializeRegulationFactors(car.getHomeChargeKW() * car.getCurtailmentFactor(),
+                                   car.getHomeChargeKW() * car.getDischargeFactor(),
+                                   car.getHomeChargeKW() * car.getDownRegFactor());
     return te;
   }
 
