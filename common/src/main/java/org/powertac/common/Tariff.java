@@ -390,6 +390,8 @@ public class Tariff
 
   private boolean isOverpricedUpRegulation ()
   {
+    if (!this.hasRegulationRate())
+      return false;
     return regulationRate.getUpRegulationPayment()
             > getMeanConsumptionPrice()
             * Competition.currentCompetition().getMaxUpRegulationPaymentRatio();
@@ -397,6 +399,8 @@ public class Tariff
 
   private boolean isOverpricedDownRegulation ()
   {
+    if (!this.hasRegulationRate())
+      return false;
     return regulationRate.getDownRegulationPayment()
             < getMeanConsumptionPrice()
             * Competition.currentCompetition().getMaxDownRegulationPaymentRatio();
