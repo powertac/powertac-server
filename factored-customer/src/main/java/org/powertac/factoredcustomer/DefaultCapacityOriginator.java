@@ -437,6 +437,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return capacity * popRatio;
   }
 
+  // TODO -- seems gratuitous
   private double getPopulationRatio (int customerCount, int population)
   {
     return ((double) customerCount) / ((double) population);

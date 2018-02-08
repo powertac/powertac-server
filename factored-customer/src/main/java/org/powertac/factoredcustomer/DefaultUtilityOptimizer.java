@@ -229,6 +229,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   // TODO - needs fix for #956
   private void usePower (Timeslot timeslot)
   {
+    if ("BrooksideHomes".equals(customerStructure.getName())) {
+      System.out.println("Brookside");
+    }
     for (CapacityBundle bundle : capacityBundles) {
       List<TariffSubscription> subscriptions =
           getTariffSubscriptionRepo()
@@ -250,7 +253,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                                          lastOriginator + subscription.getCustomersCommitted());
           lastOriginator += subscription.getCustomersCommitted();
         }
-        CapacityAccumulator ca = useCapacity(subscription, originators);
+        CapacityAccumulator ca = useCapacity(bundle, subscription, originators);
         double currCapacity = usageSign * ca.getCapacity();
         if (Config.getInstance().isUsageChargesLogging()) {
           double charge =
@@ -275,15 +278,18 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     }
   }
 
-  private CapacityAccumulator useCapacity (TariffSubscription subscription,
+  private CapacityAccumulator useCapacity (CapacityBundle bundle,
+                                           TariffSubscription subscription,
                                            List<CapacityOriginator> originators)
   {
     CapacityAccumulator capacity = new CapacityAccumulator();
     for (CapacityOriginator capacityOriginator : originators) {
       capacity.add(capacityOriginator.useCapacity(subscription));
     }
-    capacity.scale((double)subscription.getCustomersCommitted() /
-                   (double)originators.size());
+    if (bundle.isAllIndividual()) {
+      capacity.scale((double)subscription.getCustomersCommitted() /
+                     (double)originators.size());
+    }
     return capacity;
   }
 
