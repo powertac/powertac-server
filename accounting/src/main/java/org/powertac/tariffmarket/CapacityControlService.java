@@ -197,6 +197,7 @@ implements CapacityControl, InitializationService
   @Override
   public void activate (Instant time, int phaseNumber)
   {
+    log.info("CapacityControlService.activate() phase {}", phaseNumber);
     // Find economic controls for current timeslot, communicate
     // them to their respective subscriptions.
     int tsIndex = timeslotRepo.currentTimeslot().getSerialNumber();
@@ -234,6 +235,7 @@ implements CapacityControl, InitializationService
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
+    super.init();
     pendingEconomicControls.clear();
     return "CapacityControl";
   }

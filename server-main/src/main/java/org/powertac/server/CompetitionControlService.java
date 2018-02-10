@@ -964,6 +964,8 @@ public class CompetitionControlService
           phaseRegistrations.add(new ArrayList<TimeslotPhaseProcessor>());
         }
       }
+      log.info("register TimeslotPhaseProcessor {}, phase {}",
+               thing.getClass().getName(), phase);
       phaseRegistrations.get(phase - 1).add(thing);
     }
   }
