@@ -526,6 +526,9 @@ public class TariffSubscription
                 + ", maxUpRegulation=" + mur);
       regulationAccumulator.setUpRegulationCapacity(mur - result);
     }
+    if (0.0 != result)
+      log.info("Economic control of {} by {}",
+               customer.getName(), result);
     addRegulation(result); // saved until next timeslot
     pendingRegulationRatio = 0.0;
     return result;

@@ -51,11 +51,6 @@
     <property name="timeslotPhase" value="1" />
   </bean>
 
-  <bean id="capacityControlService"
-        class="org.powertac.tariffmarket.CapacityControlService">
-    <property name="timeslotPhase" value="1" />
-  </bean>
-
   <bean id="householdCustomerService"
         class="org.powertac.householdcustomer.HouseholdCustomerService">
     <property name="timeslotPhase" value="2" />
@@ -78,6 +73,11 @@
 
   <bean id="balancingMarketService"
         class="org.powertac.balancemkt.BalancingMarketService">
+    <property name="timeslotPhase" value="3" />
+  </bean>
+
+  <bean id="capacityControlService"
+        class="org.powertac.tariffmarket.CapacityControlService">
     <property name="timeslotPhase" value="3" />
   </bean>
 

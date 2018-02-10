@@ -57,22 +57,30 @@ implements CapacityControl, InitializationService
 
   @Autowired
   TariffRepo tariffRepo;
-  
+
   @Autowired
   TariffSubscriptionRepo tariffSubscriptionRepo;
-  
+
   @Autowired
   TimeslotRepo timeslotRepo;
-  
+
   @Autowired
   BrokerProxy brokerProxy;
-  
+
   // future economic controls
   HashMap<Integer, List<EconomicControlEvent>> pendingEconomicControls =
       new HashMap<>();
-  
+
   // ignore quantities less than epsilon
   private double epsilon = 1e-6;
+
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
+  {
+    super.init();
+    pendingEconomicControls.clear();
+    return "CapacityControl";
+  }
 
   /* (non-Javadoc)
    * @see org.powertac.common.interfaces.CapacityControl#exerciseBalancingControl(org.powertac.common.msg.BalancingOrder, double)
@@ -230,14 +238,7 @@ implements CapacityControl, InitializationService
         }
       }
     }
-  }
-
-  @Override
-  public String initialize (Competition competition, List<String> completedInits)
-  {
-    super.init();
-    pendingEconomicControls.clear();
-    return "CapacityControl";
+    pendingEconomicControls.remove(tsIndex);
   }
 
   // ---------------- Test support ------------------
