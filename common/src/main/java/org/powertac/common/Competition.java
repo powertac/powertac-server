@@ -95,14 +95,20 @@ public class Competition //implements Serializable
   private double minimumOrderQuantity = 0.01; // MWh
 
   // Tariff evaluation parameters
-  /** Above this ratio, assume no up-regulation during evaluation. */
+  /** Above this ratio, regulation is discounted. */
   @XStreamAsAttribute
-  private double maxUpRegulationPaymentRatio = -6.0;
+  private double maxUpRegulationPaymentRatio = -4.0;
 
-  /** Above this ratio, customer will not offer down-regulation,
+  @XStreamAsAttribute
+  private double upRegulationDiscount = 0.5;
+
+  /** Above this ratio, customer will discount down-regulation,
       either during evaluation nor at runtime. */
   @XStreamAsAttribute
   private double maxDownRegulationPaymentRatio = 1.5;
+
+  @XStreamAsAttribute
+  private double downRegulationDiscount = 0.4;
 
   /** Brokers typically pay less for production than they charge for
       consumption. This ratio is an estimate of that margin that is used
@@ -381,6 +387,24 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * Discount rate for overpriced up-regulation.
+   */
+  public double getUpRegulationDiscount ()
+  {
+    return upRegulationDiscount;
+  }
+
+  /**
+   * Fluent setter for overpriced up-regulation discount rate.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "Discount rate on overpriced up-regulation")
+  public Competition withUpRegulationDiscount (double value)
+  {
+    upRegulationDiscount = value;
+    return this;
+  }
 
   /**
    * If a tariff offers a down-regulation price larger (more negative) than the
@@ -400,6 +424,25 @@ public class Competition //implements Serializable
   public Competition withMaxDownRegulationPaymentRatio (double value)
   {
     maxDownRegulationPaymentRatio = value;
+    return this;
+  }
+
+  /**
+   * Discount rate for overpriced down-regulation.
+   */
+  public double getDownRegulationDiscount ()
+  {
+    return downRegulationDiscount;
+  }
+
+  /**
+   * Fluent setter for overpriced down-regulation discount rate.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "Discount rate on overpriced down-regulation")
+  public Competition withDownRegulationDiscount (double value)
+  {
+    downRegulationDiscount = value;
     return this;
   }
 

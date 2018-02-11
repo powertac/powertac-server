@@ -356,11 +356,11 @@ public class Tariff
       return getUsageCharge(-kwh, cumulativeUsage, recordUsage);
     }
 
-    if (kwh < 0.0 && !isOverpricedUpRegulation()) {
+    if (kwh < 0.0) {
       // up-regulation: pos * pos
       return -kwh * regulationRate.getUpRegulationPayment();
     }
-    else if (kwh > 0.0 && !isOverpricedDownRegulation()) {
+    else if (kwh > 0.0) {
       // down-regulation pos * neg
       return kwh * regulationRate.getDownRegulationPayment();
     }
@@ -371,39 +371,49 @@ public class Tariff
   /**
    * Applies price constraint to up-regulation quantity.
    */
-  public double applyUpRegulationPriceConstraint (double quantity)
-  {
-    if (isOverpricedUpRegulation())
-      return 0.0;
-    return quantity;
-  }
+  //public double applyUpRegulationPriceConstraint (double quantity)
+  //{
+  //  return quantity * overpricedUpRegulationRatio();
+  //}
 
   /**
    * Applies price constraint to down-regulation quantity.
    */
-  public double applyDownRegulationPriceConstraint (double quantity)
-  {
-    if (isOverpricedDownRegulation())
-      return 0.0;
-    return quantity;
-  }
+  //public double applyDownRegulationPriceConstraint (double quantity)
+  //{
+   // if (isOverpricedDownRegulation())
+   //   return 0.0;
+   // return quantity;
+  //}
 
-  private boolean isOverpricedUpRegulation ()
+  public double overpricedUpRegulationRatio ()
   {
     if (!this.hasRegulationRate())
-      return false;
-    return regulationRate.getUpRegulationPayment()
-            > getMeanConsumptionPrice()
-            * Competition.currentCompetition().getMaxUpRegulationPaymentRatio();
+      return 1.0;
+    double excess =
+            regulationRate.getUpRegulationPayment() // positive
+            - (getMeanConsumptionPrice() // negative * negative
+               * Competition.currentCompetition().getMaxUpRegulationPaymentRatio());
+    if (excess > 0.0)
+      return Math.pow(Competition.currentCompetition().getUpRegulationDiscount(),
+                      excess);
+    else
+      return 1.0;
   }
 
-  private boolean isOverpricedDownRegulation ()
+  public double overpricedDownRegulationRatio ()
   {
     if (!this.hasRegulationRate())
-      return false;
-    return regulationRate.getDownRegulationPayment()
-            < getMeanConsumptionPrice()
-            * Competition.currentCompetition().getMaxDownRegulationPaymentRatio();
+      return 1.0;
+    double excess =
+            -regulationRate.getDownRegulationPayment() // very negative
+            + (getMeanConsumptionPrice() // negative * positive
+               * Competition.currentCompetition().getMaxDownRegulationPaymentRatio());
+    if (excess > 0.0)
+      return Math.pow(Competition.currentCompetition().getDownRegulationDiscount(),
+                      excess);
+    else
+      return 1.0;
   }
 
   /** 

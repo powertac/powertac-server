@@ -606,12 +606,12 @@ public class TariffTests
     spec.addRate(rr1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("unconstrained up-reg", -20.0,
-                 te.applyUpRegulationPriceConstraint(-20.0), 1e-6);
+    assertEquals("unconstrained up-reg", 1.0,
+                 te.overpricedUpRegulationRatio(), 1e-6);
     assertEquals("correct up-reg charge", 4.0,
                  te.getRegulationCharge(-20.0, 0.0, false), 1e-6);
-    assertEquals("unconstrained down-reg", 10.0,
-                 te.applyDownRegulationPriceConstraint(10.0), 1e-6);
+    assertEquals("unconstrained down-reg", 1.0,
+                 te.overpricedDownRegulationRatio(), 1e-6);
     assertEquals("correct down-reg charge", -3.0,
                  te.getRegulationCharge(30.0, 0.0, false), 1e-6);
   }
@@ -625,7 +625,7 @@ public class TariffTests
             .withExpiration(exp)
             .withMinDuration(TimeService.WEEK * 8);
     Rate r1 = new Rate()
-                  .withValue(-0.121)
+                  .withValue(-0.1)
                   .withMaxCurtailment(0.3);
     spec.addRate(r1);
     RegulationRate rr1 = new RegulationRate()
@@ -635,13 +635,13 @@ public class TariffTests
     spec.addRate(rr1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("unconstrained up-reg", 0.0,
-                 te.applyUpRegulationPriceConstraint(-20.0), 1e-6);
-    assertEquals("correct up-reg charge", 0.0,
+    assertEquals("constrained up-reg", 0.32987698,
+                 te.overpricedUpRegulationRatio(), 1e-6);
+    assertEquals("correct up-reg charge", 40.0,
                  te.getRegulationCharge(-20.0, 0.0, false), 1e-6);
-    assertEquals("unconstrained down-reg", 0.0,
-                 te.applyDownRegulationPriceConstraint(10.0), 1e-6);
-    assertEquals("correct down-reg charge", 0.0,
+    assertEquals("constrained down-reg", 0.458934802,
+                 te.overpricedDownRegulationRatio(), 1e-6);
+    assertEquals("correct down-reg charge", -30.0,
                  te.getRegulationCharge(30.0, 0.0, false), 1e-6);
   }
 }

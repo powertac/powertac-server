@@ -206,10 +206,14 @@ public class TariffEvaluationHelper
     // for up-reg and negative for down-reg. This explains the signs used here.
     double adj = 0.0;
     if (tariff.hasRegulationRate()) {
+      double upreg =
+              (expCurtail + expDischarge) * tariff.overpricedUpRegulationRatio();
       adj +=
-          tariff.getRegulationCharge((expCurtail + expDischarge), 0.0, false);
+          tariff.getRegulationCharge(upreg, 0.0, false);
+      double downreg =
+              expDown * tariff.overpricedDownRegulationRatio();
       adj +=
-          tariff.getRegulationCharge(expDown, 0.0, false);
+          tariff.getRegulationCharge(downreg, 0.0, false);
       // Extra burden for tariffs with higher cost for down-regulation
       // than for consumption
     }
