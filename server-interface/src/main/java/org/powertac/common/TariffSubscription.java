@@ -422,10 +422,10 @@ public class TariffSubscription
   //@StateChange
   public void setRegulationCapacity (RegulationCapacity capacity)
   {
-    double upRegulation =
-            getTariff().applyUpRegulationPriceConstraint(capacity.getUpRegulationCapacity());
+    double upRegulation = capacity.getUpRegulationCapacity();
     double downRegulation =
-            getTariff().applyDownRegulationPriceConstraint(capacity.getDownRegulationCapacity());
+            getTariff().overpricedDownRegulationRatio()
+            * capacity.getDownRegulationCapacity();
     regulationAccumulator =
             new RegulationAccumulator(upRegulation, downRegulation);
   }
