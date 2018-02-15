@@ -1,5 +1,7 @@
 # Power TAC Simulation Server
 
+[![Join the chat at https://gitter.im/powertac/powertac-server](https://badges.gitter.im/powertac/powertac-server.svg)](https://gitter.im/powertac/powertac-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Introduction
 
 Power TAC is a competitive simulation designed to support the study of retail electric power markets, especially as they relate to managing distributed renewable power sources. For more information, see http://www.powertac.org.
