@@ -17,12 +17,14 @@ package org.powertac.samplebroker.core;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -63,58 +65,83 @@ public class BrokerRunner
             parser.accepts("queue-name").withRequiredArg().ofType(String.class);
     OptionSpec<String> serverQueueOption =
             parser.accepts("server-queue").withRequiredArg().ofType(String.class);
-    parser.accepts("no-ntp");
+    parser.accepts("raw-xml");
+    //parser.accepts("no-ntp");
     parser.accepts("interactive");
+    OptionSpec<String> propOption =
+            parser.accepts("prop").withRequiredArg().ofType(String.class);
 
     // do the parse
     OptionSet options = parser.parse(args);
 
     File configFile = null;
-    String jmsUrl = null;
-    boolean noNtp = false;
-    boolean interactive = false;
-    String queueName = null;
-    String serverQueue = null;
+    //String jmsUrl = null;
+    //boolean noNtp = false;
+    //boolean interactive = false;
+    //String queueName = null;
+    //String serverQueue = null;
     Integer repeatCount = 1;
     Integer repeatHours = 0;
     long end = 0l;
-    
+    PropertiesConfiguration cliProps = new PropertiesConfiguration();
+
     try {
       // process broker options
-      System.out.println("Options: ");
+      System.out.println("<options");
       if (options.has(configOption)) {
         configFile = options.valueOf(configOption);
-        System.out.println("  config=" + configFile.getName());
+        System.out.println(" config=\"" + configFile.getName() + "\"");
       }
       if (options.has(jmsUrlOption)) {
-        jmsUrl = options.valueOf(jmsUrlOption);
-        System.out.println("  jms-url=" + jmsUrl);
+        cliProps.setProperty("samplebroker.core.powerTacBroker.jmsBrokerUrl",
+                             options.valueOf(jmsUrlOption));
+        System.out.print(" jms-url=\"" + options.valueOf(jmsUrlOption) + "\"");
       }
-      if (options.has("no-ntp")) {
-        noNtp = true;
-        System.out.println("  no ntp - estimate offset");
-      }
+      //if (options.has("no-ntp")) {
+      //  noNtp = true;
+      //  System.out.println("  no ntp - estimate offset");
+      //}
       if (options.has(repeatCountOption)) {
         repeatCount = options.valueOf(repeatCountOption);
-        System.out.println("  repeat " + repeatCount + " times");
+        System.out.print(" repeat-count=\"" + repeatCount + "\"");
       }
       else if (options.has(repeatHoursOption)) {
         repeatHours = options.valueOf(repeatHoursOption);
-        System.out.println("  repeat for " + repeatHours + " hours");
+        System.out.print(" repeat-hours=\"" + repeatHours + "\"");
         long now = new Date().getTime();
         end = now + 1000 * 3600 * repeatHours;
       }
       if (options.has(queueNameOption)) {
-        queueName = options.valueOf(queueNameOption);
-        System.out.println("  queue-name=" + queueName);
+        cliProps.setProperty("samplebroker.core.powerTacBroker.brokerQueueName",
+                             options.valueOf(queueNameOption));
+        System.out.print(" queue-name=\"" + options.valueOf(queueNameOption) + "\"");
       }
       if (options.has(serverQueueOption)) {
-        serverQueue = options.valueOf(serverQueueOption);
-        System.out.println("  server-queue=" + serverQueue);
+        cliProps.setProperty("samplebroker.core.powerTacBroker.serverQueueName",
+                             options.valueOf(serverQueueOption));
+        System.out.print(" server-queue=\"" + options.valueOf(serverQueueOption) + "\"");
       }
       if (options.has("interactive")) {
-        interactive = true;
-        System.out.println("  interactive=true");
+        cliProps.setProperty("samplebroker.core.powerTacBroker.interactive",
+                "true");
+        System.out.print(" interactive=\"true\"");
+      }
+      if (options.has("raw-xml")) {
+        cliProps.setProperty("samplebroker.core.brokerMessageReceiver.rawXml",
+                             "true");
+        System.out.print(" raw-xml=\"true\"");
+      }
+      if (options.has(propOption)) {
+        List<String> values = options.valuesOf(propOption);
+        for (String value: values) {
+          int colon = value.indexOf(":");
+          if (colon > 0) {
+            String name = value.substring(0, colon);
+            String val = value.substring(colon + 1);
+            cliProps.setProperty(name, val);
+            System.out.print(" " + name + "=" + val);
+          }
+        }
       }
 
       // at this point, we are either done, or we need to repeat
@@ -140,8 +167,7 @@ public class BrokerRunner
         broker = (PowerTacBroker)context.getBeansOfType(PowerTacBroker.class).values().toArray()[0];
         System.out.println("Starting session " + counter);
         log.info("Starting session {}", counter);
-        broker.startSession(configFile, jmsUrl, noNtp,
-                            queueName, serverQueue, end, interactive);
+        broker.startSession(cliProps, configFile, end);
         if (null != repeatCount)
           repeatCount -= 1;
       }

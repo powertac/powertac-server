@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.Properties;
 
 import org.apache.commons.configuration2.CompositeConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -151,6 +152,26 @@ implements ApplicationContextAware
       log.error("Error loading configuration: " + e.toString());
     }
     lazyInit();
+  }
+
+  /**
+   * Adds the Properties structure to the broker configuration. Earlier
+   * configuration sources take precedence over later sources.
+   */
+  public void addProperties (Properties props)
+  {
+    PropertiesConfiguration pconfig = new PropertiesConfiguration();
+    props.forEach((key, value) -> pconfig.addProperty((String) key, value));
+    addProperties(pconfig);
+  }
+
+  /**
+   * Adds the PropertiesConfiguration to the broker configuration. Earlier
+   * configuration sources take precedence over later sources.
+   */
+  public void addProperties (PropertiesConfiguration props)
+  {
+    config.addConfiguration(props);
   }
 
   public void configureMe (Object target)

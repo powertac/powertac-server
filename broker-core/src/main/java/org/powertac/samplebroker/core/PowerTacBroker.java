@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 the original author or authors.
+ * Copyright 2012-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
@@ -131,28 +132,32 @@ implements BrokerContext
           description = "Authorization token for tournament")
   private String authToken = "";
 
+  @ConfigurableValue(valueType = "String",
+      description = "Name of incoming message queue")
+  private String serverQueueName = "serverInput";
+
+  @ConfigurableValue(valueType = "String",
+      description = "URL for JMS message broker running on server")
+  private String jmsBrokerUrl = null;
+
+  @ConfigurableValue(valueType = "String",
+      description = "Name of outgoing message queue")
+  private String brokerQueueName = null; // set by tournament manager
+
+  @ConfigurableValue(valueType = "Boolean",
+      description = "If true, then broker pauses in each timeslot")
+  private boolean interactive = false; // if true, pause in each timeslot
+
   // Broker keeps its own records
-  //private ArrayList<String> brokerNames;
-  //private Instant baseTime = null;
   private long quittingTime = 0l;
   private int currentTimeslot = 0; // index of last started timeslot
   private int timeslotCompleted = 0; // index of last completed timeslot
-  private boolean interactive = false; // if true, pause in each timeslot
-  //private int pausedAt = 0; // index of current timeslot during pause, else 0
   private boolean running = false; // true to run, false to stop
   private BrokerAdapter adapter;
-  private String serverQueueName = "serverInput";
-  private String brokerQueueName = null; // set by tournament manager
 
   // synchronization variables
-  private boolean noNtp = false; // true if we should attempt offset estimate
   private long brokerTime = 0l;
   private long serverClockOffset = 0l; // should stay zero for ntp situation
-  //private long maxResponseDelay = 400l; // <800msec delay is "immediate"
-  private long defaultResponseTime = 100l;
-
-  // needed for backward compatibility
-  private String jmsBrokerUrl = null;
 
   /**
    * Default constructor for remote broker deployment
@@ -163,27 +168,18 @@ implements BrokerContext
   }
 
   /**
-   * Starts a new session
-   * @param noNtp 
+   * Starts a new session, setting parameters from command-line and from
+   * config file. 
    */
-  public void startSession (File configFile, String jmsUrl, boolean noNtp,
-                            String queueName, String serverQueue, long end,
-                            boolean interactive)
+  public void startSession (PropertiesConfiguration cli,
+                            File configFile, long end)
   {
     quittingTime = end;
-    this.noNtp = noNtp;
-    this.interactive = interactive;
-    if (null != queueName && !queueName.isEmpty())
-      brokerQueueName = queueName;
-    if (null != serverQueue && !serverQueue.isEmpty())
-      serverQueueName = serverQueue;
+    propertiesService.addProperties(cli);
     if (null != configFile && configFile.canRead())
       propertiesService.setUserConfig(configFile);
-    if (null != jmsUrl)
-      propertiesService.setProperty("samplebroker.core.jmsManagementService.jmsBrokerUrl",
-                                      jmsUrl);
     propertiesService.configureMe(this);
-    
+
     // Initialize and run.
     init();
     run();
@@ -221,7 +217,7 @@ implements BrokerContext
   }
 
   /**
-   * Finds all the handleMessage() methdods and registers them.
+   * Finds all the handleMessage() methods and registers them.
    */
   private void registerMessageHandlers (Object thing)
   {
@@ -402,18 +398,12 @@ implements BrokerContext
   //
   // Note that these arrive in JMS threads; If they share data with the
   // agent processing thread, they need to be synchronized.
-  
+
   /**
    * BrokerAccept comes out when our authentication credentials are accepted
    * and we become part of the game. Before this, we cannot send any messages
    * other than BrokerAuthentication. Also, note that the ID prefix needs to be
    * set before any server-visible entities are created (such as tariff specs).
-   * 
-   * Here we estimate the timeoffset between broker and server. This is
-   * slightly complicated because in a non-tournament situation the
-   * login request might have been sent before the server was prepared
-   * to deal with it. So if the response delay seems out of range,
-   * we ignore the earlier time.
    */
   public synchronized void handleMessage (BrokerAccept accept)
   {
@@ -422,36 +412,9 @@ implements BrokerContext
     IdGenerator.setPrefix(accept.getPrefix());
     adapter.setKey(accept.getKey());
     router.setKey(accept.getKey());
-    // estimate time offset
-    long now = new Date().getTime();
-    long response = now - brokerTime;
-    //if (response < maxResponseDelay) {
-      // assume the response was halfway between login and now
-    //  now -= response / 2;
-    //}
-    //else {
-      // assume default response time
-      now -= defaultResponseTime;
-    //}
-    if (noNtp) {
-      // Rough clock offset calculation
-      if (0l != accept.getServerTime()) {
-        // ignore missing data for backward compatibility
-        serverClockOffset = accept.getServerTime() - now;
-        if (Math.abs(serverClockOffset) < defaultResponseTime) {
-          // assume ntp is working
-          serverClockOffset = 0l;
-        }
-      }
-      else {
-        log.info("Server does not provide system time - cannot adjust offset");
-      }
-      log.info("login response = " + response
-               + ", server clock offset = " + serverClockOffset);
-    }
     notifyAll();
   }
-  
+
   /**
    * Handles the Competition instance that arrives at beginning of game.
    * Here we capture all the customer records so we can keep track of their
@@ -575,6 +538,7 @@ implements BrokerContext
   }
 
   // The worker thread comes here to wait for the next activation
+  // Time limit is 2 min in non-interactive mode
   synchronized int waitForActivation (int index)
   {
     try {
@@ -585,7 +549,7 @@ implements BrokerContext
         wait(maxWait);
         long diff = System.currentTimeMillis() - nowStamp;
         if (diff >= maxWait) {
-          if (index != 0) {
+          if (!interactive && index != 0) {
             String msg =
               "worker thread waited more than " + maxWait / 1000
                   + " secs for server, abandoning game";

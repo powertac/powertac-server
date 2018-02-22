@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012, 2018 by the original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 package org.powertac.samplebroker.core;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -27,30 +30,36 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.samplebroker.interfaces.IpcAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Receives incoming jms messages for the broker and deserializes them.
+ * Receives incoming jms messages for the broker and deserializes them just in case
+ * they are to be consumed within the current JVM process.
+ * 
  * @author Nguyen Nguyen, John Collins
  */
 @Service
 public class BrokerMessageReceiver implements MessageListener
 {
   static private Logger log = LogManager.getLogger(BrokerMessageReceiver.class);
-  
+
   @Autowired
-  XMLMessageConverter converter;
-  
-  @Autowired 
-  MessageDispatcher messageDispatcher;
+  private XMLMessageConverter converter;
+
+  @Autowired
+  private MessageDispatcher messageDispatcher;
 
   @Autowired
   private BrokerPropertiesService propertiesService;
 
+  private IpcAdapter adapter;
+
   @ConfigurableValue(valueType = "Boolean",
       description = "If true, then some messages are not converted to java")
-  private Boolean rawXML = false;
+  private Boolean rawXml = false;
 
   @ConfigurableValue(valueType = "List",
       description = "These xml message types are passed without conversion")
@@ -60,18 +69,71 @@ public class BrokerMessageReceiver implements MessageListener
       description = "These xml message types are passed after conversion")
   private List<String> cookedMsgTypes = new ArrayList<>();
 
+  // hash sets to speed lookup of xml types
+  private HashSet<String> rawTypes;
+  private HashSet<String> cookedTypes;
+  private Pattern tagRe = Pattern.compile("<([-_\\w]+)[\\s/>]");
+
   public void initialize ()
   {
     propertiesService.configureMe(this);
+    if (rawXml) {
+      log.info("rawXml={}", rawXml);
+      // set up data structures
+      rawTypes = new HashSet<>();
+      rawMsgTypes.forEach(msg -> {
+        //log.info("raw type {}", msg);
+        rawTypes.add(msg);
+      });
+      cookedTypes = new HashSet<>();
+      cookedMsgTypes.forEach(msg -> {
+        //log.info("cooked type {}", msg);
+        cookedTypes.add(msg);
+      });
+      // find the message handler if it's not already there
+      if (null == adapter) {
+        List<IpcAdapter> handlers =
+            SpringApplicationContext.listBeansOfType(IpcAdapter.class);
+        if (handlers.size() > 0) {
+          // assume it's one
+          adapter = handlers.get(0);
+        }
+        else {
+          log.error("Raw xml specified, but no adapter available");
+          rawXml = false;
+        }
+      }
+    }
   }
 
   @Override
   public void onMessage (Message message)
   {
     if (message instanceof TextMessage) {
+      String msg;
       try {
         log.debug("onMessage(Message) - receiving a message");
-        onMessage(((TextMessage) message).getText());
+        msg = ((TextMessage) message).getText();
+        log.info("received message:\n" + msg);
+        //onMessage(msg);
+        if (rawXml) {
+          // Extract the tag, conditionally pass on the message and/or
+          // unmarshal it and process it locally
+          Matcher m = tagRe.matcher(msg);
+          if (m.lookingAt()) {
+            String tag = m.group(1);
+            log.info("msg tag: {}", tag);
+            if (cookedTypes.contains(tag)) {
+              onMessage(msg);
+            }
+            if (rawTypes.contains(tag)) {
+              adapter.exportMessage(msg);
+            }
+          }
+        }
+        else {
+          onMessage(msg);
+        }
       } catch (JMSException e) {
         log.error("failed to extract text from TextMessage", e);
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012, 2017 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,22 +110,30 @@ public class MessageDispatcher
 
   // ------------------ Outgoing messages ------------------
   /**
-   * Sends outgoing messages to the server
+   * Converts outgoing message to XML, sends it to the server
    */
   public void sendMessage(Object message)
   {
     if (!validateId(message))
       return;
     final String text = key + converter.toXML(message);
-    log.info("sending text: \n" + text);
+    sendRawMessage(text);
+  }
+
+  /**
+   * Sends XML-formatted message to the server without interpretation.
+   */
+  public void sendRawMessage (String message)
+  {
+    log.info("sending text: \n" + message);
 
     template.send(jmsManagementService.getServerQueueName(),
                   new MessageCreator() {
       @Override
       public Message createMessage (Session session) throws JMSException
       {
-        TextMessage message = session.createTextMessage(text);
-        return message;
+        TextMessage msg = session.createTextMessage(message);
+        return msg;
       }
     });
   }
