@@ -143,6 +143,7 @@ public class BrokerRunner
           }
         }
       }
+      System.out.println("/>");
 
       // at this point, we are either done, or we need to repeat
       int counter = 0;

@@ -141,7 +141,7 @@ public class BrokerMessageReceiver implements MessageListener
   }
 
   private void onMessage (String xml) {
-    log.info("onMessage(String) - received message:\n" + xml);
+    //log.info("onMessage(String) - received message:\n" + xml);
     Object message = converter.fromXML(xml);
     log.debug("onMessage(String) - received message of type " + message.getClass().getSimpleName());
     messageDispatcher.routeMessage(message);

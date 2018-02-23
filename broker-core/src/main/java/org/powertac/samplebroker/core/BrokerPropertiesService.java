@@ -103,13 +103,13 @@ implements ApplicationContextAware
     
     // set up the classpath props
     try {
-      Resource[] xmlResources = context.getResources("classpath*:config/properties.xml");
+      Resource[] xmlResources = context.getResources("classpath*:config/*.xml");
       for (Resource xml : xmlResources) {
         if (validXmlResource(xml)) {
           log.info("loading config from " + xml.getURI());
-          XMLConfiguration xconfig = new XMLConfiguration();
-          xconfig.read(xml.getInputStream());
-          config.addConfiguration(xconfig);
+          //XMLConfiguration xconfig = new XMLConfiguration();
+          //xconfig.read(xml.getInputStream());
+          config.addConfiguration(Configurator.readXML(xml.getURL()));
         }
       }
       Resource[] propResources = context.getResources("classpath*:config/*.properties");
