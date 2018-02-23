@@ -107,8 +107,6 @@ implements ApplicationContextAware
       for (Resource xml : xmlResources) {
         if (validXmlResource(xml)) {
           log.info("loading config from " + xml.getURI());
-          //XMLConfiguration xconfig = new XMLConfiguration();
-          //xconfig.read(xml.getInputStream());
           config.addConfiguration(Configurator.readXML(xml.getURL()));
         }
       }
@@ -119,9 +117,7 @@ implements ApplicationContextAware
             log.error("Null resource");
           }
           log.info("loading config from " + prop.getURI());
-          PropertiesConfiguration pconfig = new PropertiesConfiguration();
-          pconfig.read(new InputStreamReader(prop.getInputStream()));
-          config.addConfiguration(pconfig);
+          config.addConfiguration(Configurator.readProperties(prop.getURL()));
         }
       }
     }
