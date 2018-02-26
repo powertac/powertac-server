@@ -136,10 +136,12 @@ public class BrokerMessageReceiver implements MessageListener
               adapter.exportMessage(msg);
             }
           }
-        } else {
+        }
+        else {
           onMessage(msg);
         }
-      } catch (JMSException e) {
+      }
+      catch (JMSException e) {
         log.error("failed to extract text from TextMessage", e);
       }
     }
