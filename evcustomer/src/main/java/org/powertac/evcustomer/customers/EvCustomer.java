@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, 2014, 2015 the original author or authors.
+ * Copyright 2013, 2014, 2015, 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ public class EvCustomer
   private RiskAttitude riskAttitude;
 
   private CarType car;
-  private double currentCapacity; // kwh
 
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
@@ -98,11 +97,17 @@ public class EvCustomer
   // ignore quantities less than epsilon
   private double epsilon = 1e-6;
 
+  // Vehicle state
   // We are driving this timeslot, so we can't charge
-  @ConfigurableValue(valueType = "Boolean",
-      bootstrapState = true,
+  @ConfigurableValue(valueType = "Boolean", bootstrapState = true,
       description = "True if the customer is driving and cannot charge")
-  private boolean driving;
+  private boolean driving = false;
+  @ConfigurableValue(valueType = "Double", bootstrapState = true,
+      description = "current charge in vehicle battery")
+  private double currentCapacity; // kwh
+  @ConfigurableValue(valueType = "Boolean", bootstrapState = true,
+      description = "True if vehicle is currently plugged in")
+  private boolean connected = true;
 
   private final int dataMapSize = 48;
   private Map<Integer, TimeslotData> timeslotDataMap =
@@ -383,7 +388,7 @@ public class EvCustomer
     try {
       double before = currentCapacity;
       discharge(neededCapacity);
-      log.info(String.format("%s driving %.1f kms / %.1f kWh from %.1f to %.1f",
+      log.info(String.format("%s driving %.1f kms d%d h%d / %.1f kWh from %.1f to %.1f",
           name, intendedDistance, neededCapacity, before, currentCapacity));
       driving = true;
     }
