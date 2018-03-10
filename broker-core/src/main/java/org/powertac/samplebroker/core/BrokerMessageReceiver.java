@@ -78,7 +78,7 @@ public class BrokerMessageReceiver implements MessageListener
   private HashSet<String> cookedTypes;
   private Pattern tagRe = Pattern.compile("<([-_\\w]+)[\\s/>]");
 
-  public void initialize()
+  public void initialize ()
   {
     propertiesService.configureMe(this);
     if (rawXml) {
@@ -99,7 +99,7 @@ public class BrokerMessageReceiver implements MessageListener
     }
   }
 
-  private void setMessageAdapter()
+  private void setMessageAdapter ()
   {
     if (null == adapter) {
       adapter = (IpcAdapter) SpringApplicationContext.getBean(xmlForwardType);
@@ -113,7 +113,7 @@ public class BrokerMessageReceiver implements MessageListener
 
 
   @Override
-  public void onMessage(Message message)
+  public void onMessage (Message message)
   {
     if (message instanceof TextMessage) {
       String msg;
@@ -147,7 +147,7 @@ public class BrokerMessageReceiver implements MessageListener
     }
   }
 
-  private void onMessage(String xml)
+  private void onMessage (String xml)
   {
     //log.info("onMessage(String) - received message:\n" + xml);
     Object message = converter.fromXML(xml);
