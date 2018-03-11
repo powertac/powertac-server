@@ -379,22 +379,28 @@
 	  <homeChargeKW>6.6</homeChargeKW>
 	  <awayChargeKW>3.3</awayChargeKW>
 	</Leaf24>
+	<Bolt60>
+	  <maxCapacity>60</maxCapacity>
+	  <range>380.0</range>
+          <homeChargeKW>6.6</homeChargeKW>
+          <awayChargeKW>3.3</awayChargeKW>
+	</Bolt60>
       </carType>
 
       <!-- Join table socialClass : carType -->
       <classCar>
-        <instances>h1t40,h1t60,h1t85,h1l24,
+        <instances>h1b60,h1t60,h1t85,h1l24,
         h2t40,h2t60,h2t85,h2l24,
         m1t40,m1t60,m1t85,m1l24,
         m2t40,m2t60,m2t85,m2l24,
         m3t40,m3t60,m3t85,m3l24,
         l1t40,l1t60,l1t85,l1l24</instances>
 
-	<h1t40>
+	<h1b60>
           <socialClass>HighIncome-1</socialClass>
-          <car>Tesla40</car>
+          <car>Bolt60</car>
           <probability>0.7</probability>
-	</h1t40>
+	</h1b60>
 	<h1t60>
           <socialClass>HighIncome-1</socialClass>
           <car>Tesla60</car>
@@ -408,7 +414,7 @@
 	<h1l24>
           <socialClass>HighIncome-1</socialClass>
           <car>Leaf24</car>
-          <probability>0.4</probability>
+          <probability>0.2</probability>
 	</h1l24>
 
 	<h2t40>
