@@ -82,6 +82,7 @@ public class BrokerMessageReceiver implements MessageListener
   {
     propertiesService.configureMe(this);
     if (rawXml) {
+      setMessageAdapter();
       log.info("rawXml={}", rawXml);
       // set up data structures
       rawTypes = new HashSet<>();
@@ -95,7 +96,6 @@ public class BrokerMessageReceiver implements MessageListener
         cookedTypes.add(msg);
       });
       // find the message handler if it's not already there
-      setMessageAdapter();
     }
   }
 
@@ -107,6 +107,7 @@ public class BrokerMessageReceiver implements MessageListener
     if (null == adapter) {
       log.error("Raw xml specified, but no adapter available");
       rawXml = false;
+      return;
     }
     log.info("Using {} for xml forwarding", xmlForwardType);
   }
