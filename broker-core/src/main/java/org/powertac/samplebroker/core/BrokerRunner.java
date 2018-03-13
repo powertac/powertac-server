@@ -65,7 +65,7 @@ public class BrokerRunner
             parser.accepts("queue-name").withRequiredArg().ofType(String.class);
     OptionSpec<String> serverQueueOption =
             parser.accepts("server-queue").withRequiredArg().ofType(String.class);
-    parser.accepts("xml-forward-type");
+    parser.accepts("ipc-adapter-name").withRequiredArg().ofType(String.class);
     //parser.accepts("no-ntp");
     parser.accepts("interactive");
     OptionSpec<String> propOption =
@@ -127,8 +127,9 @@ public class BrokerRunner
         System.out.print(" interactive=\"true\"");
       }
       if (options.has("ipc-adapter-name")){
-        cliProps.setProperty("samplebroker.core.brokerMessageReceiver.ipcAdapterName", options.valueOf("ipc-adapter-name"));
-        System.out.print("Using {} to initialize an IpcAdapter as a listener. This is the Class name of the Bean you want to use as an Adapter.");
+        Object adapterName = options.valueOf("ipc-adapter-name");
+        cliProps.setProperty("samplebroker.core.brokerMessageReceiver.ipcAdapterName", adapterName);
+        System.out.println("Using " + adapterName + " to initialize an IpcAdapter as a listener. This is the Class name of the Bean you want to use as an Adapter.");
       }
       if (options.has(propOption)) {
         List<String> values = options.valuesOf(propOption);
