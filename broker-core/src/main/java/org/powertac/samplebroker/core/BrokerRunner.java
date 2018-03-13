@@ -37,7 +37,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * the broker will start a new session after the previous session finishes,
  * based on a specified count or time period in hours.  
  * 
- * @author John Collins
+ * @author John Collins, Pascal Brokmeier
  */
 public class BrokerRunner
 {
@@ -65,7 +65,7 @@ public class BrokerRunner
             parser.accepts("queue-name").withRequiredArg().ofType(String.class);
     OptionSpec<String> serverQueueOption =
             parser.accepts("server-queue").withRequiredArg().ofType(String.class);
-    parser.accepts("raw-xml");
+    parser.accepts("xml-forward-type");
     //parser.accepts("no-ntp");
     parser.accepts("interactive");
     OptionSpec<String> propOption =
@@ -126,10 +126,9 @@ public class BrokerRunner
                 "true");
         System.out.print(" interactive=\"true\"");
       }
-      if (options.has("raw-xml")) {
-        cliProps.setProperty("samplebroker.core.brokerMessageReceiver.rawXml",
-                             "true");
-        System.out.print(" raw-xml=\"true\"");
+      if (options.has("ipc-adapter-name")){
+        cliProps.setProperty("samplebroker.core.brokerMessageReceiver.ipcAdapterName", options.valueOf("ipc-adapter-name"));
+        System.out.print("Using {} to initialize an IpcAdapter as a listener. This is the Class name of the Bean you want to use as an Adapter.");
       }
       if (options.has(propOption)) {
         List<String> values = options.valuesOf(propOption);

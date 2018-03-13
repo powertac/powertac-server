@@ -98,7 +98,7 @@ public class BrokerMessageReceiverTest
   @Test
   public void testRawTxtMsg ()
   {
-    ReflectionTestUtils.setField(uut, "rawXml", true);
+    ReflectionTestUtils.setField(uut, "ipcAdapterName", "CharStreamAdapter");
     uut.initialize();
     String msg = "<market-tx value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
@@ -112,7 +112,7 @@ public class BrokerMessageReceiverTest
   @Test
   public void testCookedMsg ()
   {
-    ReflectionTestUtils.setField(uut, "rawXml", true);
+    ReflectionTestUtils.setField(uut, "ipcAdapterName", "CharStreamAdapter");
     uut.initialize();
     String msg = "<sim-pause value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
@@ -125,7 +125,7 @@ public class BrokerMessageReceiverTest
   @Test
   public void testRawCookedMsg ()
   {
-    ReflectionTestUtils.setField(uut, "rawXml", true);
+    ReflectionTestUtils.setField(uut, "ipcAdapterName", "CharStreamAdapter");
     uut.initialize();
     String msg = "<cash value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
@@ -140,7 +140,7 @@ public class BrokerMessageReceiverTest
   @Test
   public void testNormalMsg ()
   {
-    ReflectionTestUtils.setField(uut, "rawXml", false);
+    ReflectionTestUtils.setField(uut, "ipcAdapterName", null);
     uut.initialize();
     String msg = "<market-tx value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
