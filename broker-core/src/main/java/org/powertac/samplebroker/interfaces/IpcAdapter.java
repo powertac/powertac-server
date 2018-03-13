@@ -29,7 +29,7 @@ public interface IpcAdapter
    */
   default void openStreams ()
   {
-    // in the dafault case, they are already open.
+    // in the default case, they are already open.
   }
 
   /**

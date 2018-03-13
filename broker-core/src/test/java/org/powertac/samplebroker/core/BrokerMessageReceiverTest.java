@@ -136,7 +136,7 @@ public class BrokerMessageReceiverTest
     //verify(md).routeMessage("converted-<cash value=\"42\"/>");
   }
 
-  // Try without rawXml
+  // Try without ipcAdapterName
   @Test
   public void testNormalMsg ()
   {
