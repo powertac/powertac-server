@@ -33,14 +33,13 @@ import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.samplebroker.interfaces.IpcAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 /**
  * Receives incoming jms messages for the broker and deserializes them just in case they are to be consumed within the
  * current JVM process.
  *
- * @author Nguyen Nguyen, John Collins
+ * @author Nguyen Nguyen, John Collins, Pascal Brokmeier
  */
 @Service
 public class BrokerMessageReceiver implements MessageListener
@@ -58,9 +57,6 @@ public class BrokerMessageReceiver implements MessageListener
 
   private IpcAdapter adapter;
 
-  @ConfigurableValue(valueType = "Boolean",
-      description = "If true, then some messages are not converted to java")
-  private Boolean rawXml = false;
 
   @ConfigurableValue(valueType = "List",
       description = "These xml message types are passed without conversion")
@@ -70,8 +66,8 @@ public class BrokerMessageReceiver implements MessageListener
       description = "These xml message types are passed after conversion")
   private List<String> cookedMsgTypes = new ArrayList<>();
 
-  @ConfigurableValue(valueType = "String", description = "Type of xml forwarding. Can be 'CharStreamAdapter' or 'GrpcSocketAdapter'")
-  private String xmlForwardType = "CharStreamAdapter";
+  @ConfigurableValue(valueType = "String", description = "Type of xml forwarding. Can be any Bean that implements the IpcAdapter interface")
+  private String ipcAdapterName = null;
 
   // hash sets to speed lookup of xml types
   private HashSet<String> rawTypes;
@@ -81,34 +77,30 @@ public class BrokerMessageReceiver implements MessageListener
   public void initialize ()
   {
     propertiesService.configureMe(this);
-    if (rawXml) {
-      log.info("rawXml={}", rawXml);
-      // set up data structures
-      rawTypes = new HashSet<>();
-      rawMsgTypes.forEach(msg -> {
-        //log.info("raw type {}", msg);
-        rawTypes.add(msg);
-      });
-      cookedTypes = new HashSet<>();
-      cookedMsgTypes.forEach(msg -> {
-        //log.info("cooked type {}", msg);
-        cookedTypes.add(msg);
-      });
+    if (ipcAdapterName != null) {
       // find the message handler if it's not already there
       setMessageAdapter();
+      // set up data structures
+
+      //log.info("raw type {}", msg);
+      rawTypes = new HashSet<>();
+      rawTypes.addAll(rawMsgTypes);
+      //log.info("cooked type {}", msg);
+      cookedTypes = new HashSet<>();
+      cookedTypes.addAll(cookedMsgTypes);
     }
   }
 
   private void setMessageAdapter ()
   {
     if (null == adapter) {
-      adapter = (IpcAdapter) SpringApplicationContext.getBean(xmlForwardType);
+      adapter = (IpcAdapter) SpringApplicationContext.getBean(ipcAdapterName);
     }
     if (null == adapter) {
       log.error("Raw xml specified, but no adapter available");
-      rawXml = false;
+      return;
     }
-    log.info("Using {} for xml forwarding", xmlForwardType);
+    log.info("Using {} for xml forwarding", ipcAdapterName);
   }
 
 
@@ -122,7 +114,7 @@ public class BrokerMessageReceiver implements MessageListener
         msg = ((TextMessage) message).getText();
         log.info("received message:\n" + msg);
         //onMessage(msg);
-        if (rawXml) {
+        if (ipcAdapterName != null) {
           // Extract the tag, conditionally pass on the message and/or
           // unmarshal it and process it locally
           Matcher m = tagRe.matcher(msg);
