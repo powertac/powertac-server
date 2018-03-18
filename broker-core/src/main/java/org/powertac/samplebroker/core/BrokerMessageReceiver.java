@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.samplebroker.interfaces.Initializable;
 import org.powertac.samplebroker.interfaces.IpcAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class BrokerMessageReceiver implements MessageListener
   @Autowired
   private BrokerPropertiesService propertiesService;
 
-  private IpcAdapter adapter;
+  private IpcAdapter adapter = null;
 
 
   @ConfigurableValue(valueType = "List",
@@ -66,8 +67,8 @@ public class BrokerMessageReceiver implements MessageListener
       description = "These xml message types are passed after conversion")
   private List<String> cookedMsgTypes = new ArrayList<>();
 
-  @ConfigurableValue(valueType = "String", description = "Type of xml forwarding. Can be any Bean that implements the IpcAdapter interface")
-  private String ipcAdapterName = null;
+  @ConfigurableValue(valueType = "Boolean", description = "If true, do xml forwarding")
+  private boolean ipcAdapter = false;
 
   // hash sets to speed lookup of xml types
   private HashSet<String> rawTypes;
@@ -77,10 +78,10 @@ public class BrokerMessageReceiver implements MessageListener
   public void initialize ()
   {
     propertiesService.configureMe(this);
-    if (ipcAdapterName != null) {
+    if (ipcAdapter) {
       // find the message handler if it's not already there
-      setMessageAdapter();
-      // set up data structures
+      if (!setMessageAdapter())
+        return;
 
       //log.info("raw type {}", msg);
       rawTypes = new HashSet<>();
@@ -91,16 +92,20 @@ public class BrokerMessageReceiver implements MessageListener
     }
   }
 
-  private void setMessageAdapter ()
+  private boolean setMessageAdapter ()
   {
-    if (null == adapter) {
-      adapter = (IpcAdapter) SpringApplicationContext.getBean(ipcAdapterName);
-    }
-    if (null == adapter) {
+    if (null != adapter)
+      // test support
+      return true;
+    List<IpcAdapter> adapters =
+            SpringApplicationContext.listBeansOfType(IpcAdapter.class);
+    if (0 == adapters.size()) {
       log.error("Raw xml specified, but no adapter available");
-      return;
+      return false;
     }
-    log.info("Using {} for xml forwarding", ipcAdapterName);
+    adapter = adapters.get(0);
+    log.info("Using {} for xml forwarding", adapter.getClass().getName());
+    return true;
   }
 
 
@@ -114,7 +119,7 @@ public class BrokerMessageReceiver implements MessageListener
         msg = ((TextMessage) message).getText();
         log.info("received message:\n" + msg);
         //onMessage(msg);
-        if (ipcAdapterName != null) {
+        if (adapter != null) {
           // Extract the tag, conditionally pass on the message and/or
           // unmarshal it and process it locally
           Matcher m = tagRe.matcher(msg);

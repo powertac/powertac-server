@@ -65,8 +65,7 @@ public class BrokerRunner
             parser.accepts("queue-name").withRequiredArg().ofType(String.class);
     OptionSpec<String> serverQueueOption =
             parser.accepts("server-queue").withRequiredArg().ofType(String.class);
-    OptionSpec<String> ipcAdapterOption =
-            parser.accepts("ipc-adapter-name").withRequiredArg().ofType(String.class);
+    parser.accepts("ipc-adapter");
     //parser.accepts("no-ntp");
     parser.accepts("interactive");
     OptionSpec<String> propOption =
@@ -127,10 +126,10 @@ public class BrokerRunner
                 "true");
         System.out.print(" interactive=\"true\"");
       }
-      if (options.has(ipcAdapterOption)){
-        cliProps.setProperty("samplebroker.core.brokerMessageReceiver.ipcAdapterName",
-                             options.valueOf(ipcAdapterOption));
-        System.out.println("Using " + options.valueOf(ipcAdapterOption) + " to pass raw xml.");
+      if (options.has("ipc-adapter")){
+        cliProps.setProperty("samplebroker.core.brokerMessageReceiver.ipcAdapter",
+                             "true");
+        System.out.println("Using ipc-adapter to pass raw xml.");
       }
       if (options.has(propOption)) {
         List<String> values = options.valuesOf(propOption);

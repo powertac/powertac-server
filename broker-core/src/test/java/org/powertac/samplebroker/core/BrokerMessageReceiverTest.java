@@ -56,7 +56,6 @@ public class BrokerMessageReceiverTest
     exportedMessages = new ArrayList<>();
     dispatchedMessages = new ArrayList<>();
     uut = new BrokerMessageReceiver();
-    ReflectionTestUtils.setField(uut, "adapter", new Adapter());
 
     md = mock(MessageDispatcher.class);
     ReflectionTestUtils.setField(uut, "messageDispatcher", md);
@@ -98,7 +97,8 @@ public class BrokerMessageReceiverTest
   @Test
   public void testRawTxtMsg ()
   {
-    ReflectionTestUtils.setField(uut, "ipcAdapterName", "CharStreamAdapter");
+    ReflectionTestUtils.setField(uut, "ipcAdapter", true);
+    ReflectionTestUtils.setField(uut, "adapter", new Adapter());
     uut.initialize();
     String msg = "<market-tx value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
@@ -112,7 +112,8 @@ public class BrokerMessageReceiverTest
   @Test
   public void testCookedMsg ()
   {
-    ReflectionTestUtils.setField(uut, "ipcAdapterName", "CharStreamAdapter");
+    ReflectionTestUtils.setField(uut, "ipcAdapter", true);
+    ReflectionTestUtils.setField(uut, "adapter", new Adapter());
     uut.initialize();
     String msg = "<sim-pause value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
@@ -125,7 +126,8 @@ public class BrokerMessageReceiverTest
   @Test
   public void testRawCookedMsg ()
   {
-    ReflectionTestUtils.setField(uut, "ipcAdapterName", "CharStreamAdapter");
+    ReflectionTestUtils.setField(uut, "ipcAdapter", true);
+    ReflectionTestUtils.setField(uut, "adapter", new Adapter());
     uut.initialize();
     String msg = "<cash value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
@@ -140,7 +142,7 @@ public class BrokerMessageReceiverTest
   @Test
   public void testNormalMsg ()
   {
-    ReflectionTestUtils.setField(uut, "ipcAdapterName", null);
+    ReflectionTestUtils.setField(uut, "ipcAdapter", false);
     uut.initialize();
     String msg = "<market-tx value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
