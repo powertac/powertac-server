@@ -382,8 +382,9 @@ public class CompetitionControlService
                     + competition.getBootstrapDiscardedTimeslots();
     if (!bootstrapMode) {
       // #486 - add bootstrap count to computed game length
-      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
-                                         competition.getExpectedTimeslotCount());
+      timeslotCount = computeGameLength(competition.getFixedTimeslotCount(),
+                                        competition.getMinimumTimeslotCount(),
+                                        competition.getExpectedTimeslotCount());
       log.info("timeslotCount = " + timeslotCount);
     }
     
@@ -608,10 +609,15 @@ public class CompetitionControlService
   }
 
   // Computes a random game length as outlined in the game specification
-  private int computeGameLength (int minLength, int expLength)
+  private int computeGameLength (Integer fixedLength,
+                                 int minLength, int expLength)
   {
-    if (expLength == minLength) {
-      log.info("game-length fixed: " + minLength);
+    if (null != fixedLength) {
+      log.info("game-length fixed externally to {}", fixedLength);
+      return fixedLength;
+    }
+    else if (expLength == minLength) {
+      log.info("game-length fixed: {}", minLength);
       return minLength;
     }
     else {
