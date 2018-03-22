@@ -81,6 +81,9 @@ public class Competition //implements Serializable
 
   @XStreamOmitField
   private int expectedTimeslotCount = 600;
+  
+  @XStreamOmitField
+  private Integer fixedTimeslotCount = null;
 
   /** concurrently open timeslots, i.e. time window in which broker actions like trading are allowed   */
   @XStreamAsAttribute
@@ -312,6 +315,27 @@ public class Competition //implements Serializable
   public Competition withExpectedTimeslotCount (int expectedTimeslotCount)
   {
     this.expectedTimeslotCount = expectedTimeslotCount;
+    return this;
+  }
+  
+  /**
+   * Fixed value for timeslot count, allows external tools such as tournament scheduler to
+   * compute game lengths externally.
+   */
+  public Integer getFixedTimeslotCount ()
+  {
+    return fixedTimeslotCount;
+  }
+
+  /**
+   * Fluent setter for the expected length of a normal sim session.
+   */
+  @ConfigurableValue(valueType = "Integer",
+      description = "If given, overrides min and expected timeslot count values")
+  @StateChange
+  public Competition withFixedTimeslotCount (Integer fixedTimeslotCount)
+  {
+    this.fixedTimeslotCount = fixedTimeslotCount;
     return this;
   }
 
