@@ -76,8 +76,7 @@ public class DomainObjectReader
   HashMap<Class<?>, ArrayList<NewObjectListener>> newObjectListeners;
   HashMap<Class<?>, ArrayList<LogtoolContext>> messageListeners;
 
-  @ConfigurableValue(description = "per-timeslot pause in msec",
-          valueType = "Integer")
+  //per-timeslot pause in msec"
   private int timeslotPause = 0;
 
   /**
@@ -124,7 +123,20 @@ public class DomainObjectReader
     newObjectListeners = new HashMap<Class<?>, ArrayList<NewObjectListener>>();
     messageListeners = new HashMap<Class<?>, ArrayList<LogtoolContext>>();
   }
-  
+
+  /**
+   * Sets the per-timeslot pause value in msec
+   */
+  public void setTimeslotPause (int msec)
+  {
+    timeslotPause = msec;
+  }
+
+  public int getTimeslotPause ()
+  {
+    return timeslotPause;
+  }
+
   /**
    * Registers a NewObjectListener. The listener will be called with
    * each newly-created object of the given type. If type is null, then

@@ -29,6 +29,8 @@ public class LogtoolExecutor extends NoopAnalyzer {
     public String readLog(InputStream logStream, NewObjectListener listener) {
         this.logName = "(stream)";
         objListener = listener;
+        // TODO - magic number here
+        getCore().setPerTimeslotPause(1000);
         return getCore().readStateLog(logStream, this);
     }
 
