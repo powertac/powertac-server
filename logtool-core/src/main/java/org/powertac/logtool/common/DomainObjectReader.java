@@ -34,10 +34,12 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.TimeService;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimStart;
+import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.PowerTypeConverter;
 import org.powertac.du.DefaultBroker;
@@ -73,6 +75,10 @@ public class DomainObjectReader
   // LogtoolContext instances with handleMessage() methods
   HashMap<Class<?>, ArrayList<NewObjectListener>> newObjectListeners;
   HashMap<Class<?>, ArrayList<LogtoolContext>> messageListeners;
+
+  @ConfigurableValue(description = "per-timeslot pause in msec",
+          valueType = "Integer")
+  private int timeslotPause = 0;
 
   /**
    * Default constructor
@@ -208,6 +214,15 @@ public class DomainObjectReader
     String methodName = tokens[2];
     log.debug("methodName=" + methodName);
     if (methodName.equals("new")) {
+      // maybe pause before handling TimeslotUpdate msg
+      if (clazz == TimeslotUpdate.class && timeslotPause > 0) {
+        try {
+          Thread.sleep(timeslotPause);
+        }
+        catch (InterruptedException e) {
+          // ignore
+        }
+      }
       // constructor
       Object newInst =
               constructInstance(clazz, Arrays.copyOfRange(tokens, 3,
