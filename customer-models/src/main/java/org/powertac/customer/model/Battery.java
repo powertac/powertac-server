@@ -65,7 +65,7 @@ implements CustomerModelAccessor
   private double selfDischargeRate = 0.0005; // Proportion of capacity lost/hour
 
   // current State of Charge
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       bootstrapState = true,
       description = "State of charge")
   private double stateOfCharge = 0.0; // current energy content
@@ -224,7 +224,7 @@ implements CustomerModelAccessor
   }
 
   //private double capacityKWh = 50.0;
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "size of battery in kWh")
   @StateChange
   public void setCapacityKWh (double value)
@@ -238,7 +238,7 @@ implements CustomerModelAccessor
   }
 
   //private double maxChargeKW = 5.0;
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "maximum charge rate")
   @StateChange
   public void setMaxChargeKW (double value)
@@ -252,7 +252,7 @@ implements CustomerModelAccessor
   }
 
   //private double maxDischargeKW = 5.0;
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Maximum discharge rate")
   public void setMaxDischargeKW (double value)
   {
@@ -265,7 +265,7 @@ implements CustomerModelAccessor
   }
 
 //private double chargeEfficiency = 0.9;
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "ratio of charge energy to battery energy")
   @StateChange
   public void setChargeEfficiency (double value)
@@ -279,7 +279,7 @@ implements CustomerModelAccessor
   }
 
   //private double selfDischargeRate = 0.001;
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "hourly charge lost as proportion of capacity")
   public void setSelfDischargeRate (double value)
   {

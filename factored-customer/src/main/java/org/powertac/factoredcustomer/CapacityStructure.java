@@ -46,61 +46,61 @@ public final class CapacityStructure implements StructureInstance
 
   private String name;
 
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String baseCapacityType;
   private ProbabilityDistribution basePopulationCapacity;
   private ProbabilityDistribution baseIndividualCapacity;
 
   // Calendar factors
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> dailySkew;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> hourlySkew;
 
   // Regulation capability
   @ConfigurableValue(description="Lower limit on expected consumption",
-      valueType="Double")
+      valueType="Double", dump = false)
   private double upRegulationLimit = Double.MAX_VALUE;
   @ConfigurableValue(description="Upper limit on expected consumption",
-      valueType="Double")
+      valueType="Double", dump = false)
   private double downRegulationLimit = -Double.MAX_VALUE;
   @ConfigurableValue(description = "Storage capacity in kWh",
-          valueType = "Double")
+          valueType = "Double", dump = false)
   private double storageCapacity = 0.0;
 
   // Weather factors
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String temperatureInfluence;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> temperatureMap;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double temperatureReference = Double.NaN;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String windSpeedInfluence;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> windSpeedMap;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String windDirectionInfluence;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> windDirectionMap;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String cloudCoverInfluence;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> cloudCoverMap;
 
   // Market factors
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> benchmarkRates;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String elasticityModelType;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double elasticityRatio;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String elasticityRange;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> elasticityMap;
 
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> curtailmentShifts;
 
   public CapacityStructure (String name)

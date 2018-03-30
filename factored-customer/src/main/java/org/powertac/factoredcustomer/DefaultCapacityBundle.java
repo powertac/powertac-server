@@ -44,44 +44,44 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
 
   protected String name;
   @ConfigurableValue(description = "Number of capacity structures expected",
-          valueType = "Integer")
+          valueType = "Integer", dump = false)
   protected int count;
 
   @ConfigurableValue(valueType = "Integer")
   protected int population;
 
   @ConfigurableValue(description = "PowerType for this bundle",
-          valueType = "String")
+          valueType = "String", dump = false)
   protected String type;
 
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   protected String customerSize = "SMALL";
 
   @ConfigurableValue(description = "If true, then this bundle can divide itself among multiple tariffs",
-          valueType = "Boolean")
+          valueType = "Boolean", dump = false)
   protected boolean multiContracting = false;
 
   @ConfigurableValue(description = "Unsupported, value ignored",
-          valueType = "Boolean")
+          valueType = "Boolean", dump = false)
   protected boolean canNegotiate = false;
 
   @ConfigurableValue(description = "Maximum curtailment per timeslot",
-          valueType = "Double")
+          valueType = "Double", dump = false)
   protected double controllableKW = 0.0;
 
   @ConfigurableValue(description = "Maximum storage discharge per timeslot",
-          valueType = "Double")
+          valueType = "Double", dump = false)
   protected double upRegulationKW = 0.0;
 
   @ConfigurableValue(description = "Maximum down-regulation (energy absorbed) per timeslot",
-          valueType = "Double")
+          valueType = "Double", dump = false)
   protected double downRegulationKW = 0.0;
 
   @ConfigurableValue(description = "",
-          valueType = "Double")
+          valueType = "Double", dump = false)
   protected double storageCapacity = 0.0;
 
-  @ConfigurableValue(valueType = "Boolean")
+  @ConfigurableValue(valueType = "Boolean", dump = false)
   protected boolean isAdaptive;
 
   private CustomerInfo customerInfo;

@@ -99,7 +99,7 @@ public class EvSocialClass extends AbstractCustomer
   private int population;
 
   @ConfigurableValue(valueType = "List",
-      bootstrapState = true,
+      bootstrapState = true, dump = false,
       description = "List of customer attributes")
   private ArrayList<String> customerAttributeList = null;
 

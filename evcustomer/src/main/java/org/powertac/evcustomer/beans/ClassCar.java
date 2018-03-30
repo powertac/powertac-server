@@ -25,15 +25,15 @@ public class ClassCar
 {
   protected String name;
 
-  @ConfigurableValue(valueType = "String",
+  @ConfigurableValue(valueType = "String", dump = false,
       description = "Social class name")
   protected String socialClass;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Probability of a member of the class owning the car")
   protected double probability;
 
-  @ConfigurableValue(valueType = "String",
+  @ConfigurableValue(valueType = "String", dump = false,
       description = "Car type name")
   private String car;
 

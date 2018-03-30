@@ -52,41 +52,41 @@ public class ProbabilityDistribution implements StructureInstance
 
   private String name;
 
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String distribution;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double value;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double low;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double high;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double mean;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double stdDev;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double expMean;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double expStdDev;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double median;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double scale;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double alpha;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double beta;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double trials;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double success;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double lambda;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double dof;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double d1;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double d2;
 
   private Sampler sampler;

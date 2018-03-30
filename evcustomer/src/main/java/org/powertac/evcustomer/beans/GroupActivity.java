@@ -27,27 +27,27 @@ public class GroupActivity
 {
   private String name;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "Foreign key: id of associated SocialGroup")
   private int groupId;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "Foreign key: id of associated Activity")
   private int activityId;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Daily km for males in this group/activity")
   private double maleDailyKm;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Daily km for females in this group/activity")
   private double femaleDailyKm;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Probability for males in this group/activity")
   private double maleProbability;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Probability for females in this group/activity")
   private double femaleProbability;
 
