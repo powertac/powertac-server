@@ -43,6 +43,11 @@ public class ConfigInstance
       publish = true)
   double factor = 4.5;
 
+  @ConfigurableValue(description = "non-dump", valueType = "Boolean",
+      dump = false)
+  private boolean booleanProperty = true;
+
+
   public ConfigInstance (String name)
   {
     super();

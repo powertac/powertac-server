@@ -690,18 +690,20 @@ public class Configurator
 
         // metadata first -- we only need it once for each class-item
         String mkey = composeKey(clazz.getName(), key, "");
-        if (!metadataSet.contains(mkey)) {
-          ConfigurableValue cv = cp.cv;
-          configDump.recordMetadata(mkey,
-                                    cv.description(),
-                                    cv.valueType(),
-                                    cv.publish(), cv.bootstrapState());
-          metadataSet.add(mkey);
-        }
+        ConfigurableValue cv = cp.cv;
+        if (cv.dump()) {
+          if (!metadataSet.contains(mkey)) {
+            configDump.recordMetadata(mkey,
+                                      cv.description(),
+                                      cv.valueType(),
+                                      cv.publish(), cv.bootstrapState());
+            metadataSet.add(mkey);
+          }
 
-        configDump.recordItem(composeKey(clazz.getName(),
-                                         key, name),
-                              extractValue(thing, cp));
+          configDump.recordItem(composeKey(clazz.getName(),
+                                           key, name),
+                                extractValue(thing, cp));
+        }
       }
     }
   }
@@ -709,10 +711,12 @@ public class Configurator
   // Dumps an instance list
   private void dumpInstanceListMaybe (Class<?> clazz, List<String> names)
   {
-    if (null != configDump) {
-      configDump.recordInstanceList(classname2Key(clazz.getName()) + ".instances",
-                                    names);
-    }
+    // see #967
+    return;
+    //if (null != configDump) {
+    //  configDump.recordInstanceList(classname2Key(clazz.getName()) + ".instances",
+    //                                names);
+    //}
   }
 
   // Composes a config key from class, instance name, and property name

@@ -54,4 +54,7 @@ public @interface ConfigurableValue
 
   /** True if value must be saved in bootstrap record */
   boolean bootstrapState() default false;
+
+  /** If true, dump this item during configuration dump */
+  boolean dump() default true;
 }
