@@ -67,7 +67,7 @@ public class MisoBuyer extends Broker
      678.13380, -181.69625, -1136.53189, -1884.67637};
   private int dailyOffset = 0;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Std Deviation of random component for daily decomposition")
   private double dailySd = 962.1;
 
@@ -124,23 +124,23 @@ public class MisoBuyer extends Broker
      -817.917112, -703.353560, -593.813764, -493.662345};
   private int weeklyOffset = 0;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Std deviation of random component for weekly decomposition")
   private double weeklySd = 586.1;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Mean value of demand timeseries")
   private double mean = 13660.0;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Std deviation of residual random walk")
   private double walkSd = 60;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "mean-reversion parameter for residual random walk")
   private double walkz = 0.007;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "exponential smoothing parameter for residual random walk")
   private double walkAlpha = 0.02;
 

@@ -580,7 +580,7 @@ implements InitializationService
    * @deprecated
    * For backward-compatibility only - should not be called.
    */
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       name = "balancingCost",
       publish = true,
       description = "Low end of distribution fee range")
@@ -596,7 +596,7 @@ implements InitializationService
    */
   @ConfigurableValue(valueType = "Double",
       name = "pPlusPrime",
-      publish = true,
+      publish = true, dump=false,
       description = "Slope of up-regulation cost function")
   public double getPPlusPrime ()
   {
@@ -610,7 +610,7 @@ implements InitializationService
    */
   @ConfigurableValue(valueType = "Double",
       name = "pMinusPrime",
-      publish = true,
+      publish = true, dump=false,
       description = "slope of down-regulation cost function")
   public double getPMinusPrime()
   {
@@ -624,7 +624,7 @@ implements InitializationService
    */
   @ConfigurableValue(valueType = "Double",
       name = "defaultSpotPrice",
-      publish = true,
+      publish = true, dump=false,
       description = "value used for spot price/MWh if unavailable from market")
   public double getDefaultSpotPrice()
   {

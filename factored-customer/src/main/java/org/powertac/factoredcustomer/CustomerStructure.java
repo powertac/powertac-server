@@ -29,14 +29,14 @@ public final class CustomerStructure implements StructureInstance
 {
   private String name;
 
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String creatorKey;
 
   @ConfigurableValue(description = "deprecated, inaccessible",
-          valueType = "Integer")
+          valueType = "Integer", dump = false)
   private int count = 1;
 
-  @ConfigurableValue(valueType = "Integer")
+  @ConfigurableValue(valueType = "Integer", dump = false)
   private int bundleCount = 1;
 
   public CustomerStructure (String name)

@@ -253,7 +253,7 @@ public class CpGenco extends Broker
    * Fluent setter for coefficient array
    */
   @ConfigurableValue(valueType = "List",
-      bootstrapState = true,
+      bootstrapState = true, dump=false,
       description = "Coefficients for the specified function type")
   @StateChange
   public CpGenco withCoefficients (List<String> coeff)
@@ -279,7 +279,7 @@ public class CpGenco extends Broker
    * Fluent setter for price variability. The value is ratio of the standard
    * deviation to the nominal bid price for a given bid.
    */
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Standard Deviation ratio for bid price")
   @StateChange
   public CpGenco withPSigma (double var)
@@ -300,7 +300,7 @@ public class CpGenco extends Broker
    * Fluent setter for price variability. The value is ratio of the standard
    * deviation to the nominal bid quantity for a given bid.
    */
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Standard Deviation ratio for bid quantity")
   @StateChange
   public CpGenco withQSigma (double var)
@@ -321,7 +321,7 @@ public class CpGenco extends Broker
    * Fluent setter for the random-walk sigma value applied to the
    * quadratic coefficient.
    */
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Random-walk std dev ratio for quadratic coefficient")
   @StateChange
   public CpGenco withRwaSigma (double var)
@@ -342,7 +342,7 @@ public class CpGenco extends Broker
    * Fluent setter for the random-walk offset value applied to the
    * quadratic coefficient.
    */
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Random-walk offset ratio for quadratic coefficient")
   @StateChange
   public CpGenco withRwaOffset (double var)
@@ -363,7 +363,7 @@ public class CpGenco extends Broker
    * Fluent setter for the random-walk sigma value applied to the
    * constant coefficient.
    */
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Random-walk std dev ratio for constant coefficient")
   @StateChange
   public CpGenco withRwcSigma (double var)
@@ -384,7 +384,7 @@ public class CpGenco extends Broker
    * Fluent setter for the random-walk offset value applied to the
    * constant coefficient.
    */
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump=false,
       description = "Random-walk offset ratio for constant coefficient")
   @StateChange
   public CpGenco withRwcOffset (double var)

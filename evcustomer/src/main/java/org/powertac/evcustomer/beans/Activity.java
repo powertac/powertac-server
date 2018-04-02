@@ -25,15 +25,15 @@ public class Activity
 {
   private String name;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
           description = "Group ID")
   private int id;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
           description = "Weekday value")
   private double weekdayWeight;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
           description = "Weekend value")
   private double weekendWeight;
 

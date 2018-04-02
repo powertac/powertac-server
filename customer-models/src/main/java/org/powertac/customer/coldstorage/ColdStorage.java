@@ -107,12 +107,12 @@ implements CustomerModelAccessor
 
   // bootstrap state elements
   @ConfigurableValue(valueType = "Double",
-      bootstrapState = true,
+      bootstrapState = true, dump = false,
       description = "current temperature")
   private Double currentTemp = null;
 
   @ConfigurableValue(valueType = "Double",
-      bootstrapState = true,
+      bootstrapState = true, dump = false,
       description = "current thermal mass")
   private double currentStock = 0.0;
 
@@ -539,7 +539,7 @@ implements CustomerModelAccessor
     return minTemp;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "minimum allowable temperature")
   @StateChange
   public ColdStorage withMinTemp (double temp)
@@ -553,7 +553,7 @@ implements CustomerModelAccessor
     return maxTemp;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "maximum allowable temperature")
   @StateChange
   public ColdStorage withMaxTemp (double temp)
@@ -580,7 +580,7 @@ implements CustomerModelAccessor
     return shiftSag;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "assumed outdoor temp for tariff evaluation")
   @StateChange
   public void setEvalEnvTemp (double temp)
@@ -593,7 +593,7 @@ implements CustomerModelAccessor
     return evalEnvTemp;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "nominal internal temperature")
   @StateChange
   public ColdStorage withNominalTemp (double temp)
@@ -607,7 +607,7 @@ implements CustomerModelAccessor
     return newStockTemp;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Temperature of incoming stock")
   @StateChange
   public ColdStorage withNewStockTemp (double temp)
@@ -621,7 +621,7 @@ implements CustomerModelAccessor
     return stockCapacity;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Typical inventory in tonnes of H2O")
   @StateChange
   public ColdStorage withStockCapacity (double value)
@@ -656,7 +656,7 @@ implements CustomerModelAccessor
     return roofArea;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Area of roof")
   @StateChange
   public ColdStorage withRoofArea (double area)
@@ -684,7 +684,7 @@ implements CustomerModelAccessor
     return wallArea;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Total area of outside walls")
   @StateChange
   public ColdStorage withWallArea (double area)
@@ -726,7 +726,7 @@ implements CustomerModelAccessor
     return infiltrationRatio;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Infiltration loss as proportion of wall + roof loss")
   @StateChange
   public ColdStorage withInfiltrationRatio (double value)
@@ -744,7 +744,7 @@ implements CustomerModelAccessor
     return unitSize;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Thermal capacity in tons of cooling plant")
   @StateChange
   public ColdStorage withUnitSize (double cap)
@@ -762,7 +762,7 @@ implements CustomerModelAccessor
     return cop;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Coefficient of Performance of refrigeration unit")
   @StateChange
   public ColdStorage withCop (double value)
@@ -780,7 +780,7 @@ implements CustomerModelAccessor
     return hysteresis;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Control range for refrigeration unit")
   @StateChange
   public ColdStorage withHysteresis (double value)
@@ -798,7 +798,7 @@ implements CustomerModelAccessor
     return nonCoolingUsage;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Mean hourly energy usage for non-cooling purposes")
   @StateChange
   public ColdStorage withNonCoolingUsage (double value)

@@ -41,7 +41,7 @@ public final class TariffSubscriberStructure implements StructureInstance
   // inconvenience factors - all should be [0..1]
   private double inconvenienceWeight = 0.2;
   private double touFactor = 0.05;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double interruptibilityFactor = 0.5;
   private double variablePricingFactor = 0.7;
   private double tieredRateFactor = 0.1;
@@ -49,23 +49,23 @@ public final class TariffSubscriberStructure implements StructureInstance
   private double brokerSwitchFactor = 0.02;
   private int expectedDuration = 14; // expected subscription duration, days
 
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private Double expMeanPriceWeight;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private Double maxValuePriceWeight;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private Double realizedPriceWeight;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private Double tariffVolumeThreshold = 20000.0;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String allocationMethod;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double logitChoiceRationality;
   @ConfigurableValue(description = "Expected per-timeslot up-regulation (neg)",
-          valueType = "Double")
+          valueType = "Double", dump = false)
   private double expUpRegulation = 0.0;
   @ConfigurableValue(description = "Expected per-timeslot down-regulation (pos)",
-          valueType = "Double")
+          valueType = "Double", dump = false)
   private double expDownRegulation = 0.0;
 
   private ProbabilityDistribution inertiaDistribution;
