@@ -37,14 +37,12 @@ import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
-import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +63,7 @@ implements BalancingMarket, SettlementContext, InitializationService
 
   @Autowired
   private OrderbookRepo orderbookRepo;
-  
+
   @Autowired
   private TariffRepo tariffRepo;
 
@@ -81,22 +79,7 @@ implements BalancingMarket, SettlementContext, InitializationService
   @Autowired
   private ServerConfiguration serverProps;
 
-  @Autowired
-  private RandomSeedRepo randomSeedService;
-  private RandomSeed randomGen;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "Low end of balancing cost range for simple settlement processor")
-  private double balancingCostMin = -0.01;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "High end of balancing cost range for simple settlement processor")
-  private double balancingCostMax = -0.02;
-
-  @ConfigurableValue(valueType = "Double",
-      publish = true,
-      description = "Balancing cost for simple settlement processor: overrides random value selection")
-  private Double balancingCost = null;
+  private Double balancingCost = 0D;
 
   @ConfigurableValue(valueType = "Double",
           publish = true,
@@ -114,21 +97,20 @@ implements BalancingMarket, SettlementContext, InitializationService
   private double rmPremium = 1.1; // 10% premium
 
   @ConfigurableValue(valueType = "Double",
-      publish = true,
-      description = "Spot price/mwh used if unavailable from wholesale market")
+          publish = true,
+          description = "Spot price/mwh used if unavailable from wholesale market")
   private double defaultSpotPrice = 30.0; // per mwh
-  
+
   @ConfigurableValue(valueType = "String",
           publish = true,
-          description = "Balancing settlement processing: blank for no controllable capacity, "
-          + "\"static\" for per-timeslot processing of balancing orders")
+          description = "Balancing settlement processing: \"static\" for per-timeslot processing (default),"
+          + " \"dynamic\" for multiple-timeslot processing, of balancing orders")
   private String settlementProcess = "";
-  
+
   // map settlement process to strategy instances
   @SuppressWarnings("serial")
   private Map<String, Class<?>> settlementMap =
           new HashMap<String, Class<?>> () {{
-            put("simple", SimpleSettlementProcessor.class);
             put("static", StaticSettlementProcessor.class);
             put("dynamic", DynamicSettlementProcessor.class);
           }};
@@ -146,15 +128,11 @@ implements BalancingMarket, SettlementContext, InitializationService
 
     serverProps.configureMe(this);
 
-    // compute randomly-generated values if not overridden
-    randomGen = randomSeedService.getRandomSeed("BalancingMarketService",
-                                                0, "model");
     if (null == balancingCost)
-      balancingCost = (balancingCostMin + randomGen.nextDouble()
-                       * (balancingCostMax - balancingCostMin));
+        balancingCost = 0D;
     log.info("Configured BM: balancing cost = " + balancingCost
              + ", (pPlus',pMinus') = (" + pPlusPrime + "," + pMinusPrime + ")");
-    
+
     serverProps.publishConfiguration(this);
     return "BalancingMarket";
   }
@@ -188,7 +166,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * Generates a list of Transactions that balance the overall market.
    * Transactions are generated on a per-broker basis depending on the broker's
    * balance within its own market.
-   * 
+   *
    * @return List of ChargeInfo instances
    */
   public Map<Broker, ChargeInfo> balanceTimeslot (List<Broker> brokerList,
@@ -203,7 +181,7 @@ implements BalancingMarket, SettlementContext, InitializationService
       report.add(imbalance);
       chargeInfoMap.put(broker, info);
     }
-    
+
     // retrieve and allocate the balancing orders
     Collection<BalancingOrder> boc = tariffRepo.getBalancingOrders();
     for (BalancingOrder order : boc) {
@@ -216,7 +194,7 @@ implements BalancingMarket, SettlementContext, InitializationService
              + ", pMinus=" + getPMinus());
     List<ChargeInfo> brokerData = new ArrayList<>(chargeInfoMap.values());
     getSettlementProcessor().settle(this, brokerData);
-    
+
     // add balancing transactions - note that debits/credits for balancing
     // orders (p2 values) will already have been posted in the process of
     // exercising orders.
@@ -235,7 +213,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * Returns the difference between a broker's current market position and its
    * net load. Note: market position is computed in MWh and net load is computed
    * in kWh, conversion is needed to compute the difference in kWh.
-   * 
+   *
    * @return a broker's current energy balance within its market. Pos for
    *         over-production, neg for under-production
    */
@@ -291,7 +269,7 @@ implements BalancingMarket, SettlementContext, InitializationService
   public double getPPlus ()
   {
     double result = defaultSpotPrice;
-    List<Orderbook> obs = 
+    List<Orderbook> obs =
         orderbookRepo.findAllByTimeslot(timeslotRepo.currentTimeslot());
     if (obs != null && obs.size() > 0) {
       Double max = null;
@@ -314,7 +292,7 @@ implements BalancingMarket, SettlementContext, InitializationService
   public double getPMinus ()
   {
     double result = defaultSpotPrice;
-    List<Orderbook> obs = 
+    List<Orderbook> obs =
         orderbookRepo.findAllByTimeslot(timeslotRepo.currentTimeslot());
     if (obs != null && obs.size() > 0) {
       Double min = null;
@@ -351,33 +329,21 @@ implements BalancingMarket, SettlementContext, InitializationService
 
   // ---------- Getters and setters for settlement processsors ---------
 
-  double getBalancingCostMin ()
-  {
-    return balancingCostMin;
-  }
-
-  double getBalancingCostMax ()
-  {
-    return balancingCostMax;
+  @Override
+  public Double getBalancingCost() {
+      return balancingCost;
   }
 
   @Override
-  public Double getBalancingCost ()
-  {
-    return balancingCost;
-  }
-
-  @Override
-  public double getDefaultSpotPrice ()
-  {
-    return defaultSpotPrice;
+  public double getDefaultSpotPrice () {
+      return defaultSpotPrice;
   }
 
   private SettlementProcessor getSettlementProcessor ()
   {
     // determine and record settlement process
     if (settlementProcess.equals(""))
-      settlementProcess = "simple";
+      settlementProcess = "static";
     Class<?> processor = settlementMap.get(settlementProcess);
     if (null == processor) {
       log.error("Null settlement processor for " + settlementProcess);
@@ -437,4 +403,5 @@ implements BalancingMarket, SettlementContext, InitializationService
   {
     return new DoubleWrapper();
   }
+
 }

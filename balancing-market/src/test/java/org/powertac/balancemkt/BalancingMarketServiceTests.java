@@ -66,10 +66,10 @@ public class BalancingMarketServiceTests
 
   @Autowired
   private OrderbookRepo orderbookRepo;
-  
+
   @Autowired
   private Accounting accountingService;
-  
+
   @Autowired
   private ServerConfiguration serverPropertiesService;
 
@@ -89,7 +89,7 @@ public class BalancingMarketServiceTests
     // create a Competition, needed for initialization
     comp = Competition.newInstance("du-test");
     Competition.setCurrent(comp);
-    
+
     Instant base =
             Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     start = new DateTime(start, DateTimeZone.UTC);
@@ -146,12 +146,6 @@ public class BalancingMarketServiceTests
     MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     balancingMarketService.initialize(comp, new ArrayList<>());
-    assertEquals("correct setting", -0.06,
-                 balancingMarketService.getBalancingCostMin(), 1e-6);
-    assertEquals("correct setting", -0.06,
-                 balancingMarketService.getBalancingCostMax(), 1e-6);
-    assertEquals("correct setting", -0.06,
-                 balancingMarketService.getBalancingCost(), 1e-6);
   }
 
   @Test
@@ -159,17 +153,17 @@ public class BalancingMarketServiceTests
   {
     initializeService();
     when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(1.0);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-500.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-500.0);
     assertEquals("correct balance",
                  500.0,
                  balancingMarketService.getMarketBalance(brokerList.get(0)),
                  1e-6);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1000.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1000.0);
     assertEquals("correct balance",
                  0.0,
                  balancingMarketService.getMarketBalance(brokerList.get(0)),
                  1e-6);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1500.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1500.0);
     assertEquals("correct balance",
                  -500.0,
                  balancingMarketService.getMarketBalance(brokerList.get(0)),
@@ -181,7 +175,7 @@ public class BalancingMarketServiceTests
   {
     initializeService();
     when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-50.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-50.0);
     double marketBalance = -150.0; // Compute market balance
     //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
@@ -204,7 +198,7 @@ public class BalancingMarketServiceTests
   {
     initializeService();
     when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(50.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(50.0);
     double marketBalance = 150.0; // Compute market balance
 
     //Timeslot current = timeslotRepo.currentTimeslot();
@@ -235,7 +229,7 @@ public class BalancingMarketServiceTests
     when(accountingService.getCurrentNetLoad(brokerList.get(1))).
       thenReturn(0.0);
     when(accountingService.getCurrentNetLoad(brokerList.get(2))).
-      thenReturn(8791119.0);    
+      thenReturn(8791119.0);
 
     // Compute market balance
     for (Broker b : brokerList) {
@@ -261,41 +255,6 @@ public class BalancingMarketServiceTests
       balance -= ci.getNetLoadKWh();
     }
     assertEquals("market fully balanced", 0.0, balance, 1e-6);
-  }
-
-  @Test
-  public void testScenario1BalancingCharges ()
-  {
-    initializeService();
-    balancingMarketService.setRmPremium(1.0);
-
-    when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad(brokerList.get(0))).thenReturn(200.0);    
-    when(accountingService.getCurrentNetLoad(brokerList.get(1))).thenReturn(-400.0);
-    when(accountingService.getCurrentNetLoad(brokerList.get(2))).thenReturn(0.0);    
-
-    // List solution =
-    // balancingMarketService.computeNonControllableBalancingCharges(brokerList)
-    //Timeslot current = timeslotRepo.currentTimeslot();
-    BalancingMarketService.DoubleWrapper report =
-        balancingMarketService.makeDoubleWrapper();
-    //BalanceReport report = new BalanceReport(current.getSerialNumber());
-    Map<Broker, ChargeInfo> chargeInfos =
-        balancingMarketService.balanceTimeslot(brokerList, report);
-
-    // Correct solution list is [-4, 14, 2] (but negated)
-    ChargeInfo ci = chargeInfos.get(brokerList.get(0)); // BalancingTransaction.findByBroker(brokerList.get(0));
-    assertNotNull("non-null btx, broker 1", ci);
-    assertEquals("correct balancing charge broker1",
-                 4.0, ci.getBalanceCharge(), 1e-6);
-    ci = chargeInfos.get(brokerList.get(1)); // BalancingTransaction.findByBroker(brokerList.get(1));
-    assertNotNull("non-null btx, broker 2", ci);
-    assertEquals("correct balancing charge broker2",
-                 -14.0, ci.getBalanceCharge(), 1e-6);
-    ci = chargeInfos.get(brokerList.get(2)); // BalancingTransaction.findByBroker(brokerList.get(2));
-    assertNotNull("non-null btx, broker 3", ci);
-    assertEquals("correct balancing charge broker3",
-                 -2.0, ci.getBalanceCharge(), 1e-6);
   }
 
   @Test
@@ -333,7 +292,7 @@ public class BalancingMarketServiceTests
     // this should be the spot price
     orderbookRepo.makeOrderbook(ts0, 20.1);
   }
-  
+
   // make sure balancing orders are correctly allocated
   @Test
   public void testBalancingOrderAllocation ()
@@ -354,14 +313,14 @@ public class BalancingMarketServiceTests
             new TariffSpecification(b2, PowerType.INTERRUPTIBLE_CONSUMPTION);
     b1ts1.addRate(new Rate().withValue(0.13).withMaxCurtailment(0.2));
     tariffRepo.addSpecification(b2ts1);
-    
+
     BalancingOrder bo1t1 = new BalancingOrder(b1, b1ts1, 0.8, 0.2);
     tariffRepo.addBalancingOrder(bo1t1);
     BalancingOrder bo1t2 = new BalancingOrder(b1, b1ts2, 0.6, 0.15);
     tariffRepo.addBalancingOrder(bo1t2);
     BalancingOrder bo2t1 = new BalancingOrder(b2, b2ts1, 0.7, 0.1);
     tariffRepo.addBalancingOrder(bo2t1);
-    
+
     assertEquals("correct number of bo", 3,
                  tariffRepo.getBalancingOrders().size());
 
@@ -372,7 +331,7 @@ public class BalancingMarketServiceTests
     Map<Broker, ChargeInfo> chargeInfos =
             balancingMarketService.balanceTimeslot(brokerList, report);
     assertEquals("correct count", 3, chargeInfos.size());
-    
+
     ChargeInfo c1b1 = findFirst(chargeInfos.values(),
                                 new Predicate<ChargeInfo>() {
       @Override
@@ -386,7 +345,7 @@ public class BalancingMarketServiceTests
     assertEquals("found 2 balancing orders", 2, orders.size());
     assertTrue("contains bo1t1", orders.contains(bo1t1));
     assertTrue("contains bo1t2", orders.contains(bo1t2));
-    
+
     ChargeInfo c1b2 = findFirst(chargeInfos.values(),
                                 new Predicate<ChargeInfo>() {
       @Override
