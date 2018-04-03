@@ -88,6 +88,14 @@ public class LogtoolCore
   }
 
   /**
+   * Sets the per-timeslot pause value, used by Visualizer
+   */
+  public void setPerTimeslotPause (int msec)
+  {
+    reader.setTimeslotPause(msec);
+  }
+
+  /**
    * Processes a command line, providing a state-log file from the local
    * filesystem, or a remote URL.
    */

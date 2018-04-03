@@ -6,7 +6,6 @@ import org.powertac.common.Competition;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.common.NoopAnalyzer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +25,11 @@ public class LogtoolExecutor extends NoopAnalyzer {
         super();
     }
 
-    public String readLog(InputStream logStream, NewObjectListener listener) {
+    public String readLog(InputStream logStream, NewObjectListener listener, int timeslotPause) {
         this.logName = "(stream)";
         objListener = listener;
+        // TODO - magic number here
+        getCore().setPerTimeslotPause(timeslotPause);
         return getCore().readStateLog(logStream, this);
     }
 
@@ -58,7 +59,7 @@ public class LogtoolExecutor extends NoopAnalyzer {
       log.info("Interrupted replay of " + logName);
       objectHandler.ignore = true;
     }
-    
+
 
     // This suppresses all events until the first TimeslotUpdate. At that point
     // it sends the current competition object, and commences forwarding all

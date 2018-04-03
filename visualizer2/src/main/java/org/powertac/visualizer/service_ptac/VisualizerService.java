@@ -68,6 +68,10 @@ public class VisualizerService {
         return applicationProperties.getMode();
     }
 
+    public int getTimeslotPause() {
+        return applicationProperties.getTimeslotPause();
+    }
+
     public String getMachineName() {
         return applicationProperties.getConnect().getMachineName();
     }

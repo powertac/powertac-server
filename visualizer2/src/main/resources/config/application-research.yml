@@ -2,3 +2,5 @@
 # If tournament mode without tournamentUrl : connect to sim directly
 application:
     mode: research
+    # Set number of milliseconds to pause for each timeslot during log replay
+    timeslotPause: 1000
