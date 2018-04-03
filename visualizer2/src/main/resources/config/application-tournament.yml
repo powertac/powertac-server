@@ -7,3 +7,5 @@ application:
         serverUrl:
         tournamentUrl:
         tournamentLogin: /faces/visualizerLogin.jsp
+    # Set number of milliseconds to pause for each timeslot during log replay
+    timeslotPause: 0
