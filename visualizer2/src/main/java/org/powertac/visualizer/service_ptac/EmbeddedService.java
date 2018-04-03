@@ -202,7 +202,8 @@ public class EmbeddedService {
                 ctx.updateLoggers();
 
                 // Replay the game
-                String error = logtoolExecutor.readLog(source, messageDispatcher);
+                String error = logtoolExecutor.readLog(source, messageDispatcher,
+                                         visualizerService.getTimeslotPause());
                 if (error != null) {
                   log.error("Error during replay: " + error);
                 }
