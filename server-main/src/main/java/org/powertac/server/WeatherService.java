@@ -73,10 +73,12 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 {
   static private Logger log = LogManager.getLogger(WeatherService.class);
 
-  @ConfigurableValue(valueType = "String", description = "Location of weather data to be reported")
+  @ConfigurableValue(valueType = "String", bootstrapState = true,
+          description = "Location of weather data to be reported")
   private String weatherLocation = "rotterdam";
 
-  @ConfigurableValue(valueType = "String", description = "Location of weather server rest url")
+  @ConfigurableValue(valueType = "String", bootstrapState = true,
+          description = "Location of weather server rest url")
   private String serverUrl = "http://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
 
   // If network requests should be made asynchronously or not.
