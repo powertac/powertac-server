@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-server</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1-SNAPSHOT</version>
   </parent>
 
   <build>
@@ -31,7 +31,7 @@
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
     <url>https://github.com/powertac/powertac-server/</url>
-    <tag>powertac-server-1.5.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
 
