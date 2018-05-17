@@ -35,8 +35,8 @@ public class IdGenerator
    */
   public static long createId() 
   {
-    return multiplier * prefix + counter++;
-    //return (long)multiplier * (long)prefix + (long)counter++;
+    //return multiplier * prefix + counter++;
+    return (long)multiplier * (long)prefix + (long)counter++;
   }
 
   /**
