@@ -18,7 +18,7 @@
 
   <properties>
     <springwebflow-version>2.4.4.RELEASE</springwebflow-version>
-    <springsecurity-version>4.2.1.RELEASE</springsecurity-version>
+    <springsecurity-version>4.2.9.RELEASE</springsecurity-version>
     <servlet-api.version>3.1.0</servlet-api.version>
     <jsp-api.version>2.2</jsp-api.version>
     <el-api.version>3.0.0</el-api.version>
