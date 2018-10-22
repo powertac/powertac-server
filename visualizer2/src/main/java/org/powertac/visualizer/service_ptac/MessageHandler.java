@@ -265,6 +265,8 @@ public class MessageHandler {
                     record.produceConsume(ttx.getKWh(), ttx.getCharge());
                 } else if (TariffTransaction.Type.CONSUME == txType) {
                     record.produceConsume(ttx.getKWh(), ttx.getCharge());
+                } else if (TariffTransaction.Type.PERIODIC == txType) {
+                  record.produceConsume(ttx.getKWh(), ttx.getCharge());
                 }
             }
         } catch (NullPointerException npe) {
