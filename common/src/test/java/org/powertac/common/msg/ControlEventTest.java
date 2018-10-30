@@ -8,10 +8,7 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powertac.common.Broker;
-import org.powertac.common.Competition;
-import org.powertac.common.TariffSpecification;
-import org.powertac.common.TimeService;
+import org.powertac.common.*;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -85,7 +82,7 @@ public class ControlEventTest
   {
     BalancingControlEvent bce =
         new BalancingControlEvent(spec, 23.0, 2.3, 0);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(BalancingControlEvent.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(bce));
@@ -103,7 +100,7 @@ public class ControlEventTest
   {
     EconomicControlEvent bce =
         new EconomicControlEvent(spec, 0.3, 0);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(EconomicControlEvent.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(bce));

@@ -59,7 +59,14 @@ public class XMLMessageConverter
       SimStart.class, SimPause.class, SimResume.class };
 
   private XStream xstream;
-  
+
+  public static final XStream getXStream() {
+      XStream xstream = new XStream();
+      XStream.setupDefaultSecurity(xstream); // TODO Remove with XStream 1.5
+      xstream.allowTypesByWildcard(new String[] {"org.powertac.**"});
+      return xstream;
+  }
+
   // inject context here so that it would be initialized before this class
   // @PostConstruct method get called and use the singleton.
   @SuppressWarnings("unused")
@@ -69,17 +76,14 @@ public class XMLMessageConverter
   @SuppressWarnings("rawtypes")
   @PostConstruct
   public void afterPropertiesSet() {
-    xstream = new XStream();
-
+    xstream = XMLMessageConverter.getXStream();
     try {
       List<Class> classes = findMyTypes("org.powertac.common");
       for (Class clazz : classes) {
         log.info("processing class " + clazz.getName());
         xstream.processAnnotations(clazz);
       }
-    } catch (IOException e) {
-      log.error("failed to process annotation", e);
-    } catch (ClassNotFoundException e) {
+    } catch (IOException | ClassNotFoundException e) {
       log.error("failed to process annotation", e);
     }
 

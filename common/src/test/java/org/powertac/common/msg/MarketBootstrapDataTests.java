@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.thoughtworks.xstream.XStream;
+import org.powertac.common.XMLMessageConverter;
 
 public class MarketBootstrapDataTests
 {
@@ -37,7 +38,7 @@ public class MarketBootstrapDataTests
   public void xmlSerializationTest ()
   {
     MarketBootstrapData mbd = new MarketBootstrapData(mwhs, prices);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(MarketBootstrapData.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mbd));

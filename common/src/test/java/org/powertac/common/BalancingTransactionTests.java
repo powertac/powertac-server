@@ -89,7 +89,7 @@ public class BalancingTransactionTests
   public void xmlSerializationTest ()
   {
     BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(BalancingTransaction.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(bt));

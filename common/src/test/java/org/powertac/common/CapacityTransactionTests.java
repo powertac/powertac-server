@@ -91,7 +91,7 @@ public class CapacityTransactionTests
   {
     CapacityTransaction ct =
         new CapacityTransaction(broker, 24, 22, 130.0, 42.1, 3.22);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(CapacityTransaction.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ct));

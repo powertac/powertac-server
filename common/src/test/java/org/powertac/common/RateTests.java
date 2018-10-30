@@ -386,7 +386,7 @@ public class RateTests
         .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
         .withTierThreshold(100.0);
 
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Rate.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(r));
@@ -421,7 +421,7 @@ public class RateTests
     //assertEquals("correct value tomorrow at 6:00", 0.22, r.getValue(now.plus(TimeService.HOUR * 23)), 1e-6);
     //assertEquals("correct value tomorrow at 7:00", 0.18, r.getValue(now.plus(TimeService.HOUR * 24)), 1e-6);
 
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Rate.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(r));

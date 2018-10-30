@@ -68,7 +68,7 @@ public class HourlyChargeTests
   public void xmlSerializationTest ()
   {
     hc.setRateId(37l);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(HourlyCharge.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(hc));

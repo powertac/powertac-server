@@ -104,7 +104,7 @@ public class DistributionTransactionTests
   public void xmlSerializationTest ()
   {
     DistributionTransaction dt = new DistributionTransaction(broker, 24, 123, 45, 42.1, 3.22);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(DistributionTransaction.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(dt));

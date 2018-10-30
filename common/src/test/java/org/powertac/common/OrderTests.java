@@ -113,7 +113,7 @@ public class OrderTests
   public void xmlSerializationTest ()
   {
     Order mo1 = new Order(broker, timeslotNum, 0.5, -12.0);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
     xstream.processAnnotations(Timeslot.class);
@@ -133,7 +133,7 @@ public class OrderTests
   public void xmlSerializationTestNull ()
   {
     Order mo1 = new Order(broker, timeslotNum, 0.5, null);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
     xstream.processAnnotations(Timeslot.class);
@@ -155,7 +155,7 @@ public class OrderTests
     DummyBroker db = new DummyBroker("Dummy", true, false);
     brokerRepo.add(db);
     Order mo1 = new Order(db, timeslotNum, 0.5, -12.0);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
     xstream.processAnnotations(Timeslot.class);
@@ -182,7 +182,7 @@ public class OrderTests
         + "\" mWh=\"22.7\" limitPrice=\"-70.0\"> "
         + "<broker>Dummy</broker> </order>";
     //System.out.println(xml);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
     xstream.processAnnotations(Timeslot.class);
