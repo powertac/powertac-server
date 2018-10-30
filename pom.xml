@@ -48,7 +48,7 @@
     <aspectj.version>1.9.2</aspectj.version>
 
     <active-mq.version>5.15.7</active-mq.version>
-    <xstream.version>1.4.9</xstream.version>
+    <xstream.version>1.4.11.1</xstream.version>
 
     <junit.version>4.12</junit.version>
     <mockito.version>2.7.5</mockito.version>
