@@ -61,7 +61,7 @@
     <commons-beanutils.version>1.9.3</commons-beanutils.version>
     <commons-lang3.version>3.8.1</commons-lang3.version>
     <commons-math.version>3.6.1</commons-math.version>
-    <jopt-simple.version>5.0.3</jopt-simple.version>
+    <jopt-simple.version>5.0.4</jopt-simple.version>
     <joda-time.version>2.9.7</joda-time.version>
 
     <!-- Managed common plugin versions -->
