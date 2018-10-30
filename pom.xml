@@ -62,7 +62,7 @@
     <commons-lang3.version>3.8.1</commons-lang3.version>
     <commons-math.version>3.6.1</commons-math.version>
     <jopt-simple.version>5.0.4</jopt-simple.version>
-    <joda-time.version>2.9.7</joda-time.version>
+    <joda-time.version>2.10.1</joda-time.version>
 
     <!-- Managed common plugin versions -->
     <maven-compiler.version>3.5.1</maven-compiler.version>
