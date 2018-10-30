@@ -1,29 +1,26 @@
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.StringWriter;
 
 import org.joda.time.Instant;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import com.thoughtworks.xstream.XStream;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -42,7 +39,7 @@ public class OrderTests
   private int timeslotNum;
   private Instant now;
 
-  @AfterClass
+  @AfterAll
   public static void saveLogs () throws Exception
   {
     File state = new File("log/test.state");
@@ -51,7 +48,7 @@ public class OrderTests
     trace.renameTo(new File("log/OrderTests.trace"));
   }
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     timeslotRepo.recycle();
@@ -68,33 +65,33 @@ public class OrderTests
   public void testOrder ()
   {
     Order mo = new Order(broker, timeslotNum, 0.5, -12.0);
-    assertNotNull("created something", mo);
-    assertEquals("correct broker", broker, mo.getBroker());
-    assertEquals("correct timeslot", timeslot, mo.getTimeslot());
-    assertEquals("correct quantity", 0.5, mo.getMWh(), 1e-6);
-    assertEquals("correct price", -12.0, mo.getLimitPrice(), 1e-6);
+    assertNotNull(mo, "created something");
+    assertEquals(broker, mo.getBroker(), "correct broker");
+    assertEquals(timeslot, mo.getTimeslot(), "correct timeslot");
+    assertEquals(0.5, mo.getMWh(), 1e-6, "correct quantity");
+    assertEquals(-12.0, mo.getLimitPrice(), 1e-6, "correct price");
   }
 
   @Test
   public void testOrderNull ()
   {
     Order mo = new Order(broker, timeslotNum, 0.5, null);
-    assertNotNull("created something", mo);
-    assertEquals("correct broker", broker, mo.getBroker());
-    assertEquals("correct timeslot", timeslot, mo.getTimeslot());
-    assertEquals("correct quantity", 0.5, mo.getMWh(), 1e-6);
-    assertNull("null price", mo.getLimitPrice());
+    assertNotNull(mo, "created something");
+    assertEquals(broker, mo.getBroker(), "correct broker");
+    assertEquals(timeslot, mo.getTimeslot(), "correct timeslot");
+    assertEquals(0.5, mo.getMWh(), 1e-6, "correct quantity");
+    assertNull(mo.getLimitPrice(), "null price");
   }
 
   @Test
   public void testOrderNaN ()
   {
     Order mo = new Order(broker, timeslotNum, 0.5, Double.NaN);
-    assertNotNull("created something", mo);
-    assertEquals("correct broker", broker, mo.getBroker());
-    assertEquals("correct timeslot", timeslot, mo.getTimeslot());
-    assertEquals("correct quantity", 0.5, mo.getMWh(), 1e-6);
-    assertNull("null price", mo.getLimitPrice());
+    assertNotNull(mo, "created something");
+    assertEquals(broker, mo.getBroker(), "correct broker");
+    assertEquals(timeslot, mo.getTimeslot(), "correct timeslot");
+    assertEquals(0.5, mo.getMWh(), 1e-6, "correct quantity");
+    assertNull(mo.getLimitPrice(), "null price");
   }
 
   @Test
@@ -102,11 +99,11 @@ public class OrderTests
   {
     Competition.currentCompetition().withMinimumOrderQuantity(0.01);
     Order mo = new Order(broker, timeslotNum, 0.005, null);
-    assertNotNull("created something", mo);
-    assertEquals("correct broker", broker, mo.getBroker());
-    assertEquals("correct timeslot", timeslot, mo.getTimeslot());
-    assertEquals("correct quantity", 0.005, mo.getMWh(), 1e-6);
-    assertNull("null price", mo.getLimitPrice());
+    assertNotNull(mo, "created something");
+    assertEquals(broker, mo.getBroker(), "correct broker");
+    assertEquals(timeslot, mo.getTimeslot(), "correct timeslot");
+    assertEquals(0.005, mo.getMWh(), 1e-6, "correct quantity");
+    assertNull(mo.getLimitPrice(), "null price");
   }
 
   @Test
@@ -122,11 +119,11 @@ public class OrderTests
     //System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xmo1);
-    assertEquals("correct broker", broker, xmo1.getBroker());
-    assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
-    assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
-    assertEquals("correct price", -12.0, xmo1.getLimitPrice(), 1e-6);
+    assertNotNull(xmo1, "deserialized something");
+    assertEquals(broker, xmo1.getBroker(), "correct broker");
+    assertEquals(timeslot, xmo1.getTimeslot(), "correct timeslot");
+    assertEquals(0.5, xmo1.getMWh(), 1e-6, "correct quantity");
+    assertEquals(-12.0, xmo1.getLimitPrice(), 1e-6, "correct price");
   }
 
   @Test
@@ -142,11 +139,11 @@ public class OrderTests
     //System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xmo1);
-    assertEquals("correct broker", broker, xmo1.getBroker());
-    assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
-    assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
-    assertNull("null price", xmo1.getLimitPrice());
+    assertNotNull(xmo1, "deserialized something");
+    assertEquals(broker, xmo1.getBroker(), "correct broker");
+    assertEquals(timeslot, xmo1.getTimeslot(), "correct timeslot");
+    assertEquals(0.5, xmo1.getMWh(), 1e-6, "correct quantity");
+    assertNull(xmo1.getLimitPrice(), "null price");
   }
   
   @Test
@@ -165,11 +162,11 @@ public class OrderTests
     //System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xmo1);
-    assertEquals("correct broker", db, xmo1.getBroker());
-    assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
-    assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
-    assertEquals("correct price", -12.0, xmo1.getLimitPrice(), 1e-6);
+    assertNotNull(xmo1, "deserialized something");
+    assertEquals(db, xmo1.getBroker(), "correct broker");
+    assertEquals(timeslot, xmo1.getTimeslot(), "correct timeslot");
+    assertEquals(0.5, xmo1.getMWh(), 1e-6, "correct quantity");
+    assertEquals(-12.0, xmo1.getLimitPrice(), 1e-6, "correct price");
   }
   
   @Test
@@ -188,11 +185,11 @@ public class OrderTests
     xstream.processAnnotations(Timeslot.class);
     xstream.aliasSystemAttribute(null, "class");
     Order xmo1 = (Order)xstream.fromXML(xml);
-    assertNotNull("deserialized something", xmo1);
-    assertEquals("correct broker", db, xmo1.getBroker());
-    assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
-    assertEquals("correct quantity", 22.7, xmo1.getMWh(), 1e-6);
-    assertEquals("correct price", -70.0, xmo1.getLimitPrice(), 1e-6);
+    assertNotNull(xmo1, "deserialized something");
+    assertEquals(db, xmo1.getBroker(), "correct broker");
+    assertEquals(timeslot, xmo1.getTimeslot(), "correct timeslot");
+    assertEquals(22.7, xmo1.getMWh(), 1e-6, "correct quantity");
+    assertEquals(-70.0, xmo1.getLimitPrice(), 1e-6, "correct price");
     
     // Opens the state file and checks the last entry.
     // This works when running the individual test, but not as a suite.
@@ -219,12 +216,12 @@ public class OrderTests
 //      System.out.println("item=" + item);
 //      // should not get here if item == null
 //      String[] items = item.split("::");
-//      assertEquals("class", "org.powertac.common.Order", items[1]);
-//      assertEquals("id", "200000394", items[2]);
-//      assertEquals("broker id", db.getId(), Long.parseLong(items[4]));
-//      assertEquals("timeslot id", timeslot.getId(), Long.parseLong(items[5]));
-//      assertEquals("mwh", 22.7, Double.parseDouble(items[6]), 1e-6);
-//      assertEquals("price", -70.0, Double.parseDouble(items[7]), 1e-6);
+//      assertEquals("org.powertac.common.Order", items[1], "class");
+//      assertEquals("200000394", items[2], "id");
+//      assertEquals(db.getId(), Long.parseLong(items[4]), "broker id");
+//      assertEquals(timeslot.getId(), Long.parseLong(items[5]), "timeslot id");
+//      assertEquals(22.7, Double.parseDouble(items[6]), 1e-6, "mwh");
+//      assertEquals(-70.0, Double.parseDouble(items[7]), 1e-6, "price");
 //    }
   }
   

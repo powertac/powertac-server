@@ -15,13 +15,13 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -39,7 +39,7 @@ public class TariffEvaluationHelperTest
   private TariffRepo tariffRepo;
   private Instant start;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     teh = new TariffEvaluationHelper();
@@ -59,10 +59,10 @@ public class TariffEvaluationHelperTest
   public void testInit ()
   {
     teh.init(.6, .4, .5, 10000.0);
-    assertEquals("correct wtExpected", 0.6, teh.getWtExpected(), 1e-6);
-    assertEquals("correct wtMax", 0.4, teh.getWtMax(), 1e-6);
-    assertEquals("correct wtRealized", 0.5, teh.getWtRealized(), 1e-6);
-    assertEquals("correct threshold", 10000.0, teh.getSoldThreshold(), 1e-3);
+    assertEquals(0.6, teh.getWtExpected(), 1e-6, "correct wtExpected");
+    assertEquals(0.4, teh.getWtMax(), 1e-6, "correct wtMax");
+    assertEquals(0.5, teh.getWtRealized(), 1e-6, "correct wtRealized");
+    assertEquals(10000.0, teh.getSoldThreshold(), 1e-3, "correct threshold");
   }
 
   /**
@@ -72,12 +72,12 @@ public class TariffEvaluationHelperTest
   public void testGetNormWtExpected ()
   {
     teh.init(1.2, .8, .5, 10000.0);
-    assertEquals("correct wtExpected", 0.6, teh.getNormWtExpected(), 1e-6);
-    assertEquals("correct wtMax", 0.4, teh.getNormWtMax(), 1e-6);
+    assertEquals(0.6, teh.getNormWtExpected(), 1e-6, "correct wtExpected");
+    assertEquals(0.4, teh.getNormWtMax(), 1e-6, "correct wtMax");
     teh.init(.6, .4, .5, 10000.0);
     teh.setWtExpected(1.6);
-    assertEquals("correct wtExpected", 0.8, teh.getNormWtExpected(), 1e-6);
-    assertEquals("correct wtMax", 0.2, teh.getNormWtMax(), 1e-6);
+    assertEquals(0.8, teh.getNormWtExpected(), 1e-6, "correct wtExpected");
+    assertEquals(0.2, teh.getNormWtMax(), 1e-6, "correct wtMax");
   }
 
   /**
@@ -88,8 +88,8 @@ public class TariffEvaluationHelperTest
   {
     teh.init(.6, .4, .5, 10000.0);
     teh.setWtMax(1.4);
-    assertEquals("correct wtExpected", 0.3, teh.getNormWtExpected(), 1e-6);
-    assertEquals("correct wtMax", 0.7, teh.getNormWtMax(), 1e-6);
+    assertEquals(0.3, teh.getNormWtExpected(), 1e-6, "correct wtExpected");
+    assertEquals(0.7, teh.getNormWtMax(), 1e-6, "correct wtMax");
   }
   
   /**
@@ -99,8 +99,8 @@ public class TariffEvaluationHelperTest
   public void testGetNormWtBareInit ()
   {
     teh.init();
-    assertEquals("correct wtExpected", 0.6, teh.getNormWtExpected(), 1e-6);
-    assertEquals("correct wtMax", 0.4, teh.getNormWtMax(), 1e-6);
+    assertEquals(0.6, teh.getNormWtExpected(), 1e-6, "correct wtExpected");
+    assertEquals(0.4, teh.getNormWtMax(), 1e-6, "correct wtMax");
   }
 
   /**
@@ -122,7 +122,7 @@ public class TariffEvaluationHelperTest
     usage[0] = 0.0;
     teh.estimateCost(tariff, usage, start);
     double result = teh.getWeightedValue(r);
-    assertEquals("correct result", (.6 * -.15 + .4 * -.2), result, 1e-6);
+    assertEquals((.6 * -.15 + .4 * -.2), result, 1e-6, "correct result");
   }
 
   @Test
@@ -147,7 +147,7 @@ public class TariffEvaluationHelperTest
     teh.estimateCost(tariff, usage, start);
     double result = teh.getWeightedValue(r);
     double expected = 0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18;
-    assertEquals("correct result", expected, result, 1e-6);
+    assertEquals(expected, result, 1e-6, "correct result");
   }
 
   @Test
@@ -164,9 +164,9 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", -30.0, result, 1e-6);
+    assertEquals(-30.0, result, 1e-6, "correct result");
     result = teh.estimateCost(tariff, usage);
-    assertEquals("correct result", -30.0, result, 1e-6);
+    assertEquals(-30.0, result, 1e-6, "correct result");
   }
 
   @Test
@@ -184,7 +184,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", -30.0, result, 1e-6);
+    assertEquals(-30.0, result, 1e-6, "correct result");
   }
 
   // Issue #792
@@ -204,9 +204,9 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,
                       0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", -30.0*6, result, 1e-6);
+    assertEquals(-30.0*6, result, 1e-6, "correct result");
     result = teh.estimateCost(tariff, usage);
-    assertEquals("correct result", -30.0*6, result, 1e-6);
+    assertEquals(-30.0*6, result, 1e-6, "correct result");
   }
 
   @Test
@@ -228,9 +228,9 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0, 100.0, 200.0, 200.0, 200.0, 300.0};
     double expected = 600.0 * -.1 + 500.0 * -.2;
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", expected, result, 1e-6);
+    assertEquals(expected, result, 1e-6, "correct result");
     result = teh.estimateCost(tariff, usage);
-    assertEquals("correct result", expected, result, 1e-6);
+    assertEquals(expected, result, 1e-6, "correct result");
   }
 
   @Test
@@ -253,7 +253,7 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0, 200.0};
     double expected = 300.0 * (0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18);
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", expected, result, 1e-6);
+    assertEquals(expected, result, 1e-6, "correct result");
     
     // add a single hourly charge -- it should be ignored
     hc = new HourlyCharge(start.plus(TimeService.HOUR), 0.12);
@@ -262,7 +262,7 @@ public class TariffEvaluationHelperTest
     double[] usage1 = {100.0, 200.0};
     expected = 300.0 * (0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18);
     result = teh.estimateCost(tariff, usage1, start);
-    assertEquals("correct result", expected, result, 1e-6);
+    assertEquals(expected, result, 1e-6, "correct result");
   }
 
   @Test
@@ -287,7 +287,7 @@ public class TariffEvaluationHelperTest
     double expected = 100.0 * (.6 * -.15 + .4 * -.2)
                       + 200.0 * (.6 * -.2 + .4 * -.9);
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", expected, result, 1e-6);
+    assertEquals(expected, result, 1e-6, "correct result");
   }
 
   @Test
@@ -312,10 +312,8 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0, 200.0};
     double expected = 100.0 * (.6 * -.15 + .4 * -.2)
                       + 200.0 * (.6 * -.2 + .4 * -.9);
-    assertEquals("correct result", expected,
-                 teh.estimateCost(tariff, usage, start, false), 1e-6);
-    assertEquals("correct result", expected - 0.02,
-                 teh.estimateCost(tariff, usage, start), 1e-6);
+    assertEquals(expected, teh.estimateCost(tariff, usage, start, false), 1e-6, "correct result");
+    assertEquals(expected - 0.02, teh.estimateCost(tariff, usage, start), 1e-6, "correct result");
   }
 
   @Test
@@ -341,11 +339,11 @@ public class TariffEvaluationHelperTest
     double[] expected = {100.0 * (.6 * -.15 + .4 * -.2),
                          200.0 * (.6 * -.2 + .4 * -.9)};
     double[] result = teh.estimateCostArray(tariff, usage, false);
-    assertEquals("correct first", expected[0], result[0], 1e-6);
-    assertEquals("correct result", expected[1], result[1], 1e-6);
+    assertEquals(expected[0], result[0], 1e-6, "correct first");
+    assertEquals(expected[1], result[1], 1e-6, "correct result");
     result = teh.estimateCostArray(tariff, usage);
-    assertEquals("correct first", expected[0] - 0.01, result[0], 1e-6);
-    assertEquals("correct result", expected[1] - 0.01, result[1], 1e-6);
+    assertEquals(expected[0] - 0.01, result[0], 1e-6, "correct first");
+    assertEquals(expected[1] - 0.01, result[1], 1e-6, "correct result");
   }
   
   @Test
@@ -369,7 +367,7 @@ public class TariffEvaluationHelperTest
     double expected = 100.0 * (.6 * -.15 + .4 * -.2)
                       + 200.0 * -.18;
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", expected, result, 1e-6);
+    assertEquals(expected, result, 1e-6, "correct result");
   }
 
   // thermal storage example, no estimates
@@ -392,7 +390,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", -30.0, result, 1e-6);
+    assertEquals(-30.0, result, 1e-6, "correct result");
   }
 
   // thermal storage example, estimates {2, 0, 1}
@@ -411,15 +409,14 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
     double result = tariff.getUsageCharge(10000.0, 0.0, true);
-    assertEquals("correct usage charge", 10000.0 * -0.1, result, 1.0e-6);
+    assertEquals(10000.0 * -0.1, result, 1.0e-6, "correct usage charge");
 
     teh.init(.6, .4, .5, 10000.0);
     teh.initializeRegulationFactors(-2.0, 0.0, 1.0);
     double[] usage = {100.0, 200.0};
     result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result",
-                 ((100.0 - 2.0 + 1.0) * -0.1 + 2.0 * 0.2 - 1.0 * 0.04
+    assertEquals(((100.0 - 2.0 + 1.0) * -0.1 + 2.0 * 0.2 - 1.0 * 0.04
                   + (200.0 - 2.0 + 1.0) * -0.1 + 2.0 * 0.2 - 1.0 * 0.04),
-                  result, 1e-6);
+                  result, 1e-6, "correct result");
   }
 }

@@ -15,11 +15,11 @@
  */
 package org.powertac.common.repo;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.Rate;
@@ -29,9 +29,8 @@ import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
@@ -40,8 +39,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
  * tests that need to init Tariffs.
  * @author John Collins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -60,7 +58,7 @@ public class TariffRepoSpringTest
   Broker broker;
   Rate rate;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.newInstance("test");
@@ -78,7 +76,7 @@ public class TariffRepoSpringTest
   @Test
   public void testTariffRepo ()
   {
-    assertNotNull("repo created", repo);
+    assertNotNull(repo, "repo created");
   }
   
   // set/get default tariff
@@ -86,27 +84,22 @@ public class TariffRepoSpringTest
   public void testSetGetDefault ()
   {
     Tariff result = repo.getDefaultTariff(PowerType.CONSUMPTION);
-    assertNull("no default tariff yet", result);
+    assertNull(result, "no default tariff yet");
 
     repo.setDefaultTariff(spec);
     TariffSpecification spec2 = new TariffSpecification(broker, PowerType.PRODUCTION)
       .withMinDuration(TimeService.WEEK * 10)
       .addRate(new Rate().withValue(0.2));
     result = repo.getDefaultTariff(PowerType.CONSUMPTION);
-    assertEquals("correct default CONSUMPTION",
-                 spec, result.getTariffSpecification());
-    assertNull("no default PRODUCTION",
-               repo.getDefaultTariff(PowerType.PRODUCTION));
+    assertEquals(spec, result.getTariffSpecification(), "correct default CONSUMPTION");
+    assertNull(repo.getDefaultTariff(PowerType.PRODUCTION), "no default PRODUCTION");
 
     repo.setDefaultTariff(spec2);
     result = repo.getDefaultTariff(PowerType.CONSUMPTION);
-    assertEquals("correct default CONSUMPTION",
-                 spec, result.getTariffSpecification());
+    assertEquals(spec, result.getTariffSpecification(), "correct default CONSUMPTION");
     result = repo.getDefaultTariff(PowerType.PRODUCTION);
-    assertEquals("correct default PRODUCTION",
-                 spec2, result.getTariffSpecification());
+    assertEquals(spec2, result.getTariffSpecification(), "correct default PRODUCTION");
     result = repo.getDefaultTariff(PowerType.SOLAR_PRODUCTION);
-    assertEquals("correct default SOLAR_PRODUCTION",
-                 spec2, result.getTariffSpecification());    
+    assertEquals(spec2, result.getTariffSpecification(), "correct default SOLAR_PRODUCTION");
   }
 }

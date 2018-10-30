@@ -1,12 +1,12 @@
 package org.powertac.common.repo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.util.List;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -18,7 +18,7 @@ public class TimeslotRepoTests
   Instant baseTime;
   TimeslotRepo repo;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.setCurrent(Competition.newInstance("test"));
@@ -32,33 +32,33 @@ public class TimeslotRepoTests
   @Test
   public void testTimeslotRepo ()
   {
-    assertNotNull("not null", repo);
-    assertEquals("empty", 0, repo.count());
+    assertNotNull(repo, "not null");
+    assertEquals(0, repo.count(), "empty");
   }
 
   @Test
   public void testMakeTimeslotNormal ()
   {
     Timeslot ts0 = repo.makeTimeslot(baseTime);
-    assertNotNull("not null 0", ts0);
-    assertEquals("correct sn", 0, ts0.getSerialNumber());
-    assertEquals("correct start", baseTime, ts0.getStartInstant());
-    assertEquals("correct count", 1, repo.count());
+    assertNotNull(ts0, "not null 0");
+    assertEquals(0, ts0.getSerialNumber(), "correct sn");
+    assertEquals(baseTime, ts0.getStartInstant(), "correct start");
+    assertEquals(1, repo.count(), "correct count");
     Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
-    assertNotNull("not null 1", ts1);
-    assertEquals("correct sn", 1, ts1.getSerialNumber());
-    assertEquals("correct start", baseTime.getMillis() + TimeService.HOUR, ts1.getStartInstant().getMillis());
-    assertEquals("correct count", 2, repo.count());
+    assertNotNull(ts1, "not null 1");
+    assertEquals(1, ts1.getSerialNumber(), "correct sn");
+    assertEquals(baseTime.getMillis() + TimeService.HOUR, ts1.getStartInstant().getMillis(), "correct start");
+    assertEquals(2, repo.count(), "correct count");
   }
   
   @Test
   public void testMakeTimeslotBackward ()
   {
     Timeslot ts0 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
-    assertEquals("correct sn 1", 1, ts0.getSerialNumber());
+    assertEquals(1, ts0.getSerialNumber(), "correct sn 1");
     Timeslot ts1 = repo.makeTimeslot(baseTime);
-    assertEquals("correct sn 0", 0, ts1.getSerialNumber());
-    assertEquals("correct count", 2, repo.count());
+    assertEquals(0, ts1.getSerialNumber(), "correct sn 0");
+    assertEquals(2, repo.count(), "correct count");
   }
 
   @Test
@@ -67,11 +67,11 @@ public class TimeslotRepoTests
     Timeslot ts0 = repo.makeTimeslot(baseTime);
     Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
     Timeslot ts2 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR * 2));
-    assertEquals("ts0 current", ts0, repo.currentTimeslot());
+    assertEquals(ts0, repo.currentTimeslot(), "ts0 current");
     timeService.setCurrentTime(new Instant(baseTime.getMillis() + TimeService.HOUR));
-    assertEquals("ts1 current", ts1, repo.currentTimeslot());
+    assertEquals(ts1, repo.currentTimeslot(), "ts1 current");
     timeService.setCurrentTime(new Instant(baseTime.getMillis() + TimeService.HOUR * 2));
-    assertEquals("ts2 current", ts2, repo.currentTimeslot());   
+    assertEquals(ts2, repo.currentTimeslot(), "ts2 current");   
   }
 
   @Test
@@ -80,10 +80,10 @@ public class TimeslotRepoTests
     Timeslot ts0 = repo.makeTimeslot(baseTime);
     Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
     Timeslot ts2 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR * 2));
-    assertEquals("correct count", 3, repo.count());
-    assertEquals("sn 0", ts0, repo.findBySerialNumber(0));
-    assertEquals("sn 1", ts1, repo.findBySerialNumber(1));
-    assertEquals("sn 2", ts2, repo.findBySerialNumber(2));
+    assertEquals(3, repo.count(), "correct count");
+    assertEquals(ts0, repo.findBySerialNumber(0), "sn 0");
+    assertEquals(ts1, repo.findBySerialNumber(1), "sn 1");
+    assertEquals(ts2, repo.findBySerialNumber(2), "sn 2");
   }
 
   @Test
@@ -92,8 +92,8 @@ public class TimeslotRepoTests
     repo.makeTimeslot(baseTime);
     repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
     Timeslot ts4 = repo.findOrCreateBySerialNumber(4);
-    assertEquals("5 entries", 5, repo.count());
-    assertEquals("sn 4", 4, ts4.getSerialNumber());
+    assertEquals(5, repo.count(), "5 entries");
+    assertEquals(4, ts4.getSerialNumber(), "sn 4");
   }
   
   @Test
@@ -102,8 +102,8 @@ public class TimeslotRepoTests
     Competition comp = Competition.currentCompetition();
     comp.withSimulationBaseTime(baseTime);
     Timeslot ts4 = repo.findOrCreateBySerialNumber(4);
-    assertEquals("5 entries", 5, repo.count());
-    assertEquals("sn 4", 4, ts4.getSerialNumber());
+    assertEquals(5, repo.count(), "5 entries");
+    assertEquals(4, ts4.getSerialNumber(), "sn 4");
   }
   
   @Test
@@ -113,7 +113,7 @@ public class TimeslotRepoTests
     comp.withSimulationBaseTime(baseTime);
     timeService.setCurrentTime(baseTime.plus(TimeService.HOUR * 10));
     repo.createInitialTimeslots();
-    assertEquals("11 entries", 11, repo.count());
+    assertEquals(11, repo.count(), "11 entries");
   }
 
   @SuppressWarnings("unused")
@@ -123,10 +123,10 @@ public class TimeslotRepoTests
     Timeslot ts0 = repo.makeTimeslot(baseTime);
     Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
     Timeslot ts2 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR * 2));
-    assertEquals("correct count", 3, repo.count());
+    assertEquals(3, repo.count(), "correct count");
     List<Timeslot> enabled = repo.enabledTimeslots();
-    assertEquals("24 enabled", 24, enabled.size());
-    assertEquals("first is ts1", ts1, enabled.get(0));
+    assertEquals(24, enabled.size(), "24 enabled");
+    assertEquals(ts1, enabled.get(0), "first is ts1");
   }
 
   @SuppressWarnings("unused")
@@ -136,10 +136,10 @@ public class TimeslotRepoTests
     Timeslot ts0 = repo.makeTimeslot(baseTime);
     Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
     Timeslot ts2 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR * 2));
-    assertEquals("correct count", 3, repo.count());
+    assertEquals(3, repo.count(), "correct count");
     List<Timeslot> enabled = repo.enabledTimeslots();
-    assertEquals("24 enabled", 24, enabled.size());
-    assertEquals("first is ts1", ts1, enabled.get(0));
+    assertEquals(24, enabled.size(), "24 enabled");
+    assertEquals(ts1, enabled.get(0), "first is ts1");
   }
 
   @SuppressWarnings("unused")
@@ -149,9 +149,8 @@ public class TimeslotRepoTests
     Timeslot ts0 = repo.makeTimeslot(baseTime);
     Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
     long tsDuration = Competition.currentCompetition().getTimeslotDuration();
-    assertEquals("correct base index", 0, ts0.getSerialNumber());
-    assertEquals("correct offset", baseTime.plus(tsDuration * 3),
-                 repo.getTimeForIndex(3));
+    assertEquals(0, ts0.getSerialNumber(), "correct base index");
+    assertEquals(baseTime.plus(tsDuration * 3), repo.getTimeForIndex(3), "correct offset");
   }
 
   @SuppressWarnings("unused")
@@ -161,14 +160,14 @@ public class TimeslotRepoTests
     Timeslot ts0 = repo.makeTimeslot(baseTime);
     Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
     Timeslot ts2 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR * 2));
-    assertEquals("correct count", 3, repo.count());
+    assertEquals(3, repo.count(), "correct count");
     List<Timeslot> enabled = repo.enabledTimeslots();
-    assertEquals("ts0 current", ts0, repo.currentTimeslot());
+    assertEquals(ts0, repo.currentTimeslot(), "ts0 current");
     repo.recycle();
-    assertEquals("correct count", 0, repo.count());
+    assertEquals(0, repo.count(), "correct count");
     ts0 = repo.makeTimeslot(baseTime);
-    assertEquals("correct count", 1, repo.count());
+    assertEquals(1, repo.count(), "correct count");
     enabled = repo.enabledTimeslots();
-    assertEquals("24 enabled", 24, enabled.size());
+    assertEquals(24, enabled.size(), "24 enabled");
   }
 }

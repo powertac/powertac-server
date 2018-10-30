@@ -15,14 +15,14 @@
  */
 package org.powertac.samplebroker;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
@@ -50,7 +50,7 @@ public class SampleBrokerTest
   private CustomerRepo customerRepo;
   private BrokerRepo brokerRepo;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     // set the time
@@ -102,7 +102,7 @@ public class SampleBrokerTest
     assertFalse(broker.getBroker().isEnabled());
     broker.getBroker().receiveMessage(new BrokerAccept(3));
     assertTrue(broker.getBroker().isEnabled());
-    assertEquals("correct prefix", 3, IdGenerator.getPrefix());
+    assertEquals(3, IdGenerator.getPrefix(), "correct prefix");
   }
 
   /**
@@ -111,7 +111,7 @@ public class SampleBrokerTest
   @Test
   public void testReceiveCompetition ()
   {
-    assertEquals("initially, no competing brokers", 1, broker.getBrokerList().size());
+    assertEquals(1, broker.getBrokerList().size(), "initially, no competing brokers");
     // set up a competition
     Competition comp = Competition.newInstance("Test")
         .withSimulationBaseTime(baseTime)
@@ -122,12 +122,12 @@ public class SampleBrokerTest
         .addCustomer(new CustomerInfo("Metro", 100000));
     // send without first enabling
     broker.getBroker().receiveMessage(comp);
-    assertEquals("still no competing brokers", 1, broker.getBrokerList().size());
+    assertEquals(1, broker.getBrokerList().size(), "still no competing brokers");
     // enable the broker
     broker.getBroker().receiveMessage(new BrokerAccept(3));
     // send to broker and check
     broker.getBroker().receiveMessage(comp);
-    assertEquals("2 competing brokers", 3, broker.getBrokerList().size());
-    assertEquals("3 customers", 3, customerRepo.size());
+    assertEquals(3, broker.getBrokerList().size(), "2 competing brokers");
+    assertEquals(3, customerRepo.size(), "3 customers");
   }
 }

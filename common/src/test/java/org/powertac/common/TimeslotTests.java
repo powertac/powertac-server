@@ -1,16 +1,16 @@
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TimeslotTests
 {
   Instant baseTime;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.setCurrent(Competition.newInstance("test"));
@@ -21,7 +21,7 @@ public class TimeslotTests
   public void testTimeslot ()
   {
     Timeslot ts1 = new Timeslot(1, baseTime);
-    assertNotNull("not null", ts1);
+    assertNotNull(ts1, "not null");
   }
   
   @Test
@@ -29,20 +29,20 @@ public class TimeslotTests
   {
     Timeslot ts2 = new Timeslot(2, 
                                 new Instant(baseTime.getMillis() + TimeService.HOUR));
-    assertNotNull("not null", ts2);
+    assertNotNull(ts2, "not null");
   }
 
   @Test
   public void testGetSerialNumber ()
   {
     Timeslot ts1 = new Timeslot(42, baseTime);
-    assertEquals("correct serial", 42, ts1.getSerialNumber());
+    assertEquals(42, ts1.getSerialNumber(), "correct serial");
   }
 
   @Test
   public void testGetStartInstant ()
   {
     Timeslot ts1 = new Timeslot(1, baseTime);
-    assertEquals("correct start", baseTime, ts1.getStartInstant());
+    assertEquals(baseTime, ts1.getStartInstant(), "correct start");
   }
 }

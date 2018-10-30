@@ -1,14 +1,11 @@
 package org.powertac.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
 
 import com.thoughtworks.xstream.XStream;
@@ -16,7 +13,7 @@ import com.thoughtworks.xstream.XStream;
 public class CustomerInfoTests
 {
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
   }
@@ -25,12 +22,12 @@ public class CustomerInfoTests
   public void testCustomerInfo ()
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    assertNotNull("not null", info);
-    assertEquals("name", "t1", info.getName());
-    assertEquals("population", 33, info.getPopulation());
-    assertEquals("correct power type", PowerType.CONSUMPTION, info.getPowerType());
-    assertFalse("no multicontracting", info.isMultiContracting());
-    assertFalse("can't negotiate", info.isCanNegotiate());
+    assertNotNull(info, "not null");
+    assertEquals("t1", info.getName(), "name");
+    assertEquals(33, info.getPopulation(), "population");
+    assertEquals(PowerType.CONSUMPTION, info.getPowerType(), "correct power type");
+    assertFalse(info.isMultiContracting(), "no multicontracting");
+    assertFalse(info.isCanNegotiate(), "can't negotiate");
   }
 
   @Test
@@ -38,7 +35,7 @@ public class CustomerInfoTests
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
     info.setPopulation(42);
-    assertEquals("correct population", 42, info.getPopulation());
+    assertEquals(42, info.getPopulation(), "correct population");
   }
 
   @Test
@@ -46,8 +43,8 @@ public class CustomerInfoTests
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
     CustomerInfo result = info.withPowerType(PowerType.PRODUCTION);
-    assertEquals("correct return", info, result);
-    assertEquals("correct type", PowerType.PRODUCTION, info.getPowerType());
+    assertEquals(info, result, "correct return");
+    assertEquals(PowerType.PRODUCTION, info.getPowerType(), "correct type");
   }
 
   @Test
@@ -55,8 +52,8 @@ public class CustomerInfoTests
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
     CustomerInfo result = info.withMultiContracting(true);
-    assertEquals("correct return", info, result);
-    assertTrue("multi-contracting", info.isMultiContracting());
+    assertEquals(info, result, "correct return");
+    assertTrue(info.isMultiContracting(), "multi-contracting");
   }
 
   @Test
@@ -64,15 +61,15 @@ public class CustomerInfoTests
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
     CustomerInfo result = info.withCanNegotiate(true);
-    assertEquals("correct return", info, result);
-    assertTrue("can negotiate", info.isCanNegotiate());
+    assertEquals(info, result, "correct return");
+    assertTrue(info.isCanNegotiate(), "can negotiate");
   }
 
   @Test
   public void testToString ()
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    assertEquals("correct string", "CustomerInfo(t1)", info.toString());
+    assertEquals("CustomerInfo(t1)", info.toString(), "correct string");
   }
 
   @Test
@@ -86,13 +83,12 @@ public class CustomerInfoTests
     serialized.write(xstream.toXML(ci));
     //System.out.println(serialized.toString());
     CustomerInfo xci = (CustomerInfo)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xci);
-    assertEquals("correct id", ci.getId(), xci.getId());
-    assertEquals("correct name", "Sam", xci.getName());
-    assertEquals("correct population", 44, xci.getPopulation());
-    //assertEquals("correct number of PowerTypes", 2, xci.getPowerTypes().size());
-    assertEquals("electric vehicle", PowerType.ELECTRIC_VEHICLE,
-                 xci.getPowerType());
+    assertNotNull(xci, "deserialized something");
+    assertEquals(ci.getId(), xci.getId(), "correct id");
+    assertEquals("Sam", xci.getName(), "correct name");
+    assertEquals(44, xci.getPopulation(), "correct population");
+    //assertEquals(2, xci.getPowerTypes().size(), "correct number of PowerTypes");
+    assertEquals(PowerType.ELECTRIC_VEHICLE, xci.getPowerType(), "electric vehicle");
   }
 
 }

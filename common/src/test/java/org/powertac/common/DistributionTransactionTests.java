@@ -15,22 +15,18 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
@@ -41,8 +37,7 @@ import com.thoughtworks.xstream.XStream;
  * requires that the BrokerConverter be able to find the BrokerRepo.
  * @author John Collins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -55,7 +50,7 @@ public class DistributionTransactionTests
   Broker broker;
   BrokerRepo brokerRepo;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.setCurrent(Competition.newInstance("distribution transaction test"));
@@ -69,26 +64,26 @@ public class DistributionTransactionTests
   public void testDistributionTransactionA ()
   {
     DistributionTransaction dt = new DistributionTransaction(broker, 24, 42.1, 3.22);
-    assertNotNull("not null", dt);
-    assertEquals("correct time", 24, dt.getPostedTimeslotIndex());
-    assertEquals("correct broker", broker, dt.getBroker());
-    assertEquals("correct qty", 42.1, dt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, dt.getCharge(), 1e-6);
-    assertEquals("no small", 0, dt.getNSmall());
-    assertEquals("no large", 0, dt.getNLarge());
+    assertNotNull(dt, "not null");
+    assertEquals(24, dt.getPostedTimeslotIndex(), "correct time");
+    assertEquals(broker, dt.getBroker(), "correct broker");
+    assertEquals(42.1, dt.getKWh(), 1e-6, "correct qty");
+    assertEquals(3.22, dt.getCharge(), 1e-6, "correct charge");
+    assertEquals(0, dt.getNSmall(), "no small");
+    assertEquals(0, dt.getNLarge(), "no large");
   }
 
   @Test
   public void testDistributionTransactionB ()
   {
     DistributionTransaction dt = new DistributionTransaction(broker, 24, 123, 45, 42.1, 3.22);
-    assertNotNull("not null", dt);
-    assertEquals("correct time", 24, dt.getPostedTimeslotIndex());
-    assertEquals("correct broker", broker, dt.getBroker());
-    assertEquals("correct qty", 42.1, dt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, dt.getCharge(), 1e-6);
-    assertEquals("correct small", 123, dt.getNSmall());
-    assertEquals("correct large", 45, dt.getNLarge());
+    assertNotNull(dt, "not null");
+    assertEquals(24, dt.getPostedTimeslotIndex(), "correct time");
+    assertEquals(broker, dt.getBroker(), "correct broker");
+    assertEquals(42.1, dt.getKWh(), 1e-6, "correct qty");
+    assertEquals(3.22, dt.getCharge(), 1e-6, "correct charge");
+    assertEquals(123, dt.getNSmall(), "correct small");
+    assertEquals(45, dt.getNLarge(), "correct large");
   }
 
   @Test
@@ -97,7 +92,7 @@ public class DistributionTransactionTests
     DistributionTransaction dt = new DistributionTransaction(broker, 24, 123, 45, 42.1, 3.22);
     String sut = dt.toString();
     //System.out.println(sut);
-    assertTrue("match", sut.matches("Distribution tx 24-Sally-123-45-42.100-3.220"));
+    assertTrue(sut.matches("Distribution tx 24-Sally-123-45-42.100-3.220"), "match");
   }
 
   @Test
@@ -110,12 +105,12 @@ public class DistributionTransactionTests
     serialized.write(xstream.toXML(dt));
     //System.out.println(serialized.toString());
     DistributionTransaction xdt = (DistributionTransaction)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xdt);
-    assertEquals("correct broker", broker, xdt.getBroker());
-    assertEquals("correct time", 24, xdt.getPostedTimeslotIndex());
-    assertEquals("correct small", 123, xdt.getNSmall());
-    assertEquals("correct large", 45, xdt.getNLarge());
-    assertEquals("correct qty", 42.1, xdt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, xdt.getCharge(), 1e-6);
+    assertNotNull(xdt, "deserialized something");
+    assertEquals(broker, xdt.getBroker(), "correct broker");
+    assertEquals(24, xdt.getPostedTimeslotIndex(), "correct time");
+    assertEquals(123, xdt.getNSmall(), "correct small");
+    assertEquals(45, xdt.getNLarge(), "correct large");
+    assertEquals(42.1, xdt.getKWh(), 1e-6, "correct qty");
+    assertEquals(3.22, xdt.getCharge(), 1e-6, "correct charge");
   }
 }

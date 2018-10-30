@@ -15,13 +15,13 @@
  */
 package org.powertac.common.repo;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
 import org.powertac.common.TimeService;
@@ -39,7 +39,7 @@ public class OrderbookRepoTests
   OrderbookRepo repo;
   Instant start;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.newInstance("test");
@@ -54,8 +54,8 @@ public class OrderbookRepoTests
   @Test
   public void testOrderbookRepo ()
   {
-    assertNotNull("created a repo", repo);
-    assertEquals("no entries", 0, repo.size());
+    assertNotNull(repo, "created a repo");
+    assertEquals(0, repo.size(), "no entries");
   }
 
   @Test
@@ -63,11 +63,10 @@ public class OrderbookRepoTests
   {
     Timeslot timeslot = timeslotRepo.makeTimeslot(start);
     Orderbook ob = repo.makeOrderbook(timeslot, 22.0);
-    assertNotNull("created orderbook", ob);
-    assertEquals("correct timeslot",
-                 timeslot.getSerialNumber(), ob.getTimeslotIndex());
-    assertEquals("correct clearing price", 22.0, ob.getClearingPrice(), 1e-6);
-    assertEquals("correct date", start, ob.getDateExecuted());
+    assertNotNull(ob, "created orderbook");
+    assertEquals(timeslot.getSerialNumber(), ob.getTimeslotIndex(), "correct timeslot");
+    assertEquals(22.0, ob.getClearingPrice(), 1e-6, "correct clearing price");
+    assertEquals(start, ob.getDateExecuted(), "correct date");
   }
 
   @Test
@@ -75,16 +74,16 @@ public class OrderbookRepoTests
   {
     Timeslot timeslot = timeslotRepo.makeTimeslot(start);
     Orderbook ob = repo.makeOrderbook(timeslot, 22.0);
-    assertEquals("size 1", 1, repo.size());
-    assertEquals("found this one", ob, repo.findByTimeslot(timeslot));
+    assertEquals(1, repo.size(), "size 1");
+    assertEquals(ob, repo.findByTimeslot(timeslot), "found this one");
     Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
-    assertNull("no orderbook yet", repo.findByTimeslot(timeslot2));
+    assertNull(repo.findByTimeslot(timeslot2), "no orderbook yet");
     Orderbook ob2 = repo.makeOrderbook(timeslot2, 23.0);
-    assertEquals("size 2", 2, repo.size());
-    assertEquals("found ob2", ob2, repo.findByTimeslot(timeslot2));
+    assertEquals(2, repo.size(), "size 2");
+    assertEquals(ob2, repo.findByTimeslot(timeslot2), "found ob2");
     ob = repo.makeOrderbook(timeslot, 24.0);
-    assertEquals("still size 2", 2, repo.size());
-    assertEquals("replaced original", ob, repo.findByTimeslot(timeslot));    
+    assertEquals(2, repo.size(), "still size 2");
+    assertEquals(ob, repo.findByTimeslot(timeslot), "replaced original");    
   }
 
   @Test
@@ -94,12 +93,12 @@ public class OrderbookRepoTests
     Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
     Orderbook ob1 = repo.makeOrderbook(timeslot, 22.0);
     Orderbook ob2 = repo.makeOrderbook(timeslot2, 23.0);
-    assertEquals("found this one", ob1, repo.findByTimeslot(timeslot));
-    assertEquals("found ob2", ob2, repo.findByTimeslot(timeslot2));
+    assertEquals(ob1, repo.findByTimeslot(timeslot), "found this one");
+    assertEquals(ob2, repo.findByTimeslot(timeslot2), "found ob2");
     repo.recycle();
-    assertNull("ts1 empty", repo.findByTimeslot(timeslot));
-    assertNull("ts2 empty", repo.findByTimeslot(timeslot2));
-    assertEquals("size zero", 0, repo.size());
+    assertNull(repo.findByTimeslot(timeslot), "ts1 empty");
+    assertNull(repo.findByTimeslot(timeslot2), "ts2 empty");
+    assertEquals(0, repo.size(), "size zero");
   }
   
   @Test
@@ -108,9 +107,9 @@ public class OrderbookRepoTests
     Double[] minAskPrices = {1.0, 2.0, 3.0};
     repo.setMinAskPrices(minAskPrices);
     Double[] val = repo.getMinAskPrices();
-    assertEquals("same length", minAskPrices.length, val.length);
+    assertEquals(minAskPrices.length, val.length, "same length");
     for (int i = 0; i < minAskPrices.length; i++) {
-      assertEquals("same value", minAskPrices[i], val[i], 1e-8);
+      assertEquals(minAskPrices[i], val[i], 1e-8, "same value");
     }
   }
 

@@ -15,12 +15,12 @@
  */
 package org.powertac.common.repo;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.Rate;
@@ -41,7 +41,7 @@ public class TariffRepoTest
   Broker broker;
   Rate rate;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.newInstance("test");
@@ -59,7 +59,7 @@ public class TariffRepoTest
   @Test
   public void testTariffRepo ()
   {
-    assertNotNull("repo created", repo);
+    assertNotNull(repo, "repo created");
   }
 
   /**
@@ -69,44 +69,44 @@ public class TariffRepoTest
   public void testAddSpecification ()
   {
     List<TariffSpecification> specs = repo.findAllTariffSpecifications();
-    assertTrue("initially empty", specs.isEmpty());
+    assertTrue(specs.isEmpty(), "initially empty");
     repo.addSpecification(spec);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("one spec", 1, specs.size());
-    assertEquals("correct spec", spec, specs.get(0));
+    assertEquals(1, specs.size(), "one spec");
+    assertEquals(spec, specs.get(0), "correct spec");
     TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
       .withMinDuration(TimeService.WEEK * 10)
       .addRate(new Rate().withValue(0.2));
     repo.addSpecification(spec2);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("two specs", 2, specs.size());
-    assertTrue("contains first", specs.contains(spec));
-    assertTrue("contains second", specs.contains(spec2));
+    assertEquals(2, specs.size(), "two specs");
+    assertTrue(specs.contains(spec), "contains first");
+    assertTrue(specs.contains(spec2), "contains second");
   }
 
   @Test
   public void testRemoveSpecification ()
   {
     List<TariffSpecification> specs = repo.findAllTariffSpecifications();
-    assertTrue("initially empty", specs.isEmpty());
+    assertTrue(specs.isEmpty(), "initially empty");
     repo.addSpecification(spec);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("one spec", 1, specs.size());
+    assertEquals(1, specs.size(), "one spec");
     TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
       .withMinDuration(TimeService.WEEK * 10)
       .addRate(new Rate().withValue(0.2));
     repo.addSpecification(spec2);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("two specs", 2, specs.size());
-    assertTrue("contains first", specs.contains(spec));
-    assertTrue("contains second", specs.contains(spec2));
+    assertEquals(2, specs.size(), "two specs");
+    assertTrue(specs.contains(spec), "contains first");
+    assertTrue(specs.contains(spec2), "contains second");
     repo.removeSpecification(spec.getId());
     specs = repo.findAllTariffSpecifications();    
-    assertEquals("one spec", 1, specs.size());
-    assertTrue("contains only second", specs.contains(spec2));
+    assertEquals(1, specs.size(), "one spec");
+    assertTrue(specs.contains(spec2), "contains only second");
     repo.removeSpecification(spec2.getId());
     specs = repo.findAllTariffSpecifications();
-    assertEquals("no specs", 0, specs.size());
+    assertEquals(0, specs.size(), "no specs");
   }
 
   // remove and re-add specification
@@ -115,25 +115,25 @@ public class TariffRepoTest
   {
     repo.addSpecification(spec);
     List<TariffSpecification> specs = repo.findAllTariffSpecifications();
-    assertEquals("one spec", 1, specs.size());
+    assertEquals(1, specs.size(), "one spec");
     TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
       .withMinDuration(TimeService.WEEK * 10)
       .addRate(new Rate().withValue(0.2));
     repo.addSpecification(spec2);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("two specs", 2, specs.size());
-    assertTrue("contains first", specs.contains(spec));
-    assertTrue("contains second", specs.contains(spec2));
+    assertEquals(2, specs.size(), "two specs");
+    assertTrue(specs.contains(spec), "contains first");
+    assertTrue(specs.contains(spec2), "contains second");
     repo.removeSpecification(spec.getId());
     specs = repo.findAllTariffSpecifications();
-    assertEquals("one spec", 1, specs.size());
-    assertTrue("contains only second", specs.contains(spec2));
+    assertEquals(1, specs.size(), "one spec");
+    assertTrue(specs.contains(spec2), "contains only second");
     repo.addSpecification(spec);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("back to 2 specs", 2, specs.size());
+    assertEquals(2, specs.size(), "back to 2 specs");
     specs = repo.findAllTariffSpecifications();
-    assertTrue("still contains second", specs.contains(spec2));
-    assertTrue("now contains first", specs.contains(spec));
+    assertTrue(specs.contains(spec2), "still contains second");
+    assertTrue(specs.contains(spec), "now contains first");
   }
 
   @Test
@@ -141,17 +141,17 @@ public class TariffRepoTest
   {
     repo.addSpecification(spec);
     List<TariffSpecification> specs = repo.findAllTariffSpecifications();
-    assertEquals("one spec", 1, specs.size());
-    assertEquals("correct spec", spec, specs.get(0));
+    assertEquals(1, specs.size(), "one spec");
+    assertEquals(spec, specs.get(0), "correct spec");
     TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
       .withMinDuration(TimeService.WEEK * 10)
       .addRate(new Rate().withValue(0.2));
     repo.addSpecification(spec2);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("two specs", 2, specs.size());
+    assertEquals(2, specs.size(), "two specs");
     repo.addSpecification(spec2);
     specs = repo.findAllTariffSpecifications();
-    assertEquals("two specs", 2, specs.size());
+    assertEquals(2, specs.size(), "two specs");
   }
 
   /**
@@ -165,8 +165,8 @@ public class TariffRepoTest
       .withMinDuration(TimeService.WEEK * 10)
       .addRate(new Rate().withValue(0.2));
     repo.addSpecification(spec2);
-    assertEquals("first", spec, repo.findSpecificationById(spec.getId()));
-    assertEquals("second", spec2, repo.findSpecificationById(spec2.getId()));
+    assertEquals(spec, repo.findSpecificationById(spec.getId()), "first");
+    assertEquals(spec2, repo.findSpecificationById(spec2.getId()), "second");
   }
   
   // find spec by power type, including supertypes
@@ -188,13 +188,13 @@ public class TariffRepoTest
     repo.addSpecification(spec4);
     List<TariffSpecification> specs =
             repo.findTariffSpecificationsByPowerType(PowerType.CONSUMPTION);
-    assertEquals("two specs", 2, specs.size());
-    assertTrue("contains first", specs.contains(spec));
-    assertTrue("contains second", specs.contains(spec2));
+    assertEquals(2, specs.size(), "two specs");
+    assertTrue(specs.contains(spec), "contains first");
+    assertTrue(specs.contains(spec2), "contains second");
     specs = repo.findTariffSpecificationsByPowerType(PowerType.PRODUCTION);
-    assertEquals("two specs", 2, specs.size());
-    assertTrue("contains first", specs.contains(spec3));
-    assertTrue("contains second", specs.contains(spec4));
+    assertEquals(2, specs.size(), "two specs");
+    assertTrue(specs.contains(spec3), "contains first");
+    assertTrue(specs.contains(spec4), "contains second");
   }
 
   // find spec by broker
@@ -217,13 +217,13 @@ public class TariffRepoTest
     repo.addSpecification(spec4);
     List<TariffSpecification> specs =
             repo.findTariffSpecificationsByBroker(broker);
-    assertEquals("two specs", 2, specs.size());
-    assertTrue("contains first", specs.contains(spec));
-    assertTrue("contains second", specs.contains(spec2));
+    assertEquals(2, specs.size(), "two specs");
+    assertTrue(specs.contains(spec), "contains first");
+    assertTrue(specs.contains(spec2), "contains second");
     specs = repo.findTariffSpecificationsByBroker(mary);
-    assertEquals("two specs", 2, specs.size());
-    assertTrue("contains first", specs.contains(spec3));
-    assertTrue("contains second", specs.contains(spec4));
+    assertEquals(2, specs.size(), "two specs");
+    assertTrue(specs.contains(spec3), "contains first");
+    assertTrue(specs.contains(spec4), "contains second");
   }
 
   /**
@@ -242,9 +242,9 @@ public class TariffRepoTest
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
     List<Tariff> tariffs = repo.findAllTariffs();
-    assertEquals("tariffs inserted", 2, tariffs.size());
-    assertTrue("contains first", tariffs.contains(t1));
-    assertTrue("contains second", tariffs.contains(t2));
+    assertEquals(2, tariffs.size(), "tariffs inserted");
+    assertTrue(tariffs.contains(t1), "contains first");
+    assertTrue(tariffs.contains(t2), "contains second");
   }
 
   // make sure we don't get null for broker with no tariffs (#813)
@@ -252,8 +252,8 @@ public class TariffRepoTest
   public void testTariffByBroker ()
   {
     List<Tariff> tariffs = repo.findTariffsByBroker(broker);
-    assertNotNull("should be non-null", tariffs);
-    assertEquals("should be empty list", 0, tariffs.size());
+    assertNotNull(tariffs, "should be non-null");
+    assertEquals(0, tariffs.size(), "should be empty list");
     repo.addSpecification(spec);
     Tariff t1 = new Tariff(spec);
     repo.addTariff(t1);
@@ -264,9 +264,9 @@ public class TariffRepoTest
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
     tariffs = repo.findTariffsByBroker(broker);
-    assertEquals("tariffs inserted", 2, tariffs.size());
-    assertTrue("contains first", tariffs.contains(t1));
-    assertTrue("contains second", tariffs.contains(t2));
+    assertEquals(2, tariffs.size(), "tariffs inserted");
+    assertTrue(tariffs.contains(t1), "contains first");
+    assertTrue(tariffs.contains(t2), "contains second");
   }
 
   /**
@@ -284,10 +284,10 @@ public class TariffRepoTest
     repo.addSpecification(spec2);
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
-    assertEquals("found t1", t1, repo.findTariffById(spec.getId()));
-    assertEquals("found t2", t2, repo.findTariffById(spec2.getId()));
-    assertEquals("found t1", t1, repo.findTariffById(t1.getId()));
-    assertEquals("found t2", t2, repo.findTariffById(t2.getId()));
+    assertEquals(t1, repo.findTariffById(spec.getId()), "found t1");
+    assertEquals(t2, repo.findTariffById(spec2.getId()), "found t2");
+    assertEquals(t1, repo.findTariffById(t1.getId()), "found t1");
+    assertEquals(t2, repo.findTariffById(t2.getId()), "found t2");
   }
 
   /**
@@ -306,15 +306,15 @@ public class TariffRepoTest
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
     List<Tariff> tariffs = repo.findTariffsByState(Tariff.State.PENDING);
-    assertEquals("two pending tariffs", 2, tariffs.size());
+    assertEquals(2, tariffs.size(), "two pending tariffs");
     t2.setState(Tariff.State.WITHDRAWN);
     tariffs = repo.findTariffsByState(Tariff.State.PENDING);
-    assertEquals("just one pending", 1, tariffs.size());
-    assertEquals("it's t1", t1, tariffs.get(0));
+    assertEquals(1, tariffs.size(), "just one pending");
+    assertEquals(t1, tariffs.get(0), "it's t1");
     tariffs = repo.findTariffsByState(Tariff.State.WITHDRAWN);
-    assertEquals("one withdrawn", 1, tariffs.size());
-    assertEquals("it's t2", t2, tariffs.get(0));
-    assertTrue("none offered", repo.findTariffsByState(Tariff.State.OFFERED).isEmpty());
+    assertEquals(1, tariffs.size(), "one withdrawn");
+    assertEquals(t2, tariffs.get(0), "it's t2");
+    assertTrue(repo.findTariffsByState(Tariff.State.OFFERED).isEmpty(), "none offered");
   }
 
   /**
@@ -339,28 +339,28 @@ public class TariffRepoTest
     Tariff t3 = new Tariff(spec3);
     repo.addTariff(t3);
     List<Tariff> tariffs = repo.findActiveTariffs(PowerType.CONSUMPTION);
-    assertTrue("no active consumption tariffs", tariffs.isEmpty());
+    assertTrue(tariffs.isEmpty(), "no active consumption tariffs");
     tariffs = repo.findActiveTariffs(PowerType.PRODUCTION);
-    assertTrue("no active production tariffs", tariffs.isEmpty());
+    assertTrue(tariffs.isEmpty(), "no active production tariffs");
     tariffs = repo.findAllActiveTariffs(PowerType.SOLAR_PRODUCTION);
-    assertTrue("no active solar production tariffs", tariffs.isEmpty());
+    assertTrue(tariffs.isEmpty(), "no active solar production tariffs");
     t2.setState(Tariff.State.ACTIVE);
     tariffs = repo.findActiveTariffs(PowerType.PRODUCTION);
-    assertEquals("1 active production tariffs", 1, tariffs.size());
-    assertEquals("it's t2", t2, tariffs.get(0));
+    assertEquals(1, tariffs.size(), "1 active production tariffs");
+    assertEquals(t2, tariffs.get(0), "it's t2");
     tariffs = repo.findActiveTariffs(PowerType.SOLAR_PRODUCTION);
-    assertTrue("no active solar production tariffs", tariffs.isEmpty());
+    assertTrue(tariffs.isEmpty(), "no active solar production tariffs");
     tariffs = repo.findAllActiveTariffs(PowerType.SOLAR_PRODUCTION);
-    assertEquals("1 active generic production tariffs", 1, tariffs.size());
-    assertEquals("it's t2", t2, tariffs.get(0));
+    assertEquals(1, tariffs.size(), "1 active generic production tariffs");
+    assertEquals(t2, tariffs.get(0), "it's t2");
     t3.setState(Tariff.State.ACTIVE);
     tariffs = repo.findActiveTariffs(PowerType.SOLAR_PRODUCTION);
-    assertEquals("1 active solar production tariffs", 1, tariffs.size());
-    assertEquals("it's t3", t3, tariffs.get(0));
+    assertEquals(1, tariffs.size(), "1 active solar production tariffs");
+    assertEquals(t3, tariffs.get(0), "it's t3");
     tariffs = repo.findAllActiveTariffs(PowerType.SOLAR_PRODUCTION);
-    assertEquals("2 active generic production tariffs", 2, tariffs.size());
-    assertTrue("includes t2", tariffs.contains(t2));
-    assertTrue("includes t3", tariffs.contains(t3));
+    assertEquals(2, tariffs.size(), "2 active generic production tariffs");
+    assertTrue(tariffs.contains(t2), "includes t2");
+    assertTrue(tariffs.contains(t3), "includes t3");
   }
 
   /**
@@ -481,47 +481,47 @@ public class TariffRepoTest
     repo.addTariff(t2wp2);
 
     List<Tariff> tariffs = repo.findRecentActiveTariffs(2, PowerType.CONSUMPTION);
-    assertTrue("no active consumption tariffs", tariffs.isEmpty());
+    assertTrue(tariffs.isEmpty(), "no active consumption tariffs");
     tariffs = repo.findRecentActiveTariffs(1, PowerType.PRODUCTION);
-    assertTrue("no active production tariffs", tariffs.isEmpty());
+    assertTrue(tariffs.isEmpty(), "no active production tariffs");
     
     t1p2.setState(Tariff.State.ACTIVE);
     tariffs = repo.findRecentActiveTariffs(2, PowerType.PRODUCTION);
-    assertEquals("1 active production tariffs", 1, tariffs.size());
-    assertEquals("it's 1p2", t1p2, tariffs.get(0));
+    assertEquals(1, tariffs.size(), "1 active production tariffs");
+    assertEquals(t1p2, tariffs.get(0), "it's 1p2");
     tariffs = repo.findRecentActiveTariffs(3, PowerType.SOLAR_PRODUCTION);
-    assertEquals("1 active generic production tariffs", 1, tariffs.size());
-    assertEquals("it's t1p2", t1p2, tariffs.get(0));
+    assertEquals(1, tariffs.size(), "1 active generic production tariffs");
+    assertEquals(t1p2, tariffs.get(0), "it's t1p2");
     
     t1p1.setState(Tariff.State.ACTIVE);
     t1sp1.setState(Tariff.State.ACTIVE);
     t1sp2.setState(Tariff.State.ACTIVE);
     t1sp3.setState(Tariff.State.ACTIVE);
     tariffs = repo.findRecentActiveTariffs(1, PowerType.PRODUCTION);
-    assertEquals("1 active production tariffs", 1, tariffs.size());
-    assertEquals("it's t1p2", t1p2, tariffs.get(0));
+    assertEquals(1, tariffs.size(), "1 active production tariffs");
+    assertEquals(t1p2, tariffs.get(0), "it's t1p2");
     tariffs = repo.findRecentActiveTariffs(2, PowerType.PRODUCTION);
-    assertEquals("2 active production tariffs", 2, tariffs.size());
-    assertTrue("contains t1p2", tariffs.contains(t1p2));
-    assertTrue("contains t1p1", tariffs.contains(t1p2));
+    assertEquals(2, tariffs.size(), "2 active production tariffs");
+    assertTrue(tariffs.contains(t1p2), "contains t1p2");
+    assertTrue(tariffs.contains(t1p2), "contains t1p1");
     
     tariffs = repo.findRecentActiveTariffs(1, PowerType.SOLAR_PRODUCTION);
-    assertEquals("2 active solar production tariffs", 2, tariffs.size());
-    assertTrue("includes t1p2", tariffs.contains(t1p2));
-    assertTrue("includes t1sp3", tariffs.contains(t1sp3));
+    assertEquals(2, tariffs.size(), "2 active solar production tariffs");
+    assertTrue(tariffs.contains(t1p2), "includes t1p2");
+    assertTrue(tariffs.contains(t1sp3), "includes t1sp3");
     tariffs = repo.findRecentActiveTariffs(2, PowerType.SOLAR_PRODUCTION);
-    assertEquals("4 active solar production tariffs", 4, tariffs.size());
-    assertTrue("includes t1p1", tariffs.contains(t1p1));
-    assertTrue("includes t1p2", tariffs.contains(t1p2));
-    assertTrue("includes t1sp2", tariffs.contains(t1sp2));
-    assertTrue("includes t1sp3", tariffs.contains(t1sp3));
+    assertEquals(4, tariffs.size(), "4 active solar production tariffs");
+    assertTrue(tariffs.contains(t1p1), "includes t1p1");
+    assertTrue(tariffs.contains(t1p2), "includes t1p2");
+    assertTrue(tariffs.contains(t1sp2), "includes t1sp2");
+    assertTrue(tariffs.contains(t1sp3), "includes t1sp3");
     tariffs = repo.findRecentActiveTariffs(3, PowerType.SOLAR_PRODUCTION);
-    assertEquals("5 active solar production tariffs", 5, tariffs.size());
-    assertTrue("includes t1p1", tariffs.contains(t1p1));
-    assertTrue("includes t1p2", tariffs.contains(t1p2));
-    assertTrue("includes t1sp1", tariffs.contains(t1sp1));
-    assertTrue("includes t1sp2", tariffs.contains(t1sp2));
-    assertTrue("includes t1sp2", tariffs.contains(t1sp3));
+    assertEquals(5, tariffs.size(), "5 active solar production tariffs");
+    assertTrue(tariffs.contains(t1p1), "includes t1p1");
+    assertTrue(tariffs.contains(t1p2), "includes t1p2");
+    assertTrue(tariffs.contains(t1sp1), "includes t1sp1");
+    assertTrue(tariffs.contains(t1sp2), "includes t1sp2");
+    assertTrue(tariffs.contains(t1sp3), "includes t1sp2");
     
     t2p1.setState(Tariff.State.ACTIVE);
     t2p2.setState(Tariff.State.ACTIVE);
@@ -532,28 +532,28 @@ public class TariffRepoTest
     t2wp1.setState(Tariff.State.ACTIVE);
     t2wp2.setState(Tariff.State.ACTIVE);
     tariffs = repo.findRecentActiveTariffs(1, PowerType.PRODUCTION);
-    assertEquals("2 active production tariffs", 2, tariffs.size());
-    assertTrue("contains t1p2", tariffs.contains(t1p2));
-    assertTrue("contains t2p3", tariffs.contains(t2p3));
+    assertEquals(2, tariffs.size(), "2 active production tariffs");
+    assertTrue(tariffs.contains(t1p2), "contains t1p2");
+    assertTrue(tariffs.contains(t2p3), "contains t2p3");
     tariffs = repo.findRecentActiveTariffs(2, PowerType.PRODUCTION);
-    assertEquals("4 active production tariffs", 4, tariffs.size());
-    assertTrue("contains t1p2", tariffs.contains(t1p2));
-    assertTrue("contains t1p1", tariffs.contains(t1p1));
-    assertTrue("contains t2p3", tariffs.contains(t2p3));
-    assertTrue("contains t2p2", tariffs.contains(t2p2));
+    assertEquals(4, tariffs.size(), "4 active production tariffs");
+    assertTrue(tariffs.contains(t1p2), "contains t1p2");
+    assertTrue(tariffs.contains(t1p1), "contains t1p1");
+    assertTrue(tariffs.contains(t2p3), "contains t2p3");
+    assertTrue(tariffs.contains(t2p2), "contains t2p2");
     
     tariffs = repo.findRecentActiveTariffs(1, PowerType.SOLAR_PRODUCTION);
-    assertEquals("4 active solar production tariffs", 4, tariffs.size());
-    assertTrue("includes t1p2", tariffs.contains(t1p2));
-    assertTrue("includes t1sp3", tariffs.contains(t1sp3));
-    assertTrue("includes t2p3", tariffs.contains(t2p3));
-    assertTrue("includes t2sp3", tariffs.contains(t2sp3));
+    assertEquals(4, tariffs.size(), "4 active solar production tariffs");
+    assertTrue(tariffs.contains(t1p2), "includes t1p2");
+    assertTrue(tariffs.contains(t1sp3), "includes t1sp3");
+    assertTrue(tariffs.contains(t2p3), "includes t2p3");
+    assertTrue(tariffs.contains(t2sp3), "includes t2sp3");
     tariffs = repo.findRecentActiveTariffs(2, PowerType.SOLAR_PRODUCTION);
-    assertEquals("8 active solar production tariffs", 8, tariffs.size());
+    assertEquals(8, tariffs.size(), "8 active solar production tariffs");
     tariffs = repo.findRecentActiveTariffs(3, PowerType.SOLAR_PRODUCTION);
-    assertEquals("11 active solar production tariffs", 11, tariffs.size());
+    assertEquals(11, tariffs.size(), "11 active solar production tariffs");
     tariffs = repo.findRecentActiveTariffs(3, PowerType.WIND_PRODUCTION);
-    assertEquals("7 active wind production tariffs", 7, tariffs.size());
+    assertEquals(7, tariffs.size(), "7 active wind production tariffs");
   }
 
   /**
@@ -572,8 +572,8 @@ public class TariffRepoTest
     repo.addSpecification(spec2);
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
-    assertEquals("found r1", rate, repo.findRateById(rate.getId()));
-    assertEquals("found r2", r2, repo.findRateById(r2.getId()));
+    assertEquals(rate, repo.findRateById(rate.getId()), "found r1");
+    assertEquals(r2, repo.findRateById(r2.getId()), "found r2");
   }
 
   /**
@@ -597,13 +597,13 @@ public class TariffRepoTest
     repo.addSpecification(spec3);
     Tariff t3 = new Tariff(spec3);
     repo.addTariff(t3);
-    assertEquals("3 tariffs", 3, repo.findAllTariffs().size());
-    assertEquals("3 specs", 3, repo.findAllTariffSpecifications().size());
+    assertEquals(3, repo.findAllTariffs().size(), "3 tariffs");
+    assertEquals(3, repo.findAllTariffSpecifications().size(), "3 specs");
     repo.removeTariff(t2);
-    assertEquals("2 tariffs", 2, repo.findAllTariffs().size());
-    assertEquals("2 specs", 2, repo.findAllTariffSpecifications().size());
-    assertFalse("t3 not deleted", repo.isRemoved(t3.getId()));
-    assertTrue("t2 is deleted", repo.isRemoved(t2.getId()));
+    assertEquals(2, repo.findAllTariffs().size(), "2 tariffs");
+    assertEquals(2, repo.findAllTariffSpecifications().size(), "2 specs");
+    assertFalse(repo.isRemoved(t3.getId()), "t3 not deleted");
+    assertTrue(repo.isRemoved(t2.getId()), "t2 is deleted");
   }
 
   // tariff deletion without keeping a copy around
@@ -619,14 +619,14 @@ public class TariffRepoTest
     repo.addSpecification(spec2);
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
-    assertEquals("2 tariffs", 2, repo.findAllTariffs().size());
-    assertEquals("2 tariffs for broker", 2, repo.findTariffsByBroker(broker).size());
+    assertEquals(2, repo.findAllTariffs().size(), "2 tariffs");
+    assertEquals(2, repo.findTariffsByBroker(broker).size(), "2 tariffs for broker");
     repo.deleteTariff(t1);
-    assertEquals("1 tariff", 1, repo.findAllTariffs().size());
-    assertEquals("1 tariff for broker", 1, repo.findTariffsByBroker(broker).size());
+    assertEquals(1, repo.findAllTariffs().size(), "1 tariff");
+    assertEquals(1, repo.findTariffsByBroker(broker).size(), "1 tariff for broker");
     repo.addTariff(t1);
-    assertEquals("2 tariffs again", 2, repo.findAllTariffs().size());
-    assertEquals("2 tariffs for broker", 2, repo.findTariffsByBroker(broker).size());
+    assertEquals(2, repo.findAllTariffs().size(), "2 tariffs again");
+    assertEquals(2, repo.findTariffsByBroker(broker).size(), "2 tariffs for broker");
   }
 
   /**

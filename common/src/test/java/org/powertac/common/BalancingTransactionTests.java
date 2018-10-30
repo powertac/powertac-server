@@ -15,22 +15,17 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-//import org.springframework.test.context.TestContextManager;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
@@ -42,8 +37,7 @@ import com.thoughtworks.xstream.XStream;
  * @author John Collins
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -55,7 +49,7 @@ public class BalancingTransactionTests
   Broker broker;
   BrokerRepo brokerRepo;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.setCurrent(Competition.newInstance("market order test"));
@@ -69,11 +63,11 @@ public class BalancingTransactionTests
   public void testBalancingTransaction ()
   {
     BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
-    assertNotNull("not null", bt);
-    assertEquals("correct time", 24, bt.getPostedTimeslotIndex());
-    assertEquals("correct broker", broker, bt.getBroker());
-    assertEquals("correct qty", 42.1, bt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, bt.getCharge(), 1e-6);
+    assertNotNull(bt, "not null");
+    assertEquals(24, bt.getPostedTimeslotIndex(), "correct time");
+    assertEquals(broker, bt.getBroker(), "correct broker");
+    assertEquals(42.1, bt.getKWh(), 1e-6, "correct qty");
+    assertEquals(3.22, bt.getCharge(), 1e-6, "correct charge");
   }
 
   @Test
@@ -82,7 +76,7 @@ public class BalancingTransactionTests
     BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
     String sut = bt.toString();
     //System.out.println(sut);
-    assertTrue("match", sut.matches("Balance tx \\d+-Sally-42.1-3.22"));
+    assertTrue(sut.matches("Balance tx \\d+-Sally-42.1-3.22"), "match");
   }
   
   @Test
@@ -95,10 +89,10 @@ public class BalancingTransactionTests
     serialized.write(xstream.toXML(bt));
     //System.out.println(serialized.toString());
     BalancingTransaction xbt = (BalancingTransaction)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xbt);
-    assertEquals("correct broker", broker, xbt.getBroker());
-    assertEquals("correct time", 24, xbt.getPostedTimeslotIndex());
-    assertEquals("correct qty", 42.1, xbt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, xbt.getCharge(), 1e-6);
+    assertNotNull(xbt, "deserialized something");
+    assertEquals(broker, xbt.getBroker(), "correct broker");
+    assertEquals(24, xbt.getPostedTimeslotIndex(), "correct time");
+    assertEquals(42.1, xbt.getKWh(), 1e-6, "correct qty");
+    assertEquals(3.22, xbt.getCharge(), 1e-6, "correct charge");
   }
 }

@@ -15,28 +15,22 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.CustomerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -54,7 +48,7 @@ public class XMLMessageConverterTests
   /**
    * @throws java.lang.Exception
    */
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     converter = new XMLMessageConverter();
     converter.afterPropertiesSet();
@@ -63,7 +57,7 @@ public class XMLMessageConverterTests
   @Test
   public void testToXMLAndFromXML() {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    assertNotNull("not null", info);
+    assertNotNull(info, "not null");
 
     String xml = converter.toXML(info);
     
@@ -71,12 +65,11 @@ public class XMLMessageConverterTests
     
     CustomerInfo convertedInfo = (CustomerInfo)converter.fromXML(xml);
 
-    assertEquals("name", "t1", convertedInfo.getName());
-    assertEquals("population", 33, convertedInfo.getPopulation());
-    assertEquals("correct power type", PowerType.CONSUMPTION, 
-                 convertedInfo.getPowerType());
-    assertFalse("no multicontracting", convertedInfo.isMultiContracting());
-    assertFalse("can't negotiate", convertedInfo.isCanNegotiate());
+    assertEquals("t1", convertedInfo.getName(), "name");
+    assertEquals(33, convertedInfo.getPopulation(), "population");
+    assertEquals(PowerType.CONSUMPTION, convertedInfo.getPowerType());
+    assertFalse(convertedInfo.isMultiContracting(), "no multicontracting");
+    assertFalse(convertedInfo.isCanNegotiate(), "can't negotiate");
   }
 
   @Test
@@ -93,11 +86,11 @@ public class XMLMessageConverterTests
     //System.out.println(xml);
     Competition convertedCompetition = (Competition)converter.fromXML(xml);
     assertNotNull(convertedCompetition);
-    assertNotNull("has customers", convertedCompetition.getCustomers());
-    assertEquals("one customer", 1, convertedCompetition.getCustomers().size());
+    assertNotNull(convertedCompetition.getCustomers(), "has customers");
+    assertEquals(1, convertedCompetition.getCustomers().size(), "one customer");
     CustomerInfo xc1 = convertedCompetition.getCustomers().get(0);
-    assertEquals("correct name", c1.getName(), xc1.getName());
+    assertEquals(c1.getName(), xc1.getName(), "correct name");
     // See issue #449
-    //assertEquals("customer in repo", xc1, customerRepo.findById(c1.getId()));
+    //assertEquals(xc1, customerRepo.findById(c1.getId()), "customer in repo");
   }
 }

@@ -15,7 +15,7 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 import java.util.List;
@@ -23,23 +23,20 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import com.thoughtworks.xstream.XStream;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -53,7 +50,7 @@ public class TariffSpecificationTests
   private Broker broker;
   private Instant now;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     timeService.setCurrentTime(new DateTime());
@@ -67,16 +64,16 @@ public class TariffSpecificationTests
   public void testTariffSpecification ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
-    assertNotNull("made something", spec);
-    assertEquals("correct broker", broker, spec.getBroker());
-    assertEquals("correct power type", PowerType.CONSUMPTION, spec.getPowerType());
-    assertNull("no expiration", spec.getExpiration());
-    assertEquals("default minDuration", 0l, spec.getMinDuration());
-    assertEquals("default signup", 0.0, spec.getSignupPayment(), 1e-6);
-    assertEquals("default withdraw", 0.0, spec.getEarlyWithdrawPayment(), 1e-6);
-    assertEquals("default periodic", 0.0, spec.getPeriodicPayment(), 1e-6);
-    assertEquals("no rates", 0, spec.getRates().size());
-    assertNull("no supersedes", spec.getSupersedes());
+    assertNotNull(spec, "made something");
+    assertEquals(broker, spec.getBroker(), "correct broker");
+    assertEquals(PowerType.CONSUMPTION, spec.getPowerType(), "correct power type");
+    assertNull(spec.getExpiration(), "no expiration");
+    assertEquals(0l, spec.getMinDuration(), "default minDuration");
+    assertEquals(0.0, spec.getSignupPayment(), 1e-6, "default signup");
+    assertEquals(0.0, spec.getEarlyWithdrawPayment(), 1e-6, "default withdraw");
+    assertEquals(0.0, spec.getPeriodicPayment(), 1e-6, "default periodic");
+    assertEquals(0, spec.getRates().size(), "no rates");
+    assertNull(spec.getSupersedes(), "no supersedes");
   }
 
   @Test
@@ -84,41 +81,41 @@ public class TariffSpecificationTests
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
     Instant exp = now.plus(TimeService.HOUR * 24);
-    assertEquals("correct return", spec, spec.withExpiration(exp));
-    assertEquals("correct value", exp, spec.getExpiration());
+    assertEquals(spec, spec.withExpiration(exp), "correct return");
+    assertEquals(exp, spec.getExpiration(), "correct value");
   }
 
   @Test
   public void testSetMinDuration ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
-    assertEquals("correct return", spec, spec.withMinDuration(10000l));
-    assertEquals("correct value", 10000l, spec.getMinDuration());
+    assertEquals(spec, spec.withMinDuration(10000l), "correct return");
+    assertEquals(10000l, spec.getMinDuration(), "correct value");
   }
 
   @Test
   public void testSetSignupPayment ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    assertEquals("correct power type", PowerType.PRODUCTION, spec.getPowerType());
-    assertEquals("correct return", spec, spec.withSignupPayment(10.00));
-    assertEquals("correct value", 10.00, spec.getSignupPayment(), 1e-6);
+    assertEquals(PowerType.PRODUCTION, spec.getPowerType(), "correct power type");
+    assertEquals(spec, spec.withSignupPayment(10.00), "correct return");
+    assertEquals(10.00, spec.getSignupPayment(), 1e-6, "correct value");
   }
 
   @Test
   public void testSetEarlyWithdrawPayment ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    assertEquals("correct return", spec, spec.withEarlyWithdrawPayment(-20.00));
-    assertEquals("correct value", -20.00, spec.getEarlyWithdrawPayment(), 1e-6);
+    assertEquals(spec, spec.withEarlyWithdrawPayment(-20.00), "correct return");
+    assertEquals(-20.00, spec.getEarlyWithdrawPayment(), 1e-6, "correct value");
   }
 
   @Test
   public void testSetPeriodicPayment ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    assertEquals("correct return", spec, spec.withPeriodicPayment(-0.01));
-    assertEquals("correct value", -0.01, spec.getPeriodicPayment(), 1e-6);
+    assertEquals(spec, spec.withPeriodicPayment(-0.01), "correct return");
+    assertEquals(-0.01, spec.getPeriodicPayment(), 1e-6, "correct value");
   }
 
   @Test
@@ -126,9 +123,9 @@ public class TariffSpecificationTests
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
     Rate r = new Rate().withValue(0.121);
-    assertEquals("correct return", spec, spec.addRate(r));
-    assertEquals("correct length", 1, spec.getRates().size());
-    assertEquals("correct rate", r, spec.getRates().get(0));
+    assertEquals(spec, spec.addRate(r), "correct return");
+    assertEquals(1, spec.getRates().size(), "correct length");
+    assertEquals(r, spec.getRates().get(0), "correct rate");
   }
 
   @Test
@@ -140,12 +137,12 @@ public class TariffSpecificationTests
     RegulationRate rr = new RegulationRate().
             withUpRegulationPayment(.05).
             withDownRegulationPayment(-.05);
-    assertEquals("correct return", spec, spec.addRate(r));
-    assertEquals("correct return", spec, spec.addRate(rr));
-    assertEquals("correct length", 1, spec.getRates().size());
-    assertEquals("correct rate", r, spec.getRates().get(0));
-    assertEquals("correct length", 1, spec.getRegulationRates().size());
-    assertEquals("correct rate", rr, spec.getRegulationRates().get(0));
+    assertEquals(spec, spec.addRate(r), "correct return");
+    assertEquals(spec, spec.addRate(rr), "correct return");
+    assertEquals(1, spec.getRates().size(), "correct length");
+    assertEquals(r, spec.getRates().get(0), "correct rate");
+    assertEquals(1, spec.getRegulationRates().size(), "correct length");
+    assertEquals(rr, spec.getRegulationRates().get(0), "correct rate");
   }
 
   @Test
@@ -153,9 +150,9 @@ public class TariffSpecificationTests
   {
     TariffSpecification spec1 = new TariffSpecification(broker, PowerType.CONSUMPTION);
     TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION);
-    assertEquals("correct return", spec2, spec2.addSupersedes(spec1.getId()));
-    assertEquals("correct length", 1, spec2.getSupersedes().size());
-    assertEquals("correct first element", spec1.getId(), (long)spec2.getSupersedes().get(0));
+    assertEquals(spec2, spec2.addSupersedes(spec1.getId()), "correct return");
+    assertEquals(1, spec2.getSupersedes().size(), "correct length");
+    assertEquals(spec1.getId(), (long)spec2.getSupersedes().get(0), "correct first element");
   }
 
   // validity test
@@ -163,16 +160,16 @@ public class TariffSpecificationTests
   public void  testValidity ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
-    assertFalse("invalid - no rate", spec.isValid());
+    assertFalse(spec.isValid(), "invalid - no rate");
     Rate r = new Rate().withValue(0.1);
     spec.addRate(r);
-    assertTrue("valid - has rate", spec.isValid());
+    assertTrue(spec.isValid(), "valid - has rate");
     r.withMinValue(-.1).withFixed(false);
-    assertFalse("invalid - bad rate", spec.isValid());
+    assertFalse(spec.isValid(), "invalid - bad rate");
     r.withMaxValue(-0.3).withExpectedMean(-0.2);
-    assertTrue("valid rate", spec.isValid());
+    assertTrue(spec.isValid(), "valid rate");
     spec.withMinDuration(-1l);
-    assertFalse("invalid - bad minDuration", spec.isValid());
+    assertFalse(spec.isValid(), "invalid - bad minDuration");
   }
 
   @Test
@@ -202,24 +199,21 @@ public class TariffSpecificationTests
     serialized.write(xstream.toXML(spec));
 //    System.out.println(serialized.toString());
     TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xspec);
-    //assertEquals("correct match", spec, xspec);
-    assertEquals("correct signup", 35.0, xspec.getSignupPayment(), 1e-6);
+    assertNotNull(xspec, "deserialized something");
+    //assertEquals(spec, xspec, "correct match");
+    assertEquals(35.0, xspec.getSignupPayment(), 1e-6, "correct signup");
     List<Long> supersedes = xspec.getSupersedes();
-    assertNotNull("non-empty supersedes list", supersedes);
-    assertEquals("one entry", 1, supersedes.size());
-    assertEquals("correct entry", new Long(42l), supersedes.get(0));
+    assertNotNull(supersedes, "non-empty supersedes list");
+    assertEquals(1, supersedes.size(), "one entry");
+    assertEquals(new Long(42l), supersedes.get(0), "correct entry");
     Rate xr = (Rate)xspec.getRates().get(0);
-    assertNotNull("rate present", xr);
-    assertTrue("correct rate type", xr.isFixed());
-    assertEquals("correct rate value", -0.121, xr.getMinValue(), 1e-6);
+    assertNotNull(xr, "rate present");
+    assertTrue(xr.isFixed(), "correct rate type");
+    assertEquals(-0.121, xr.getMinValue(), 1e-6, "correct rate value");
     RegulationRate xrr = (RegulationRate)xspec.getRegulationRates().get(0);
-    assertNotNull("rate present", xrr);
-    assertEquals("correct up-reg rate",
-                 .05, xrr.getUpRegulationPayment(), 1e-6);
-    assertEquals("correct down-reg rate",
-                 -.05, xrr.getDownRegulationPayment(), 1e-6);
-    assertEquals("correct response time",
-                 RegulationRate.ResponseTime.SECONDS, xrr.getResponse());
+    assertNotNull(xrr, "rate present");
+    assertEquals(.05, xrr.getUpRegulationPayment(), 1e-6, "correct up-reg rate");
+    assertEquals(-.05, xrr.getDownRegulationPayment(), 1e-6, "correct down-reg rate");
+    assertEquals(RegulationRate.ResponseTime.SECONDS, xrr.getResponse(), "correct response time");
   }
 }

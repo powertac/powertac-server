@@ -15,27 +15,24 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import com.thoughtworks.xstream.XStream;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -49,7 +46,7 @@ public class TariffTransactionTests
   TariffSpecification spec;
   CustomerInfo customer;
 
-  @Before
+  @BeforeEach
   public void setUp() 
   {
     brokerRepo = BrokerRepo.getInstance();
@@ -62,32 +59,28 @@ public class TariffTransactionTests
   @Test
   public void construction1() 
   {
-    TariffTransaction ttx =
-        new TariffTransaction(b1, 1, TariffTransaction.Type.PUBLISH,
-                              spec, null, 0, 0.0, 0.0, false);
-    assertNotNull("created", ttx);
-    assertEquals("type",TariffTransaction.Type.PUBLISH, ttx.getTxType());
-    assertEquals("broker", b1, ttx.getBroker());
-    assertFalse("not reg", ttx.isRegulation());
+    TariffTransaction ttx = new TariffTransaction(b1, 1, TariffTransaction.Type.PUBLISH,
+                      spec, null, 0, 0.0, 0.0, false);
+    assertNotNull(ttx, "created");
+    assertEquals(TariffTransaction.Type.PUBLISH, ttx.getTxType(), "type");
+    assertEquals(b1, ttx.getBroker(), "broker");
+    assertFalse(ttx.isRegulation(), "not reg");
   }
 
   @Test
   public void xmlSerializationTest ()
   {
-    TariffTransaction ttx =
-        new TariffTransaction(b1, 2, TariffTransaction.Type.CONSUME,
-                              spec, customer, 42, -420.0, 42.0, true);
+    TariffTransaction ttx = new TariffTransaction(b1, 2, TariffTransaction.Type.CONSUME,
+                      spec, customer, 42, -420.0, 42.0, true);
     XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(TariffTransaction.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ttx));
     //System.out.println(serialized.toString());
-    TariffTransaction xttx =
-        (TariffTransaction) xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xttx);
-    assertEquals("correct type",
-                 TariffTransaction.Type.CONSUME, xttx.getTxType());
-    assertTrue("regulation", xttx.isRegulation());
-    assertEquals("correct value", 42.0, xttx.getCharge(), 1e-6);
+    TariffTransaction xttx = (TariffTransaction) xstream.fromXML(serialized.toString());
+    assertNotNull(xttx, "deserialized something");
+    assertEquals(TariffTransaction.Type.CONSUME, xttx.getTxType(), "correct type");
+    assertTrue(xttx.isRegulation(), "regulation");
+    assertEquals(42.0, xttx.getCharge(), 1e-6, "correct value");
   }
 }

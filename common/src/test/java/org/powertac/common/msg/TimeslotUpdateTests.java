@@ -15,15 +15,14 @@
  */
 package org.powertac.common.msg;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 import java.util.List;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -42,7 +41,7 @@ public class TimeslotUpdateTests
   TimeService timeService;
   TimeslotRepo timeslotRepo;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.setCurrent(Competition.newInstance("test"));
@@ -64,21 +63,15 @@ public class TimeslotUpdateTests
     TimeslotUpdate tsu = new TimeslotUpdate(timeService.getCurrentTime(),
                                             enabled.get(0).getSerialNumber(),
                                             enabled.get(enabled.size() - 1).getSerialNumber());
-    assertNotNull("message not null", tsu);
-    assertEquals("24 timeslots", 24, tsu.size());
-    assertEquals("correct posted time",
-                 timeService.getCurrentTime(),
-                 tsu.getPostedTime());
+    assertNotNull(tsu, "message not null");
+    assertEquals(24, tsu.size(), "24 timeslots");
+    assertEquals(timeService.getCurrentTime(), tsu.getPostedTime(), "correct posted time");
     int first = tsu.getFirstEnabled();
     int last = tsu.getLastEnabled();
-    assertEquals("24 elements in list", 23, last - first);
-    assertEquals("first sn is 1", 1, first);
-    assertEquals("correct first element",
-                 timeslotRepo.enabledTimeslots().get(0).getSerialNumber(),
-                 first);
-    assertEquals("correct last element",
-                 timeslotRepo.enabledTimeslots().get(23).getSerialNumber(),
-                 last);
+    assertEquals(23, last - first, "24 elements in list");
+    assertEquals(1, first, "first sn is 1");
+    assertEquals(timeslotRepo.enabledTimeslots().get(0).getSerialNumber(), first, "correct first element");
+    assertEquals(timeslotRepo.enabledTimeslots().get(23).getSerialNumber(), last, "correct last element");
   }
 
   @Test
@@ -94,12 +87,10 @@ public class TimeslotUpdateTests
     serialized.write(xstream.toXML(tsu));
     //System.out.println(serialized.toString());
     TimeslotUpdate xtsu= (TimeslotUpdate)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xtsu);
-    assertEquals("correct time",
-                 timeService.getCurrentTime(),
-                 xtsu.getPostedTime());
-    assertEquals("correct first", enabled.get(0).getSerialNumber(), xtsu.getFirstEnabled());
-    assertEquals("correct last", enabled.get(23).getSerialNumber(), xtsu.getLastEnabled());
-    assertEquals("correct length", 24, xtsu.size());
+    assertNotNull(xtsu, "deserialized something");
+    assertEquals(timeService.getCurrentTime(), xtsu.getPostedTime(), "correct time");
+    assertEquals(enabled.get(0).getSerialNumber(), xtsu.getFirstEnabled(), "correct first");
+    assertEquals(enabled.get(23).getSerialNumber(), xtsu.getLastEnabled(), "correct last");
+    assertEquals(24, xtsu.size(), "correct length");
   }
 }

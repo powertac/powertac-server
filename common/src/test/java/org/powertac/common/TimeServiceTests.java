@@ -16,13 +16,13 @@
 
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -44,7 +44,7 @@ public class TimeServiceTests
     super();
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception
   {
     theBase = new DateTime(2008, 6, 21, 12, 0, 0, 0, DateTimeZone.UTC);
@@ -61,9 +61,9 @@ public class TimeServiceTests
   @Test
   public void testCreate ()
   {
-    assertEquals("correct base", theBase.getMillis(), ts.getBase());
-    assertEquals("correct rate", theRate, ts.getRate());
-    assertEquals("correct modulo", theMod, ts.getModulo());
+    assertEquals(theBase.getMillis(), ts.getBase(), "correct base");
+    assertEquals(theRate, ts.getRate(), "correct rate");
+    assertEquals(theMod, ts.getModulo(), "correct modulo");
   }
   
   // set base, start, rate and test, check initial time
@@ -71,7 +71,7 @@ public class TimeServiceTests
   public void testTimeConversion () 
   {
     long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
-    assertEquals("offset zero", 0, offset);
+    assertEquals(0, offset, "offset zero");
     //assertTrue("$offset close to base time", offset < 60*1000) // less than one minute has elapsed
   }
   
@@ -86,11 +86,11 @@ public class TimeServiceTests
     params.put("modulo", newMod);
     params.put("modulo1", 0l);
     ts.setClockParameters(params);
-    assertEquals("correct base", newBase, ts.getBase());
-    assertEquals("correct rate", 560l, ts.getRate());
-    assertEquals("correct modulo", newMod, ts.getModulo());
+    assertEquals(newBase, ts.getBase(), "correct base");
+    assertEquals(560l, ts.getRate(), "correct rate");
+    assertEquals(newMod, ts.getModulo(), "correct modulo");
     //Instant newTime = new Instant(newBase).minus(newMod);
-    //assertEquals("correct time", newTime, ts.getCurrentTime());
+    //assertEquals(newTime, ts.getCurrentTime(), "correct time");
   }
   
   @Test
@@ -102,9 +102,9 @@ public class TimeServiceTests
     params.put("1rate", 560l);
     params.put("modulo", TimeService.HOUR);
     ts.setClockParameters(params);
-    assertEquals("correct base", newBase, ts.getBase());
-    assertEquals("correct rate", theRate, ts.getRate());
-    assertEquals("correct modulo", TimeService.HOUR, ts.getModulo());
+    assertEquals(newBase, ts.getBase(), "correct base");
+    assertEquals(theRate, ts.getRate(), "correct rate");
+    assertEquals(TimeService.HOUR, ts.getModulo(), "correct modulo");
   }
 
   // set base, start, rate and test, check time after delay
@@ -115,7 +115,7 @@ public class TimeServiceTests
       Thread.sleep(5000); // 5 seconds / 30 min
       ts.updateTime();
       long delay = ts.getCurrentTime().getMillis() - theBase.getMillis();
-      assertEquals("delay is 30 min", 30 * TimeService.MINUTE, delay);
+      assertEquals(30 * TimeService.MINUTE, delay, "delay is 30 min");
     }
     catch (InterruptedException ie) {
       fail("unexpected exception " + ie.toString());
@@ -130,11 +130,11 @@ public class TimeServiceTests
       Thread.sleep(2500); // 2.5 sec, 15 min
       ts.updateTime();
       long delay = ts.getCurrentTime().getMillis() - theBase.getMillis();
-      assertEquals("delay is 15 min", 15 * TimeService.MINUTE, delay);
+      assertEquals(15 * TimeService.MINUTE, delay, "delay is 15 min");
 
       Thread.sleep(1001);
       long offset = ts.getOffset();
-      assertTrue("offset > 1000 msec", (offset > 1000l));
+      assertTrue((offset > 1000l), "offset > 1000 msec");
       if (offset > 2000l)
         System.out.println("Slow response - offset should be 1000, was " + offset);
     }
@@ -146,9 +146,9 @@ public class TimeServiceTests
   //@Test
   //public void testSetStart()
   //{
-  //  assertEquals("base time", theBase, ts.getCurrentTime());
+  //  assertEquals(theBase, ts.getCurrentTime(), "base time");
   //  ts.setStart(ts.getStart() - (TimeService.HOUR / theRate));
-  //  assertEquals("one hour", theBase.plus(TimeService.HOUR), ts.getCurrentTime());
+  //  assertEquals(theBase.plus(TimeService.HOUR), ts.getCurrentTime(), "one hour");
   //}
   
   // single action, already due
@@ -164,7 +164,7 @@ public class TimeServiceTests
         }
     });
     ts.updateTime();
-    assertEquals("var got set to 1", 1, var.getValue());
+    assertEquals(1, var.getValue(), "var got set to 1");
   }
   
   // single action, in the future
@@ -180,13 +180,13 @@ public class TimeServiceTests
       }
     });
     ts.updateTime(); // not yet
-    assertEquals("var unchanged", 0, var.getValue());
+    assertEquals(0, var.getValue(), "var unchanged");
     try {
       Thread.sleep(3000); // 3 seconds -> 18 min sim time
       ts.updateTime();
-      assertEquals("var changed", 2, var.getValue());
+      assertEquals(2, var.getValue(), "var changed");
       long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
-      assertEquals("offset is 15 min", 15*60*1000, offset);
+      assertEquals(15*60*1000, offset, "offset is 15 min");
     }
     catch (InterruptedException ie) {
       fail("unexpected " + ie.toString());
@@ -218,23 +218,23 @@ public class TimeServiceTests
     add.setCore(recurse);
     add.perform(ts.getCurrentTime());
     ts.updateTime(); // not yet
-    assertEquals("var unchanged", 0, var.getValue());
+    assertEquals(0, var.getValue(), "var unchanged");
     try {
       Thread.sleep(2500); // 2.5 seconds -> 15 min sim time
       ts.updateTime();
-      assertEquals("var changed", 3, var.getValue());
-      assertEquals("actionCount=1", 1, actionCount.getValue());
+      assertEquals(3, var.getValue(), "var changed");
+      assertEquals(1, actionCount.getValue(), "actionCount=1");
       Thread.sleep(1000); // 1 second -> 6 min sim time
-      assertEquals("var not changed", 3, var.getValue());
-      assertEquals("actionCount=1", 1, actionCount.getValue());
+      assertEquals(3, var.getValue(), "var not changed");
+      assertEquals(1, actionCount.getValue(), "actionCount=1");
       Thread.sleep(1500); // 1.5 seconds -> 9 min sim time
       ts.updateTime();
-      assertEquals("var changed", 6, var.getValue());
-      assertEquals("actionCount=2", 2, actionCount.getValue());
+      assertEquals(6, var.getValue(), "var changed");
+      assertEquals(2, actionCount.getValue(), "actionCount=2");
       Thread.sleep(2500); // 2.5 seconds -> 15 min sim time
       ts.updateTime();
-      assertEquals("var changed", 9, var.getValue());
-      assertEquals("actionCount=3", 3, actionCount.getValue());
+      assertEquals(9, var.getValue(), "var changed");
+      assertEquals(3, actionCount.getValue(), "actionCount=3");
     }
     catch (InterruptedException ie) {
       fail ("unexpected " + ie.toString());
