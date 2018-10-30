@@ -51,7 +51,7 @@
     <xstream.version>1.4.11.1</xstream.version>
 
     <junit.version>4.12</junit.version>
-    <mockito.version>2.7.5</mockito.version>
+    <mockito.version>2.23.0</mockito.version>
 
     <log4j.version>2.7</log4j.version>
     <slf4j.version>1.7.22</slf4j.version>
