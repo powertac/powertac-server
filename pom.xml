@@ -45,7 +45,7 @@
     <sonatype.release.args />
 
     <!-- Managed common dependency versions -->
-    <aspectj.version>1.8.10</aspectj.version>
+    <aspectj.version>1.9.2</aspectj.version>
 
     <active-mq.version>5.14.3</active-mq.version>
     <xstream.version>1.4.9</xstream.version>
