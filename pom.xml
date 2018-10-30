@@ -47,7 +47,7 @@
     <!-- Managed common dependency versions -->
     <aspectj.version>1.9.2</aspectj.version>
 
-    <active-mq.version>5.14.3</active-mq.version>
+    <active-mq.version>5.15.7</active-mq.version>
     <xstream.version>1.4.9</xstream.version>
 
     <junit.version>4.12</junit.version>
