@@ -15,10 +15,9 @@
  */
 package org.powertac.customer.coldstorage;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -31,17 +30,12 @@ import java.util.List;
 import java.util.Queue;
 import java.util.TreeMap;
 
-
-
-//import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-
 import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -95,7 +89,7 @@ public class ColdStorageTest
   private Tariff tariff;
   private TariffSubscription subscription;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     competition =
@@ -163,13 +157,13 @@ public class ColdStorageTest
   @Test
   public void testInitialize ()
   {
-    assertEquals("correct name", "test", uut.getName());
+    assertEquals(uut.getName(), "test", "correct name");
     when(seed.nextDouble()).thenReturn(0.5);
     init();
-    assertEquals("correct min temp", -35.0, uut.getMinTemp(), 1e-6);
-    assertEquals("correct max temp", -10.0, uut.getMaxTemp(), 1e-6);
-    assertEquals("correct current temp", -22.5, uut.getCurrentTemp(), 1e-6);
-    assertEquals("correct nc usage", 15.0, uut.getCurrentNcUsage(), 1e-6);
+    assertEquals(-35.0, uut.getMinTemp(), 1e-6, "correct min temp");
+    assertEquals(-10.0, uut.getMaxTemp(), 1e-6, "correct max temp");
+    assertEquals(-22.5, uut.getCurrentTemp(), 1e-6, "correct current temp");
+    assertEquals(15.0, uut.getCurrentNcUsage(), 1e-6, "correct nc usage");
   }
 
   // configuration
@@ -182,8 +176,8 @@ public class ColdStorageTest
     MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     serverConfig.configureMe(uut);
-    assertEquals("correct min temp", -30.0, uut.getMinTemp(), 1e-6);
-    assertEquals("correct max temp", -5.0, uut.getMaxTemp(), 1e-6);
+    assertEquals(-30.0, uut.getMinTemp(), 1e-6, "correct min temp");
+    assertEquals(-5.0, uut.getMaxTemp(), 1e-6, "correct max temp");
   }
 
   // loss rate
@@ -193,10 +187,10 @@ public class ColdStorageTest
     when(seed.nextDouble()).thenReturn(15.0/25.0);
     weather = new WeatherReport(0, 30, 0, 0, 0);
     init();
-    assertEquals("correct current temp", -20.0, uut.getCurrentTemp(), 1e-6);
-    assertEquals("correct loss per K", 0.416179, uut.getCoolingLossPerK(), 1e-5);
+    assertEquals(-20.0, uut.getCurrentTemp(), 1e-6, "correct current temp");
+    assertEquals(0.416179, uut.getCoolingLossPerK(), 1e-5, "correct loss per K");
     double coolingLoss = uut.computeCoolingLoss(30.0);
-    assertEquals("correct total loss", 40.16216, coolingLoss, 1e-5);
+    assertEquals(40.16216, coolingLoss, 1e-5, "correct total loss");
   }
 
   // step at setpoint, no regulation
@@ -211,15 +205,13 @@ public class ColdStorageTest
     uut.step();
     ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
     verify(subscription).usePower(pwr.capture());
-    assertEquals("correct usage", 52.6998, pwr.getValue(), 1e-4);
+    assertEquals(52.6998, pwr.getValue(), 1e-4, "correct usage");
     ArgumentCaptor<RegulationCapacity> rcap =
       ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(rcap.capture());
     RegulationCapacity rc = rcap.getValue();
-    assertEquals("correct up-regulation", 37.0998,
-                 rc.getUpRegulationCapacity(), 1e-4);
-    assertEquals("correct down-regulationCapacity", -56.3402,
-                 rc.getDownRegulationCapacity(), 1e-4);
+    assertEquals(37.0998, rc.getUpRegulationCapacity(), 1e-4, "correct up-regulation");
+    assertEquals(-56.3402, rc.getDownRegulationCapacity(), 1e-4, "correct down-regulationCapacity");
   }
 
   // step 5K above setpoint, no regulation
@@ -234,15 +226,13 @@ public class ColdStorageTest
     uut.step();
     ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
     verify(subscription).usePower(pwr.capture());
-    assertEquals("correct usage", 110.24, pwr.getValue(), 1e-4);
+    assertEquals(110.24, pwr.getValue(), 1e-4, "correct usage");
     ArgumentCaptor<RegulationCapacity> rcap =
       ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(rcap.capture());
     RegulationCapacity rc = rcap.getValue();
-    assertEquals("correct up-regulation", 93.44,
-                 rc.getUpRegulationCapacity(), 1e-4);
-    assertEquals("correct down-regulationCapacity", 0.0,
-                 rc.getDownRegulationCapacity(), 1e-4);
+    assertEquals(93.44, rc.getUpRegulationCapacity(), 1e-4, "correct up-regulation");
+    assertEquals(0.0, rc.getDownRegulationCapacity(), 1e-4, "correct down-regulationCapacity");
   }
 
   // step 5K above setpoint, no regulation
@@ -257,15 +247,13 @@ public class ColdStorageTest
     uut.step();
     ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
     verify(subscription).usePower(pwr.capture());
-    assertEquals("correct usage", 14.4, pwr.getValue(), 1e-4);
+    assertEquals(14.4, pwr.getValue(), 1e-4, "correct usage");
     ArgumentCaptor<RegulationCapacity> rcap =
       ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(rcap.capture());
     RegulationCapacity rc = rcap.getValue();
-    assertEquals("correct up-regulation", 0.0,
-                 rc.getUpRegulationCapacity(), 1e-4);
-    assertEquals("correct down-regulationCapacity", -93.44,
-                 rc.getDownRegulationCapacity(), 1e-4);
+    assertEquals(0.0, rc.getUpRegulationCapacity(), 1e-4, "correct up-regulation");
+    assertEquals(-93.44, rc.getDownRegulationCapacity(), 1e-4, "correct down-regulationCapacity");
   }
 
   @Test
@@ -306,31 +294,31 @@ public class ColdStorageTest
     String item = items.remove();
     String[] segments = item.split("::");
     String[] path = segments[0].split("\\.");
-    assertEquals("powertac", path[1]);
-    assertEquals("customer", path[2]);
-    assertEquals("coldstorage", path[3]);
-    assertEquals("ColdStorage", path[4]);
+    assertEquals(path[1], "powertac");
+    assertEquals(path[2], "customer");
+    assertEquals(path[3], "coldstorage");
+    assertEquals(path[4], "ColdStorage");
     // next is id, followed by "new", "test"
-    assertEquals("new", segments[2]);
-    assertEquals("test", segments[3]);
+    assertEquals(segments[2], "new");
+    assertEquals(segments[3], "test");
 
     // next is the setCurrentTemp in initialize()
     item = items.remove();
     segments = item.split("::");
     // assume classname is OK, content should be setCurrentTemp with some value
-    assertEquals("setCurrentTemp", segments[2]);
-    assertEquals("-35.0", segments[3]);
+    assertEquals(segments[2], "setCurrentTemp");
+    assertEquals(segments[3], "-35.0");
 
     // last is the setCurrentTemp we called at the start of this test
     item = items.remove();
     segments = item.split("::");
     // assume classname is OK, content should be setCurrentTemp with some value
-    assertEquals("setCurrentTemp", segments[2]);
-    assertEquals("-10.0", segments[3]);
+    assertEquals(segments[2], "setCurrentTemp");
+    assertEquals(segments[3], "-10.0");
   }
 
   /**
-   * Test method for {@link org.powertac.customer.model.ColdStorage#evaluateTariffs(java.util.List)}.
+   * Test method for {@link org.powertac.customer.coldstorage.ColdStorage#evaluateTariffs(java.util.List)}.
    */
   @Test
   public void testEvaluateTariffs ()
@@ -359,15 +347,15 @@ public class ColdStorageTest
     ReflectionTestUtils.setField(dailyTariff, "timeService", timeService);
     ReflectionTestUtils.setField(dailyTariff, "tariffRepo", tariffRepo);
     dailyTariff.init();
-    assertTrue("good tariff", dailyTariff.isCovered());
+    assertTrue(dailyTariff.isCovered(), "good tariff");
     ColdStorage.TariffInfo info = uut.makeTariffInfo(dailyTariff);
     double[] result = info.getPrices();
-    assertEquals("length", 168, result.length);
-    assertEquals("[0]", .18, result[0], 1e-6);
-    assertEquals("[9]", .18, result[9], 1e-6);
-    assertEquals("[10]", .08, result[10], 1e-6);
-    assertEquals("[20]", .08, result[20], 1e-6);
-    assertEquals("[21]", .18, result[21], 1e-6);
+    assertEquals(168, result.length, "length");
+    assertEquals(.18, result[0], 1e-6, "[0]");
+    assertEquals(.18, result[9], 1e-6, "[9]");
+    assertEquals(.08, result[10], 1e-6, "[10]");
+    assertEquals(.08, result[20], 1e-6, "[20]");
+    assertEquals(.18, result[21], 1e-6, "[21]");
   }
 
   // check out TOU price profiling
@@ -402,27 +390,27 @@ public class ColdStorageTest
     ReflectionTestUtils.setField(weeklyTariff, "timeService", timeService);
     ReflectionTestUtils.setField(weeklyTariff, "tariffRepo", tariffRepo);
     weeklyTariff.init();
-    assertTrue("good tariff", weeklyTariff.isCovered());
+    assertTrue(weeklyTariff.isCovered(), "good tariff");
 
     ColdStorage.TariffInfo info = uut.makeTariffInfo(weeklyTariff);
     double[] result = info.getPrices();
     // Thursday
-    assertEquals("length", 168, result.length);
-    assertEquals("Th 12", .18, result[0], 1e-6);
-    assertEquals("Th 19", .18, result[7], 1e-6);
-    assertEquals("Th 20", .08, result[8], 1e-6);
+    assertEquals(168, result.length, "length");
+    assertEquals(.18, result[0], 1e-6, "Th 12");
+    assertEquals(.18, result[7], 1e-6, "Th 19");
+    assertEquals(.08, result[8], 1e-6, "Th 20");
     // Friday
-    assertEquals("Fr 6", .08, result[18], 1e-6);
-    assertEquals("Fr 7", .18, result[19], 1e-6);
-    assertEquals("Fr 19", .18, result[31], 1e-6);
-    assertEquals("Fr 20", .08, result[32], 1e-6);
-    assertEquals("Fr 23", .08, result[35], 1e-6);
+    assertEquals(.08, result[18], 1e-6, "Fr 6");
+    assertEquals(.18, result[19], 1e-6, "Fr 7");
+    assertEquals(.18, result[31], 1e-6, "Fr 19");
+    assertEquals(.08, result[32], 1e-6, "Fr 20");
+    assertEquals(.08, result[35], 1e-6, "Fr 23");
     // Saturday
-    assertEquals("Sa 0", .05, result[36], 1e-6);
-    assertEquals("Sa 6", .05, result[42], 1e-6);
-    assertEquals("Sa 7", .15, result[43], 1e-6);
-    assertEquals("Sa 20", .15, result[56], 1e-6);
-    assertEquals("Sa 21", .05, result[57], 1e-6);
+    assertEquals(.05, result[36], 1e-6, "Sa 0");
+    assertEquals(.05, result[42], 1e-6, "Sa 6");
+    assertEquals(.15, result[43], 1e-6, "Sa 7");
+    assertEquals(.15, result[56], 1e-6, "Sa 20");
+    assertEquals(.05, result[57], 1e-6, "Sa 21");
   }
 
   // TOU usage capacityProfile
@@ -457,13 +445,13 @@ public class ColdStorageTest
     ReflectionTestUtils.setField(weeklyTariff, "timeService", timeService);
     ReflectionTestUtils.setField(weeklyTariff, "tariffRepo", tariffRepo);
     weeklyTariff.init();
-    assertTrue("good tariff", weeklyTariff.isCovered());
+    assertTrue(weeklyTariff.isCovered(), "good tariff");
 
     ColdStorage.TariffInfo info = uut.makeTariffInfo(weeklyTariff);
     uut.heuristicTouProfile(info);
     CapacityProfile profile = info.getCapacityProfile();
-    assertNotNull("capacityProfile exists", profile);
-    assertEquals("capacityProfile length", 168, profile.getProfile().length);
+    assertNotNull(profile, "capacityProfile exists");
+    assertEquals(168, profile.getProfile().length, "capacityProfile length");
     System.out.println(Arrays.toString(profile.getProfile()));
   }
 

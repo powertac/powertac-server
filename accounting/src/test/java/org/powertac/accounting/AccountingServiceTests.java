@@ -16,7 +16,7 @@
 
 package org.powertac.accounting;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.powertac.util.ListTools.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
@@ -31,9 +31,8 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.*;
@@ -48,14 +47,12 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -98,7 +95,7 @@ public class AccountingServiceTests
   //private int nameCounter = 0;
 
   @SuppressWarnings("rawtypes")
-  @Before
+  @BeforeEach
   public void setUp() 
   {
     // Clean up from previous tests
@@ -181,7 +178,7 @@ public class AccountingServiceTests
   private void initializeService () 
   {
     String result = accountingService.initialize(comp, new ArrayList<String>());
-    assertEquals("correct return", "AccountingService", result);
+    assertEquals(result, "AccountingService", "correct return");
   }
 
   @Test
@@ -195,11 +192,9 @@ public class AccountingServiceTests
   public void testNormalInitialization ()
   {
     String result = accountingService.initialize(comp, new ArrayList<String>());
-    assertEquals("correct return value", "AccountingService", result);
-    assertTrue("correct bank interest",
-       accountingService.getMinInterest() <= accountingService.getBankInterest());
-    assertTrue("correct bank interest",
-       accountingService.getMaxInterest() >= accountingService.getBankInterest());
+    assertEquals(result, "AccountingService", "correct return value");
+    assertTrue(accountingService.getMinInterest() <= accountingService.getBankInterest(), "correct bank interest");
+    assertTrue(accountingService.getMaxInterest() >= accountingService.getBankInterest(), "correct bank interest");
   }
   
   // config max/min
@@ -213,13 +208,11 @@ public class AccountingServiceTests
     config.setConfiguration(mapConfig);
 
     String result = accountingService.initialize(comp, new ArrayList<String>());
-    assertEquals("correct return value", "AccountingService", result);
-    assertEquals("correct min value", 0.01, accountingService.getMinInterest(), 1e-6);
-    assertEquals("correct max value", 0.20, accountingService.getMaxInterest(), 1e-6);
-    assertTrue("correct bank interest",
-       accountingService.getMinInterest() <= accountingService.getBankInterest());
-    assertTrue("correct bank interest",
-       accountingService.getMaxInterest() >= accountingService.getBankInterest());
+    assertEquals(result, "AccountingService", "correct return value");
+    assertEquals(0.01, accountingService.getMinInterest(), 1e-6, "correct min value");
+    assertEquals(0.20, accountingService.getMaxInterest(), 1e-6, "correct max value");
+    assertTrue(accountingService.getMinInterest() <= accountingService.getBankInterest(), "correct bank interest");
+    assertTrue(accountingService.getMaxInterest() >= accountingService.getBankInterest(), "correct bank interest");
   }
   
   // config interest rate directly
@@ -234,16 +227,16 @@ public class AccountingServiceTests
     config.setConfiguration(mapConfig);
 
     accountingService.initialize(comp, new ArrayList<String>());
-    assertEquals("correct bank interest", 0.008, accountingService.getBankInterest(), 1e-6);
+    assertEquals(0.008, accountingService.getBankInterest(), 1e-6, "correct bank interest");
   }
 
   @Test
   public void testBrokerDb ()
   {
     Broker b1 = brokerRepo.findById(bob.getId());
-    assertEquals("bob in db by id", bob, b1);
+    assertEquals(bob, b1, "bob in db by id");
     Broker b2 = brokerRepo.findByUsername("Bob");
-    assertEquals("bob in db by name", bob, b2);
+    assertEquals(bob, b2, "bob in db by name");
   }
 
   // create and test tariff transactions
@@ -259,8 +252,8 @@ public class AccountingServiceTests
                                                2, 10.0, -2.5);
     accountingService.addRegulationTransaction(tariffB1, customerInfo2,
                                                7, -10.0, 2.0);
-    assertEquals("correct number in list", 4, accountingService.getPendingTransactions().size());
-    assertEquals("correct number in ttx list", 4, accountingService.getPendingTariffTransactions().size());
+    assertEquals(4, accountingService.getPendingTransactions().size(), "correct number in list");
+    assertEquals(4, accountingService.getPendingTariffTransactions().size(), "correct number in ttx list");
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
     List<BrokerTransaction> signups = filter(pending,
                                              new Predicate<BrokerTransaction>() {
@@ -269,13 +262,13 @@ public class AccountingServiceTests
             ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.SIGNUP);
       }
     });
-    assertEquals("one signup", 1, signups.size());
+    assertEquals(1, signups.size(), "one signup");
     TariffTransaction ttx = (TariffTransaction)signups.get(0);
-    assertNotNull("first ttx not null", ttx);
-    assertEquals("correct charge id 0", 42.1, ttx.getCharge(), 1e-6);
+    assertNotNull(ttx, "first ttx not null");
+    assertEquals(42.1, ttx.getCharge(), 1e-6, "correct charge id 0");
     Broker b1 = ttx.getBroker();
     Broker b2 = brokerRepo.findById(bob.getId());
-    assertEquals("same broker", b1, b2);
+    assertEquals(b1, b2, "same broker");
     List<BrokerTransaction> consumes = filter(pending,
                                               new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {
@@ -283,20 +276,20 @@ public class AccountingServiceTests
             ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.CONSUME);
       }
     });
-    assertEquals("two consumes", 2, consumes.size());
+    assertEquals(2, consumes.size(), "two consumes");
     ttx = (TariffTransaction)consumes.get(0);
-    assertNotNull("second ttx not null", ttx);
+    assertNotNull(ttx, "second ttx not null");
     TariffTransaction ttx1 = (TariffTransaction)consumes.get(1);
-    assertNotNull("third ttx not null", ttx1);
+    assertNotNull(ttx1, "third ttx not null");
     if (ttx.isRegulation()) {
       // swap
       ttx = ttx1;
       ttx1 = (TariffTransaction)consumes.get(0);
     }
-    assertEquals("correct amount 1", -77.0, ttx.getKWh(), 1e-6);
-    assertFalse("not regulation", ttx.isRegulation());
-    assertEquals("correct amount 2", -10.0, ttx1.getKWh(), 1e-6);
-    assertTrue("regulation", ttx1.isRegulation());
+    assertEquals(-77.0, ttx.getKWh(), 1e-6, "correct amount 1");
+    assertFalse(ttx.isRegulation(), "not regulation");
+    assertEquals(-10.0, ttx1.getKWh(), 1e-6, "correct amount 2");
+    assertTrue(ttx1.isRegulation(), "regulation");
     List<BrokerTransaction> produces = filter(pending,
                                               new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {
@@ -304,10 +297,10 @@ public class AccountingServiceTests
             ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.PRODUCE);
       }
     });
-    assertEquals("one produce", 1, produces.size());
+    assertEquals(1, produces.size(), "one produce");
     ttx = (TariffTransaction)produces.get(0);
-    assertEquals("correct amount 3", 10.0, ttx.getKWh(), 1e-6);
-    assertTrue("regulation", ttx.isRegulation());
+    assertEquals(10.0, ttx.getKWh(), 1e-6, "correct amount 3");
+    assertTrue(ttx.isRegulation(), "regulation");
   }
 
   @Test
@@ -324,10 +317,8 @@ public class AccountingServiceTests
     // some usage for Jim
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
       tariffJ1, customerInfo2, 12, -120.0, 8.4);
-    assertEquals("correct net load for Bob", (-77.0 - 83.0 + 55.0),
-                  accountingService.getCurrentNetLoad(bob), 1e-6);
-    assertEquals("correct net load for Jim", -120.0,
-                  accountingService.getCurrentNetLoad(jim), 1e-6);
+    assertEquals((-77.0 - 83.0 + 55.0), accountingService.getCurrentNetLoad(bob), 1e-6, "correct net load for Bob");
+    assertEquals(-120.0, accountingService.getCurrentNetLoad(jim), 1e-6, "correct net load for Jim");
   }
   
   @Test
@@ -349,16 +340,12 @@ public class AccountingServiceTests
             accountingService.getCurrentSupplyDemandByBroker();
     // check data for Bob
     Map<TariffTransaction.Type, Double> bsd = sd.get(bob);
-    assertEquals("correct consumption for Bob", (-77.0 - 83.0),
-                  bsd.get(TariffTransaction.Type.CONSUME), 1e-6);
-    assertEquals("correct production for Bob", 55.0,
-                 bsd.get(TariffTransaction.Type.PRODUCE), 1e-6);
+    assertEquals((-77.0 - 83.0), bsd.get(TariffTransaction.Type.CONSUME), 1e-6, "correct consumption for Bob");
+    assertEquals(55.0, bsd.get(TariffTransaction.Type.PRODUCE), 1e-6, "correct production for Bob");
     // check data for Jim
     bsd = sd.get(jim);
-    assertEquals("correct consumption for Jim", -120.0,
-                 bsd.get(TariffTransaction.Type.CONSUME), 1e-6);
-    assertEquals("correct production for Jim", 0.0,
-                 bsd.get(TariffTransaction.Type.PRODUCE), 1e-6);
+    assertEquals(-120.0, bsd.get(TariffTransaction.Type.CONSUME), 1e-6, "correct consumption for Jim");
+    assertEquals(0.0, bsd.get(TariffTransaction.Type.PRODUCE), 1e-6, "correct production for Jim");
   }
   
   // create and test market transactions
@@ -370,26 +357,26 @@ public class AccountingServiceTests
         timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
         timeslotRepo.findBySerialNumber(3), 0.7, -43.0);
-    assertEquals("no tariff tx", 0, accountingService.getPendingTariffTransactions().size());
+    assertEquals(0, accountingService.getPendingTariffTransactions().size(), "no tariff tx");
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
-    assertEquals("correct number in list", 2, pending.size());
+    assertEquals(2, pending.size(), "correct number in list");
     MarketTransaction mtx = (MarketTransaction)pending.get(0);
-    assertNotNull("first mtx not null", mtx);
-    assertEquals("correct timeslot id 0", 2, mtx.getTimeslot().getSerialNumber());
-    assertEquals("correct price id 0", -45.0, mtx.getPrice(), 1e-6);
+    assertNotNull(mtx, "first mtx not null");
+    assertEquals(2, mtx.getTimeslot().getSerialNumber(), "correct timeslot id 0");
+    assertEquals(-45.0, mtx.getPrice(), 1e-6, "correct price id 0");
     Broker b1 = mtx.getBroker();
     Broker b2 = brokerRepo.findById(bob.getId());
-    assertEquals("same broker", b1, b2);
+    assertEquals(b1, b2, "same broker");
     mtx = (MarketTransaction)pending.get(1);
-    assertNotNull("second mtx not null", mtx);
-    assertEquals("correct quantity id 1", 0.7, mtx.getMWh(), 1e-6);
+    assertNotNull(mtx, "second mtx not null");
+    assertEquals(0.7, mtx.getMWh(), 1e-6, "correct quantity id 1");
     // broker market positions should have been updated already
     MarketPosition mp2 = bob.findMarketPositionByTimeslot(2);
-    assertNotNull("should be a market position in slot 2", mp2);
-    assertEquals(".5 mwh in ts2", 0.5, mp2.getOverallBalance(), 1e-6);
+    assertNotNull(mp2, "should be a market position in slot 2");
+    assertEquals(0.5, mp2.getOverallBalance(), 1e-6, ".5 mwh in ts2");
     MarketPosition mp3 = bob.findMarketPositionByTimeslot(3);
-    assertNotNull("should be a market position in slot 3", mp3);
-    assertEquals(".7 mwh in ts3", 0.7, mp3.getOverallBalance(), 1e-6);
+    assertNotNull(mp3, "should be a market position in slot 3");
+    assertEquals(0.7, mp3.getOverallBalance(), 1e-6, ".7 mwh in ts3");
   }
   
   // simple activation
@@ -422,14 +409,14 @@ public class AccountingServiceTests
     verify(mockProxy, times(2)).sendMessages(isA(Broker.class), anyList());
     
     // should have cash position, no market positions for jim
-    assertEquals("one message", 1, msgMap.get(jim).size());
+    assertEquals(1, msgMap.get(jim).size(), "one message");
     Object msg = msgMap.get(jim).get(0);
-    assertTrue("it's a CashPosition", msg instanceof CashPosition);
-    assertEquals("no balance", 0.0, ((CashPosition)msg).getBalance(), 1e-6);
+    assertTrue(msg instanceof CashPosition, "it's a CashPosition");
+    assertEquals(0.0, ((CashPosition)msg).getBalance(), 1e-6, "no balance");
 
     // should be 3 market transactions, and cash and 3 mkt positions for bob
     List bobMsgs = msgMap.get(bob);
-    assertEquals("seven messages", 7, bobMsgs.size());
+    assertEquals(7, bobMsgs.size(), "seven messages");
 
     Object obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
@@ -440,8 +427,8 @@ public class AccountingServiceTests
       }
     });
     MarketTransaction mtx1 = (MarketTransaction)obj;
-    assertNotNull("found 1st tx", mtx1);
-    assertEquals("correct quantity", 0.6, mtx1.getMWh(), 1e-6);
+    assertNotNull(mtx1, "found 1st tx");
+    assertEquals(0.6, mtx1.getMWh(), 1e-6, "correct quantity");
 
     obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
@@ -452,7 +439,7 @@ public class AccountingServiceTests
       }
     });
     MarketPosition mp1 = (MarketPosition)obj;
-    assertEquals("correct balance for ts5", 0.5, mp1.getOverallBalance(), 1e-6);
+    assertEquals(0.5, mp1.getOverallBalance(), 1e-6, "correct balance for ts5");
 
     obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
@@ -461,8 +448,8 @@ public class AccountingServiceTests
       }
     });
     CashPosition cp1 = (CashPosition)obj;
-    assertNotNull("non-null CashPosition", cp1);
-    assertEquals("correct cash position", -55.0 * 0.6, cp1.getBalance(), 1e-6);
+    assertNotNull(cp1, "non-null CashPosition");
+    assertEquals(-55.0 * 0.6, cp1.getBalance(), 1e-6, "correct cash position");
   }
 
   // test activation
@@ -493,7 +480,7 @@ public class AccountingServiceTests
         tariffB2, customerInfo3, 3, -55.0, -4.5);
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
         tariffJ1, customerInfo2, 12, 120.0, 8.4);
-    assertEquals("correct number in list", 10, accountingService.getPendingTransactions().size());
+    assertEquals(10, accountingService.getPendingTransactions().size(), "correct number in list");
     
     // activate, gather messages, check cash and market positions
     final Map<Broker, List> msgMap = new HashMap<Broker, List>();
@@ -507,17 +494,15 @@ public class AccountingServiceTests
     accountingService.activate(timeService.getCurrentTime(), 3);
     verify(mockProxy, times(2)).sendMessages(isA(Broker.class), anyList());
 
-    assertEquals("correct cash balance, Bob",
-        (-55.0 * 0.6 + 7.7 + 8.0 -4.5), bob.getCashBalance(), 1e-6);
-    assertEquals("correct cash balance, Jim",
-        8.4, jim.getCashBalance(), 1e-6);
+    assertEquals((-55.0 * 0.6 + 7.7 + 8.0 -4.5), bob.getCashBalance(), 1e-6, "correct cash balance, Bob");
+    assertEquals(8.4, jim.getCashBalance(), 1e-6, "correct cash balance, Jim");
     
     List<Object> bobMkts = filter(msgMap.get(bob), new Predicate<Object>() {
       public boolean apply (Object item) {
         return (item instanceof MarketPosition);
       }
     });
-    assertEquals("Bob has 3 mkt positions", 3, bobMkts.size());
+    assertEquals(3, bobMkts.size(), "Bob has 3 mkt positions");
     
     Object mkt = findFirst(bobMkts, new Predicate<Object>() {
       public boolean apply (Object thing) {
@@ -525,29 +510,28 @@ public class AccountingServiceTests
         return (((MarketPosition)thing).getTimeslot() == ts5);
       }
     });
-    assertNotNull("found market position b5", mkt);
-    assertEquals("correct mkt position, Bob, ts5",  0.6, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
+    assertNotNull(mkt, "found market position b5");
+    assertEquals( 0.6, ((MarketPosition)mkt).getOverallBalance(), 1e-6, "correct mkt position, Bob, ts5");
     mkt = findFirst(bobMkts, new Predicate<Object>() {
       public boolean apply (Object thing) {
         Timeslot ts6 = timeslotRepo.findBySerialNumber(2);
         return (((MarketPosition)thing).getTimeslot() == ts6);
       }
     });
-    assertNotNull("found market position b6", mkt);
-    assertEquals("correct mkt position, Bob, ts6",  0.8, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
+    assertNotNull(mkt, "found market position b6");
+    assertEquals( 0.8, ((MarketPosition)mkt).getOverallBalance(), 1e-6, "correct mkt position, Bob, ts6");
     
     List<Object> jimMkts = filter(msgMap.get(jim), new Predicate<Object>() {
       public boolean apply (Object item) {
         return (item instanceof MarketPosition);
       }
     });
-    assertEquals("Jim has 1 mkt position", 1, jimMkts.size());
+    assertEquals(1, jimMkts.size(), "Jim has 1 mkt position");
 
     mkt = jimMkts.get(0);
-    assertNotNull("found market position j5", mkt);
-    assertEquals("correct timeslot", timeslotRepo.findBySerialNumber(2),
-                 ((MarketPosition)mkt).getTimeslot());
-    assertEquals("correct mkt position, Jim, ts5",  0.2, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
+    assertNotNull(mkt, "found market position j5");
+    assertEquals(timeslotRepo.findBySerialNumber(2), ((MarketPosition)mkt).getTimeslot(), "correct timeslot");
+    assertEquals( 0.2, ((MarketPosition)mkt).getOverallBalance(), 1e-6, "correct mkt position, Jim, ts5");
     
     // activate in the next timeslot, see that market transactions for ts 2
     // are posted
@@ -557,8 +541,7 @@ public class AccountingServiceTests
     accountingService.activate(timeService.getCurrentTime(), 3);
 
     double bobCash2 = bob.getCashBalance();
-    assertEquals("bob's ts2 power deliveries posted",
-                 bobCash1 - 0.5 * 45.0 - 0.3 * 31.0, bobCash2, 1e-6);
+    assertEquals(bobCash1 - 0.5 * 45.0 - 0.3 * 31.0, bobCash2, 1e-6, "bob's ts2 power deliveries posted");
   }
   
   // net market position only works after activation
@@ -576,25 +559,19 @@ public class AccountingServiceTests
         timeslotRepo.findBySerialNumber(2), 0.4, -35.0);
     accountingService.addMarketTransaction(jim,
         timeslotRepo.findBySerialNumber(2), -0.2, 20.0);
-    assertEquals("correct number in list", 5, accountingService.getPendingTransactions().size());
+    assertEquals(5, accountingService.getPendingTransactions().size(), "correct number in list");
     accountingService.activate(timeService.getCurrentTime(), 3);
     // current timeslot is 4, should be 0 mkt posn
-    assertEquals("correct position, bob, ts4", 0.0,
-        accountingService.getCurrentMarketPosition (bob), 1e-6);
-    assertEquals("correct position, jim, ts4", 0.0,
-        accountingService.getCurrentMarketPosition (jim), 1e-6);
+    assertEquals(0.0, accountingService.getCurrentMarketPosition (bob), 1e-6, "correct position, bob, ts4");
+    assertEquals(0.0, accountingService.getCurrentMarketPosition (jim), 1e-6, "correct position, jim, ts4");
     // move forward to timeslot 5 and try again
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
-    assertEquals("correct position, bob, ts5", 0.8,
-        accountingService.getCurrentMarketPosition (bob), 1e-6);
-    assertEquals("correct position, jim, ts5", 0.2,
-        accountingService.getCurrentMarketPosition (jim), 1e-6);
+    assertEquals(0.8, accountingService.getCurrentMarketPosition (bob), 1e-6, "correct position, bob, ts5");
+    assertEquals(0.2, accountingService.getCurrentMarketPosition (jim), 1e-6, "correct position, jim, ts5");
     // another hour and try again
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
-    assertEquals("correct position, bob, ts5", 0.7,
-        accountingService.getCurrentMarketPosition (bob), 1e-6);
-    assertEquals("correct position, jim, ts5", 0.0,
-        accountingService.getCurrentMarketPosition (jim), 1e-6);
+    assertEquals(0.7, accountingService.getCurrentMarketPosition (bob), 1e-6, "correct position, bob, ts5");
+    assertEquals(0.0, accountingService.getCurrentMarketPosition (jim), 1e-6, "correct position, jim, ts5");
   }
   
   // interest should be paid/charged at midnight activation
@@ -603,7 +580,7 @@ public class AccountingServiceTests
   public void testInterestPayment ()
   {
     initializeService();
-    //assertEquals("interest set by bootstrap", 0.10, accountingService.bankInterest)
+    //assertEquals(0.10, accountingService.bankInterest, "interest set by bootstrap")
     
     // set the interest to 12%
     accountingService.setBankInterest(0.12);
@@ -625,23 +602,21 @@ public class AccountingServiceTests
     verify(mockProxy, times(2)).sendMessages(isA(Broker.class), anyList());
 
     // should have bank tx and cash position for Bob
-    assertEquals("two messages", 2, msgMap.get(bob).size());
+    assertEquals(2, msgMap.get(bob).size(), "two messages");
     Object btx1 = findFirst(msgMap.get(bob), new Predicate<Object>() {
       public boolean apply (Object thing) {
         return (thing instanceof BankTransaction);
       }
     });
-    assertNotNull("found bank tx", btx1);
-    assertEquals("correct amount", -1000.0 * 0.12 / 365.0, 
-                 ((BankTransaction)btx1).getAmount(), 1e-6);
+    assertNotNull(btx1, "found bank tx");
+    assertEquals(-1000.0 * 0.12 / 365.0, ((BankTransaction)btx1).getAmount(), 1e-6, "correct amount");
     Object cp1 = findFirst(msgMap.get(bob), new Predicate<Object>() {
       public boolean apply (Object thing) {
         return (thing instanceof CashPosition);
       }
     });
-    assertNotNull("found cash posn", cp1);
-    assertEquals("correct amount", -1000.0 * (1.0 + 0.12 / 365.0), 
-                 ((CashPosition)cp1).getBalance(), 1e-6);
+    assertNotNull(cp1, "found cash posn");
+    assertEquals(-1000.0 * (1.0 + 0.12 / 365.0), ((CashPosition)cp1).getBalance(), 1e-6, "correct amount");
   }
 
   // Post balancing control
@@ -650,11 +625,11 @@ public class AccountingServiceTests
   {
     initializeService();
     bob.updateCash(0.0);
-    assertEquals("no cash", 0.0, bob.getCashBalance(), 1e-6);
+    assertEquals(0.0, bob.getCashBalance(), 1e-6, "no cash");
     BalancingControlEvent bce =
         new BalancingControlEvent(tariffB1.getTariffSpec(),
                                   -42.0, 4.2, 0);
     accountingService.postBalancingControl(bce);
-    assertEquals("correct cash", 4.2, bob.getCashBalance(), 1e-6);
+    assertEquals(4.2, bob.getCashBalance(), 1e-6, "correct cash");
   }
 }

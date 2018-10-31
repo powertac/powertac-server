@@ -16,13 +16,16 @@
 
 package org.powertac.factoredcustomer;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
@@ -44,9 +47,8 @@ import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -54,20 +56,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-
 /**
  * @author Prashant Reddy, Antonios Chrysopoulos, Govert Buijs
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml" })
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
     DependencyInjectionTestExecutionListener.class,
@@ -117,7 +109,7 @@ public class FactoredCustomerServiceTests
   private Competition comp;
   private List<Object[]> accountingArgs;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     customerRepo.recycle();
@@ -178,7 +170,7 @@ public class FactoredCustomerServiceTests
     Config.initializeInstance(configSvc);
   }
 
-  @After
+  @AfterEach
   public void tearDown ()
   {
     timeService = null;
@@ -221,7 +213,6 @@ public class FactoredCustomerServiceTests
   public void testServiceInitialization ()
   {
     initializeService();
-    assertEquals("Configured number of customers created",
-        4, factoredCustomerService.getCustomers().size());
+    assertEquals(4, factoredCustomerService.getCustomers().size(), "Configured number of customers created");
   }
 }

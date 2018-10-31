@@ -1,14 +1,13 @@
 package org.powertac.server;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.*;
 
 import java.io.StringWriter;
 
 import javax.jms.TextMessage;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -23,7 +22,7 @@ public class ServerMessageReceiverTests
   BrokerProxy brokerProxy;
   XMLMessageConverter converter;
   
-  @Before
+  @BeforeEach
   public void before() {
     receiver = new ServerMessageReceiver();
     

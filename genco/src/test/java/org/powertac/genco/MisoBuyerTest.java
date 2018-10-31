@@ -15,15 +15,9 @@
  */
 package org.powertac.genco;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,8 +29,8 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Competition;
@@ -77,7 +71,7 @@ public class MisoBuyerTest
   /**
    *
    */
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     // Start Thursday 9:00
@@ -119,12 +113,12 @@ public class MisoBuyerTest
   @Test
   public void testMisoBuyer()
   {
-    assertNotNull("created something", buyer);
-    assertEquals("correct name", "Test", buyer.getUsername());
+    assertNotNull(buyer, "created something");
+    assertEquals(buyer.getUsername(), "Test", "correct name");
   }
 
   /**
-   * Test method for {@link org.powertac.genco.CpGenco#init(org.powertac.common.interfaces.BrokerProxy, int, org.powertac.common.repo.RandomSeedRepo)}.
+   * Test method for {@link org.powertac.genco.CpGenco#init(org.powertac.common.interfaces.BrokerProxy, int, org.powertac.common.repo.RandomSeedRepo, org.powertac.common.repo.TimeslotRepo)}.
    */
   @Test
   public void testInitBoot ()
@@ -132,7 +126,7 @@ public class MisoBuyerTest
     init();
     verify(mockSeedRepo).getRandomSeed(eq(MisoBuyer.class.getName()),
                                        anyLong(), eq("ts"));
-    assertEquals("timeslotOffset is zero", 0, buyer.getTimeslotOffset());
+    assertEquals(0, buyer.getTimeslotOffset(), "timeslotOffset is zero");
   }
 
   // Check timeslotOffset in sim mode
@@ -144,7 +138,7 @@ public class MisoBuyerTest
     timeService.setCurrentTime(comp.getSimulationBaseTime()
                                .plus(24 * comp.getTimeslotDuration()));
     init();
-    assertEquals("timeslotOffset non-zero", 24, buyer.getTimeslotOffset());
+    assertEquals(24, buyer.getTimeslotOffset(), "timeslotOffset non-zero");
   }
 
   // Check timeslotOffset in sim mode
@@ -156,7 +150,7 @@ public class MisoBuyerTest
     timeService.setCurrentTime(comp.getSimulationBaseTime()
                                .plus(360 * comp.getTimeslotDuration()));
     init();
-    assertEquals("timeslotOffset non-zero", 360, buyer.getTimeslotOffset());
+    assertEquals(360, buyer.getTimeslotOffset(), "timeslotOffset non-zero");
   }
 
   // Runs the timeseries for a few steps without randomness
@@ -173,13 +167,12 @@ public class MisoBuyerTest
       ts[i] = buyer.computeScaledValue(i, 0.0);
     }
     // daily numbers starting at 9:00
-    assertEquals("daily offset", 9, buyer.getDailyOffset());
-    assertEquals("weeklyOffset", 3*24 + 9, buyer.getWeeklyOffset());
+    assertEquals(9, buyer.getDailyOffset(), "daily offset");
+    assertEquals(3*24 + 9, buyer.getWeeklyOffset(), "weeklyOffset");
     for (int i = 0; i < len; i += 1) {
       double d = buyer.getDailyValue(i);
       double w = buyer.getWeeklyValue(i);
-      assertEquals("correct ts value", (d + w + buyer.getMean()),
-                   buyer.computeScaledValue(i, 0.0), 1e-5);
+      assertEquals((d + w + buyer.getMean()), buyer.computeScaledValue(i, 0.0), 1e-5, "correct ts value");
     }
   }
 
@@ -203,14 +196,13 @@ public class MisoBuyerTest
       ts[idx] = buyer.computeScaledValue(i, 0.0);
     }
     // daily numbers starting at 9:00
-    assertEquals("daily offset", 9, buyer.getDailyOffset());
-    assertEquals("weeklyOffset", (18*24 + 9) % 168, buyer.getWeeklyOffset());
+    assertEquals(9, buyer.getDailyOffset(), "daily offset");
+    assertEquals((18*24 + 9) % 168, buyer.getWeeklyOffset(), "weeklyOffset");
     
     for (int i = 360; i < len+ 360; i += 1) {
       double d = buyer.getDailyValue(i);
       double w = buyer.getWeeklyValue(i);
-      assertEquals("correct ts value", (d + w + buyer.getMean()),
-                   buyer.computeScaledValue(i, 0.0), 1e-5);
+      assertEquals((d + w + buyer.getMean()), buyer.computeScaledValue(i, 0.0), 1e-5, "correct ts value");
     }
   }
 
@@ -234,7 +226,7 @@ public class MisoBuyerTest
     init();
     double[] corrections = buyer.computeWeatherCorrections();
     for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
-      assertEquals("zero correction", 0.0, corrections[i], 1e-6);
+      assertEquals(0.0, corrections[i], 1e-6, "zero correction");
     }
   }
 
@@ -249,31 +241,31 @@ public class MisoBuyerTest
       wfpa[i] = new WeatherForecastPrediction(1, 10.0, 0.0, 0.0, 0.0);
     // cooling, temps below threshold
     double[] s1 = buyer.smoothForecasts(0, 11.0, 1.0, wfpa);
-    assertNotNull("non-null result", s1);
-    assertEquals("first zero", 0.0, s1[0], 1e-6);
-    assertEquals("last zero", 0.0, s1[3], 1e-6);
+    assertNotNull(s1, "non-null result");
+    assertEquals(0.0, s1[0], 1e-6, "first zero");
+    assertEquals(0.0, s1[3], 1e-6, "last zero");
     // cooling, temps 10 deg over theshold
     s1 = buyer.smoothForecasts(0.0, 0.0, 1.0, wfpa);
     double exp = 10.0 * 0.2;
-    assertEquals("first cs", exp, s1[0], 1e-6);
+    assertEquals(exp, s1[0], 1e-6, "first cs");
     exp = 10.0 * 0.2 + exp * 0.8;
-    assertEquals("second cs", exp, s1[1], 1e-6);
+    assertEquals(exp, s1[1], 1e-6, "second cs");
     exp = 10.0 * 0.2 + exp * 0.8;
-    assertEquals("third cs", exp, s1[2], 1e-6);
+    assertEquals(exp, s1[2], 1e-6, "third cs");
     // heating, temps above threshold
     s1 = buyer.smoothForecasts(0.0, 0.0, -1.0, wfpa);
-    assertEquals("first zero", 0.0, s1[0], 1e-6);
-    assertEquals("last zero", 0.0, s1[3], 1e-6);
+    assertEquals(0.0, s1[0], 1e-6, "first zero");
+    assertEquals(0.0, s1[3], 1e-6, "last zero");
     // heating, temps below threshold
     s1 = buyer.smoothForecasts(0.0, 20.0, -1.0, wfpa);
     exp = -10 * 0.2;
-    assertEquals("first hs", exp, s1[0], 1e-6);
+    assertEquals(exp, s1[0], 1e-6, "first hs");
     exp = -10.0 * 0.2 + exp * 0.8;
-    assertEquals("second cs", exp, s1[1], 1e-6);
+    assertEquals(exp, s1[1], 1e-6, "second cs");
     exp = -10.0 * 0.2 + exp * 0.8;
-    assertEquals("third cs", exp, s1[2], 1e-6);
+    assertEquals(exp, s1[2], 1e-6, "third cs");
     exp = -10.0 * 0.2 + exp * 0.8;
-    assertEquals("fourth cs", exp, s1[3], 1e-6);
+    assertEquals(exp, s1[3], 1e-6, "fourth cs");
     
   }
 
@@ -304,8 +296,7 @@ public class MisoBuyerTest
     }
     double[] corrections = buyer.computeWeatherCorrections();
     for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
-      assertEquals("correction", smoothedTemps[i] * buyer.getHeatCoef(),
-                   corrections[i], 1e-6);
+      assertEquals(smoothedTemps[i] * buyer.getHeatCoef(), corrections[i], 1e-6, "correction");
     }
   }
 

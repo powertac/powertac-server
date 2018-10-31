@@ -15,10 +15,10 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author John Collins
@@ -29,7 +29,7 @@ public class RegulationCapacityTest
   /**
    *
    */
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
   }
@@ -39,25 +39,19 @@ public class RegulationCapacityTest
   {
     // normal creation
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
-    assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("correct down-regulation", -2.0,
-                 rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(1.0, rc.getUpRegulationCapacity(),1e-6, "correct up-regulation");
+    assertEquals(-2.0, rc.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 
   @Test
   public void bogusRegulationCapacity ()
   {
     RegulationAccumulator rc = new RegulationAccumulator(1.0, 2.0);
-    assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("default down-regulation", 0.0,
-                 rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(1.0, rc.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(0.0, rc.getDownRegulationCapacity(), 1e-6, "default down-regulation");
     RegulationAccumulator rc1 = new RegulationAccumulator(-1.0, -2.0);
-    assertEquals("default up-regulation", 0.0, rc1.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("correct down-regulation", -2.0,
-                 rc1.getDownRegulationCapacity(), 1e-6);
+    assertEquals(0.0, rc1.getUpRegulationCapacity(), 1e-6, "default up-regulation");
+    assertEquals(-2.0, rc1.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 
   @Test
@@ -65,9 +59,9 @@ public class RegulationCapacityTest
   {
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
     rc.setUpRegulationCapacity(2.5);
-    assertEquals("successful set", 2.5, rc.getUpRegulationCapacity(), 1e-6);
+    assertEquals(2.5, rc.getUpRegulationCapacity(), 1e-6, "successful set");
     rc.setUpRegulationCapacity(-3.0);
-    assertEquals("no change", 2.5, rc.getUpRegulationCapacity(), 1e-6);
+    assertEquals(2.5, rc.getUpRegulationCapacity(), 1e-6, "no change");
   }
 
   @Test
@@ -75,9 +69,9 @@ public class RegulationCapacityTest
   {
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
     rc.setDownRegulationCapacity(-2.5);
-    assertEquals("successful set", -2.5, rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(-2.5, rc.getDownRegulationCapacity(), 1e-6, "successful set");
     rc.setDownRegulationCapacity(3.0);
-    assertEquals("no change", -2.5, rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(-2.5, rc.getDownRegulationCapacity(), 1e-6, "no change");
   }
 
   @Test
@@ -86,10 +80,8 @@ public class RegulationCapacityTest
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
     RegulationAccumulator rc1 = new RegulationAccumulator(2.0, -3.0);
     rc.add(rc1);
-    assertEquals("correct up-regulation", 3.0, rc.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("correct down-regulation", -5.0,
-                 rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(3.0, rc.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(-5.0, rc.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 
   @Test
@@ -97,10 +89,8 @@ public class RegulationCapacityTest
   {
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
     rc.addUpRegulation(3.0);
-    assertEquals("correct up-regulation", 4.0, rc.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("correct down-regulation", -2.0,
-                 rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(4.0, rc.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(-2.0, rc.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 
   @Test
@@ -108,10 +98,8 @@ public class RegulationCapacityTest
   {
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
     rc.addUpRegulation(-3.0);
-    assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("correct down-regulation", -2.0,
-                 rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(1.0, rc.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(-2.0, rc.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 
   @Test
@@ -119,10 +107,8 @@ public class RegulationCapacityTest
   {
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
     rc.addDownRegulation(-3.0);
-    assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("correct down-regulation", -5.0,
-                 rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(1.0, rc.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(-5.0, rc.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 
   @Test
@@ -130,9 +116,7 @@ public class RegulationCapacityTest
   {
     RegulationAccumulator rc = new RegulationAccumulator(1.0, -2.0);
     rc.addDownRegulation(3.0);
-    assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
-                 1e-6);
-    assertEquals("correct down-regulation", -2.0,
-                 rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(1.0, rc.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(-2.0, rc.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 }

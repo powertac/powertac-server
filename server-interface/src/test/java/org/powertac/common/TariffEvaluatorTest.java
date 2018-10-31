@@ -15,18 +15,16 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.enumerations.PowerType;
@@ -69,7 +67,7 @@ public class TariffEvaluatorTest
   // unit under test
   private TariffEvaluator evaluator;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     competition = Competition.newInstance("tariff-evaluator-test");
@@ -185,11 +183,9 @@ public class TariffEvaluatorTest
   @Test
   public void testScaleFactor ()
   {
-    assertEquals("default scale factor", (7 * 24.0) / 48.0,
-                 evaluator.getScaleFactor(), 1e-6);
+    assertEquals((7 * 24.0) / 48.0, evaluator.getScaleFactor(), 1e-6, "default scale factor");
     evaluator.setProfileLength(14 * 24);
-    assertEquals("default scale factor", (14 * 24.0) / 48.0,
-                 evaluator.getScaleFactor(), 1e-6);
+    assertEquals((14 * 24.0) / 48.0, evaluator.getScaleFactor(), 1e-6, "default scale factor");
   }
 
   @Test
@@ -202,17 +198,11 @@ public class TariffEvaluatorTest
                                 .withSignupPayment(2.0);
     Tariff tariff1 = new Tariff(ts1);
     initTariff(tariff1);
-    assertEquals("positive signup, default duration",
-                 2.0 * (7 * 24.0) / 48.0,
-                 evaluator.computeSignupCost(tariff1), 1e-6);
+    assertEquals(2.0 * (7 * 24.0) / 48.0, evaluator.computeSignupCost(tariff1), 1e-6, "positive signup, default duration");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("positive signup, longer pref duration", 
-                 2.0 * (7 * 24.0) / 48.0,
-                 evaluator.computeSignupCost(tariff1), 1e-6);
+    assertEquals(2.0 * (7 * 24.0) / 48.0, evaluator.computeSignupCost(tariff1), 1e-6, "positive signup, longer pref duration");
     evaluator.setProfileLength(14 * 24);
-    assertEquals("positive signup, longer pref duration", 
-                 2.0 * (14 * 24.0) / 48.0,
-                 evaluator.computeSignupCost(tariff1), 1e-6);
+    assertEquals(2.0 * (14 * 24.0) / 48.0, evaluator.computeSignupCost(tariff1), 1e-6, "positive signup, longer pref duration");
   }
 
   @Test
@@ -225,13 +215,9 @@ public class TariffEvaluatorTest
                                 .withSignupPayment(-2.0);
     Tariff tariff1 = new Tariff(ts1);
     initTariff(tariff1);
-    assertEquals("negative signup, default duration",
-                 -2.0 * (4 * 24.0) / 6.0,
-                 evaluator.computeSignupCost(tariff1), 1e-6);
+    assertEquals(-2.0 * (4 * 24.0) / 6.0, evaluator.computeSignupCost(tariff1), 1e-6, "negative signup, default duration");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("negative signup, longer pref duration", 
-                 -2.0 * (14 * 24.0) / 6.0,
-                 evaluator.computeSignupCost(tariff1), 1e-6);
+    assertEquals(-2.0 * (14 * 24.0) / 6.0, evaluator.computeSignupCost(tariff1), 1e-6, "negative signup, longer pref duration");
   }
 
   @Test
@@ -243,13 +229,9 @@ public class TariffEvaluatorTest
                                 addRate(new Rate().withValue(-0.09));
     Tariff tariff1 = new Tariff(ts1);
     initTariff(tariff1);
-    assertEquals("zero signup, default duration",
-                 0.0,
-                 evaluator.computeSignupCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeSignupCost(tariff1), 1e-6, "zero signup, default duration");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("zero signup, longer pref duration", 
-                 0.0,
-                 evaluator.computeSignupCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeSignupCost(tariff1), 1e-6, "zero signup, longer pref duration");
   }
 
   @Test
@@ -263,17 +245,11 @@ public class TariffEvaluatorTest
                                 .withEarlyWithdrawPayment(2.0);
     Tariff tariff1 = new Tariff(ts);
     initTariff(tariff1);
-    assertEquals("positive withdraw cost, default dur",
-                 2.0 * 7.0 / 2.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(2.0 * 7.0 / 2.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "positive withdraw cost, default dur");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("positive withdraw cost, longer dur",
-                 2.0 * 7.0 / 2.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(2.0 * 7.0 / 2.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "positive withdraw cost, longer dur");
     evaluator.setProfileLength(14 * 24);
-    assertEquals("positive withdraw cost, longer dur",
-                 2.0 * 14.0 / 2.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(2.0 * 14.0 / 2.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "positive withdraw cost, longer dur");
   }
 
   @Test
@@ -287,17 +263,11 @@ public class TariffEvaluatorTest
                                 .withEarlyWithdrawPayment(2.0);
     Tariff tariff1 = new Tariff(ts);
     initTariff(tariff1);
-    assertEquals("positive withdraw cost, default dur",
-                 0.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "positive withdraw cost, default dur");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("positive withdraw cost, longer dur",
-                 0.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "positive withdraw cost, longer dur");
     evaluator.setProfileLength(14 * 24);
-    assertEquals("positive withdraw cost, longer dur",
-                 0.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "positive withdraw cost, longer dur");
   }
 
   @Test
@@ -311,13 +281,9 @@ public class TariffEvaluatorTest
                                 .withEarlyWithdrawPayment(-2.0);
     Tariff tariff1 = new Tariff(ts);
     initTariff(tariff1);
-    assertEquals("negative withdraw cost, default dur",
-                 -2.0 * (7.0 / 2.0) * (8.0 / 4.0),
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(-2.0 * (7.0 / 2.0) * (8.0 / 4.0), evaluator.computeWithdrawCost(tariff1), 1e-6, "negative withdraw cost, default dur");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("negative withdraw cost, longer dur",
-                 -2.0 * (7.0 / 2.0) * (8.0 / 14.0),
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(-2.0 * (7.0 / 2.0) * (8.0 / 14.0), evaluator.computeWithdrawCost(tariff1), 1e-6, "negative withdraw cost, longer dur");
   }
 
   @Test
@@ -330,13 +296,9 @@ public class TariffEvaluatorTest
                                 .withMinDuration(8 * TimeService.DAY);
     Tariff tariff1 = new Tariff(ts);
     initTariff(tariff1);
-    assertEquals("zero withdraw cost, default dur",
-                 0.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "zero withdraw cost, default dur");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("zero withdraw cost, longer dur",
-                 0.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "zero withdraw cost, longer dur");
   }
 
   @Test
@@ -349,13 +311,9 @@ public class TariffEvaluatorTest
                                 .withEarlyWithdrawPayment(-2.0);
     Tariff tariff1 = new Tariff(ts);
     initTariff(tariff1);
-    assertEquals("zero withdraw cost, default dur",
-                 0.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "zero withdraw cost, default dur");
     evaluator.withPreferredContractDuration(14);
-    assertEquals("zero withdraw cost, longer dur",
-                 0.0,
-                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    assertEquals(0.0, evaluator.computeWithdrawCost(tariff1), 1e-6, "zero withdraw cost, longer dur");
   }
 
   @Test
@@ -384,7 +342,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -394,11 +352,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(5000); // just two chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-5000 for default",
-                 new Integer(-5000), calls.get(defaultConsumption));
-    assertEquals("+5000 for new",
-                 new Integer(5000), calls.get(newTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-5000), calls.get(defaultConsumption), "-5000 for default");
+    assertEquals(new Integer(5000), calls.get(newTariff), "+5000 for new");
   }
 
   @Test
@@ -427,7 +383,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -437,11 +393,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-5000 for default",
-                 new Integer(-5000), calls.get(defaultConsumption));
-    assertEquals("+5000 for new",
-                 new Integer(5000), calls.get(newTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-5000), calls.get(defaultConsumption), "-5000 for default");
+    assertEquals(new Integer(5000), calls.get(newTariff), "+5000 for new");
   }
 
   @Test
@@ -478,7 +432,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -488,13 +442,10 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("three tariffs", 3, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+5000 for bob",
-                 new Integer(5000), calls.get(bobTariff));
-    assertEquals("+5000 for jim",
-                 new Integer(5000), calls.get(jimTariff));
+    assertEquals(3, calls.size(), "three tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(5000), calls.get(bobTariff), "+5000 for bob");
+    assertEquals(new Integer(5000), calls.get(jimTariff), "+5000 for jim");
   }
 
   @Test
@@ -532,7 +483,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -542,11 +493,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for bob",
-                 new Integer(10000), calls.get(bobTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(bobTariff), "+10000 for bob");
   }
 
   @Test
@@ -576,7 +525,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -586,11 +535,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for jim",
-                 new Integer(10000), calls.get(jimTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(jimTariff), "+10000 for jim");
   }
 
   @Test
@@ -621,7 +568,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -631,11 +578,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for jim",
-                 new Integer(-10000), calls.get(jimTariff));
-    assertEquals("+10000 for default",
-                 new Integer(10000), calls.get(defaultConsumption));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(jimTariff), "-10000 for jim");
+    assertEquals(new Integer(10000), calls.get(defaultConsumption), "+10000 for default");
   }
 
   @Test
@@ -665,7 +610,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -675,11 +620,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for jim",
-                 new Integer(10000), calls.get(jimTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(jimTariff), "+10000 for jim");
   }
 
   @Test
@@ -713,7 +656,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -723,11 +666,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for jim",
-                 new Integer(10000), calls.get(jimTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(jimTariff), "+10000 for jim");
   }
 
   @Test
@@ -761,7 +702,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -771,11 +712,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(jimTariff));
-    assertEquals("+10000 for jim",
-                 new Integer(10000), calls.get(bobTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(jimTariff), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(bobTariff), "+10000 for jim");
   }
 
   @Test
@@ -809,7 +748,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -819,11 +758,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for bob",
-                 new Integer(10000), calls.get(bobTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(bobTariff), "+10000 for bob");
   }
 
   @Test
@@ -857,7 +794,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -867,11 +804,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for bob",
-                 new Integer(10000), calls.get(bobTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(bobTariff), "+10000 for bob");
   }
 
   @Test
@@ -905,7 +840,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -915,11 +850,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two tariffs", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for bob",
-                 new Integer(10000), calls.get(bobTariff));
+    assertEquals(2, calls.size(), "two tariffs");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(bobTariff), "+10000 for bob");
   }
 
   @Test
@@ -961,7 +894,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -971,13 +904,10 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("three tariffs", 3, calls.size());
-    assertEquals("-5000 for default",
-                 new Integer(-5000), calls.get(defaultConsumption));
-    assertEquals("+2500 for bob",
-                 new Integer(2500), calls.get(bobTariff));
-    assertEquals("+2500 for jim",
-                 new Integer(2500), calls.get(jimTariff));
+    assertEquals(3, calls.size(), "three tariffs");
+    assertEquals(new Integer(-5000), calls.get(defaultConsumption), "-5000 for default");
+    assertEquals(new Integer(2500), calls.get(bobTariff), "+2500 for bob");
+    assertEquals(new Integer(2500), calls.get(jimTariff), "+2500 for jim");
   }
 
   // Test min contract duration. Two tariffs from Jim have equal signup
@@ -1029,7 +959,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -1039,11 +969,9 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
-    assertEquals("two changes", 2, calls.size());
-    assertEquals("-10000 for default",
-                 new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for jim-long",
-                 new Integer(10000), calls.get(jimTariff));
+    assertEquals(2, calls.size(), "two changes");
+    assertEquals(new Integer(-10000), calls.get(defaultConsumption), "-10000 for default");
+    assertEquals(new Integer(10000), calls.get(jimTariff), "+10000 for jim-long");
   }
 
   // Revoke to default tariff
@@ -1080,7 +1008,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -1094,12 +1022,10 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     evaluator.evaluateTariffs();
-    assertEquals("two calls", 2, calls.size());
-    assertEquals("-5000 for jim",
-                 new Integer(-5000), calls.get(jimTariff));
-    assertEquals("none for default", null, calls.get(defaultConsumption));
-    assertEquals("+5000 for bob",
-                 new Integer(5000), calls.get(bobTariff));
+    assertEquals(2, calls.size(), "two calls");
+    assertEquals(new Integer(-5000), calls.get(jimTariff), "-5000 for jim");
+    assertEquals(null, calls.get(defaultConsumption), "none for default");
+    assertEquals(new Integer(5000), calls.get(bobTariff), "+5000 for bob");
   }
 
   // Revoke to superseding tariff
@@ -1147,7 +1073,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -1162,13 +1088,10 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     evaluator.evaluateTariffs();
-    assertEquals("three calls", 3, calls.size());
-    assertEquals("-5000 for jim",
-                 new Integer(-5000), calls.get(jimTariff));
-    assertEquals("+2500 for jimSuper",
-                 new Integer(2500), calls.get(jimSuper));
-    assertEquals("+2500 for bob",
-                 new Integer(2500), calls.get(bobTariff));
+    assertEquals(3, calls.size(), "three calls");
+    assertEquals(new Integer(-5000), calls.get(jimTariff), "-5000 for jim");
+    assertEquals(new Integer(2500), calls.get(jimSuper), "+2500 for jimSuper");
+    assertEquals(new Integer(2500), calls.get(bobTariff), "+2500 for bob");
   }
 
   // Revoke to superseding tariff
@@ -1218,7 +1141,7 @@ public class TariffEvaluatorTest
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        assertEquals("correct customer", customer, args[1]);
+        assertEquals(customer, args[1], "correct customer");
         calls.put((Tariff)args[0], (Integer)args[2]);
         return null;
       }
@@ -1233,11 +1156,9 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     evaluator.evaluateTariffs();
-    assertEquals("two calls", 2, calls.size());
-    assertEquals("-5000 for jim",
-                 new Integer(-5000), calls.get(jimTariff));
-    assertEquals("+5000 for defaultConsumption",
-                 new Integer(5000), calls.get(bobTariff));
+    assertEquals(2, calls.size(), "two calls");
+    assertEquals(new Integer(-5000), calls.get(jimTariff), "-5000 for jim");
+    assertEquals(new Integer(5000), calls.get(bobTariff), "+5000 for defaultConsumption");
   }
 
   // Revoke to better tariff

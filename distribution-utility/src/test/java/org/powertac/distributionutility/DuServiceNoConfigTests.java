@@ -1,8 +1,8 @@
 package org.powertac.distributionutility;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,10 +13,9 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.config.Configurator;
@@ -33,13 +32,11 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:test-config.xml" })
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class
@@ -84,7 +81,7 @@ public class DuServiceNoConfigTests
   //private CustomerInfo cust2;
   private DateTime start;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     // create a Competition, needed for initialization
@@ -131,7 +128,7 @@ public class DuServiceNoConfigTests
     }).when(serverPropertiesService).configureMe(any());
   }
 
-  @After
+  @AfterEach
   public void tearDown ()
   {
     // clear all repos
@@ -159,10 +156,8 @@ public class DuServiceNoConfigTests
     cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMin", "-0.01");
     cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
     initializeService();
-    assertTrue("using transport fee", distributionUtilityService.usingTransportFee());
-    assertEquals("correct min dist fee", -0.01,
-                 distributionUtilityService.getDistributionFeeMin(), 1e-6);
-    assertEquals("correct max dist fee", -0.12,
-                 distributionUtilityService.getDistributionFeeMax(), 1e-6);
+    assertTrue(distributionUtilityService.usingTransportFee(), "using transport fee");
+    assertEquals(-0.01, distributionUtilityService.getDistributionFeeMin(), 1e-6, "correct min dist fee");
+    assertEquals(-0.12, distributionUtilityService.getDistributionFeeMax(), 1e-6, "correct max dist fee");
   }
 }

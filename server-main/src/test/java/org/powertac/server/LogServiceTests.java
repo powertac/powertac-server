@@ -16,7 +16,7 @@
 
 package org.powertac.server;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,9 +24,9 @@ import java.io.FileReader;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class LogServiceTests
 {
@@ -41,7 +41,7 @@ public class LogServiceTests
   }
   
   // one-time setup
-  @BeforeClass
+  @BeforeAll
   static public void initialize ()
   {
     // initialize the log service (config src/test/resources/log4j2-test.xml)
@@ -49,7 +49,7 @@ public class LogServiceTests
   }
   
   // per-test setup
-  @Before
+  @BeforeEach
   public void setup ()
   {
     // get references to the loggers
@@ -67,18 +67,18 @@ public class LogServiceTests
     // log to the default trace file, check file
     log.info("first message");
     File traceFile = new File("log/test.trace");
-    assertTrue("trace file exists", traceFile.exists());
+    assertTrue(traceFile.exists(), "trace file exists");
     try {
       BufferedReader traceReader = new BufferedReader(new FileReader(traceFile));
       String line1 = "";
       while (line1 != null && line1.indexOf("first message") == -1) {
         line1 = traceReader.readLine();
       }
-      assertNotNull("line one in file", line1);
+      assertNotNull(line1, "line one in file");
       String[] fields = line1.split("\\s+");
-      assertEquals("5 fields", 5, fields.length);
-      assertTrue("first field is a number", fields[0].matches("\\d+"));
-      assertTrue("second fields is INFO", fields[1].matches("INFO"));
+      assertEquals(5, fields.length, "5 fields");
+      assertTrue(fields[0].matches("\\d+"), "first field is a number");
+      assertTrue(fields[1].matches("INFO"), "second fields is INFO");
       traceReader.close();
     }
     catch (Exception e) {
@@ -87,7 +87,7 @@ public class LogServiceTests
     
     // log to the state file, check file
     stateLog.info("state-change");
-    assertTrue("state file exists", new File("log/test.state").exists());
+    assertTrue(new File("log/test.state").exists(), "state file exists");
   }
   
   // set up a sim logger and check it out
@@ -101,20 +101,20 @@ public class LogServiceTests
     log.info("start sim 42");
     staticLog.warn("warning message");
     File traceFile = new File("log/test-42.trace");
-    assertTrue("trace file exists", traceFile.exists());
+    assertTrue(traceFile.exists(), "trace file exists");
     
     // write to the state log and check
     stateLog.info("sim-state");
     File stateFile = new File("log/test-42.state");
-    assertTrue("state file exists", stateFile.exists());
+    assertTrue(stateFile.exists(), "state file exists");
     try {
       BufferedReader stateReader = new BufferedReader(new FileReader(stateFile));
       String line1 = stateReader.readLine();
-      assertNotNull("line one in file", line1);
+      assertNotNull(line1, "line one in file");
       String[] fields = line1.split(":");
-      assertEquals("2 fields", 2, fields.length);
-      assertTrue("first field is a number", fields[0].matches("\\d+"));
-      assertTrue("second field is state", fields[1].matches("sim-state"));
+      assertEquals(2, fields.length, "2 fields");
+      assertTrue(fields[0].matches("\\d+"), "first field is a number");
+      assertTrue(fields[1].matches("sim-state"), "second field is state");
       stateReader.close();
     }
     catch (Exception e) {
@@ -135,20 +135,20 @@ public class LogServiceTests
     log.info("start sim 43");
     staticLog.warn("warning message 43");
     File traceFile = new File("log/test-43.trace");
-    assertTrue("trace file exists", traceFile.exists());
+    assertTrue(traceFile.exists(), "trace file exists");
     
     // write to the state log and check
     stateLog.info("sim-state-43");
     File stateFile = new File("log/test-43.state");
-    assertTrue("state file exists", stateFile.exists());
+    assertTrue(stateFile.exists(), "state file exists");
     try {
       BufferedReader stateReader = new BufferedReader(new FileReader(stateFile));
       String line1 = stateReader.readLine();
-      assertNotNull("line one in file", line1);
+      assertNotNull(line1, "line one in file");
       String[] fields = line1.split(":");
-      assertEquals("2 fields", 2, fields.length);
-      assertTrue("first field is a number", fields[0].matches("\\d+"));
-      assertTrue("second field is state", fields[1].matches("sim-state-43"));
+      assertEquals(2, fields.length, "2 fields");
+      assertTrue(fields[0].matches("\\d+"), "first field is a number");
+      assertTrue(fields[1].matches("sim-state-43"), "second field is state");
       stateReader.close();
     }
     catch (Exception e) {

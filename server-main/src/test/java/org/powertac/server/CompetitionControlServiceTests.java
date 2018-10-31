@@ -1,6 +1,6 @@
 package org.powertac.server;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.io.CharArrayReader;
@@ -20,25 +20,22 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:cc-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:cc-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -57,7 +54,7 @@ public class CompetitionControlServiceTests
   private CustomerInfo customer2;
 
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     reset(collector);
@@ -103,7 +100,7 @@ public class CompetitionControlServiceTests
       XPathExpression exp = 
         xPath.compile("/powertac-bootstrap-data/bootstrap/customer-bootstrap-data/netUsage");
       NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
-      assertEquals("two entries", 2, nodes.getLength());
+      assertEquals(2, nodes.getLength(), "two entries");
     }
     catch (XPathExpressionException xee) {
       fail("XPath trouble: " + xee.toString());
@@ -125,7 +122,7 @@ public class CompetitionControlServiceTests
     String dateString = "2011-1-26";
     DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
     DateTime dt = fmt.parseDateTime(dateString);
-    assertEquals("correct time translation", val, dt.toInstant());
+    assertEquals(val, dt.toInstant(), "correct time translation");
   }
 
   @Test
@@ -137,10 +134,10 @@ public class CompetitionControlServiceTests
     List<String> usernames = Arrays.asList("Sally", "Jenny");
     ccs.setAuthorizedBrokerList(usernames);
     List<String> names = ccs.getBrokerNames();
-    assertEquals("3 names", 3, names.size());
-    assertEquals("defaut first", 0, names.indexOf("default broker"));
-    assertEquals("Sally second", 1, names.indexOf("Sally"));
-    assertEquals("Jenny third", 2, names.indexOf("Jenny"));
+    assertEquals(3, names.size(), "3 names");
+    assertEquals(0, names.indexOf("default broker"), "defaut first");
+    assertEquals(1, names.indexOf("Sally"), "Sally second");
+    assertEquals(2, names.indexOf("Jenny"), "Jenny third");
   }
 
   @Test
@@ -152,8 +149,8 @@ public class CompetitionControlServiceTests
     List<String> usernames = Arrays.asList("Sally/S1", "Jenny/J1");
     ccs.setAuthorizedBrokerList(usernames);
     List<String> names = ccs.getBrokerNames();
-    assertEquals("4 names", 4, names.size());
-    assertEquals("Sally first", 2, names.indexOf("Sally"));
-    assertEquals("Jenny second", 3, names.indexOf("Jenny"));
+    assertEquals(4, names.size(), "4 names");
+    assertEquals(2, names.indexOf("Sally"), "Sally first");
+    assertEquals(3, names.indexOf("Jenny"), "Jenny second");
   }
 }

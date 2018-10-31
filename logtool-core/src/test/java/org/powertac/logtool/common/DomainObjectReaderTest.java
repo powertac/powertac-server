@@ -1,9 +1,9 @@
 package org.powertac.logtool.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.DistributionTransaction;
@@ -17,7 +17,7 @@ public class DomainObjectReaderTest
 {
   private DomainObjectReader dor;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     dor = new DomainObjectReader();
@@ -29,10 +29,10 @@ public class DomainObjectReaderTest
     String aston = "144669:org.powertac.common.Broker::603::new::AstonTAC";
     try {
       Object result = dor.readObject(aston);
-      assertNotNull("created an instance", result);
-      assertEquals("correct class", "org.powertac.common.Broker", result.getClass().getName());
-      assertEquals("correct id", 603, ((Broker)result).getId());
-      assertEquals("object stored in map", result, dor.getById(603));
+      assertNotNull(result, "created an instance");
+      assertEquals(result.getClass().getName(), "org.powertac.common.Broker", "correct class");
+      assertEquals(603, ((Broker)result).getId(), "correct id");
+      assertEquals(result, dor.getById(603), "object stored in map");
     }
     catch (MissingDomainObject mdo) {
       fail("bad exception " + mdo.toString());
@@ -47,13 +47,13 @@ public class DomainObjectReaderTest
     try {
       Broker broker = (Broker)dor.readObject(aston);
       Object result = dor.readObject(dt);
-      assertEquals("correct class", "org.powertac.common.DistributionTransaction", result.getClass().getName());
+      assertEquals(result.getClass().getName(), "org.powertac.common.DistributionTransaction", "correct class");
       DistributionTransaction dtx = (DistributionTransaction)result;
-      assertEquals("correct id", 3459, dtx.getId());
-      assertEquals("object stored in map", result, dor.getById(3459));
-      assertEquals("broker stored", broker, dtx.getBroker());
-      assertEquals("broker stored in map", broker, dor.getById(603));
-      assertEquals("tx stored in map", dtx, dor.getById(3459));
+      assertEquals(3459, dtx.getId(), "correct id");
+      assertEquals(result, dor.getById(3459), "object stored in map");
+      assertEquals(broker, dtx.getBroker(), "broker stored");
+      assertEquals(broker, dor.getById(603), "broker stored in map");
+      assertEquals(dtx, dor.getById(3459), "tx stored in map");
     }
     catch (MissingDomainObject mdo) {
       fail("bad exception " + mdo.toString());
@@ -69,16 +69,16 @@ public class DomainObjectReaderTest
     try {
       Broker broker = (Broker)dor.readObject(aston);
       //Timeslot timeslot = (Timeslot)dor.readObject(ts);
-      //assertNotNull("timeslot created", timeslot);
+      //assertNotNull(timeslot, "timeslot created");
       Object result = dor.readObject(order);
-      assertNotNull("order created", result);
-      assertEquals("correct class", "org.powertac.common.Order", result.getClass().getName());
+      assertNotNull(result, "order created");
+      assertEquals(result.getClass().getName(), "org.powertac.common.Order", "correct class");
       Order o = (Order)result;
-      assertEquals("correct id", 400000393, o.getId());
-      assertEquals("order in map", o, dor.getById(400000393));
-      assertEquals("correct broker", broker, o.getBroker());
-      assertEquals("correct mwh", 2.109375, o.getMWh(), 1e-6);
-      assertEquals("correct price", -31.835472671068615, o.getLimitPrice(), 1e-6);
+      assertEquals(400000393, o.getId(), "correct id");
+      assertEquals(o, dor.getById(400000393), "order in map");
+      assertEquals(broker, o.getBroker(), "correct broker");
+      assertEquals(2.109375, o.getMWh(), 1e-6, "correct mwh");
+      assertEquals(-31.835472671068615, o.getLimitPrice(), 1e-6, "correct price");
     }
     catch (MissingDomainObject mdo) {
       fail("bad exception " + mdo.toString());
@@ -97,13 +97,13 @@ public class DomainObjectReaderTest
 //      WeatherForecastPrediction wfp1 = (WeatherForecastPrediction)dor.readObject(fp1);
 //      WeatherForecastPrediction wfp2 = (WeatherForecastPrediction)dor.readObject(fp2);
 //      Object result = dor.readObject(forecast);
-//      assertNotNull("read a forecast", result);
-//      assertEquals("correct class", "org.powertac.common.WeatherForecast", result.getClass().getName());
+//      assertNotNull(result, "read a forecast");
+//      assertEquals(result.getClass().getName(), "org.powertac.common.WeatherForecast", "correct class");
 //      WeatherForecast wf = (WeatherForecast)result;
 //      List<WeatherForecastPrediction> predictions = wf.getPredictions();
-//      assertEquals("correct number of predictions", 2, predictions.size());
-//      assertEquals("correct first prediction", wfp1, predictions.get(0));
-//      assertEquals("correct second prediction", wfp2, predictions.get(1));
+//      assertEquals(2, predictions.size(), "correct number of predictions");
+//      assertEquals(wfp1, predictions.get(0), "correct first prediction");
+//      assertEquals(wfp2, predictions.get(1), "correct second prediction");
 //    }
 //    catch (MissingDomainObject mdo) {
 //      fail("bad exception " + mdo.toString());
@@ -116,12 +116,12 @@ public class DomainObjectReaderTest
     String du = "225:org.powertac.du.DefaultBrokerService$LocalBroker::1::new::default broker";
     try {
       Object result = dor.readObject(du);
-      assertNotNull("non-null result", result);
-      assertEquals("corret class", "org.powertac.du.DefaultBroker", result.getClass().getName());
+      assertNotNull(result, "non-null result");
+      assertEquals(result.getClass().getName(), "org.powertac.du.DefaultBroker", "correct class");
       Broker broker = (Broker) result;
-      assertEquals("correct name", "default broker", broker.getUsername());
+      assertEquals(broker.getUsername(), "default broker", "correct name");
       Object retrieved = dor.getById(1);
-      assertEquals("retrieved successfully", result, retrieved);
+      assertEquals(result, retrieved, "retrieved successfully");
     }
     catch (MissingDomainObject mdo) {
       fail("bad exception " + mdo.toString());
@@ -142,25 +142,25 @@ public class DomainObjectReaderTest
       result = dor.readObject(soton);
       Broker broker = (Broker) result;
       result = dor.readObject(hc1);
-      assertNotNull("succeeded hc1", result);
-      assertEquals("correct class", HourlyCharge.class, result.getClass());
+      assertNotNull(result, "succeeded hc1");
+      assertEquals(HourlyCharge.class, result.getClass(), "correct class");
       HourlyCharge charge1 = (HourlyCharge)result;
-      assertEquals("correct Rate hc1", 600000389, charge1.getRateId());
+      assertEquals(600000389, charge1.getRateId(), "correct Rate hc1");
       result = dor.readObject(hc2);
-      assertNotNull("succeeded hc2", result);
-      assertEquals("correct class", HourlyCharge.class, result.getClass());
+      assertNotNull(result, "succeeded hc2");
+      assertEquals(HourlyCharge.class, result.getClass(), "correct class");
       HourlyCharge charge2 = (HourlyCharge)result;
-      assertEquals("correct Rate hc2", 600000389, charge2.getRateId());
+      assertEquals(600000389, charge2.getRateId(), "correct Rate hc2");
 
       result = dor.readObject(r1);
       Rate rate = (Rate)result;
-      assertEquals("correct Id", 600000389, rate.getId());
-      assertEquals("correct spec Id", 600000388, rate.getTariffId());
+      assertEquals(600000389, rate.getId(), "correct Id");
+      assertEquals(600000388, rate.getTariffId(), "correct spec Id");
 
       result = dor.readObject(ts1);
       TariffSpecification spec = (TariffSpecification)result;
-      assertEquals("correct Id", 600000388, spec.getId());
-      assertEquals("correct broker", broker, spec.getBroker());
+      assertEquals(600000388, spec.getId(), "correct Id");
+      assertEquals(broker, spec.getBroker(), "correct broker");
     }
     catch (MissingDomainObject mdo) {
       fail("should succeed: " + mdo.toString());
@@ -180,12 +180,12 @@ public class DomainObjectReaderTest
       TariffSpecification spec = (TariffSpecification)dor.readObject(ts);
       spec.addRate(rate);
       Object result = dor.readObject(bo1);
-      assertNotNull("should read correctly", result);
+      assertNotNull(result, "should read correctly");
       BalancingOrder order = (BalancingOrder)result;
-      assertEquals("correct ratio", 0.5, order.getExerciseRatio(), 1e-6);
-      assertEquals("correct price", -0.04103907241323543, order.getPrice(), 1e-6);
-      assertEquals("correct broker", crocodile, order.getBroker());
-      assertEquals("correct tariff", 200076919, order.getTariffId());
+      assertEquals(0.5, order.getExerciseRatio(), 1e-6, "correct ratio");
+      assertEquals(-0.04103907241323543, order.getPrice(), 1e-6, "correct price");
+      assertEquals(crocodile, order.getBroker(), "correct broker");
+      assertEquals(200076919, order.getTariffId(), "correct tariff");
     }
     catch (MissingDomainObject mdo) {
       fail("should not fail: " + mdo.toString());
@@ -201,13 +201,13 @@ public class DomainObjectReaderTest
     String m3 = "222:org.powertac.common.Competition::0::withExpectedTimeslotCount::1440";
     try {
       Competition comp = (Competition)dor.readObject(nc);
-      assertNotNull("valid Competition", comp);
+      assertNotNull(comp, "valid Competition");
       dor.readObject(m1);
-      assertEquals("correct base time", 1229644800000l, comp.getSimulationBaseTime().getMillis());
+      assertEquals(1229644800000l, comp.getSimulationBaseTime().getMillis(), "correct base time");
       dor.readObject(m2);
-      assertEquals("correct min ts count", 1380, comp.getMinimumTimeslotCount());
+      assertEquals(1380, comp.getMinimumTimeslotCount(), "correct min ts count");
       dor.readObject(m3);
-      assertEquals("correct exp ts count", 1440, comp.getExpectedTimeslotCount());
+      assertEquals(1440, comp.getExpectedTimeslotCount(), "correct exp ts count");
     }
     catch (MissingDomainObject mdo) {
       fail("should not happen: " + mdo.toString());
