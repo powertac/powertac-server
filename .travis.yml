@@ -6,3 +6,12 @@ jdk:
 cache:
   directories:
     - $HOME/.m2
+before_cache:
+  - rm -rf $HOME/.m2/repository/org/powertac
+before_install:
+  - git clone https://github.com/powertac/powertac-core.git
+  - cd powertac-core
+  - mvn clean install -DskipTests
+  - cd ..
+install:
+  - mvn clean -nsu -B
