@@ -6,7 +6,7 @@
     <artifactId>visualizer2</artifactId>
     <packaging>war</packaging>
 
-    <name>Power TAC Visualizer v2</name>
+    <name>Power TAC visualizer v2</name>
     <url>https://github.com/powertac/powertac-server/</url>
 
 

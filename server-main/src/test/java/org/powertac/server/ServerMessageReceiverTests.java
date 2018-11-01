@@ -69,7 +69,7 @@ public class ServerMessageReceiverTests
   
   private String baToXml (BrokerAuthentication ba)
   {
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(BrokerAuthentication.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ba));
