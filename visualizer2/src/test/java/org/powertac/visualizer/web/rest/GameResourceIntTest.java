@@ -266,7 +266,7 @@ public class GameResourceIntTest {
         int databaseSizeBeforeUpdate = gameRepository.findAll().size();
 
         // Update the game
-        Game updatedGame = gameRepository.findOne(game.getId());
+        Game updatedGame = gameRepository.getOne(game.getId());
         updatedGame.setType(UPDATED_TYPE);
         updatedGame.setName(UPDATED_NAME);
         updatedGame.setShared(UPDATED_SHARED);

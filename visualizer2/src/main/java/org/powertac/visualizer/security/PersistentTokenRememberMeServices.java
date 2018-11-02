@@ -46,8 +46,7 @@ import java.util.Arrays;
  * couldn't be cleanly extended.
  */
 @Service
-public class PersistentTokenRememberMeServices extends
-    AbstractRememberMeServices {
+public class PersistentTokenRememberMeServices extends AbstractRememberMeServices {
 
     private final Logger log = LoggerFactory.getLogger(PersistentTokenRememberMeServices.class);
 
@@ -67,6 +66,11 @@ public class PersistentTokenRememberMeServices extends
         super(jHipsterProperties.getSecurity().getRememberMe().getKey(), userDetailsService);
         this.persistentTokenRepository = persistentTokenRepository;
         this.userRepository = userRepository;
+    }
+
+    @Override
+    protected boolean rememberMeRequested (HttpServletRequest request, String parameter) {
+        return super.rememberMeRequested(request, super.getParameter());
     }
 
     @Override
@@ -151,7 +155,7 @@ public class PersistentTokenRememberMeServices extends
         }
         String presentedSeries = cookieTokens[0];
         String presentedToken = cookieTokens[1];
-        PersistentToken token = persistentTokenRepository.findOne(presentedSeries);
+        PersistentToken token = persistentTokenRepository.getOne(presentedSeries);
 
         if (token == null) {
             // No series match, so we can't authenticate using this cookie

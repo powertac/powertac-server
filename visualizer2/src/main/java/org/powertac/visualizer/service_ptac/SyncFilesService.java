@@ -103,7 +103,7 @@ public class SyncFilesService {
                         log.debug("  ... also have to clear refs in Game " + game.getName());
                         clearFileRefsFromGame(game, expected.getId());
                     }
-                    fileService.delete(expected.getId());
+                    fileService.delete(expected);
                 }
                 continue;
             }
@@ -161,7 +161,7 @@ public class SyncFilesService {
                         log.debug("  ... also have to clear refs in Game " + game.getName());
                         clearFileRefsFromGame(game, expected.getId());
                     }
-                    fileService.delete(expected.getId());
+                    fileService.delete(expected);
                     expected = expectedIt.hasNext() ? expectedIt.next() : null;
                     deletions++;
                 } else {
@@ -177,7 +177,7 @@ public class SyncFilesService {
                             log.debug("  ... also have to clear refs in Game " + game.getName());
                             clearFileRefsFromGame(game, expected.getId());
                         }
-                        fileService.delete(expected.getId());
+                        fileService.delete(expected);
                         expected = expectedIt.hasNext() ? expectedIt.next() : null;
                         deletions++;
                     } else {

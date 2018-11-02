@@ -12,9 +12,14 @@ import org.apache.catalina.webresources.StandardRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.*;
-import org.springframework.boot.context.embedded.tomcat.*;
+import org.springframework.boot.web.embedded.tomcat.ConfigurableTomcatWebServerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
+import org.springframework.boot.web.server.ConfigurableWebServerFactory;
+import org.springframework.boot.web.server.MimeMappings;
+import org.springframework.boot.web.server.WebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -31,7 +36,8 @@ import javax.servlet.*;
  * Configuration of web application with Servlet 3.0 APIs.
  */
 @Configuration
-public class WebConfigurer implements ServletContextInitializer, EmbeddedServletContainerCustomizer {
+public class WebConfigurer implements ServletContextInitializer, WebServerFactoryCustomizer<WebServerFactory>
+{
 
     private final Logger log = LoggerFactory.getLogger(WebConfigurer.class);
 
@@ -67,42 +73,27 @@ public class WebConfigurer implements ServletContextInitializer, EmbeddedServlet
      * Customize the Servlet engine: Mime types, the document root, the cache.
      */
     @Override
-    public void customize(ConfigurableEmbeddedServletContainer container) {
-        MimeMappings mappings = new MimeMappings(MimeMappings.DEFAULT);
-        // IE issue, see https://github.com/jhipster/generator-jhipster/pull/711
-        mappings.add("html", "text/html;charset=utf-8");
-        // CloudFoundry issue, see https://github.com/cloudfoundry/gorouter/issues/64
-        mappings.add("json", "text/html;charset=utf-8");
-        container.setMimeMappings(mappings);
-        customizeTomcat(container);
-        // When running in an IDE or with ./mvnw spring-boot:run, set location of the static web assets.
-        setLocationForStaticAssets(container);
-
-        // TODO figure out if we want this for Tomcat and if so how it works
-        /*
-         * Enable HTTP/2 for Undertow - https://twitter.com/ankinson/status/829256167700492288
-         * HTTP/2 requires HTTPS, so HTTP requests will fallback to HTTP/1.1.
-         * See the JHipsterProperties class and your application-*.yml configuration files
-         * for more information.
-         */
-        /*
-        if (jHipsterProperties.getHttp().getVersion().equals(JHipsterProperties.Http.Version.V_2_0)) {
-            if (container instanceof UndertowEmbeddedServletContainerFactory) {
-                ((UndertowEmbeddedServletContainerFactory) container)
-                    .addBuilderCustomizers((builder) -> {
-                        builder.setServerOption(UndertowOptions.ENABLE_HTTP2, true);
-                    });
-            }
+    public void customize(WebServerFactory server) {
+        if (server instanceof ConfigurableWebServerFactory) {
+            MimeMappings mappings = new MimeMappings(MimeMappings.DEFAULT);
+            // IE issue, see https://github.com/jhipster/generator-jhipster/pull/711
+            mappings.add("html", "text/html;charset=utf-8");
+            // CloudFoundry issue, see https://github.com/cloudfoundry/gorouter/issues/64
+            mappings.add("json", "text/html;charset=utf-8");
+            ConfigurableServletWebServerFactory container = (ConfigurableServletWebServerFactory) server;
+            container.setMimeMappings(mappings);
+            customizeTomcat(container);
+            // When running in an IDE or with ./mvnw spring-boot:run, set location of the static web assets.
+            setLocationForStaticAssets(container);
         }
-        */
     }
 
     /**
      * Customize Tomcat configuration.
      */
-    private void customizeTomcat(ConfigurableEmbeddedServletContainer container) {
-        if (container instanceof TomcatEmbeddedServletContainerFactory) {
-            TomcatEmbeddedServletContainerFactory tomcatFactory = (TomcatEmbeddedServletContainerFactory) container;
+    private void customizeTomcat(ConfigurableServletWebServerFactory container) {
+        if (container instanceof ConfigurableTomcatWebServerFactory) {
+            ConfigurableTomcatWebServerFactory tomcatFactory = (ConfigurableTomcatWebServerFactory) container;
             tomcatFactory.addContextCustomizers((TomcatContextCustomizer) context -> {
                 // See https://github.com/jhipster/generator-jhipster/issues/3995
                 StandardRoot resources = new StandardRoot();
@@ -113,7 +104,7 @@ public class WebConfigurer implements ServletContextInitializer, EmbeddedServlet
         }
     }
 
-    private void setLocationForStaticAssets(ConfigurableEmbeddedServletContainer container) {
+    private void setLocationForStaticAssets(ConfigurableServletWebServerFactory container) {
         File root;
         String prefixPath = resolvePathPrefix();
         if (env.acceptsProfiles(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {

@@ -36,7 +36,7 @@ public class ChartResource {
     private final Logger log = LoggerFactory.getLogger(ChartResource.class);
 
     private static final String ENTITY_NAME = "chart";
-        
+
     private final ChartService chartService;
     private final UserRepository userRepository;
 
@@ -120,7 +120,7 @@ public class ChartResource {
     @Timed
     public ResponseEntity<Chart> getChart(@PathVariable Long id) {
         log.debug("REST request to get Chart : {}", id);
-        Chart chart = chartService.findOne(id);
+        Chart chart = chartService.getOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(chart));
     }
 
@@ -134,7 +134,10 @@ public class ChartResource {
     @Timed
     public ResponseEntity<Void> deleteChart(@PathVariable Long id) {
         log.debug("REST request to delete Chart : {}", id);
-        chartService.delete(id);
+        Chart chart = chartService.getOne(id);
+        if (chart != null) {
+            chartService.delete(chart);
+        }
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 

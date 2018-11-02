@@ -55,7 +55,7 @@ public class FileResource {
     private final Logger log = LoggerFactory.getLogger(FileResource.class);
 
     private static final String ENTITY_NAME = "file";
-        
+
     private final FileService fileService;
     private final GameService gameService;
     private final UserRepository userRepository;
@@ -144,7 +144,7 @@ public class FileResource {
     @Timed
     public ResponseEntity<File> getFile(@PathVariable Long id) {
         log.debug("REST request to get File : {}", id);
-        File file = fileService.findOne(id);
+        File file = fileService.getOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(file));
     }
 
@@ -158,9 +158,11 @@ public class FileResource {
     @Timed
     public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
         log.debug("REST request to delete File : {}", id);
-        File file = fileService.findOne(id);
-        fileService.delete(id);
-        file.getType().getFile(file.getOwner(), file.getName()).delete();
+        File file = fileService.getOne(id);
+        if (file != null) {
+            fileService.delete(file);
+            file.getType().getFile(file.getOwner(), file.getName()).delete();
+        }
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
@@ -198,7 +200,7 @@ public class FileResource {
         if (fileType == null) {
             throw new IllegalArgumentException("Unknown type " + type);
         }
-        File file = fileService.findOne(id);
+        File file = fileService.getOne(id);
         java.io.File raw = fileType.getFile(file.getOwner(), file.getName());
         try (
             InputStream in = new BufferedInputStream(new FileInputStream(raw));
@@ -213,7 +215,7 @@ public class FileResource {
     /**
      * Upload a file.
      * TODO document.
-     * 
+     *
      * @param part
      * @param type
      * @param shared
@@ -254,7 +256,7 @@ public class FileResource {
                   }
                   gameService.save(game);
                 }
-                fileService.delete(file.getId());
+                fileService.delete(file);
                 break;
               }
             }
