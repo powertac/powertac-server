@@ -102,6 +102,10 @@
 
 
     <!-- Utilities -->
+    <dependency>
+      <groupId>javax.jms</groupId>
+      <artifactId>javax.jms-api</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>joda-time</groupId>
