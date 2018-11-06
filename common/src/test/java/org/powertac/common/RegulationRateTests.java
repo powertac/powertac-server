@@ -66,7 +66,7 @@ public class RegulationRateTests
       .withDownRegulationPayment(-0.05)
       .withResponse(RegulationRate.ResponseTime.SECONDS);
 
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(RegulationRate.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(r));

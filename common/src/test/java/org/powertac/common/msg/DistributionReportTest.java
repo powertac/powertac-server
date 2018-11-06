@@ -21,6 +21,7 @@ import java.io.StringWriter;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powertac.common.XMLMessageConverter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
@@ -62,7 +63,7 @@ public class DistributionReportTest
   public void xmlSerializationTest ()
   {
     DistributionReport dr1 = new DistributionReport(2, 3.3, 2.2);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(DistributionReport.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(dr1));

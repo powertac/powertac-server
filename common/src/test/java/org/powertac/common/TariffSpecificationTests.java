@@ -196,7 +196,7 @@ public class TariffSpecificationTests
                                     addRate(r).
                                     addRate(rr);
 
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.autodetectAnnotations(true);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(spec));

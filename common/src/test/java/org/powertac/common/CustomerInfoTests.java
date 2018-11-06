@@ -80,7 +80,7 @@ public class CustomerInfoTests
   {
     CustomerInfo ci = new CustomerInfo("Sam", 44);
     ci.withPowerType(PowerType.ELECTRIC_VEHICLE);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(CustomerInfo.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ci));

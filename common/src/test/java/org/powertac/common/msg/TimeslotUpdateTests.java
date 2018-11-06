@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -87,7 +88,7 @@ public class TimeslotUpdateTests
     TimeslotUpdate tsu = new TimeslotUpdate(timeService.getCurrentTime(),
                                             enabled.get(0).getSerialNumber(),
                                             enabled.get(enabled.size() - 1).getSerialNumber());
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(TimeslotUpdate.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(tsu));

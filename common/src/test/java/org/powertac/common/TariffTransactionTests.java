@@ -77,7 +77,7 @@ public class TariffTransactionTests
     TariffTransaction ttx =
         new TariffTransaction(b1, 2, TariffTransaction.Type.CONSUME,
                               spec, customer, 42, -420.0, 42.0, true);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(TariffTransaction.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ttx));

@@ -138,7 +138,7 @@ public class OrderbookTests
       .addBid(new OrderbookOrder(5.6, -19.4))
       .addBid(new OrderbookOrder(6.2, null))
       .addAsk(new OrderbookOrder(-3.1, 23.4));
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Orderbook.class);
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();
@@ -157,7 +157,7 @@ public class OrderbookTests
   public void xmlSerializationTestEmpty ()
   {
     Orderbook ob1 = new Orderbook(timeslot, 22.1, now);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Orderbook.class);
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();

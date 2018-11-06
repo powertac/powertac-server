@@ -237,7 +237,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1")
         .withDescription("serialization test");
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(Competition.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(c1));

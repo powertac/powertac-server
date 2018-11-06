@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.powertac.common.Broker;
 
 import com.thoughtworks.xstream.XStream;
+import org.powertac.common.XMLMessageConverter;
 
 /**
  * Tests for the TimeslotUpdate message type.
@@ -63,7 +64,7 @@ public class BrokerAuthenticationTests
   public void xmlSerializationTest ()
   {
     BrokerAuthentication ba = new BrokerAuthentication("Sally", "silly-password");
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(BrokerAuthentication.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ba));

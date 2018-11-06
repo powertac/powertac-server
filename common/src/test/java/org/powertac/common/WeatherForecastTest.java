@@ -54,8 +54,8 @@ public class WeatherForecastTest
 	public void xmlSerializationTest() {
 		
 		WeatherForecast w1 = new WeatherForecast(42, tlist);
-		
-		XStream xstream = new XStream();
+
+		XStream xstream = XMLMessageConverter.getXStream();
 		StringWriter serialized = new StringWriter();
 		serialized.write(xstream.toXML(w1));
 		// System.out.println(serialized.toString());

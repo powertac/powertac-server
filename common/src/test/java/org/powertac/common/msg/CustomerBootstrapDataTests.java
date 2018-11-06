@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.CustomerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class CustomerBootstrapDataTests
     CustomerBootstrapData cbd = new CustomerBootstrapData(customer, 
                                                           PowerType.CONSUMPTION,
                                                           data);
-    XStream xstream = new XStream();
+    XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(CustomerBootstrapData.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(cbd));
