@@ -1,29 +1,26 @@
 package org.powertac.common.msg;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.*;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import com.thoughtworks.xstream.XStream;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -33,17 +30,17 @@ public class ControlEventTest
 {
   @Autowired
   private TariffRepo tariffRepo;
-  
+
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
+
   @Autowired
   private TimeService timeService;
-  
+
   private Broker broker;
   private TariffSpecification spec;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     tariffRepo.recycle();
@@ -60,21 +57,19 @@ public class ControlEventTest
   @Test
   public void testBalancingControlEvent ()
   {
-    BalancingControlEvent bce =
-        new BalancingControlEvent(spec, 21.0, 2.1, 0);
-    assertEquals("correct tariff", spec.getId(), bce.getTariffId());
-    assertEquals("correct amount", 21.0, bce.getKwh(), 1e-6);
-    assertEquals("correct payment", 2.1, bce.getPayment(), 1e-6);
+    BalancingControlEvent bce = new BalancingControlEvent(spec, 21.0, 2.1, 0);
+    assertEquals(spec.getId(), bce.getTariffId(), "correct tariff");
+    assertEquals(21.0, bce.getKwh(), 1e-6, "correct amount");
+    assertEquals(2.1, bce.getPayment(), 1e-6, "correct payment");
   }
   
   @Test
   public void testEconomicControlEvent()
   {
-    EconomicControlEvent ece =
-        new EconomicControlEvent(spec, 0.4, 0);
-    assertEquals("correct tariff", spec.getId(), ece.getTariffId());
-    assertEquals("correct ratio", 0.4, ece.getCurtailmentRatio(), 1e-6);
-    assertEquals("correct timeslot", 0, ece.getTimeslotIndex());
+    EconomicControlEvent ece = new EconomicControlEvent(spec, 0.4, 0);
+    assertEquals(spec.getId(), ece.getTariffId(), "correct tariff");
+    assertEquals(0.4, ece.getCurtailmentRatio(), 1e-6, "correct ratio");
+    assertEquals(0, ece.getTimeslotIndex(), "correct timeslot");
   }
 
   @Test
@@ -87,12 +82,11 @@ public class ControlEventTest
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(bce));
     //System.out.println(serialized.toString());
-    BalancingControlEvent xbce =
-        (BalancingControlEvent)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xbce);
-    assertEquals("correct spec", spec.getId(), xbce.getTariffId());
-    assertEquals("correct kwh", 23.0, xbce.getKwh(), 1e-6);
-    assertEquals("correct payment", 2.3, xbce.getPayment(), 1e-6);
+    BalancingControlEvent xbce = (BalancingControlEvent)xstream.fromXML(serialized.toString());
+    assertNotNull(xbce, "deserialized something");
+    assertEquals(spec.getId(), xbce.getTariffId(), "correct spec");
+    assertEquals(23.0, xbce.getKwh(), 1e-6, "correct kwh");
+    assertEquals(2.3, xbce.getPayment(), 1e-6, "correct payment");
   }
 
   @Test
@@ -105,12 +99,11 @@ public class ControlEventTest
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(bce));
     //System.out.println(serialized.toString());
-    EconomicControlEvent xbce =
-        (EconomicControlEvent)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xbce);
-    assertEquals("correct spec", spec.getId(), xbce.getTariffId());
-    assertEquals("correct ratio", 0.3, xbce.getCurtailmentRatio(), 1e-6);
-    assertEquals("correct timeslot", 0, xbce.getTimeslotIndex());
+    EconomicControlEvent xbce = (EconomicControlEvent)xstream.fromXML(serialized.toString());
+    assertNotNull(xbce, "deserialized something");
+    assertEquals(spec.getId(), xbce.getTariffId(), "correct spec");
+    assertEquals(0.3, xbce.getCurtailmentRatio(), 1e-6, "correct ratio");
+    assertEquals(0, xbce.getTimeslotIndex(), "correct timeslot");
   }
 
 }

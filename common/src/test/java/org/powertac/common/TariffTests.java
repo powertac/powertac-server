@@ -15,31 +15,25 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -57,7 +51,7 @@ public class TariffTests
   private Instant exp;
   private Broker broker;
 
-  @AfterClass
+  @AfterAll
   public static void saveLogs () throws Exception
   {
     File state = new File("log/test.state");
@@ -66,7 +60,7 @@ public class TariffTests
     trace.renameTo(new File("log/TariffTests.trace"));
   }
 
-  @Before
+  @BeforeEach
   public void setUp () 
   {
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -90,14 +84,14 @@ public class TariffTests
     tariffSpec.addRate(r1);
     Tariff te = new Tariff(tariffSpec);
     te.init();
-    assertNotNull("non-null result", te);
-    assertEquals("correct TariffSpec", tariffSpec, te.getTariffSpecification());
-    assertEquals("correct initial realized price", 0.0, te.getRealizedPrice(), 1e-6);
-    assertEquals("correct expiration in spec", exp, te.getTariffSpecification().getExpiration());
-    assertEquals("correct expiration", exp, te.getExpiration());
-    assertEquals("correct publication time", start, te.getOfferDate());
-    assertFalse("not expired", te.isExpired());
-    assertTrue("covered", te.isCovered());
+    assertNotNull(te, "non-null result");
+    assertEquals(tariffSpec, te.getTariffSpecification(), "correct TariffSpec");
+    assertEquals(0.0, te.getRealizedPrice(), 1e-6, "correct initial realized price");
+    assertEquals(exp, te.getTariffSpecification().getExpiration(), "correct expiration in spec");
+    assertEquals(exp, te.getExpiration(), "correct expiration");
+    assertEquals(start, te.getOfferDate(), "correct publication time");
+    assertFalse(te.isExpired(), "not expired");
+    assertTrue(te.isCovered(), "covered");
   }
   
   // check the realized price calculation
@@ -110,7 +104,7 @@ public class TariffTests
     te.init();
     te.totalUsage = 501.2;
     te.totalCost = -99.8;
-    assertEquals("Correct realized price", -99.8/501.2, te.getRealizedPrice(), 1.0e-6);
+    assertEquals(-99.8/501.2, te.getRealizedPrice(), 1.0e-6, "Correct realized price");
   }
 
   // single fixed rate, check charges in past and future  
@@ -122,15 +116,15 @@ public class TariffTests
     Instant now = timeService.getCurrentTime();
     Tariff te = new Tariff(tariffSpec);
     te.init();
-    assertEquals("correct charge, default case", -0.121, te.getUsageCharge(1.0, 0.0, false), 1e-6);
-    assertEquals("correct charge, today", -1.21, te.getUsageCharge(10.0, 0.0, false), 1e-6);
-    assertEquals("correct charge yesterday", -2.42, te.getUsageCharge(now.minus(TimeService.DAY), 20.0, 0.0), 1e-6);
-    assertEquals("correct charge tomorrow", -12.1, te.getUsageCharge(now.plus(TimeService.DAY), 100.0, 0.0), 1e-6);
-    assertEquals("correct charge an hour ago", -3.63, te.getUsageCharge(now.minus(TimeService.HOUR), 30.0, 0.0), 1e-6);
-    assertEquals("correct charge an hour from now", -1.21, te.getUsageCharge(now.plus(TimeService.HOUR), 10.0, 0.0), 1e-6);
+    assertEquals(-0.121, te.getUsageCharge(1.0, 0.0, false), 1e-6, "correct charge, default case");
+    assertEquals(-1.21, te.getUsageCharge(10.0, 0.0, false), 1e-6, "correct charge, today");
+    assertEquals(-2.42, te.getUsageCharge(now.minus(TimeService.DAY), 20.0, 0.0), 1e-6, "correct charge yesterday");
+    assertEquals(-12.1, te.getUsageCharge(now.plus(TimeService.DAY), 100.0, 0.0), 1e-6, "correct charge tomorrow");
+    assertEquals(-3.63, te.getUsageCharge(now.minus(TimeService.HOUR), 30.0, 0.0), 1e-6, "correct charge an hour ago");
+    assertEquals(-1.21, te.getUsageCharge(now.plus(TimeService.HOUR), 10.0, 0.0), 1e-6, "correct charge an hour from now");
     //assertEquals("daily rate map", 1, te.rateMap.size())
     //assertEquals("rate map has 24 entries", 24, te.rateMap[0].size())
-    assertTrue("covered", te.isCovered());
+    assertTrue(te.isCovered(), "covered");
   }
   
   @Test
@@ -141,18 +135,12 @@ public class TariffTests
     Instant now = timeService.getCurrentTime();
     Tariff te = new Tariff(productionSpec);
     te.init();
-    assertEquals("correct charge, default case",
-                 0.121, te.getUsageCharge(-1.0, 0.0, false), 1e-6);
-    assertEquals("correct charge, today",
-                 1.21, te.getUsageCharge(-10.0, 0.0, false), 1e-6);
-    assertEquals("correct charge yesterday",
-                 2.42, te.getUsageCharge(now.minus(TimeService.DAY), -20.0, 0.0), 1e-6);
-    assertEquals("correct charge tomorrow",
-                 12.1, te.getUsageCharge(now.plus(TimeService.DAY), -100.0, 0.0), 1e-6);
-    assertEquals("correct charge an hour ago",
-                 3.63, te.getUsageCharge(now.minus(TimeService.HOUR), -30.0, 0.0), 1e-6);
-    assertEquals("correct charge an hour from now",
-                 1.21, te.getUsageCharge(now.plus(TimeService.HOUR), -10.0, 0.0), 1e-6);
+    assertEquals(0.121, te.getUsageCharge(-1.0, 0.0, false), 1e-6, "correct charge, default case");
+    assertEquals(1.21, te.getUsageCharge(-10.0, 0.0, false), 1e-6, "correct charge, today");
+    assertEquals(2.42, te.getUsageCharge(now.minus(TimeService.DAY), -20.0, 0.0), 1e-6, "correct charge yesterday");
+    assertEquals(12.1, te.getUsageCharge(now.plus(TimeService.DAY), -100.0, 0.0), 1e-6, "correct charge tomorrow");
+    assertEquals(3.63, te.getUsageCharge(now.minus(TimeService.HOUR), -30.0, 0.0), 1e-6, "correct charge an hour ago");
+    assertEquals(1.21, te.getUsageCharge(now.plus(TimeService.HOUR), -10.0, 0.0), 1e-6, "correct charge an hour from now");
   }
   
   // single fixed rate, check realized price after multiple rounds
@@ -165,11 +153,11 @@ public class TariffTests
     Tariff te = new Tariff(tariffSpec);
     te.init();
     te.getUsageCharge(20.0, 200.0, true);
-    assertEquals("realized price 1", -0.131, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.131, te.getRealizedPrice(), 1e-6, "realized price 1");
     te.getUsageCharge(10.0, 1000.0, true);
-    assertEquals("realized price 2", -0.131, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.131, te.getRealizedPrice(), 1e-6, "realized price 2");
     te.getUsageCharge(3.0, 20.0, true);
-    assertEquals("realized price 3", -0.131, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.131, te.getRealizedPrice(), 1e-6, "realized price 3");
   }
 
   // time-of-use rates: -0.15/kwh 7:00-18:00, -0.08/kwh 18:00-7:00
@@ -181,19 +169,19 @@ public class TariffTests
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     Tariff te = new Tariff(tariffSpec);
-    assertTrue("valid Tariff", te.init());
-    assertEquals("noon price", -3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
-    assertEquals("realized price", -0.15, te.getRealizedPrice(), 1e-6);
+    assertTrue(te.init(), "valid Tariff");
+    assertEquals(-3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6, "noon price");
+    assertEquals(-0.15, te.getRealizedPrice(), 1e-6, "realized price");
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("18:00 price", -0.8, te.getUsageCharge(10.0, 220.0, true), 1e-6);
-    assertEquals("realized price 2", -3.8/30.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.8, te.getUsageCharge(10.0, 220.0, true), 1e-6, "18:00 price");
+    assertEquals(-3.8/30.0, te.getRealizedPrice(), 1e-6, "realized price 2");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price", -0.4, te.getUsageCharge(5.0, 230.0, true), 1e-6);
-    assertEquals("realized price 3", -4.2/35.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.4, te.getUsageCharge(5.0, 230.0, true), 1e-6, "midnight price");
+    assertEquals(-4.2/35.0, te.getRealizedPrice(), 1e-6, "realized price 3");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("7:00 price", -0.6, te.getUsageCharge(4.0, 235.0, true), 1e-6);
-    assertEquals("realized price 4", -4.8/39.0, te.getRealizedPrice(), 1e-6);
-    assertTrue("covered", te.isCovered());
+    assertEquals(-0.6, te.getUsageCharge(4.0, 235.0, true), 1e-6, "7:00 price");
+    assertEquals(-4.8/39.0, te.getRealizedPrice(), 1e-6, "realized price 4");
+    assertTrue(te.isCovered(), "covered");
   }
 
   // time-of-use rates: -0.15/kwh 7:00-18:00, -0.08/kwh 18:00-7:00
@@ -207,19 +195,19 @@ public class TariffTests
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
     Tariff te = new Tariff(tariffSpec);
-    assertTrue("valid", te.init());
-    assertEquals("noon price", -10.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
-    assertEquals("realized price", -0.5, te.getRealizedPrice(), 1e-6);
+    assertTrue(te.init(), "valid");
+    assertEquals(-10.0, te.getUsageCharge(20.0, 200.0, true), 1e-6, "noon price");
+    assertEquals(-0.5, te.getRealizedPrice(), 1e-6, "realized price");
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("18:00 price", -5.0, te.getUsageCharge(10.0, 220.0, true), 1e-6);
-    assertEquals("realized price 2", -0.5, te.getRealizedPrice(), 1e-6);
+    assertEquals(-5.0, te.getUsageCharge(10.0, 220.0, true), 1e-6, "18:00 price");
+    assertEquals(-0.5, te.getRealizedPrice(), 1e-6, "realized price 2");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price", -1.0, te.getUsageCharge(5.0, 230.0, true), 1e-6);
-    assertEquals("realized price 3", -16.0/35.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-1.0, te.getUsageCharge(5.0, 230.0, true), 1e-6, "midnight price");
+    assertEquals(-16.0/35.0, te.getRealizedPrice(), 1e-6, "realized price 3");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("7:00 price", -2.0, te.getUsageCharge(4.0, 235.0, true), 1e-6);
-    assertEquals("realized price 4", -18.0/39.0, te.getRealizedPrice(), 1e-6);
-    assertTrue("covered", te.isCovered());
+    assertEquals(-2.0, te.getUsageCharge(4.0, 235.0, true), 1e-6, "7:00 price");
+    assertEquals(-18.0/39.0, te.getRealizedPrice(), 1e-6, "realized price 4");
+    assertTrue(te.isCovered(), "covered");
   }
 
   // time-of-use rates: 0.15/kwh 7:00-18:00, 0.08/kwh 19:00-7:00
@@ -232,7 +220,7 @@ public class TariffTests
     tariffSpec.addRate(r2);
     Tariff te = new Tariff(tariffSpec);
     te.init();
-    assertFalse("not covered", te.isCovered());
+    assertFalse(te.isCovered(), "not covered");
   }
 
   // time-of-use weekly: 
@@ -249,44 +237,44 @@ public class TariffTests
     tariffSpec.addRate(r3);
     Tariff te = new Tariff(tariffSpec);
     te.init();
-    assertEquals("noon price Sat", -1.2, te.getUsageCharge(20.0, 200.0, true), 1e-6);
-    assertEquals("realized price", -0.06, te.getRealizedPrice(), 1e-6);
-    assertTrue("weekly map", te.isWeekly());
+    assertEquals(-1.2, te.getUsageCharge(20.0, 200.0, true), 1e-6, "noon price Sat");
+    assertEquals(-0.06, te.getRealizedPrice(), 1e-6, "realized price");
+    assertTrue(te.isWeekly(), "weekly map");
     //assertEquals("rate map row has 168 entries", 168, te.rateMap[0].size())
-    assertTrue("covered", te.isCovered());
+    assertTrue(te.isCovered(), "covered");
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("18:00 price Sat", -0.6, te.getUsageCharge(10.0, 220.0, true), 1e-6);
-    assertEquals("realized price 2", -1.8/30.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.6, te.getUsageCharge(10.0, 220.0, true), 1e-6, "18:00 price Sat");
+    assertEquals(-1.8/30.0, te.getRealizedPrice(), 1e-6, "realized price 2");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price Sun", -0.3, te.getUsageCharge(5.0, 230.0, true), 1e-6);
-    assertEquals("realized price 3", -2.1/35.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.3, te.getUsageCharge(5.0, 230.0, true), 1e-6, "midnight price Sun");
+    assertEquals(-2.1/35.0, te.getRealizedPrice(), 1e-6, "realized price 3");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("7:00 price Sun", -0.24, te.getUsageCharge(4.0, 235.0, true), 1e-6);
-    assertEquals("realized price 4", -2.34/39.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.24, te.getUsageCharge(4.0, 235.0, true), 1e-6, "7:00 price Sun");
+    assertEquals(-2.34/39.0, te.getRealizedPrice(), 1e-6, "realized price 4");
     timeService.setCurrentTime(new DateTime(2011, 1, 3, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight Mon", -0.32, te.getUsageCharge(4.0, 235.0, true), 1e-6);
-    assertEquals("realized price 5", -2.66/43.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.32, te.getUsageCharge(4.0, 235.0, true), 1e-6, "midnight Mon");
+    assertEquals(-2.66/43.0, te.getRealizedPrice(), 1e-6, "realized price 5");
     timeService.setCurrentTime(new DateTime(2011, 1, 3, 6, 59, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("6:59 Mon", -0.48, te.getUsageCharge(6.0, 235.0, true), 1e-6);
-    assertEquals("realized price 6", -3.14/49.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.48, te.getUsageCharge(6.0, 235.0, true), 1e-6, "6:59 Mon");
+    assertEquals(-3.14/49.0, te.getRealizedPrice(), 1e-6, "realized price 6");
     timeService.setCurrentTime(new DateTime(2011, 1, 3, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("7:00 Mon", -1.2, te.getUsageCharge(8.0, 235.0, true), 1e-6);
-    assertEquals("realized price 7", -4.34/57.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-1.2, te.getUsageCharge(8.0, 235.0, true), 1e-6, "7:00 Mon");
+    assertEquals(-4.34/57.0, te.getRealizedPrice(), 1e-6, "realized price 7");
     timeService.setCurrentTime(new DateTime(2011, 1, 4, 12, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("noon Tue", -1.5, te.getUsageCharge(10.0, 235.0, true), 1e-6);
-    assertEquals("realized price 8", -5.84/67.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-1.5, te.getUsageCharge(10.0, 235.0, true), 1e-6, "noon Tue");
+    assertEquals(-5.84/67.0, te.getRealizedPrice(), 1e-6, "realized price 8");
     timeService.setCurrentTime(new DateTime(2011, 1, 5, 17, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("17:00 Wed", -1.05, te.getUsageCharge(7.0, 235.0, true), 1e-6);
-    assertEquals("realized price 9", -6.89/74.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-1.05, te.getUsageCharge(7.0, 235.0, true), 1e-6, "17:00 Wed");
+    assertEquals(-6.89/74.0, te.getRealizedPrice(), 1e-6, "realized price 9");
     timeService.setCurrentTime(new DateTime(2011, 1, 6, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("18:00 Thu", -0.72, te.getUsageCharge(9.0, 235.0, true), 1e-6);
-    assertEquals("realized price 10", -7.61/83.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.72, te.getUsageCharge(9.0, 235.0, true), 1e-6, "18:00 Thu");
+    assertEquals(-7.61/83.0, te.getRealizedPrice(), 1e-6, "realized price 10");
     timeService.setCurrentTime(new DateTime(2011, 1, 7, 23, 59, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("23:59 Fri", -0.96, te.getUsageCharge(12.0, 235.0, true), 1e-6);
-    assertEquals("realized price 11", -8.57/95.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.96, te.getUsageCharge(12.0, 235.0, true), 1e-6, "23:59 Fri");
+    assertEquals(-8.57/95.0, te.getRealizedPrice(), 1e-6, "realized price 11");
     timeService.setCurrentTime(new DateTime(2011, 1, 8, 12, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight Sat", -0.18, te.getUsageCharge(3.0, 235.0, true), 1e-6);
-    assertEquals("realized price 12", -8.75/98.0, te.getRealizedPrice(), 1e-6);
+    assertEquals(-0.18, te.getUsageCharge(3.0, 235.0, true), 1e-6, "midnight Sat");
+    assertEquals(-8.75/98.0, te.getRealizedPrice(), 1e-6, "realized price 12");
   }
 
   // time-of-use weekly wrap-around
@@ -302,23 +290,23 @@ public class TariffTests
     Tariff te = new Tariff(tariffSpec);
     te.init();
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 23, 50, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("23:50 Sat", -0.8, te.getUsageCharge(10.0, 220.0, true), 1e-6);
+    assertEquals(-0.8, te.getUsageCharge(10.0, 220.0, true), 1e-6, "23:50 Sat");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight Sun", -0.3, te.getUsageCharge(5.0, 230.0, true), 1e-6);
+    assertEquals(-0.3, te.getUsageCharge(5.0, 230.0, true), 1e-6, "midnight Sun");
     timeService.setCurrentTime(new DateTime(2011, 1, 3, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("7:00 price Mon", -0.24, te.getUsageCharge(4.0, 235.0, true), 1e-6);
+    assertEquals(-0.24, te.getUsageCharge(4.0, 235.0, true), 1e-6, "7:00 price Mon");
     timeService.setCurrentTime(new DateTime(2011, 1, 3, 20, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("20:00 Mon", -0.48, te.getUsageCharge(8.0, 235.0, true), 1e-6);
+    assertEquals(-0.48, te.getUsageCharge(8.0, 235.0, true), 1e-6, "20:00 Mon");
     timeService.setCurrentTime(new DateTime(2011, 1, 4, 1, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("1:00 Tue", -0.12, te.getUsageCharge(2.0, 235.0, true), 1e-6);
+    assertEquals(-0.12, te.getUsageCharge(2.0, 235.0, true), 1e-6, "1:00 Tue");
     timeService.setCurrentTime(new DateTime(2011, 1, 4, 12, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("noon Tue", -0.3, te.getUsageCharge(5.0, 235.0, true), 1e-6);
+    assertEquals(-0.3, te.getUsageCharge(5.0, 235.0, true), 1e-6, "noon Tue");
     timeService.setCurrentTime(new DateTime(2011, 1, 4, 23, 59, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("23:56 Tue", -3.0, te.getUsageCharge(50.0, 235.0, true), 1e-6);
+    assertEquals(-3.0, te.getUsageCharge(50.0, 235.0, true), 1e-6, "23:56 Tue");
     timeService.setCurrentTime(new DateTime(2011, 1, 5, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight Wed", -0.64, te.getUsageCharge(8.0, 235.0, true), 1e-6);
+    assertEquals(-0.64, te.getUsageCharge(8.0, 235.0, true), 1e-6, "midnight Wed");
     timeService.setCurrentTime(new DateTime(2011, 1, 5, 12, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("noon Wed", -2.25, te.getUsageCharge(15.0, 235.0, true), 1e-6);
+    assertEquals(-2.25, te.getUsageCharge(15.0, 235.0, true), 1e-6, "noon Wed");
   }
 
   // tiers
@@ -333,13 +321,13 @@ public class TariffTests
     tariffSpec.addRate(r3);
     Tariff te = new Tariff(tariffSpec);
     te.init();
-    assertEquals("noon price, below", -1.5, te.getUsageCharge(10.0, 5.0, true), 1e-6);
-    assertEquals("noon price, above", -2.0, te.getUsageCharge(10.0, 25.0, true), 1e-6);
-    assertEquals("noon price, split", -1.75, te.getUsageCharge(10.0, 15.0, true), 1e-6);
+    assertEquals(-1.5, te.getUsageCharge(10.0, 5.0, true), 1e-6, "noon price, below");
+    assertEquals(-2.0, te.getUsageCharge(10.0, 25.0, true), 1e-6, "noon price, above");
+    assertEquals(-1.75, te.getUsageCharge(10.0, 15.0, true), 1e-6, "noon price, split");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price, below", -0.4, te.getUsageCharge(5.0, 12.0, true), 1e-6);
-    assertEquals("midnight price, above", -1.0, te.getUsageCharge(5.0, 22.0, true), 1e-6);
-    assertEquals("midnight price, split", -0.76, te.getUsageCharge(5.0, 18.0, true), 1e-6);
+    assertEquals(-0.4, te.getUsageCharge(5.0, 12.0, true), 1e-6, "midnight price, below");
+    assertEquals(-1.0, te.getUsageCharge(5.0, 22.0, true), 1e-6, "midnight price, above");
+    assertEquals(-0.76, te.getUsageCharge(5.0, 18.0, true), 1e-6, "midnight price, split");
   }
 
   // multiple TOU tiers
@@ -358,26 +346,17 @@ public class TariffTests
     tariffSpec.addRate(r3);
     Tariff te = new Tariff(tariffSpec);
     te.init();
-    assertEquals("noon price, below",
-                 -1.5, te.getUsageCharge(10.0, 5.0, true), 1e-6);
-    assertEquals("noon price, above",
-                 -2.1, te.getUsageCharge(10.0, 25.0, true), 1e-6);
-    assertEquals("noon price, split",
-                 -1.8, te.getUsageCharge(10.0, 15.0, true), 1e-6);
+    assertEquals(-1.5, te.getUsageCharge(10.0, 5.0, true), 1e-6, "noon price, below");
+    assertEquals(-2.1, te.getUsageCharge(10.0, 25.0, true), 1e-6, "noon price, above");
+    assertEquals(-1.8, te.getUsageCharge(10.0, 15.0, true), 1e-6, "noon price, split");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price, below",
-                 -0.4, te.getUsageCharge(5.0, 12.0, true), 1e-6);
-    assertEquals("midnight price, above",
-                 -1.05, te.getUsageCharge(5.0, 22.0, true), 1e-6);
-    assertEquals("midnight price, split",
-                 -0.79, te.getUsageCharge(5.0, 18.0, true), 1e-6);
+    assertEquals(-0.4, te.getUsageCharge(5.0, 12.0, true), 1e-6, "midnight price, below");
+    assertEquals(-1.05, te.getUsageCharge(5.0, 22.0, true), 1e-6, "midnight price, above");
+    assertEquals(-0.79, te.getUsageCharge(5.0, 18.0, true), 1e-6, "midnight price, split");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("evening price, below",
-                 -0.8, te.getUsageCharge(10.0, 5.0, true), 1e-6);
-    assertEquals("evening price, above",
-                 -2.5, te.getUsageCharge(10.0, 25.0, true), 1e-6);
-    assertEquals("evening price, split",
-                 -1.65, te.getUsageCharge(10.0, 15.0, true), 1e-6);
+    assertEquals(-0.8, te.getUsageCharge(10.0, 5.0, true), 1e-6, "evening price, below");
+    assertEquals(-2.5, te.getUsageCharge(10.0, 25.0, true), 1e-6, "evening price, above");
+    assertEquals(-1.65, te.getUsageCharge(10.0, 15.0, true), 1e-6, "evening price, split");
   }
 
   // multiple TOU tiers - production
@@ -396,26 +375,17 @@ public class TariffTests
     productionSpec.addRate(r3);
     Tariff te = new Tariff(productionSpec);
     te.init();
-    assertEquals("noon price, below",
-                 1.5, te.getUsageCharge(-10.0, -5.0, true), 1e-6);
-    assertEquals("noon price, above",
-                 2.1, te.getUsageCharge(-10.0, -25.0, true), 1e-6);
-    assertEquals("noon price, split",
-                 1.8, te.getUsageCharge(-10.0, -15.0, true), 1e-6);
+    assertEquals(1.5, te.getUsageCharge(-10.0, -5.0, true), 1e-6, "noon price, below");
+    assertEquals(2.1, te.getUsageCharge(-10.0, -25.0, true), 1e-6, "noon price, above");
+    assertEquals(1.8, te.getUsageCharge(-10.0, -15.0, true), 1e-6, "noon price, split");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price, below",
-                 0.4, te.getUsageCharge(-5.0, -12.0, true), 1e-6);
-    assertEquals("midnight price, above",
-                 1.05, te.getUsageCharge(-5.0, -22.0, true), 1e-6);
-    assertEquals("midnight price, split",
-                 0.79, te.getUsageCharge(-5.0, -18.0, true), 1e-6);
+    assertEquals(0.4, te.getUsageCharge(-5.0, -12.0, true), 1e-6, "midnight price, below");
+    assertEquals(1.05, te.getUsageCharge(-5.0, -22.0, true), 1e-6, "midnight price, above");
+    assertEquals(0.79, te.getUsageCharge(-5.0, -18.0, true), 1e-6, "midnight price, split");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("evening price, below",
-                 0.8, te.getUsageCharge(-10.0, -5.0, true), 1e-6);
-    assertEquals("evening price, above",
-                 2.5, te.getUsageCharge(-10.0, -25.0, true), 1e-6);
-    assertEquals("evening price, split",
-                 1.65, te.getUsageCharge(-10.0, -15.0, true), 1e-6);
+    assertEquals(0.8, te.getUsageCharge(-10.0, -5.0, true), 1e-6, "evening price, below");
+    assertEquals(2.5, te.getUsageCharge(-10.0, -25.0, true), 1e-6, "evening price, above");
+    assertEquals(1.65, te.getUsageCharge(-10.0, -15.0, true), 1e-6, "evening price, split");
   }
 
   // multiple tiers
@@ -432,14 +402,14 @@ public class TariffTests
     tariffSpec.addRate(r4);
     Tariff te = new Tariff(tariffSpec);
     te.init();
-    assertEquals("first tier", -0.14, te.getUsageCharge(2.0, 2.0, true), 1e-6);
-    assertEquals("first-second tier", -0.41, te.getUsageCharge(5.0, 2.0, true), 1e-6);
-    assertEquals("second tier", -0.2, te.getUsageCharge(2.0, 6.0, true), 1e-6);
-    assertEquals("second-third tier", -0.6, te.getUsageCharge(5.0, 7.0, true), 1e-6);
-    assertEquals("third tier", -0.3, te.getUsageCharge(2.0, 12.0, true), 1e-6);
-    assertEquals("third-fourth tier", -0.85, te.getUsageCharge(5.0, 17.0, true), 1e-6);
-    assertEquals("fourth tier", -0.4, te.getUsageCharge(2.0, 22.0, true), 1e-6);
-    assertEquals("second-fourth tier", -2.1, te.getUsageCharge(14.0, 8.0, true), 1e-6);
+    assertEquals(-0.14, te.getUsageCharge(2.0, 2.0, true), 1e-6, "first tier");
+    assertEquals(-0.41, te.getUsageCharge(5.0, 2.0, true), 1e-6, "first-second tier");
+    assertEquals(-0.2, te.getUsageCharge(2.0, 6.0, true), 1e-6, "second tier");
+    assertEquals(-0.6, te.getUsageCharge(5.0, 7.0, true), 1e-6, "second-third tier");
+    assertEquals(-0.3, te.getUsageCharge(2.0, 12.0, true), 1e-6, "third tier");
+    assertEquals(-0.85, te.getUsageCharge(5.0, 17.0, true), 1e-6, "third-fourth tier");
+    assertEquals(-0.4, te.getUsageCharge(2.0, 22.0, true), 1e-6, "fourth tier");
+    assertEquals(-2.1, te.getUsageCharge(14.0, 8.0, true), 1e-6, "second-fourth tier");
   }
 
   // variable
@@ -456,24 +426,19 @@ public class TariffTests
     te.init();
     
     // test r1 without hourly charge, uses expected mean
-    assertEquals("current charge, noon Sunday", -1.0, te.getUsageCharge(10.0, 0.0, false), 1e-6);
+    assertEquals(-1.0, te.getUsageCharge(10.0, 0.0, false), 1e-6, "current charge, noon Sunday");
 
     // test with hourly charges
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.09), true);
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.11), true);
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 14, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.13), true);
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 15, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.14));
-    assertEquals("current charge, noon Sunday", -0.9, te.getUsageCharge(10.0, 0.0, false), 1e-6);
-    assertEquals("13:00 charge, noon Sunday", -1.1,
-      te.getUsageCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);
-    assertEquals("14:00 charge, noon Sunday", -1.3,
-      te.getUsageCharge(new DateTime(2011, 1, 1, 14, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);
-    assertEquals("15:00 charge, noon Sunday", -1.4,
-      te.getUsageCharge(new DateTime(2011, 1, 1, 15, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);
-    assertEquals("16:00 charge, noon Sunday", -1.0,
-      te.getUsageCharge(new DateTime(2011, 1, 1, 16, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);
-    assertEquals("18:00 charge, noon Sunday", -0.8,
-      te.getUsageCharge(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);
+    assertEquals(-0.9, te.getUsageCharge(10.0, 0.0, false), 1e-6, "current charge, noon Sunday");
+    assertEquals(-1.1, te.getUsageCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6, "13:00 charge, noon Sunday");
+    assertEquals(-1.3, te.getUsageCharge(new DateTime(2011, 1, 1, 14, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6, "14:00 charge, noon Sunday");
+    assertEquals(-1.4, te.getUsageCharge(new DateTime(2011, 1, 1, 15, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6, "15:00 charge, noon Sunday");
+    assertEquals(-1.0, te.getUsageCharge(new DateTime(2011, 1, 1, 16, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6, "16:00 charge, noon Sunday");
+    assertEquals(-0.8, te.getUsageCharge(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6, "18:00 charge, noon Sunday");
   }
 
   // single rate, interruptible
@@ -490,13 +455,10 @@ public class TariffTests
     spec.addRate(r1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("correct max curtailment 1", 9.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
-    assertEquals("correct max curtailment 1", 9.0,
-                 te.getMaxUpRegulation(30.0, 1000.0), 1e-6);
+    assertEquals(9.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "correct max curtailment 1");
+    assertEquals(9.0, te.getMaxUpRegulation(30.0, 1000.0), 1e-6, "correct max curtailment 1");
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("correct max curtailment 1", 9.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    assertEquals(9.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "correct max curtailment 1");
   }
 
   // single rate, not interruptible
@@ -513,8 +475,7 @@ public class TariffTests
     spec.addRate(r1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("correct max curtailment 1", 0.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    assertEquals(0.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "correct max curtailment 1");
   }
 
   // multiple rates, single tier, one rate interruptible
@@ -537,27 +498,21 @@ public class TariffTests
     spec.addRate(r2);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("noon price", -3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
-    assertEquals("noon max curtailment", 3.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    assertEquals(-3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6, "noon price");
+    assertEquals(3.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "noon max curtailment");
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 17, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("17:00 price", -3.0, te.getUsageCharge(20.0, 220.0, true), 1e-6);
-    assertEquals("17:00 max curtailment", 3.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    assertEquals(-3.0, te.getUsageCharge(20.0, 220.0, true), 1e-6, "17:00 price");
+    assertEquals(3.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "17:00 max curtailment");
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("18:00 price", -0.8, te.getUsageCharge(10.0, 240.0, true), 1e-6);
-    assertEquals("18:00 max curtailment", 15.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    assertEquals(-0.8, te.getUsageCharge(10.0, 240.0, true), 1e-6, "18:00 price");
+    assertEquals(15.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "18:00 max curtailment");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("midnight price", -0.4, te.getUsageCharge(5.0, 250.0, true), 1e-6);
-    assertEquals("midnight max curtailment", 15.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
+    assertEquals(-0.4, te.getUsageCharge(5.0, 250.0, true), 1e-6, "midnight price");
+    assertEquals(15.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "midnight max curtailment");
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
-    assertEquals("7:00 price", -0.6, te.getUsageCharge(4.0, 255.0, true), 1e-6);
-    assertEquals("7:00 max curtailment", 3.0,
-                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
-    assertEquals("mean price", (11.0 * -.15 + 13.0 * -.08) / 24.0,
-                 te.getMeanConsumptionPrice(), 1e-6);
+    assertEquals(-0.6, te.getUsageCharge(4.0, 255.0, true), 1e-6, "7:00 price");
+    assertEquals(3.0, te.getMaxUpRegulation(30.0, 0.0), 1e-6, "7:00 max curtailment");
+    assertEquals((11.0 * -.15 + 13.0 * -.08) / 24.0, te.getMeanConsumptionPrice(), 1e-6, "mean price");
   }
 
   // multiple rates, multiple tiers, upper tier interruptible
@@ -577,14 +532,10 @@ public class TariffTests
     spec.addRate(r2);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("3.0 curtailment", 0.3,
-                 te.getMaxUpRegulation(3.0, 0.0), 1e-6);
-    assertEquals("9.9 curtailment", 0.3,
-                 te.getMaxUpRegulation(3.0, 6.9), 1e-6);
-    assertEquals("cross-boundary curtailment", 1.2,
-                 te.getMaxUpRegulation(4.0, 8.0), 1e-6);
-    assertEquals("high curtailment", 2.0,
-                 te.getMaxUpRegulation(4.0, 11.0), 1e-6);
+    assertEquals(0.3, te.getMaxUpRegulation(3.0, 0.0), 1e-6, "3.0 curtailment");
+    assertEquals(0.3, te.getMaxUpRegulation(3.0, 6.9), 1e-6, "9.9 curtailment");
+    assertEquals(1.2, te.getMaxUpRegulation(4.0, 8.0), 1e-6, "cross-boundary curtailment");
+    assertEquals(2.0, te.getMaxUpRegulation(4.0, 11.0), 1e-6, "high curtailment");
   }
 
   // single rate, regulation rate, storage
@@ -606,14 +557,10 @@ public class TariffTests
     spec.addRate(rr1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("unconstrained up-reg", 1.0,
-                 te.overpricedUpRegulationRatio(), 1e-6);
-    assertEquals("correct up-reg charge", 4.0,
-                 te.getRegulationCharge(-20.0, 0.0, false), 1e-6);
-    assertEquals("unconstrained down-reg", 1.0,
-                 te.overpricedDownRegulationRatio(), 1e-6);
-    assertEquals("correct down-reg charge", -3.0,
-                 te.getRegulationCharge(30.0, 0.0, false), 1e-6);
+    assertEquals(1.0, te.overpricedUpRegulationRatio(), 1e-6, "unconstrained up-reg");
+    assertEquals(4.0, te.getRegulationCharge(-20.0, 0.0, false), 1e-6, "correct up-reg charge");
+    assertEquals(1.0, te.overpricedDownRegulationRatio(), 1e-6, "unconstrained down-reg");
+    assertEquals(-3.0, te.getRegulationCharge(30.0, 0.0, false), 1e-6, "correct down-reg charge");
   }
 
   // single rate, regulation rate, storage
@@ -635,13 +582,9 @@ public class TariffTests
     spec.addRate(rr1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals("constrained up-reg", 0.32987698,
-                 te.overpricedUpRegulationRatio(), 1e-6);
-    assertEquals("correct up-reg charge", 40.0,
-                 te.getRegulationCharge(-20.0, 0.0, false), 1e-6);
-    assertEquals("constrained down-reg", 0.458934802,
-                 te.overpricedDownRegulationRatio(), 1e-6);
-    assertEquals("correct down-reg charge", -30.0,
-                 te.getRegulationCharge(30.0, 0.0, false), 1e-6);
+    assertEquals(0.32987698, te.overpricedUpRegulationRatio(), 1e-6, "constrained up-reg");
+    assertEquals(40.0, te.getRegulationCharge(-20.0, 0.0, false), 1e-6, "correct up-reg charge");
+    assertEquals(0.458934802, te.overpricedDownRegulationRatio(), 1e-6, "constrained down-reg");
+    assertEquals(-30.0, te.getRegulationCharge(30.0, 0.0, false), 1e-6, "correct down-reg charge");
   }
 }

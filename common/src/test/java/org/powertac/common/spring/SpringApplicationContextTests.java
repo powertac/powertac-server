@@ -15,20 +15,18 @@
  */
 package org.powertac.common.spring;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.DomainRepo;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
@@ -36,8 +34,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
  * Tests for application context interface
  * @author jcollins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -46,7 +43,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 public class SpringApplicationContextTests
 {
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
   }
@@ -58,7 +55,7 @@ public class SpringApplicationContextTests
   public void testGetBean ()
   {
     BrokerRepo repo = (BrokerRepo)SpringApplicationContext.getBean("brokerRepo");
-    assertNotNull("found the repo", repo);
+    assertNotNull(repo, "found the repo");
   }
 
   /**
@@ -68,7 +65,7 @@ public class SpringApplicationContextTests
   public void testGetBeanByType ()
   {
     BrokerRepo repo = SpringApplicationContext.getBeanByType(BrokerRepo.class);
-    assertNotNull("found the repo", repo);
+    assertNotNull(repo, "found the repo");
   }
 
   /**
@@ -79,8 +76,8 @@ public class SpringApplicationContextTests
   {
     List<DomainRepo> repos =
         SpringApplicationContext.listBeansOfType(DomainRepo.class);
-    assertEquals("7 repos", 7, repos.size());
-    // assertTrue("type match", repos.get("brokerRepo") instanceof BrokerRepo);
+    assertEquals(7, repos.size(), "7 repos");
+    // assertTrue(repos.get("brokerRepo") instanceof BrokerRepo, "type match");
   }
 
   @Test
@@ -88,8 +85,8 @@ public class SpringApplicationContextTests
   {
     Map<String, DomainRepo> repos =
         SpringApplicationContext.mapBeansOfType(DomainRepo.class);
-    assertEquals("7 repos", 7, repos.size());
-    assertTrue("type match", repos.get("brokerRepo") instanceof BrokerRepo);
+    assertEquals(7, repos.size(), "7 repos");
+    assertTrue(repos.get("brokerRepo") instanceof BrokerRepo, "type match");
   }
 
 }

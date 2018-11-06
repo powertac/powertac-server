@@ -15,14 +15,14 @@
  */
 package org.powertac.common.repo;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Collection;
 import java.util.List;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
@@ -35,7 +35,7 @@ public class CustomerRepoTests
   CustomerRepo repo;
   Instant start;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.newInstance("test");
@@ -45,17 +45,17 @@ public class CustomerRepoTests
   @Test
   public void testCustomerRepo ()
   {
-    assertNotNull("created a repo", repo);
-    assertEquals("no entries", 0, repo.size());
+    assertNotNull(repo, "created a repo");
+    assertEquals(0, repo.size(), "no entries");
   }
 
   @Test
   public void testCreate ()
   {
     CustomerInfo cust = repo.createCustomerInfo("Podunk", 42);
-    assertEquals("1 customer", 1, repo.size());
-    assertEquals("correct name", "Podunk", cust.getName());
-    assertEquals("correct population", 42, cust.getPopulation());
+    assertEquals(1, repo.size(), "1 customer");
+    assertEquals("Podunk", cust.getName(), "correct name");
+    assertEquals(42, cust.getPopulation(), "correct population");
   }
   
   @Test
@@ -63,18 +63,18 @@ public class CustomerRepoTests
   {
     CustomerInfo c1 = new CustomerInfo("Podunk", 42);
     repo.add(c1);
-    assertEquals("one so far", 1, repo.size());
+    assertEquals(1, repo.size(), "one so far");
     Collection<CustomerInfo> customers = repo.list();
-    assertEquals("one in list", 1, customers.size());
-    assertTrue("correct one", customers.contains(c1));
+    assertEquals(1, customers.size(), "one in list");
+    assertTrue(customers.contains(c1), "correct one");
     
     CustomerInfo c2 = new CustomerInfo("Nowthen", 9);
     repo.add(c2);
-    assertEquals("two", 2, repo.size());
+    assertEquals(2, repo.size(), "two");
     customers = repo.list();
-    assertEquals("two in list", 2, customers.size());
-    assertTrue("c1 there", customers.contains(c1));
-    assertTrue("c2 there", customers.contains(c2));
+    assertEquals(2, customers.size(), "two in list");
+    assertTrue(customers.contains(c1), "c1 there");
+    assertTrue(customers.contains(c2), "c2 there");
   }
 
   @Test
@@ -85,13 +85,13 @@ public class CustomerRepoTests
     repo.add(c1);
     repo.add(c2);
     CustomerInfo result = repo.findById(c1.getId());
-    assertNotNull("found something", result);
-    assertEquals("found c1", c1, result);
+    assertNotNull(result, "found something");
+    assertEquals(c1, result, "found c1");
     result = repo.findById(c2.getId());
-    assertNotNull("found something", result);
-    assertEquals("found c2", c2, result);
+    assertNotNull(result, "found something");
+    assertEquals(c2, result, "found c2");
     result = repo.findById(27182818281828l);
-    assertNull("nothing with that id", result);
+    assertNull(result, "nothing with that id");
   }
 
   @Test
@@ -107,14 +107,14 @@ public class CustomerRepoTests
     repo.add(c3);
     
     List<CustomerInfo> result = repo.findByName("Podunk");
-    assertEquals("one in list", 1, result.size());
-    assertEquals("it's Podunk", c1, result.get(0));
+    assertEquals(1, result.size(), "one in list");
+    assertEquals(c1, result.get(0), "it's Podunk");
     result = repo.findByName("Nowthen");
-    assertEquals("two in list", 2, result.size());
-    assertTrue("Nowthen c", result.contains(c2));
-    assertTrue("Nowthen ic", result.contains(c3));
+    assertEquals(2, result.size(), "two in list");
+    assertTrue(result.contains(c2), "Nowthen c");
+    assertTrue(result.contains(c3), "Nowthen ic");
     result = repo.findByName("Somewhere");
-    assertEquals("none", 0, result.size());
+    assertEquals(0, result.size(), "none");
   }
 
   @Test
@@ -132,16 +132,16 @@ public class CustomerRepoTests
     
     CustomerInfo result = repo.findByNameAndPowerType("Podunk",
                                                       PowerType.CONSUMPTION);
-    assertEquals("found c1", c1, result);
+    assertEquals(c1, result, "found c1");
     result = repo.findByNameAndPowerType("Nowthen",
                                          PowerType.CONSUMPTION);
-    assertEquals("found c2", c2, result);
+    assertEquals(c2, result, "found c2");
     result = repo.findByNameAndPowerType("Nowthen",
                                          PowerType.INTERRUPTIBLE_CONSUMPTION);
-    assertEquals("found c3", c3, result);
+    assertEquals(c3, result, "found c3");
     result = repo.findByNameAndPowerType("Nowthen",
                                          PowerType.PRODUCTION);
-    assertNull("null", result);
+    assertNull(result, "null");
   }
 
   @Test
@@ -149,8 +149,8 @@ public class CustomerRepoTests
   {
     repo.createCustomerInfo("Nowhere", 3);
     repo.createCustomerInfo("Nowthen", 7);
-    assertEquals("2 customers", 2, repo.size());
+    assertEquals(2, repo.size(), "2 customers");
     repo.recycle();
-    assertEquals("none remain", 0, repo.size());
+    assertEquals(0, repo.size(), "none remain");
   }
 }

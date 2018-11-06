@@ -15,7 +15,7 @@
  */
 package org.powertac.samplebroker.core;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,15 +24,14 @@ import java.util.List;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.samplebroker.interfaces.IpcAdapter;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 
 /**
@@ -50,7 +49,7 @@ public class BrokerMessageReceiverTest
   ArrayList<String> exportedMessages;
   ArrayList<Object> dispatchedMessages;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     exportedMessages = new ArrayList<>();
@@ -102,10 +101,10 @@ public class BrokerMessageReceiverTest
     uut.initialize();
     String msg = "<market-tx value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
-    assertEquals("no exported messages", 0, exportedMessages.size());
+    assertEquals(0, exportedMessages.size(), "no exported messages");
     uut.onMessage(tmsg);
-    assertEquals("one exported msg", 1, exportedMessages.size());
-    assertEquals("correct msg", msg, exportedMessages.get(0));
+    assertEquals(1, exportedMessages.size(), "one exported msg");
+    assertEquals(msg, exportedMessages.get(0), "correct msg");
     //verifyZeroInteractions(xmc);
   }
 
@@ -117,9 +116,9 @@ public class BrokerMessageReceiverTest
     uut.initialize();
     String msg = "<sim-pause value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
-    assertEquals("no exported messages", 0, exportedMessages.size());
+    assertEquals(0, exportedMessages.size(), "no exported messages");
     uut.onMessage(tmsg);
-    assertEquals("no exported messages", 0, exportedMessages.size());
+    assertEquals(0, exportedMessages.size(), "no exported messages");
     //verify(md).routeMessage("converted-<sim-pause value=\"42\"/>");
   }
 
@@ -131,10 +130,10 @@ public class BrokerMessageReceiverTest
     uut.initialize();
     String msg = "<cash value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
-    assertEquals("no exported messages", 0, exportedMessages.size());
+    assertEquals(0, exportedMessages.size(), "no exported messages");
     uut.onMessage(tmsg);
-    assertEquals("one exported msg", 1, exportedMessages.size());
-    assertEquals("correct msg", msg, exportedMessages.get(0));
+    assertEquals(1, exportedMessages.size(), "one exported msg");
+    assertEquals(msg, exportedMessages.get(0), "correct msg");
     //verify(md).routeMessage("converted-<cash value=\"42\"/>");
   }
 
@@ -146,9 +145,9 @@ public class BrokerMessageReceiverTest
     uut.initialize();
     String msg = "<market-tx value=\"42\"/>";
     TextMessage tmsg = createTextMessage(msg);
-    assertEquals("no exported messages", 0, exportedMessages.size());
+    assertEquals(0, exportedMessages.size(), "no exported messages");
     uut.onMessage(tmsg);
-    assertEquals("no exported messages", 0, exportedMessages.size());
+    assertEquals(0, exportedMessages.size(), "no exported messages");
     verify(md).routeMessage("converted-<market-tx value=\"42\"/>");
     
   }

@@ -1,21 +1,18 @@
 package org.powertac.common;
 
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.thoughtworks.xstream.XStream;
 
 public class WeatherForecastPredictionTest 
 {
 
-
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 	}
 	
@@ -60,12 +57,12 @@ public class WeatherForecastPredictionTest
 		serialized.write(xstream.toXML(w1));
 		// System.out.println(serialized.toString());
 		WeatherForecastPrediction xw1 = (WeatherForecastPrediction) xstream.fromXML(serialized.toString());
-		assertNotNull("deserialized something", xw1);
-		assertEquals("correct timeslot", 1, xw1.getForecastTime());
-		assertEquals("correct temp", 1, xw1.getTemperature(),.0001);
-		assertEquals("correct windspeed", 2, xw1.getWindSpeed(),.0001);
-		assertEquals("correct winddir", 3, xw1.getWindDirection(),.0001);
-		assertEquals("correct cloudcover", 4, xw1.getCloudCover(),.0001);
+		assertNotNull(xw1, "deserialized something");
+		assertEquals(1, xw1.getForecastTime(), "correct timeslot");
+		assertEquals(1, xw1.getTemperature(),.0001, "correct temp");
+		assertEquals(2, xw1.getWindSpeed(),.0001, "correct windspeed");
+		assertEquals(3, xw1.getWindDirection(),.0001, "correct winddir");
+		assertEquals(4, xw1.getCloudCover(),.0001, "correct cloudcover");
 	}
 
 }

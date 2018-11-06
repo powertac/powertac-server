@@ -15,18 +15,18 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import com.thoughtworks.xstream.XStream;
 
 public class RegulationRateTests
 {
 
-  @Before
+  @BeforeEach
   public void setUp() 
   {
   }
@@ -35,12 +35,9 @@ public class RegulationRateTests
   public void construction1() 
   {
     RegulationRate rr = new RegulationRate();
-    assertEquals("default response",
-                 RegulationRate.ResponseTime.MINUTES, rr.getResponse());
-    assertEquals("default up-reg pmt",
-                 0.0, rr.getUpRegulationPayment(), 1e-6);
-    assertEquals("default down-reg pmt",
-                 0.0, rr.getDownRegulationPayment(), 1e-6);
+    assertEquals(RegulationRate.ResponseTime.MINUTES, rr.getResponse(), "default response");
+    assertEquals(0.0, rr.getUpRegulationPayment(), 1e-6, "default up-reg pmt");
+    assertEquals(0.0, rr.getDownRegulationPayment(), 1e-6, "default down-reg pmt");
   }
 
   @Test
@@ -50,12 +47,9 @@ public class RegulationRateTests
       .withUpRegulationPayment(0.05)
       .withDownRegulationPayment(-0.05)
       .withResponse(RegulationRate.ResponseTime.SECONDS);
-    assertEquals("response",
-                 RegulationRate.ResponseTime.SECONDS, rr.getResponse());
-    assertEquals("default up-reg pmt",
-                 0.05, rr.getUpRegulationPayment(), 1e-6);
-    assertEquals("default down-reg pmt",
-                 -0.05, rr.getDownRegulationPayment(), 1e-6);
+    assertEquals(RegulationRate.ResponseTime.SECONDS, rr.getResponse(), "response");
+    assertEquals(0.05, rr.getUpRegulationPayment(), 1e-6, "default up-reg pmt");
+    assertEquals(-0.05, rr.getDownRegulationPayment(), 1e-6, "default down-reg pmt");
   }
 
   @Test
@@ -72,10 +66,9 @@ public class RegulationRateTests
     serialized.write(xstream.toXML(r));
     //System.out.println(serialized.toString());
     RegulationRate xr= (RegulationRate)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xr);
-    assertEquals("default response",
-                 RegulationRate.ResponseTime.SECONDS, xr.getResponse());
-    assertEquals("correct value", 0.05, xr.getUpRegulationPayment(), 1e-6);
-    assertEquals("correct value", -0.05, xr.getDownRegulationPayment(), 1e-6);
+    assertNotNull(xr, "deserialized something");
+    assertEquals(RegulationRate.ResponseTime.SECONDS, xr.getResponse(), "default response");
+    assertEquals(0.05, xr.getUpRegulationPayment(), 1e-6, "correct value");
+    assertEquals(-0.05, xr.getDownRegulationPayment(), 1e-6, "correct value");
   }
 }

@@ -1,19 +1,18 @@
 package org.powertac.samplebroker.core;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.msg.BrokerAccept;
-import org.powertac.samplebroker.core.MessageDispatcher;
 
 public class MessageDispatcherTest
 {
   private MessageDispatcher router;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     router = new MessageDispatcher();
@@ -22,13 +21,13 @@ public class MessageDispatcherTest
   @Test
   public void testRegisterMessageHandler ()
   {
-    assertNotNull("make sure we have a router", router);
+    assertNotNull(router, "make sure we have a router");
     Set<Object> regs = router.getRegistrations(Set.class);
-    assertNull("no registrations yet", regs);
+    assertNull(regs, "no registrations yet");
     router.registerMessageHandler(this, Set.class);
     regs = router.getRegistrations(Set.class);
-    assertEquals("one registration", 1, regs.size());
-    assertTrue("correct registration", regs.contains(this));
+    assertEquals(1, regs.size(), "one registration");
+    assertTrue(regs.contains(this), "correct registration");
   }
 
   @Test
@@ -36,10 +35,10 @@ public class MessageDispatcherTest
   {
     LocalHandler handler = new LocalHandler();
     router.registerMessageHandler(handler, BrokerAccept.class);
-    assertNull("initially null", handler.result);
+    assertNull(handler.result, "initially null");
     BrokerAccept accept = new BrokerAccept(1);
     router.routeMessage(accept);
-    assertEquals("received message", accept, handler.result);
+    assertEquals(accept, handler.result, "received message");
   }
 
   public class LocalHandler

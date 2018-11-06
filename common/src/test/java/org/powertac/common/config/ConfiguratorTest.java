@@ -15,7 +15,7 @@
  */
 package org.powertac.common.config;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,8 +28,8 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 
 import pt.ConfigTestDummy;
@@ -46,7 +46,7 @@ public class ConfiguratorTest
   /**
    *
    */
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     comp = Competition.newInstance("test");
@@ -63,10 +63,10 @@ public class ConfiguratorTest
     Configurator uut = new Configurator();
     uut.setConfiguration(config);
     uut.configureSingleton(comp);
-    assertEquals("correct timeslot length", 15, comp.getTimeslotLength());
-    assertEquals("correct min ts count", 600, comp.getMinimumTimeslotCount());
+    assertEquals(15, comp.getTimeslotLength(), "correct timeslot length");
+    assertEquals(600, comp.getMinimumTimeslotCount(), "correct min ts count");
     Instant inst = new DateTime(2009, 10, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
-    assertEquals("correct base time", inst, comp.getSimulationBaseTime());
+    assertEquals(inst, comp.getSimulationBaseTime(), "correct base time");
   }
 
   @Test
@@ -75,8 +75,8 @@ public class ConfiguratorTest
     Configurator uut = new Configurator();
     //uut.setConfiguration(config);
     uut.configureSingleton(comp);
-    assertEquals("correct timeslot length", 60, comp.getTimeslotLength());
-    assertEquals("correct min ts count", 480, comp.getMinimumTimeslotCount());    
+    assertEquals(60, comp.getTimeslotLength(), "correct timeslot length");
+    assertEquals(480, comp.getMinimumTimeslotCount(), "correct min ts count");
   }
 
   @Test
@@ -90,11 +90,11 @@ public class ConfiguratorTest
     uut.setConfiguration(conf);
 
     ConfigTestDummy dummy = new ConfigTestDummy();
-    assertEquals("original value", 0, dummy.getIntProperty());
+    assertEquals(0, dummy.getIntProperty(), "original value");
     uut.configureSingleton(dummy);
-    assertEquals("new value", 4, dummy.getIntProperty());
-    assertEquals("new value", 4.2, dummy.getFixedPerKwh(), 1e-6);
-    assertEquals("original string", "dummy", dummy.stringProperty);
+    assertEquals(4, dummy.getIntProperty(), "new value");
+    assertEquals(4.2, dummy.getFixedPerKwh(), 1e-6, "new value");
+    assertEquals("dummy", dummy.stringProperty, "original string");
   }
 
   @Test
@@ -109,12 +109,12 @@ public class ConfiguratorTest
     uut.setConfiguration(conf);
 
     ConfigTestDummy dummy = new ConfigTestDummy();
-    assertEquals("original value", 0, dummy.getIntProperty());
-    assertEquals("original string", "dummy", dummy.stringProperty);
+    assertEquals(0, dummy.getIntProperty(), "original value");
+    assertEquals("dummy", dummy.stringProperty, "original string");
     uut.configureSingleton(dummy);
-    assertEquals("new value", -4, dummy.getIntProperty());
-    assertEquals("original value", -0.06, dummy.getFixedPerKwh(), 1e-6);
-    assertEquals("new string", "new string", dummy.stringProperty);
+    assertEquals(-4, dummy.getIntProperty(), "new value");
+    assertEquals(-0.06, dummy.getFixedPerKwh(), 1e-6, "original value");
+    assertEquals("new string", dummy.stringProperty, "new string");
   }
 
   @Test
@@ -127,18 +127,18 @@ public class ConfiguratorTest
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     ConfigTestDummy dummy = new ConfigTestDummy();
-    assertNull("original value", dummy.getListProperty());
-    assertNull("2nd original", dummy.getSecondList());
+    assertNull(dummy.getListProperty(), "original value");
+    assertNull(dummy.getSecondList(), "2nd original");
     uut.configureSingleton(dummy);
-    assertNotNull("not null", dummy.getListProperty());
+    assertNotNull(dummy.getListProperty(), "not null");
     List<String> val = dummy.getListProperty();
-    assertEquals("correct length", 3, val.size());
-    assertEquals("correct 1st", "1.0", val.get(0));
-    assertEquals("correct last", "3.2", val.get(2));
-    assertNotNull("2nd not null", dummy.getSecondList());
+    assertEquals(3, val.size(), "correct length");
+    assertEquals("1.0", val.get(0), "correct 1st");
+    assertEquals("3.2", val.get(2), "correct last");
+    assertNotNull(dummy.getSecondList(), "2nd not null");
     val = dummy.getSecondList();
-    assertEquals("correct 2nd length", 3, val.size());
-    assertEquals("correct 2nd 1st", "0.1", val.get(0));
+    assertEquals(3, val.size(), "correct 2nd length");
+    assertEquals("0.1", val.get(0), "correct 2nd 1st");
   }
 
   @Test
@@ -155,11 +155,9 @@ public class ConfiguratorTest
     ConfigTestDummy dummy = new ConfigTestDummy();
     Configurator uut = new Configurator();
     uut.gatherPublishedConfiguration(dummy, cr);
-    assertEquals("two entries", 2, map.size());
-    assertEquals("correct String", "dummy",
-                 (String)map.get("pt.configTestDummy.stringProperty"));
-    assertEquals("correct double", -0.06,
-                 (Double)map.get("pt.configTestDummy.fixedPerKwh"), 1e-6);
+    assertEquals(2, map.size(), "two entries");
+    assertEquals("dummy", (String)map.get("pt.configTestDummy.stringProperty"), "correct String");
+    assertEquals(-0.06, (Double)map.get("pt.configTestDummy.fixedPerKwh"), 1e-6, "correct double");
   }
 
   @Test
@@ -176,11 +174,9 @@ public class ConfiguratorTest
     ConfigTestDummy dummy = new ConfigTestDummy();
     Configurator uut = new Configurator();
     uut.gatherBootstrapState(dummy, cr);
-    assertEquals("two entries", 2, map.size());
-    assertEquals("correct int", 0,
-                 ((Integer)map.get("pt.configTestDummy.intProperty")).intValue());
-    assertEquals("correct double", -0.06,
-                 (Double)map.get("pt.configTestDummy.fixedPerKwh"), 1e-6);
+    assertEquals(2, map.size(), "two entries");
+    assertEquals(0, ((Integer)map.get("pt.configTestDummy.intProperty")).intValue(), "correct int");
+    assertEquals(-0.06, (Double)map.get("pt.configTestDummy.fixedPerKwh"), 1e-6, "correct double");
   }
 
   @Test
@@ -198,7 +194,7 @@ public class ConfiguratorTest
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureInstances(ConfigInstance.class);
-    assertEquals("two instances", 2, result.size());
+    assertEquals(2, result.size(), "two instances");
     Object[] instances = result.toArray();
     ConfigInstance x1, x2;
     if (((ConfigInstance)instances[0]).getName().equals("x1")) {
@@ -209,13 +205,13 @@ public class ConfiguratorTest
       x1 = (ConfigInstance)instances[1];
       x2 = (ConfigInstance)instances[0];
     }
-    assertEquals("name x1", "x1", x1.getName());
-    assertEquals("name x2", "x2", x2.getName());
-    assertEquals("simpleProp", 42, x1.simpleProp);
-    assertEquals("sequence", 2, x2.sequence);
-    assertEquals("2 coefficients", 2, x1.coefficients.size());
-    assertEquals("1st coefficient", "4.2", x2.coefficients.get(0));
-    assertEquals("2nd coefficient", "4.2", x1.coefficients.get(1));
+    assertEquals("x1", x1.getName(), "name x1");
+    assertEquals("x2", x2.getName(), "name x2");
+    assertEquals(42, x1.simpleProp, "simpleProp");
+    assertEquals(2, x2.sequence, "sequence");
+    assertEquals(2, x1.coefficients.size(), "2 coefficients");
+    assertEquals("4.2", x2.coefficients.get(0), "1st coefficient");
+    assertEquals("4.2", x1.coefficients.get(1), "2nd coefficient");
   }
 
   @Test
@@ -226,8 +222,8 @@ public class ConfiguratorTest
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureInstances(ConfigInstance.class);
-    assertNotNull("non-null result", result);
-    assertEquals("zero instances", 0, result.size());
+    assertNotNull(result, "non-null result");
+    assertEquals(0, result.size(), "zero instances");
   }
 
   @Test
@@ -249,14 +245,14 @@ public class ConfiguratorTest
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureNamedInstances(instanceList);
-    assertEquals("two instances", 2, result.size());
-    assertEquals("name x1", "x1", ci1.getName());
-    assertEquals("name x2", "x2", ci2.getName());
-    assertEquals("simpleProp", 42, ci1.simpleProp);
-    assertEquals("sequence", 2, ci2.sequence);
-    assertEquals("2 coefficients", 2, ci1.coefficients.size());
-    assertEquals("1st coefficient", "4.2", ci2.coefficients.get(0));
-    assertEquals("2nd coefficient", "4.2", ci1.coefficients.get(1));
+    assertEquals(2, result.size(), "two instances");
+    assertEquals("x1", ci1.getName(), "name x1");
+    assertEquals("x2", ci2.getName(), "name x2");
+    assertEquals(42, ci1.simpleProp, "simpleProp");
+    assertEquals(2, ci2.sequence, "sequence");
+    assertEquals(2, ci1.coefficients.size(), "2 coefficients");
+    assertEquals("4.2", ci2.coefficients.get(0), "1st coefficient");
+    assertEquals("4.2", ci1.coefficients.get(1), "2nd coefficient");
   }
 
   @Test
@@ -281,9 +277,8 @@ public class ConfiguratorTest
     List<ConfigInstance> instances = Arrays.asList(ci1, ci2);
     Configurator uut = new Configurator();
     uut.gatherBootstrapState(instances, cr);
-    assertEquals("six entries", 6, map.size());
-    assertEquals("a1.stateProp", -3,
-                 map.get("common.config.configInstance.a1.stateProp"));
+    assertEquals(6, map.size(), "six entries");
+    assertEquals(-3, map.get("common.config.configInstance.a1.stateProp"), "a1.stateProp");
   }
 
   @Test
@@ -301,14 +296,11 @@ public class ConfiguratorTest
     List<ConfigInstance> instances = Arrays.asList(ci1, ci2);
     Configurator uut = new Configurator();
     uut.gatherBootstrapState(instances, cr);
-    assertEquals("six entries", 6, cr.items.size());
-    assertEquals("a1.stateProp", -3,
-                 cr.items.get("common.config.configInstance.a1.stateProp"));
-    assertEquals("b1.sequence", 4,
-                 cr.items.get("common.config.configInstance.b1.sequence"));
+    assertEquals(6, cr.items.size(), "six entries");
+    assertEquals(-3, cr.items.get("common.config.configInstance.a1.stateProp"), "a1.stateProp");
+    assertEquals(4, cr.items.get("common.config.configInstance.b1.sequence"), "b1.sequence");
     // simpleProp is not a bootstrap item
-    assertNull("b1.simpleProp",
-               cr.items.get("common.config.configInstance.b1.simpleProp"));
+    assertNull(cr.items.get("common.config.configInstance.b1.simpleProp"), "b1.simpleProp");
   }
 
   @Test
@@ -332,27 +324,18 @@ public class ConfiguratorTest
 
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureInstances(ConfigInstance.class);
-    assertEquals("two instances", 2, result.size());
-    assertEquals("10 in items", 10, cr.items.size());
-    assertEquals("x1.simpleProp", "42",
-                 cr.items.get("common.config.configInstance.x1.simpleProp").toString());
-    assertEquals("x2.coefficients", "[4.2, 3.2]",
-                 cr.items.get("common.config.configInstance.x2.coefficients").toString());
-    assertEquals("5 in metadata", 5, cr.metadata.size());
-    assertNull("no instance metadata",
-               cr.metadata.get("common.config.configInstance.x1.stateProp"));
-    assertEquals("simpleProp description", "sample state",
-                 cr.metadata.get("common.config.configInstance.stateProp").description);
-    assertEquals("x2.coefficients valueType", "List",
-                 cr.metadata.get("common.config.configInstance.coefficients").valueType);
-    assertTrue("x1.factor published",
-               cr.metadata.get("common.config.configInstance.factor").publish);
-    assertFalse("x2.sequence not published",
-                cr.metadata.get("common.config.configInstance.sequence").publish);
-    //assertEquals("one instance list", 1,
-    //             cr.instanceLists.size());
-    //assertEquals("correct list", "[x1, x2]",
-    //             cr.instanceLists.get("common.config.configInstance.instances").toString());
+    assertEquals(2, result.size(), "two instances");
+    assertEquals(10, cr.items.size(), "10 in items");
+    assertEquals("42", cr.items.get("common.config.configInstance.x1.simpleProp").toString(), "x1.simpleProp");
+    assertEquals("[4.2, 3.2]", cr.items.get("common.config.configInstance.x2.coefficients").toString(), "x2.coefficients");
+    assertEquals(5, cr.metadata.size(), "5 in metadata");
+    assertNull(cr.metadata.get("common.config.configInstance.x1.stateProp"), "no instance metadata");
+    assertEquals("sample state", cr.metadata.get("common.config.configInstance.stateProp").description, "simpleProp description");
+    assertEquals("List", cr.metadata.get("common.config.configInstance.coefficients").valueType, "x2.coefficients valueType");
+    assertTrue(cr.metadata.get("common.config.configInstance.factor").publish, "x1.factor published");
+    assertFalse(cr.metadata.get("common.config.configInstance.sequence").publish, "x2.sequence not published");
+    //assertEquals(1, cr.instanceLists.size(), "one instance list");
+    //assertEquals("[x1, x2]", cr.instanceLists.get("common.config.configInstance.instances").toString(), "correct list");
   }
 
   @Test

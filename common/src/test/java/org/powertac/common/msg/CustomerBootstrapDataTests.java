@@ -15,23 +15,20 @@
  */
 package org.powertac.common.msg;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.CustomerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
@@ -42,8 +39,7 @@ import com.thoughtworks.xstream.XStream;
  * injection, because the xml deserialization process requires autowiring.
  * @author John Collins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -58,7 +54,7 @@ public class CustomerBootstrapDataTests
 
   private double[] data;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     customer = customerRepo.createCustomerInfo("Population", 42);
@@ -69,30 +65,25 @@ public class CustomerBootstrapDataTests
   @Test
   public void testCustomerBootstrapData ()
   {
-    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, 
-                                                          PowerType.CONSUMPTION,
-                                                          data);
-    assertNotNull("object created", cbd);
-    assertEquals("correct customer name", customer.getName(), cbd.getCustomerName());
-    assertEquals("correct array size", 24, cbd.getNetUsage().length);
-    assertEquals("correct second element", 1.4, cbd.getNetUsage()[1], 1e-6);
+    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, PowerType.CONSUMPTION, data);
+    assertNotNull(cbd, "object created");
+    assertEquals(customer.getName(), cbd.getCustomerName(), "correct customer name");
+    assertEquals(24, cbd.getNetUsage().length, "correct array size");
+    assertEquals(1.4, cbd.getNetUsage()[1], 1e-6, "correct second element");
   }
 
   @Test
   public void xmlSerializationTest ()
   {
-    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, 
-                                                          PowerType.CONSUMPTION,
-                                                          data);
+    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, PowerType.CONSUMPTION, data);
     XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(CustomerBootstrapData.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(cbd));
     //System.out.println(serialized.toString());
-    CustomerBootstrapData xcbd = 
-      (CustomerBootstrapData)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xcbd);
-    assertEquals("correct id", cbd.getId(), xcbd.getId());
-    assertEquals("correct 5th element", 1.7, xcbd.getNetUsage()[4], 1e-6);
+    CustomerBootstrapData xcbd = (CustomerBootstrapData)xstream.fromXML(serialized.toString());
+    assertNotNull(xcbd, "deserialized something");
+    assertEquals(cbd.getId(), xcbd.getId(), "correct id");
+    assertEquals(1.7, xcbd.getNetUsage()[4], 1e-6, "correct 5th element");
   }
 }

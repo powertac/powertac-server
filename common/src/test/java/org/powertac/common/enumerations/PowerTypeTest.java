@@ -15,10 +15,10 @@
  */
 package org.powertac.common.enumerations;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author John Collins
@@ -26,7 +26,7 @@ import org.junit.Test;
 public class PowerTypeTest
 {
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
   }
@@ -38,15 +38,15 @@ public class PowerTypeTest
   public void testIsConsumption ()
   {
     PowerType pt = PowerType.CONSUMPTION;
-    assertTrue("is consumption 1", pt.isConsumption());
+    assertTrue(pt.isConsumption(), "is consumption 1");
     pt = PowerType.INTERRUPTIBLE_CONSUMPTION;
-    assertTrue("is consumption 2", pt.isConsumption());
+    assertTrue(pt.isConsumption(), "is consumption 2");
     pt = PowerType.THERMAL_STORAGE_CONSUMPTION;
-    assertTrue("is consumption 3", pt.isConsumption());
+    assertTrue(pt.isConsumption(), "is consumption 3");
     pt = PowerType.BATTERY_STORAGE;
-    assertFalse("not consumption 1", pt.isConsumption());
+    assertFalse(pt.isConsumption(), "not consumption 1");
     pt = PowerType.PRODUCTION;
-    assertFalse("not consumption 2", pt.isConsumption());
+    assertFalse(pt.isConsumption(), "not consumption 2");
    
   }
 
@@ -57,17 +57,17 @@ public class PowerTypeTest
   public void testIsProduction ()
   {
     PowerType pt = PowerType.PRODUCTION;
-    assertTrue("is production 1", pt.isProduction());
+    assertTrue(pt.isProduction(), "is production 1");
     pt = PowerType.RUN_OF_RIVER_PRODUCTION;
-    assertTrue("is production 2", pt.isProduction());
+    assertTrue(pt.isProduction(), "is production 2");
     pt = PowerType.SOLAR_PRODUCTION;
-    assertTrue("is production 3", pt.isProduction());
+    assertTrue(pt.isProduction(), "is production 3");
     pt = PowerType.WIND_PRODUCTION;
-    assertTrue("is production 4", pt.isProduction());
+    assertTrue(pt.isProduction(), "is production 4");
     pt = PowerType.BATTERY_STORAGE;
-    assertFalse("not production 1", pt.isProduction());
+    assertFalse(pt.isProduction(), "not production 1");
     pt = PowerType.CONSUMPTION;
-    assertFalse("not production 2", pt.isProduction());
+    assertFalse(pt.isProduction(), "not production 2");
   }
 
   /**
@@ -77,13 +77,13 @@ public class PowerTypeTest
   public void testIsInterruptible ()
   {
     PowerType pt = PowerType.INTERRUPTIBLE_CONSUMPTION;
-    assertTrue("is interruptible 1", pt.isInterruptible());
+    assertTrue(pt.isInterruptible(), "is interruptible 1");
     pt = PowerType.THERMAL_STORAGE_CONSUMPTION;
-    assertTrue("is interruptible 2", pt.isInterruptible());
+    assertTrue(pt.isInterruptible(), "is interruptible 2");
     pt = PowerType.CONSUMPTION;
-    assertFalse("not interruptible 1", pt.isInterruptible());
+    assertFalse(pt.isInterruptible(), "not interruptible 1");
     pt = PowerType.ELECTRIC_VEHICLE;
-    assertTrue("is interruptible 3", pt.isInterruptible());
+    assertTrue(pt.isInterruptible(), "is interruptible 3");
   }
   
   @Test
@@ -107,7 +107,7 @@ public class PowerTypeTest
   public void testToString ()
   {
     PowerType pt = PowerType.INTERRUPTIBLE_CONSUMPTION;
-    assertEquals("Correct string", "INTERRUPTIBLE_CONSUMPTION", pt.toString());
+    assertEquals("INTERRUPTIBLE_CONSUMPTION", pt.toString(), "Correct string");
   }
 
   /**

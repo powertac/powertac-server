@@ -15,14 +15,14 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -31,7 +31,7 @@ public class HourlyChargeTests
   Instant now;
   HourlyCharge hc;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     now = new DateTime().toInstant();
@@ -41,18 +41,18 @@ public class HourlyChargeTests
   @Test
   public void testHourlyCharge ()
   {
-    assertNotNull("something created", hc);
-    assertEquals("correct time", now.getMillis(), hc.getAtTime().getMillis());
-    assertEquals("correct amount", 0.21, hc.getValue(), 1e-6);
-    assertEquals("default rateId", -1l, hc.getRateId());
+    assertNotNull(hc, "something created");
+    assertEquals(now.getMillis(), hc.getAtTime().getMillis(), "correct time");
+    assertEquals(0.21, hc.getValue(), 1e-6, "correct amount");
+    assertEquals(-1l, hc.getRateId(), "default rateId");
   }
 
   @Test
   public void testRateId ()
   {
-    assertEquals("default rateId", -1l, hc.getRateId());
+    assertEquals(-1l, hc.getRateId(), "default rateId");
     hc.setRateId(42l);
-    assertEquals("correct rateId", 42l, hc.getRateId());
+    assertEquals(42l, hc.getRateId(), "correct rateId");
   }
   
   @Test
@@ -60,8 +60,8 @@ public class HourlyChargeTests
   {
     HourlyCharge hcLt = new HourlyCharge(new Instant(now.minus(10000l)), 0.33);
     HourlyCharge hcGt = new HourlyCharge(new Instant(now.plus(10000l)), 0.13);
-    assertTrue("lt sorts first", hc.compareTo(hcLt) > 0);
-    assertTrue("gt sorts last", hc.compareTo(hcGt) < 0);
+    assertTrue(hc.compareTo(hcLt) > 0, "lt sorts first");
+    assertTrue(hc.compareTo(hcGt) < 0, "gt sorts last");
   }
 
   @Test
@@ -74,9 +74,9 @@ public class HourlyChargeTests
     serialized.write(xstream.toXML(hc));
     //System.out.println(serialized.toString());
     HourlyCharge xhc= (HourlyCharge)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xhc);
-    assertEquals("correct time", now.getMillis(), xhc.getAtTime().getMillis());
-    assertEquals("correct amount", 0.21, xhc.getValue(), 1e-6);
-    assertEquals("correct rate ID", 37l, xhc.getRateId());
+    assertNotNull(xhc, "deserialized something");
+    assertEquals(now.getMillis(), xhc.getAtTime().getMillis(), "correct time");
+    assertEquals(0.21, xhc.getValue(), 1e-6, "correct amount");
+    assertEquals(37l, xhc.getRateId(), "correct rate ID");
   }
 }

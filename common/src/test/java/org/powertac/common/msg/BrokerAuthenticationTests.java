@@ -15,14 +15,13 @@
  */
 package org.powertac.common.msg;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.powertac.common.Broker;
 
 import com.thoughtworks.xstream.XStream;
@@ -36,7 +35,7 @@ public class BrokerAuthenticationTests
 {
   Broker broker;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     broker = new Broker("Maria");
@@ -46,18 +45,18 @@ public class BrokerAuthenticationTests
   public void testCreate1 ()
   {
     BrokerAuthentication ba = new BrokerAuthentication(broker);
-    assertNotNull("message not null", ba);
-    assertEquals("correct username", broker.getUsername(), ba.getUsername());
-    assertNull("null password", ba.getPassword());
+    assertNotNull(ba, "message not null");
+    assertEquals(broker.getUsername(), ba.getUsername(), "correct username");
+    assertNull(ba.getPassword(), "null password");
   }
 
   @Test
   public void testCreate2 ()
   {
     BrokerAuthentication ba = new BrokerAuthentication("Jerry", "runspotrun");
-    assertNotNull("message not null", ba);
-    assertEquals("correct username", "Jerry", ba.getUsername());
-    assertEquals("correct password", "runspotrun", ba.getPassword());
+    assertNotNull(ba, "message not null");
+    assertEquals("Jerry", ba.getUsername(), "correct username");
+    assertEquals("runspotrun", ba.getPassword(), "correct password");
   }
 
   @Test
@@ -70,8 +69,8 @@ public class BrokerAuthenticationTests
     serialized.write(xstream.toXML(ba));
     //System.out.println(serialized.toString());
     BrokerAuthentication xba = (BrokerAuthentication)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xba);
-    assertEquals("correct username", "Sally", xba.getUsername());
-    assertEquals("correct password", "silly-password", xba.getPassword());
+    assertNotNull(xba, "deserialized something");
+    assertEquals("Sally", xba.getUsername(), "correct username");
+    assertEquals("silly-password", xba.getPassword(), "correct password");
   }
 }

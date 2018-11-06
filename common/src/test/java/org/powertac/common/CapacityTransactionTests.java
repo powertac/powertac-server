@@ -15,20 +15,17 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import java.io.StringWriter;
 
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
@@ -39,8 +36,7 @@ import com.thoughtworks.xstream.XStream;
  * requires that the BrokerConverter be able to find the BrokerRepo.
  * @author John Collins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -53,7 +49,7 @@ public class CapacityTransactionTests
   Broker broker;
   BrokerRepo brokerRepo;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition.setCurrent(Competition.newInstance("Capacity transaction test"));
@@ -68,12 +64,12 @@ public class CapacityTransactionTests
   {
     CapacityTransaction ct =
         new CapacityTransaction(broker, 24, 22, 120.0, 42.1, 3.22);
-    assertNotNull("not null", ct);
-    assertEquals("correct time", 24, ct.getPostedTimeslotIndex());
-    assertEquals("correct ts", 22, ct.getPeakTimeslot());
-    assertEquals("correct broker", broker, ct.getBroker());
-    assertEquals("correct qty", 42.1, ct.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, ct.getCharge(), 1e-6);
+    assertNotNull(ct, "not null");
+    assertEquals(24, ct.getPostedTimeslotIndex(), "correct time");
+    assertEquals(22, ct.getPeakTimeslot(), "correct ts");
+    assertEquals(broker, ct.getBroker(), "correct broker");
+    assertEquals(42.1, ct.getKWh(), 1e-6, "correct qty");
+    assertEquals(3.22, ct.getCharge(), 1e-6, "correct charge");
   }
 
   @Test
@@ -82,8 +78,7 @@ public class CapacityTransactionTests
     CapacityTransaction ct =
         new CapacityTransaction(broker, 24, 22, 110.0, 42.1, 3.22);
     String sut = ct.toString();
-    assertEquals("match", String.format("Capacity tx %d-%s-(%d,%.2f,%.2f)-%.2f",
-                          24,"Sally",22, 110.0, 42.1, 3.22), sut); 
+    assertEquals(String.format("Capacity tx %d-%s-(%d,%.2f,%.2f)-%.2f", 24,"Sally",22, 110.0, 42.1, 3.22), sut, "match");
   }
 
   @Test
@@ -97,12 +92,12 @@ public class CapacityTransactionTests
     serialized.write(xstream.toXML(ct));
     //System.out.println(serialized.toString());
     CapacityTransaction xct = (CapacityTransaction)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xct);
-    assertEquals("correct broker", broker, xct.getBroker());
-    assertEquals("correct time", 24, xct.getPostedTimeslotIndex());
-    assertEquals("correct peak ts", 22, xct.getPeakTimeslot());
-    assertEquals("correct threshold", 130.0, xct.getThreshold(), 1e-6);
-    assertEquals("correct qty", 42.1, xct.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, xct.getCharge(), 1e-6);
+    assertNotNull(xct, "deserialized something");
+    assertEquals(broker, xct.getBroker(), "correct broker");
+    assertEquals(24, xct.getPostedTimeslotIndex(), "correct time");
+    assertEquals(22, xct.getPeakTimeslot(), "correct peak ts");
+    assertEquals(130.0, xct.getThreshold(), 1e-6, "correct threshold");
+    assertEquals(42.1, xct.getKWh(), 1e-6, "correct qty");
+    assertEquals(3.22, xct.getCharge(), 1e-6, "correct charge");
   }
 }

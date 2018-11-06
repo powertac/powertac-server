@@ -1,14 +1,13 @@
 package org.powertac.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -17,7 +16,7 @@ public class WeatherReportTest {
 	Timeslot ts1;
 	int ts1Num;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 	    Competition.newInstance("test");
 		Instant baseTime = new DateTime().toInstant();
@@ -65,12 +64,12 @@ public class WeatherReportTest {
 		serialized.write(xstream.toXML(w1));
 		// System.out.println(serialized.toString());
 		WeatherReport xw1 = (WeatherReport) xstream.fromXML(serialized.toString());
-		assertNotNull("deserialized something", xw1);
-		assertEquals("correct timeslot", 42, xw1.getTimeslotIndex());
-		assertEquals("correct temp", 1, xw1.getTemperature(),.0001);
-		assertEquals("correct windspeed", 2, xw1.getWindSpeed(),.0001);
-		assertEquals("correct winddir", 3, xw1.getWindDirection(),.0001);
-		assertEquals("correct cloudcover", 4, xw1.getCloudCover(),.0001);
+		assertNotNull(xw1, "deserialized something");
+		assertEquals(42, xw1.getTimeslotIndex(), "correct timeslot");
+		assertEquals(1, xw1.getTemperature(),.0001, "correct temp");
+		assertEquals(2, xw1.getWindSpeed(),.0001, "correct windspeed");
+		assertEquals(3, xw1.getWindDirection(),.0001, "correct winddir");
+		assertEquals(4, xw1.getCloudCover(),.0001, "correct cloudcover");
 	}
 
 }
