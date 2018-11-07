@@ -655,6 +655,11 @@
         <artifactId>maven-source-plugin</artifactId>
       </plugin>
 
+      <!-- Make sure to always attach javadoc jars -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
     </plugins>
 
   </build>
