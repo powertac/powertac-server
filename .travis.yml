@@ -6,3 +6,5 @@ jdk:
 cache:
   directories:
     - $HOME/.m2
+script:
+  - mvn -nsu -B -Dmaven.javadoc.skip=true clean install
