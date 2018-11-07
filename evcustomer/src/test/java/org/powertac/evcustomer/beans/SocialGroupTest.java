@@ -16,10 +16,11 @@
 
 package org.powertac.evcustomer.beans;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -31,13 +32,13 @@ public class SocialGroupTest
   private int id = 1;
   private String name = "TestSocialGroup";
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     initialize();
   }
 
-  @After
+  @AfterEach
   public void tearDown ()
   {
     socialGroup = null;

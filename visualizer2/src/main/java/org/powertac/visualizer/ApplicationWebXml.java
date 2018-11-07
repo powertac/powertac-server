@@ -2,7 +2,7 @@ package org.powertac.visualizer;
 
 import org.powertac.visualizer.config.DefaultProfileUtil;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
  * This is a helper Java class that provides an alternative to creating a web.xml.

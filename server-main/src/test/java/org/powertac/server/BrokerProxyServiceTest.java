@@ -1,18 +1,15 @@
 package org.powertac.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.XMLMessageConverter;
@@ -37,7 +34,7 @@ public class BrokerProxyServiceTest
   private JmsTemplate template;
   private XMLMessageConverter converter;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception 
   {
     brokerProxy = new BrokerProxyService();
@@ -57,7 +54,7 @@ public class BrokerProxyServiceTest
     ReflectionTestUtils.setField(brokerProxy, "converter", converter);     
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception 
   {
   }
@@ -77,24 +74,19 @@ public class BrokerProxyServiceTest
   public void localBrokerSingleMessage ()
   {
     brokerProxy.sendMessage(localBroker, message);
-    assertEquals("no messages for non-enabled broker", 0,
-                 localBroker.messages.size());
+    assertEquals(0, localBroker.messages.size(), "no messages for non-enabled broker");
     localBroker.setEnabled(true);
     brokerProxy.sendMessage(localBroker, message);
-    assertEquals("one message for enabled broker", 1,
-                 localBroker.messages.size());
-    assertEquals("correct message arrived", message,
-                 localBroker.messages.get(0));
+    assertEquals(1, localBroker.messages.size(), "one message for enabled broker");
+    assertEquals(message, localBroker.messages.get(0), "correct message arrived");
   }
   
   @Test
   public void wholesaleBrokerSingleMessage ()
   {
     brokerProxy.sendMessage(wholesaleBroker, message);
-    assertEquals("one message for wholesale broker", 1,
-                 wholesaleBroker.messages.size());
-    assertEquals("correct message arrived", message,
-                 wholesaleBroker.messages.get(0));
+    assertEquals(1, wholesaleBroker.messages.size(), "one message for wholesale broker");
+    assertEquals(message, wholesaleBroker.messages.get(0), "correct message arrived");
   }
 
   @Test

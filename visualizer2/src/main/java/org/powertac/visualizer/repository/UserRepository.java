@@ -14,6 +14,10 @@ import java.util.Optional;
  */
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    String USERS_BY_LOGIN_CACHE = "usersByLogin";
+
+    String USERS_BY_EMAIL_CACHE = "usersByEmail";
+
     Optional<User> findOneByLogin(String login);
 
     @EntityGraph(attributePaths = "authorities")

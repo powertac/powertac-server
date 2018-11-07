@@ -19,7 +19,7 @@ import java.util.List;
 public class ViewService {
 
     private final Logger log = LoggerFactory.getLogger(ViewService.class);
-    
+
     private final ViewRepository viewRepository;
 
     public ViewService(ViewRepository viewRepository) {
@@ -40,7 +40,7 @@ public class ViewService {
 
     /**
      *  Get all the views.
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
@@ -53,13 +53,13 @@ public class ViewService {
 
     /**
      *  Get all the views owned by this user, plus all shared views.
-     *  
+     *
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public List<View> findByOwnerIsCurrentUserOrShared(String login) {
         log.debug("Request to get all owned and shared Graphs");
-        List<View> result = viewRepository.findByOwnerIsCurrentUserOrShared(login); 
+        List<View> result = viewRepository.findByOwnerIsCurrentUserOrShared(login);
         return result;
     }
 
@@ -70,19 +70,19 @@ public class ViewService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public View findOne(Long id) {
+    public View getOne(Long id) {
         log.debug("Request to get View : {}", id);
-        View view = viewRepository.findOne(id);
+        View view = viewRepository.getOne(id);
         return view;
     }
 
     /**
-     *  Delete the  view by id.
+     *  Delete the view.
      *
-     *  @param id the id of the entity
+     *  @param view the View to delete
      */
-    public void delete(Long id) {
-        log.debug("Request to delete View : {}", id);
-        viewRepository.delete(id);
+    public void delete(View view) {
+        log.debug("Request to delete View : {}", view);
+        viewRepository.delete(view);
     }
 }

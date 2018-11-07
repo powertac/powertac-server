@@ -15,7 +15,7 @@
  */
 package org.powertac.evcustomer;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.powertac.util.ListTools.*;
 
 import java.util.ArrayList;
@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration2.CompositeConfiguration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.evcustomer.beans.Activity;
@@ -44,7 +44,7 @@ public class ConfigTest
   // Unit under test
   Config uut;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     configSvc = new DummyConfig();
@@ -59,7 +59,7 @@ public class ConfigTest
   public void configByKey ()
   {
     double result = config.getDouble("evcustomer.config.touFactor");
-    assertEquals("Correct value", 0.25, result, 1e-6);
+    assertEquals(0.25, result, 1e-6, "Correct value");
   }
 
   /**
@@ -69,7 +69,7 @@ public class ConfigTest
   public void testGetInstance ()
   {
     Config item = Config.getInstance();
-    assertNotNull("Config created", item);
+    assertNotNull(item, "Config created");
   }
 
   /**
@@ -81,7 +81,7 @@ public class ConfigTest
     Config item = Config.getInstance();
     ReflectionTestUtils.setField(item, "serverConfiguration", configSvc);
     item.configure();
-    assertEquals("ConfiguredValue", 0.25, item.getTouFactor(), 1e-6);
+    assertEquals(0.25, item.getTouFactor(), 1e-6, "ConfiguredValue");
   }
 
   @Test
@@ -94,24 +94,19 @@ public class ConfigTest
 
     // Social groups
     Collection<?> coll = result.get("SocialGroup");
-    assertEquals("3 groups", 3, coll.size());
+    assertEquals(3, coll.size(), "3 groups");
 
     // Activities
     ArrayList<Object> list = new ArrayList<Object>(result.get("Activity"));
-    assertEquals("2 activities", 2, list.size());
-    assertTrue("one of them is commuting",
-               ((Activity)list.get(0)).getName().equals("commuting")
-               || ((Activity)list.get(1)).getName().equals("commuting"));
-    assertTrue("one of them is business_trip",
-               ((Activity)list.get(0)).getName().equals("business_trip")
-               || ((Activity)list.get(1)).getName().equals("business_trip"));
+    assertEquals(2, list.size(), "2 activities");
+    assertTrue(((Activity)list.get(0)).getName().equals("commuting") || ((Activity)list.get(1)).getName().equals("commuting"), "one of them is commuting");
+    assertTrue(((Activity)list.get(0)).getName().equals("business_trip") || ((Activity)list.get(1)).getName().equals("business_trip"), "one of them is business_trip");
     int index = 0;
     if (((Activity)list.get(1)).getName().equals("commuting"))
       index = 1;
     Activity commuting = (Activity)list.get(index);
-    assertEquals("correct id", 0, commuting.getId());
-    assertEquals("correct weekday weight", 0.99,
-                 commuting.getWeekdayWeight(), 1e-6);
+    assertEquals(0, commuting.getId(), "correct id");
+    assertEquals(0.99, commuting.getWeekdayWeight(), 1e-6, "correct weekday weight");
   }
 
   @Test
@@ -124,7 +119,7 @@ public class ConfigTest
 
     @SuppressWarnings("unchecked")
     Collection<Object> list = (Collection<Object>) result.get("ClassCar");
-    assertEquals("8 instances", 8, list.size());
+    assertEquals(8, list.size(), "8 instances");
 
     Object thing = findFirst(list, new Predicate<Object>() {
       @Override
@@ -134,11 +129,11 @@ public class ConfigTest
             ((ClassCar)thing).getName().equals("HI_2_T40"));
       }
     });
-    assertNotNull("found HI_2_T40", thing);
+    assertNotNull(thing, "found HI_2_T40");
     ClassCar cc = (ClassCar)thing;
-    assertEquals("correct class", "HighIncome_2", cc.getSocialClassName());
-    assertEquals("correct car", "Tesla_40_kWh", cc.getCarName());
-    assertEquals("correct probability", 0.7, cc.getProbability(), 1e-6);
+    assertEquals(cc.getSocialClassName(), "HighIncome_2", "correct class");
+    assertEquals(cc.getCarName(), "Tesla_40_kWh", "correct car");
+    assertEquals(0.7, cc.getProbability(), 1e-6, "correct probability");
   }
 
   class DummyConfig implements ServerConfiguration

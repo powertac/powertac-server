@@ -15,7 +15,7 @@
  */
 package org.powertac.tariffmarket;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -24,9 +24,9 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
@@ -45,11 +45,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"classpath:tariff-test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
@@ -76,7 +76,7 @@ public class TariffSubscriptionTests
   //private AbstractCustomer customer;
   private Instant now;
 
-  @Before
+  @BeforeEach
   public void setUp()
   {
     Competition comp = Competition.newInstance("tariff-sub-test");
@@ -107,10 +107,10 @@ public class TariffSubscriptionTests
     tariffMarketService.activate(now, 4);
     TariffSubscription ts = 
             tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
-    assertNotNull("non-null subscription", ts);
-    assertEquals("correct customer", customer, ts.getCustomer());
-    assertEquals("correct tariff", tariff, ts.getTariff());
-    assertEquals("correct customer count", 3, ts.getCustomersCommitted());
+    assertNotNull(ts, "non-null subscription");
+    assertEquals(customer, ts.getCustomer(), "correct customer");
+    assertEquals(tariff, ts.getTariff(), "correct tariff");
+    assertEquals(3, ts.getCustomersCommitted(), "correct customer count");
   }
   
   // subscription with non-zero signup bonus
@@ -131,8 +131,8 @@ public class TariffSubscriptionTests
     tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
             tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
-    assertNotNull("non-null subscription", tsub);
-    assertEquals("five customers committed", 5, tsub.getCustomersCommitted());
+    assertNotNull(tsub, "non-null subscription");
+    assertEquals(5, tsub.getCustomersCommitted(), "five customers committed");
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer,
                                                 5, 0.0, -33.2 * 5);
@@ -169,10 +169,10 @@ public class TariffSubscriptionTests
                                                 tariff, customer,
                                                 2, 0.0, 42.1*2);
     //def txs = TariffTransaction.findAllByPostedTime(wk2)
-    //assertEquals("one transaction", 1, txs.size())
-    //assertEquals("correct txType", TariffTransactionType.WITHDRAW, txs[0].txType)
-    //assertEquals("correct charge", 42.1*2, txs[0].charge)
-    assertEquals("three customers committed", 3, tsub.getCustomersCommitted());
+    //assertEquals(1, txs.size(), "one transaction")
+    //assertEquals(TariffTransactionType.WITHDRAW, txs[0].txType, "correct txType")
+    //assertEquals(42.1*2, txs[0].charge, "correct charge")
+    assertEquals(3, tsub.getCustomersCommitted(), "three customers committed");
     
     // move time forward another week, add 4 customers and drop 1
     Instant wk3 = now.plus(TimeService.WEEK * 2 + TimeService.HOUR * 6);
@@ -182,18 +182,18 @@ public class TariffSubscriptionTests
             tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     tsub1.unsubscribe(1);
     tariffMarketService.activate(wk3, 4);
-    assertEquals("same subscription", tsub, tsub1);
+    assertEquals(tsub, tsub1, "same subscription");
     //txs = TariffTransaction.findAllByPostedTime(wk3)
-    //assertEquals("two transactions", 2, txs.size())
+    //assertEquals(2, txs.size(), "two transactions")
     //TariffTransaction ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime,
     //                                                                    TariffTransactionType.SIGNUP)
-    //assertNotNull("found signup tx", ttx)
-    //assertEquals("correct charge", -33.2 * 4, ttx.charge)
+    //assertNotNull(ttx, "found signup tx")
+    //assertEquals(-33.2 * 4, ttx.charge, "correct charge")
     //ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime,
     //                                                  TariffTransactionType.WITHDRAW)
-    //assertNotNull("found withdraw tx", ttx)
-    //assertEquals("correct charge", 42.1, ttx.charge)
-    assertEquals("six customers committed", 6, tsub1.getCustomersCommitted());
+    //assertNotNull(ttx, "found withdraw tx")
+    //assertEquals(42.1, ttx.charge, "correct charge")
+    assertEquals(6, tsub1.getCustomersCommitted(), "six customers committed");
   }
 
   // subscription withdrawal for revoked tariff
@@ -224,7 +224,7 @@ public class TariffSubscriptionTests
     TariffRevoke tex = new TariffRevoke(tariffSpec.getBroker(), tariffSpec);
     tariffMarketService.handleMessage(tex);
     tariffMarketService.activate(wk2, 4);
-    assertTrue("tariff revoked", tariff.isRevoked());
+    assertTrue(tariff.isRevoked(), "tariff revoked");
     tsub.unsubscribe(2);
     tariffMarketService.activate(wk2, 4);
     verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.WITHDRAW),
@@ -251,33 +251,33 @@ public class TariffSubscriptionTests
     tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
             tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
-    assertEquals("four customers committed", 4, tsub.getCustomersCommitted());
+    assertEquals(4, tsub.getCustomersCommitted(), "four customers committed");
     tsub.usePower(24.4); // consumption
-    assertEquals("correct total usage", 24.4 / 4, tsub.getTotalUsage(), 1e-6);
-    assertEquals("correct realized price", -0.121, tariff.getRealizedPrice(), 1e-6);
+    assertEquals(24.4 / 4, tsub.getTotalUsage(), 1e-6, "correct total usage");
+    assertEquals(-0.121, tariff.getRealizedPrice(), 1e-6, "correct realized price");
     //def txs = TariffTransaction.findAllByPostedTime(timeService.getCurrentTime());
-    //assertEquals("two transactions", 2, txs.size())
+    //assertEquals(2, txs.size(), "two transactions")
     //TariffTransaction ttx = 
     //    TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.SIGNUP)
-    //assertNotNull("found signup tx", ttx)
-    //assertEquals("correct charge", -33.2 * 4, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found signup tx")
+    //assertEquals(-33.2 * 4, ttx.charge, 1e-6, "correct charge")
     //ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.CONSUME)
-    //assertNotNull("found consumption tx", ttx)
-    //assertEquals("correct amount", 24.4, ttx.quantity)
-    //assertEquals("correct charge", 0.121 * 24.4, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found consumption tx")
+    //assertEquals(24.4, ttx.quantity, "correct amount")
+    //assertEquals(0.121 * 24.4, ttx.charge, 1e-6, "correct charge")
 
     // just consume in the second timeslot
     Instant hour = now.plus(TimeService.HOUR);
     timeService.setCurrentTime(hour);
     tsub.usePower(32.8); // consumption
-    assertEquals("correct total usage", (24.4 + 32.8) / 4, tsub.getTotalUsage(), 1e-6);
-    assertEquals("correct realized price", -0.121, tariff.getRealizedPrice(), 1e-6);
+    assertEquals((24.4 + 32.8) / 4, tsub.getTotalUsage(), 1e-6, "correct total usage");
+    assertEquals(-0.121, tariff.getRealizedPrice(), 1e-6, "correct realized price");
     //txs = TariffTransaction.findAllByPostedTime(timeService.getCurrentTime())
-    //assertEquals("one transaction", 1, txs.size())
+    //assertEquals(1, txs.size(), "one transaction")
     //ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.getCurrentTime(), TariffTransactionType.CONSUME)
-    //assertNotNull("found consumption tx", ttx)
-    //assertEquals("correct amount", 32.8, ttx.quantity)
-    //assertEquals("correct charge", 0.121 * 32.8, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found consumption tx")
+    //assertEquals(32.8, ttx.quantity, "correct amount")
+    //assertEquals(0.121 * 32.8, ttx.charge, 1e-6, "correct charge")
   }
   
   // Check two-part tariff
@@ -300,22 +300,22 @@ public class TariffSubscriptionTests
     tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
             tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
-    assertEquals("six customers committed", 6, tsub.getCustomersCommitted());
+    assertEquals(6, tsub.getCustomersCommitted(), "six customers committed");
     tsub.usePower(28.8); // consumption
-    assertEquals("correct total usage", 28.8 / 6, tsub.getTotalUsage(), 1e-6);
-    assertEquals("correct realized price", -0.112, tariff.getRealizedPrice(), 1e-6);
+    assertEquals(28.8 / 6, tsub.getTotalUsage(), 1e-6, "correct total usage");
+    assertEquals(-0.112, tariff.getRealizedPrice(), 1e-6, "correct realized price");
     //def txs = TariffTransaction.findAllByPostedTime(timeService.currentTime);
-    //assertEquals("two transactions", 3, txs.size())
+    //assertEquals(3, txs.size(), "two transactions")
     //TariffTransaction ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.SIGNUP)
-    //assertNotNull("found signup tx", ttx)
-    //assertEquals("correct charge", -31.2 * 6, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found signup tx")
+    //assertEquals(-31.2 * 6, ttx.charge, 1e-6, "correct charge")
     //ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.CONSUME)
-    //assertNotNull("found consumption tx", ttx)
-    //assertEquals("correct amount", 28.8, ttx.quantity)
-    //assertEquals("correct charge", 0.112 * 28.8, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found consumption tx")
+    //assertEquals(28.8, ttx.quantity, "correct amount")
+    //assertEquals(0.112 * 28.8, ttx.charge, 1e-6, "correct charge")
     //ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.PERIODIC)
-    //assertNotNull("found periodoc tx", ttx)
-    //assertEquals("correct charge", 6 * 1.3, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found periodoc tx")
+    //assertEquals(6 * 1.3, ttx.charge, 1e-6, "correct charge")
   }
     
   // Check production transactions
@@ -338,18 +338,18 @@ public class TariffSubscriptionTests
     tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
             tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
-    assertEquals("four customers committed", 4, tsub.getCustomersCommitted());
+    assertEquals(4, tsub.getCustomersCommitted(), "four customers committed");
     tsub.usePower(-244.6); // production
-    assertEquals("correct total usage", -244.6 / 4, tsub.getTotalUsage(), 1e-6);
-    assertEquals("correct realized price", 0.102, tariff.getRealizedPrice(), 1e-6);
+    assertEquals(-244.6 / 4, tsub.getTotalUsage(), 1e-6, "correct total usage");
+    assertEquals(0.102, tariff.getRealizedPrice(), 1e-6, "correct realized price");
     //def txs = TariffTransaction.findAllByPostedTime(timeService.currentTime);
-    //assertEquals("two transactions", 2, txs.size())
+    //assertEquals(2, txs.size(), "two transactions")
     //TariffTransaction ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.SIGNUP)
-    //assertNotNull("found signup tx", ttx)
-    //assertEquals("correct charge", -34.2 * 4, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found signup tx")
+    //assertEquals(-34.2 * 4, ttx.charge, 1e-6, "correct charge")
     //ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.PRODUCE)
-    //assertNotNull("found production tx", ttx)
-    //assertEquals("correct amount", -244.6, ttx.quantity)
-    //assertEquals("correct charge", -0.102 * 244.6, ttx.charge, 1e-6)
+    //assertNotNull(ttx, "found production tx")
+    //assertEquals(-244.6, ttx.quantity, "correct amount")
+    //assertEquals(-0.102 * 244.6, ttx.charge, 1e-6, "correct charge")
   }
 }

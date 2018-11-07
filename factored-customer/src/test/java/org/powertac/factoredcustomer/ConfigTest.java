@@ -15,17 +15,16 @@
  */
 package org.powertac.factoredcustomer;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.factoredcustomer.interfaces.StructureInstance;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 
 /**
@@ -35,7 +34,7 @@ public class ConfigTest
 {
   private DummyConfig configSvc;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     configSvc = new DummyConfig();
@@ -47,7 +46,7 @@ public class ConfigTest
   public void testGetInstance ()
   {
     Config item = Config.getInstance();
-    assertNotNull("Config created", item);
+    assertNotNull(item, "Config created");
   }
 
   /**
@@ -59,12 +58,9 @@ public class ConfigTest
     Config config = Config.getInstance();
     config.configure();
 
-    assertEquals("ConfiguredValue allocationDetailsLogging",
-        config.isAllocationDetailsLogging(), true);
-    assertEquals("ConfiguredValue capacityDetailsLogging",
-        config.isCapacityDetailsLogging(), false);
-    assertEquals("ConfiguredValue usageChargesLogging",
-        config.isUsageChargesLogging(), false);
+    assertEquals(config.isAllocationDetailsLogging(), true, "ConfiguredValue allocationDetailsLogging");
+    assertEquals(config.isCapacityDetailsLogging(), false, "ConfiguredValue capacityDetailsLogging");
+    assertEquals(config.isUsageChargesLogging(), false, "ConfiguredValue usageChargesLogging");
   }
 
   /**
@@ -78,22 +74,15 @@ public class ConfigTest
 
     Set<String> names = config.getStructures().keySet();
 
-    assertEquals("Structure size", names.size(), 7);
-    assertEquals("Structure CapacityStructure",
-        names.contains("CapacityStructure"), true);
-    assertEquals("Structure CustomerStructure",
-        names.contains("CustomerStructure"), true);
-    assertEquals("Structure DefaultCapacityBundle",
-        names.contains("DefaultCapacityBundle"), true);
-    assertEquals("Structure ProbabilityDistribution",
-        names.contains("ProbabilityDistribution"), true);
-    assertEquals("Structure TariffSubscriberStructure",
-        names.contains("TariffSubscriberStructure"), true);
-    assertEquals("Structure TimeseriesGenerator",
-        names.contains("TimeseriesGenerator"), true);
+    assertEquals(names.size(), 7, "Structure size");
+    assertEquals(names.contains("CapacityStructure"), true, "Structure CapacityStructure");
+    assertEquals(names.contains("CustomerStructure"), true, "Structure CustomerStructure");
+    assertEquals(names.contains("DefaultCapacityBundle"), true, "Structure DefaultCapacityBundle");
+    assertEquals(names.contains("ProbabilityDistribution"), true, "Structure ProbabilityDistribution");
+    assertEquals(names.contains("TariffSubscriberStructure"), true, "Structure TariffSubscriberStructure");
+    assertEquals(names.contains("TimeseriesGenerator"), true, "Structure TimeseriesGenerator");
     // Empty
-    assertEquals("Structure ProfileOptimizerStructure",
-        names.contains("ProfileOptimizerStructure"), true);
+    assertEquals(names.contains("ProfileOptimizerStructure"), true, "Structure ProfileOptimizerStructure");
   }
 
   @Test
@@ -106,59 +95,48 @@ public class ConfigTest
     // Customer structures
     SortedSet<String> customerNames = new TreeSet<>();
     customerNames.addAll(structures.get("CustomerStructure").keySet());
-    assertEquals("4 Customer Structures", 4, customerNames.size());
-    assertEquals("BrooksideHomes Customer Structures",
-        customerNames.first(), "BrooksideHomes");
-    assertEquals("WindmillCoOp Customer Structures",
-        customerNames.last(), "WindmillCoOp");
+    assertEquals(4, customerNames.size(), "4 Customer Structures");
+    assertEquals(customerNames.first(), "BrooksideHomes", "BrooksideHomes Customer Structures");
+    assertEquals(customerNames.last(), "WindmillCoOp", "WindmillCoOp Customer Structures");
 
     // TariffSubscriber structures
     SortedSet<String> subscriberNames = new TreeSet<>();
     subscriberNames.addAll(structures.get("TariffSubscriberStructure").keySet());
-    assertEquals("6 Subscriber Structures", 6, subscriberNames.size());
-    assertEquals("BrooksideHomes Subscriber Structures",
-        subscriberNames.first(), "BrooksideHomes");
-    assertEquals("WindmillCoOp Subscriber Structures",
-        subscriberNames.last(), "WindmillCoOp-2");
+    assertEquals(6, subscriberNames.size(), "6 Subscriber Structures");
+    assertEquals(subscriberNames.first(), "BrooksideHomes", "BrooksideHomes Subscriber Structures");
+    assertEquals(subscriberNames.last(), "WindmillCoOp-2", "WindmillCoOp Subscriber Structures");
 
     // Capacity structures
     SortedSet<String> capacityNames = new TreeSet<>();
     capacityNames.addAll(structures.get("CapacityStructure").keySet());
-    assertEquals("8 Capacity Structures", 8, capacityNames.size());
-    assertEquals("BrooksideHomes Capacity Structures",
-        capacityNames.first(), "BrooksideHomes");
-    assertEquals("WindmillCoOp Capacity Structures",
-        capacityNames.last(), "WindmillCoOp-2");
+    assertEquals(8, capacityNames.size(), "8 Capacity Structures");
+    assertEquals(capacityNames.first(), "BrooksideHomes", "BrooksideHomes Capacity Structures");
+    assertEquals(capacityNames.last(), "WindmillCoOp-2", "WindmillCoOp Capacity Structures");
 
     // DefaultCapacityBundle structures
     SortedSet<String> bundleNames = new TreeSet<>();
     bundleNames.addAll(structures.get("DefaultCapacityBundle").keySet());
-    assertEquals("6 Bundle Structures", 6, bundleNames.size());
-    assertEquals("BrooksideHomes Bundle Structures",
-        bundleNames.first(), "BrooksideHomes");
-    assertEquals("WindmillCoOp Bundle Structures",
-        bundleNames.last(), "WindmillCoOp-2");
+    assertEquals(6, bundleNames.size(), "6 Bundle Structures");
+    assertEquals(bundleNames.first(), "BrooksideHomes", "BrooksideHomes Bundle Structures");
+    assertEquals(bundleNames.last(), "WindmillCoOp-2", "WindmillCoOp Bundle Structures");
 
     // ProbabilityDistribution structures
     SortedSet<String> distNames = new TreeSet<>();
     distNames.addAll(structures.get("ProbabilityDistribution").keySet());
-    assertEquals("13 Distribution Structures", 13, distNames.size());
-    assertEquals("BrooksideHomesInertia Bundle Structures",
-        distNames.first(), "BrooksideHomesInertia");
-    assertEquals("WindmillCoOp-2Population Bundle Structures",
-        distNames.last(), "WindmillCoOp-2Population");
+    assertEquals(13, distNames.size(), "13 Distribution Structures");
+    assertEquals(distNames.first(), "BrooksideHomesInertia", "BrooksideHomesInertia Bundle Structures");
+    assertEquals(distNames.last(), "WindmillCoOp-2Population", "WindmillCoOp-2Population Bundle Structures");
 
     // TimeseriesGenerator structures
     SortedSet<String> seriesNames = new TreeSet<>();
     seriesNames.addAll(structures.get("TimeseriesGenerator").keySet());
-    assertEquals("1 Timeseries Structures", 1, seriesNames.size());
-    assertEquals("BrooksideHomesPopulation Timeseries Structures",
-        seriesNames.first(), "BrooksideHomesPopulation");
+    assertEquals(1, seriesNames.size(), "1 Timeseries Structures");
+    assertEquals(seriesNames.first(), "BrooksideHomesPopulation", "BrooksideHomesPopulation Timeseries Structures");
 
 
     // ProfileOptimizerStructure structures
     SortedSet<String> optimizerNames = new TreeSet<>();
     optimizerNames.addAll(structures.get("ProfileOptimizerStructure").keySet());
-    assertEquals("0 Timeseries Structures", 0, optimizerNames.size());
+    assertEquals(0, optimizerNames.size(), "0 Timeseries Structures");
   }
 }

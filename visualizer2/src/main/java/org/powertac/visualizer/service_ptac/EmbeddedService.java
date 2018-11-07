@@ -231,7 +231,7 @@ public class EmbeddedService {
             if (competitionControlService.isRunning()) {
                 competitionControlService.shutDown();
             }
-            gameService.delete(currentGame.getId());
+            gameService.delete(currentGame);
             currentGame = null;
         }
 

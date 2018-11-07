@@ -16,8 +16,15 @@
 
 package org.powertac.evcustomer.customers;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -37,12 +44,6 @@ import org.powertac.evcustomer.beans.SocialGroup;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 /**
@@ -68,7 +69,7 @@ public class EvCustomerTest
   private double femaleDailyKm = 10;
   private int groupId = 2;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     evCustomer = new EvCustomer(cName);
@@ -125,10 +126,7 @@ public class EvCustomerTest
   public void testCurrentCapacity ()
   {
     initialize("male");
-    assertEquals("current capacity initialized", 
-                 0.5 * evCustomer.getCar().getMaxCapacity(),
-                 evCustomer.getCurrentCapacity(),
-                 1E-06);
+    assertEquals(0.5 * evCustomer.getCar().getMaxCapacity(), evCustomer.getCurrentCapacity(), 1E-06, "current capacity initialized");
   }
 
   @Test
@@ -136,21 +134,20 @@ public class EvCustomerTest
   {
     carType.setMaxCapacity(100.0);
     initialize("female");
-    assertEquals("initial capacity", 50.0,
-                 evCustomer.getCurrentCapacity(), 1E-06);
+    assertEquals(50.0, evCustomer.getCurrentCapacity(), 1E-06, "initial capacity");
     evCustomer.discharge(25.0);
-    assertEquals("reduced capacity", 25.0,
-                 evCustomer.getCurrentCapacity(), 1E-06);
+    assertEquals(25.0, evCustomer.getCurrentCapacity(), 1E-06, "reduced capacity");
   }
 
-  @Test(expected = EvCustomer.ChargeException.class)
+  @Test
   public void testDischargeInvalid () throws EvCustomer.ChargeException
   {
-    carType.setMaxCapacity(100.0);
-    initialize("female");
-    evCustomer.discharge(51.0);
-    assertEquals("should not get here", 0.0,
-                 evCustomer.getCurrentCapacity(), 1E-06);
+    assertThrows(EvCustomer.ChargeException.class, () -> {
+      carType.setMaxCapacity(100.0);
+      initialize("female");
+      evCustomer.discharge(51.0);
+      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
+    });
   }
 
   @Test
@@ -158,24 +155,22 @@ public class EvCustomerTest
   {
     carType.setMaxCapacity(100.0);
     initialize("female");
-    assertEquals("initial capacity", 50.0,
-                 evCustomer.getCurrentCapacity(), 1E-06);
+    assertEquals(50.0, evCustomer.getCurrentCapacity(), 1E-06, "initial capacity");
     evCustomer.discharge(50);
     evCustomer.charge(25);
-    assertEquals("25 remains", 25.0,
-                 evCustomer.getCurrentCapacity(), 1E-06);
+    assertEquals(25.0, evCustomer.getCurrentCapacity(), 1E-06, "25 remains");
   }
 
-  @Test(expected = EvCustomer.ChargeException.class)
+  @Test()
   public void testChargeInvalid () throws EvCustomer.ChargeException
   {
-    carType.setMaxCapacity(100.0);
-    initialize("female");
-    assertEquals("initial capacity", 50.0,
-                 evCustomer.getCurrentCapacity(), 1E-06);
-    evCustomer.charge(51.0);
-    assertEquals("should not get here", 0.0,
-                 evCustomer.getCurrentCapacity(), 1E-06);
+    assertThrows(EvCustomer.ChargeException.class, () -> {
+      carType.setMaxCapacity(100.0);
+      initialize("female");
+      assertEquals(50.0, evCustomer.getCurrentCapacity(), 1E-06, "initial capacity");
+      evCustomer.charge(51.0);
+      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
+    });
   }
 
   @Test
@@ -183,8 +178,7 @@ public class EvCustomerTest
   {
     carType.setMaxCapacity(100.0);
     initialize("female");
-    assertEquals("correct range calc", 100.0,
-                 evCustomer.getNeededCapacity(200.0), 1E-06);
+    assertEquals(100.0, evCustomer.getNeededCapacity(200.0), 1E-06, "correct range calc");
   }
 
   @Test
@@ -235,10 +229,10 @@ public class EvCustomerTest
     mockSeed.setIntSeed(new int[]{0});
 
     initialize("male");
-    assertEquals("male",    evCustomer.getGender());
+    assertEquals(   evCustomer.getGender(), "male");
 
     initialize("female");
-    assertEquals("female",  evCustomer.getGender());
+    assertEquals( evCustomer.getGender(), "female");
   }
 
   @Test
@@ -246,17 +240,17 @@ public class EvCustomerTest
   {
     // Risk attitude isn't dependent on gender
     initialize("male");
-    assertEquals("averse",   evCustomer.getRiskAttitude());
+    assertEquals(  evCustomer.getRiskAttitude(), "averse");
 
     mockSeed.setIntSeed(new int[]{1});
     mockSeed.resetCounters();
     initialize("male");
-    assertEquals("neutral", evCustomer.getRiskAttitude());
+    assertEquals(evCustomer.getRiskAttitude(), "neutral");
 
     mockSeed.setIntSeed(new int[]{2});
     mockSeed.resetCounters();
     initialize("male");
-    assertEquals("eager",  evCustomer.getRiskAttitude());
+    assertEquals( evCustomer.getRiskAttitude(), "eager");
   }
 
   @Test
@@ -269,16 +263,13 @@ public class EvCustomerTest
     evCustomer.makeDayPlanning(0,  0);
     Map<Integer, EvCustomer.TimeslotData> data =
         evCustomer.getTimeslotDataMap();
-    assertEquals("correct map size", 48, data.size());
+    assertEquals(48, data.size(), "correct map size");
     // first trip should be 10 km in hour 9
-    assertEquals("9 hours away", 9, data.get(0).getHoursTillNextDrive());
-    assertEquals("no driving in 0 hour", 0.0,
-                 data.get(0).getIntendedDistance(), 1e-6);
-    assertEquals("1 hr from 8", 1, data.get(8).getHoursTillNextDrive());
-    assertEquals("no driving in 8 hour", 0.0,
-                 data.get(8).getIntendedDistance(), 1e-6);
-    assertEquals("10 km in hr 9", 10.0,
-                 data.get(9).getIntendedDistance(), 1e-6);
+    assertEquals(9, data.get(0).getHoursTillNextDrive(), "9 hours away");
+    assertEquals(0.0, data.get(0).getIntendedDistance(), 1e-6, "no driving in 0 hour");
+    assertEquals(1, data.get(8).getHoursTillNextDrive(), "1 hr from 8");
+    assertEquals(0.0, data.get(8).getIntendedDistance(), 1e-6, "no driving in 8 hour");
+    assertEquals(10.0, data.get(9).getIntendedDistance(), 1e-6, "10 km in hr 9");
   }
 
   @Test
@@ -292,7 +283,7 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0, 0);
 
-    assertEquals("averse", evCustomer.getRiskAttitude());
+    assertEquals(evCustomer.getRiskAttitude(), "averse");
 
     // Risk averse always charges when under 80%
     assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
@@ -321,7 +312,7 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0, 0);
 
-    assertEquals("neutral", evCustomer.getRiskAttitude());
+    assertEquals(evCustomer.getRiskAttitude(), "neutral");
 
     // Risk neutral always charges when under 60 %
     assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
@@ -345,7 +336,7 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0, 0);
 
-    assertEquals("eager", evCustomer.getRiskAttitude());
+    assertEquals(evCustomer.getRiskAttitude(), "eager");
 
     // Risk eager always charges when under 40 %
     assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);

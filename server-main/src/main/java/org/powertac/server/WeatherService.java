@@ -369,7 +369,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       Data data = null;
       try {
         // Set up stream and aliases
-        XStream xstream = new XStream();
+        XStream xstream = XMLMessageConverter.getXStream();
         xstream.alias("data", Data.class);
         xstream.alias("weatherReport", WeatherReport.class);
         xstream.alias("weatherForecast", WeatherForecastPrediction.class);

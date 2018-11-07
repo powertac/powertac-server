@@ -21,7 +21,7 @@ import java.util.List;
 public class FileService {
 
     private final Logger log = LoggerFactory.getLogger(FileService.class);
-    
+
     private final FileRepository fileRepository;
 
     public FileService(FileRepository fileRepository) {
@@ -42,7 +42,7 @@ public class FileService {
 
     /**
      *  Get all the files.
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
@@ -55,10 +55,10 @@ public class FileService {
 
     /**
      *  Get all the files owned by this user, plus all shared files.
-     *  
+     *
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public List<File> findByOwnerIsCurrentUser(String login, FileType type) {
         log.debug("Request to get all owned and shared Files");
         if (type != null && type.equals(FileType.ANY)) {
@@ -70,10 +70,10 @@ public class FileService {
 
     /**
      *  Get all the files owned by this user, plus all shared files.
-     *  
+     *
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public List<File> findByOwnerIsCurrentUserOrShared(String login, FileType type) {
         log.debug("Request to get all owned and shared Files");
         if (type != null && type.equals(FileType.ANY)) {
@@ -90,21 +90,20 @@ public class FileService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public File findOne(Long id) {
+    public File getOne(Long id) {
         log.debug("Request to get File : {}", id);
-        File file = fileRepository.findOne(id);
+        File file = fileRepository.getOne(id);
         return file;
     }
 
     /**
-     *  Delete the  file by id.
+     *  Delete the file.
      *
-     *  @param id the id of the entity
+     *  @param file the File to delete
      */
-    public void delete(Long id) {
-        log.debug("Request to delete File : {}", id);
-        File file = fileRepository.findOne(id);
-        fileRepository.delete(id);
+    public void delete(File file) {
+        log.debug("Request to delete File : {}", file);
+        fileRepository.delete(file);
         file.delete();
     }
 

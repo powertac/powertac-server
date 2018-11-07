@@ -246,7 +246,7 @@ public class ViewResourceIntTest {
         int databaseSizeBeforeUpdate = viewRepository.findAll().size();
 
         // Update the view
-        View updatedView = viewRepository.findOne(view.getId());
+        View updatedView = viewRepository.getOne(view.getId());
         updatedView.setName(UPDATED_NAME);
         updatedView.setGraphs(UPDATED_GRAPHS);
         updatedView.setShared(UPDATED_SHARED);

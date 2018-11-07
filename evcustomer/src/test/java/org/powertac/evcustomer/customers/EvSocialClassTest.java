@@ -16,10 +16,13 @@
 
 package org.powertac.evcustomer.customers;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import org.apache.commons.configuration2.CompositeConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurationRecorder;
@@ -47,17 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 
 /**
  * @author Govert Buijs, John Collins
@@ -80,7 +72,7 @@ public class EvSocialClassTest
 
   private EvSocialClass evSocialClass;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     evSocialClass = new EvSocialClass(className);
@@ -100,7 +92,7 @@ public class EvSocialClassTest
     service = new ServiceAccessor();
   }
 
-  @After
+  @AfterEach
   public void shutDown ()
   {
     Config.recycle();
@@ -118,8 +110,8 @@ public class EvSocialClassTest
   public void testInitialization ()
   {
     initializeClass();
-    assertEquals("Correct name", className, evSocialClass.getName());
-    assertEquals("correct min count", 2, evSocialClass.getMinCount());
+    assertEquals(className, evSocialClass.getName(), "Correct name");
+    assertEquals(2, evSocialClass.getMinCount(), "correct min count");
   }
 
   @Test
@@ -127,57 +119,44 @@ public class EvSocialClassTest
   {
     initializeClass();
     Map<Integer, SocialGroup> groups = evSocialClass.getGroups();
-    assertEquals("3 groups", 3, groups.size());
-    assertEquals("includes parttime", "parttime", groups.get(1).getName());
+    assertEquals(3, groups.size(), "3 groups");
+    assertEquals(groups.get(1).getName(), "parttime", "includes parttime");
 
     Map<String, CarType> carTypes = evSocialClass.getCarTypes();
-    assertEquals("2 cartypes", 2, carTypes.size());
-    assertTrue("includes Tesla_40_kWh",
-        carTypes.keySet().contains("Tesla_40_kWh"));
-    assertTrue("includes Nissan_Leaf_24_kWh",
-        carTypes.keySet().contains("Nissan_Leaf_24_kWh"));
+    assertEquals(2, carTypes.size(), "2 cartypes");
+    assertTrue(carTypes.keySet().contains("Tesla_40_kWh"), "includes Tesla_40_kWh");
+    assertTrue(carTypes.keySet().contains("Nissan_Leaf_24_kWh"), "includes Nissan_Leaf_24_kWh");
 
     Map<Integer, Activity> activities = evSocialClass.getActivities();
-    assertEquals("2 activities", 2, activities.size());
-    assertEquals("commuting activity", "commuting",
-        activities.get(0).getName());
-    assertEquals("business_trip activity", "business_trip",
-        activities.get(1).getName());
+    assertEquals(2, activities.size(), "2 activities");
+    assertEquals("commuting", activities.get(0).getName(), "commuting activity");
+    assertEquals("business_trip", activities.get(1).getName(), "business_trip activity");
 
     Map<String, ClassCar> classCars = evSocialClass.getClassCars();
-    assertEquals("2 cartypes", 2, classCars.size());
-    assertTrue("includes Tesla_40_kWh",
-        classCars.keySet().contains("Tesla_40_kWh"));
-    assertTrue("includes Nissan_Leaf_24_kWh",
-        classCars.keySet().contains("Nissan_Leaf_24_kWh"));
+    assertEquals(2, classCars.size(), "2 cartypes");
+    assertTrue(classCars.keySet().contains("Tesla_40_kWh"), "includes Tesla_40_kWh");
+    assertTrue(classCars.keySet().contains("Nissan_Leaf_24_kWh"), "includes Nissan_Leaf_24_kWh");
 
     Map<Integer, ClassGroup> classGroups = evSocialClass.getClassGroups();
-    assertEquals("twelve class-groups", 3, classGroups.size());
+    assertEquals(3, classGroups.size(), "twelve class-groups");
     ClassGroup hi2_1 = classGroups.get(1);
-    assertEquals("correct socialClassName",
-                 "HighIncome_2", hi2_1.getSocialClassName());
-    assertEquals("correct probability", 0.125, hi2_1.getProbability(), 1e-6);
+    assertEquals("HighIncome_2", hi2_1.getSocialClassName(), "correct socialClassName");
+    assertEquals(0.125, hi2_1.getProbability(), 1e-6, "correct probability");
   }
 
   @Test
   public void testEvCustomers ()
   {
     initializeClass();
-    assertEquals("correct min count", 2, evSocialClass.getMinCount());
-    assertEquals("correct max count", 4, evSocialClass.getMaxCount());
+    assertEquals(2, evSocialClass.getMinCount(), "correct min count");
+    assertEquals(4, evSocialClass.getMaxCount(), "correct max count");
     ArrayList<EvCustomer> customers = evSocialClass.getEvCustomers();
-    assertEquals("correct population", 2, evSocialClass.getPopulation());
-    assertEquals("correct number of customers", 2, customers.size());
-    assertEquals("correct number of infos", 2,
-        evSocialClass.getCustomerInfos().size());
-    assertEquals("correct name", "HighIncome_2_0",
-                 customers.get(0).getName());
-    assertEquals("correct boot-config list 0",
-                "0.male.Tesla_40_kWh.x",
-                 evSocialClass.getCustomerAttributeList().get(0));
-    assertEquals("correct boot-config list 1",
-                 "0.male.Tesla_40_kWh.x",
-                 evSocialClass.getCustomerAttributeList().get(1));
+    assertEquals(2, evSocialClass.getPopulation(), "correct population");
+    assertEquals(2, customers.size(), "correct number of customers");
+    assertEquals(2, evSocialClass.getCustomerInfos().size(), "correct number of infos");
+    assertEquals("HighIncome_2_0", customers.get(0).getName(), "correct name");
+    assertEquals("0.male.Tesla_40_kWh.x", evSocialClass.getCustomerAttributeList().get(0), "correct boot-config list 0");
+    assertEquals("0.male.Tesla_40_kWh.x", evSocialClass.getCustomerAttributeList().get(1), "correct boot-config list 1");
   }
 
   @Test
@@ -187,16 +166,14 @@ public class EvSocialClassTest
     Configurator testConfig = new Configurator();
     ConfigurationPublisher pub = new ConfigurationPublisher();
     testConfig.gatherBootstrapState(evSocialClass, pub);
-    assertEquals("one property", 1, pub.getConfig().size());
+    assertEquals(1, pub.getConfig().size(), "one property");
     Object pop =
         pub.getConfig().get("evcustomer.customers.evSocialClass.customerAttributeList");
     @SuppressWarnings("unchecked")
     List<String> popList = (List<String>)pop;
-    assertEquals("2 items", 2, popList.size());
-    assertEquals("correct customer instance 0",
-                "0.male.Tesla_40_kWh.x", popList.get(0));
-    assertEquals("correct customer instance 1",
-                "0.male.Tesla_40_kWh.x", popList.get(1));
+    assertEquals(2, popList.size(), "2 items");
+    assertEquals("0.male.Tesla_40_kWh.x", popList.get(0), "correct customer instance 0");
+    assertEquals("0.male.Tesla_40_kWh.x", popList.get(1), "correct customer instance 1");
   }
 
   // Boot-restore is triggered and creates the correct objects
@@ -210,19 +187,19 @@ public class EvSocialClassTest
     ReflectionTestUtils.setField(evSocialClass, "customerAttributeList",
                                  gcList);
     initializeClass();
-    assertEquals("3 instances", 3, evSocialClass.getPopulation());
+    assertEquals(3, evSocialClass.getPopulation(), "3 instances");
     List<EvCustomer> customers = evSocialClass.getEvCustomers();
-    assertEquals("3 in list", 3, customers.size());
+    assertEquals(3, customers.size(), "3 in list");
     EvCustomer cust = customers.get(0);
-    assertEquals("correct name", className + "_0", cust.getName());
-    assertEquals("correct group", 0, cust.getSocialGroup().getId());
-    assertEquals("correct gender", "male", cust.getGender());
-    assertEquals("correct car", "Tesla_40_kWh", cust.getCar().getName());
+    assertEquals(cust.getName(), className + "_0", "correct name");
+    assertEquals(0, cust.getSocialGroup().getId(), "correct group");
+    assertEquals(cust.getGender(), "male", "correct gender");
+    assertEquals(cust.getCar().getName(), "Tesla_40_kWh", "correct car");
     cust = customers.get(2);
-    assertEquals("correct name", className + "_2", cust.getName());
-    assertEquals("correct group", 1, cust.getSocialGroup().getId());
-    assertEquals("correct gender", "female", cust.getGender());
-    assertEquals("correct car", "Tesla_40_kWh", cust.getCar().getName());
+    assertEquals(cust.getName(), className + "_2", "correct name");
+    assertEquals(1, cust.getSocialGroup().getId(), "correct group");
+    assertEquals(cust.getGender(), "female", "correct gender");
+    assertEquals(cust.getCar().getName(), "Tesla_40_kWh", "correct car");
   }
 
   // Boot-restore works from a Configuration instance
@@ -234,7 +211,7 @@ public class EvSocialClassTest
     Collection<?> escs =
         serverConfiguration.configureInstances(EvSocialClass.class);
 
-    assertEquals("four classes", 4, escs.size());
+    assertEquals(4, escs.size(), "four classes");
     EvSocialClass target = null;
     Iterator<?> targets = escs.iterator();
     while (targets.hasNext() && null == target) {
@@ -244,22 +221,19 @@ public class EvSocialClassTest
       }
     }
 
-    assertNotNull("found target", target);
-    assertNull("customer attribute list created",
-        target.getCustomerAttributeList());
+    assertNotNull(target, "found target");
+    assertNull(target.getCustomerAttributeList(), "customer attribute list created");
 
     target.setServiceAccessor(service);
     target.initialize();
 
     // make sure initialization does not mess it up
-    assertNotNull("customer attribute list created",
-                  target.getCustomerAttributeList());
-    assertEquals("15 elements of customer attribute list", 15,
-                 target.getCustomerAttributeList().size());
+    assertNotNull(target.getCustomerAttributeList(), "customer attribute list created");
+    assertEquals(15, target.getCustomerAttributeList().size(), "15 elements of customer attribute list");
 
     List<EvCustomer> customers = target.getEvCustomers();
-    assertEquals("15 customers", 15, customers.size());
-    assertFalse("first customer is not driving", customers.get(0).isDriving());
+    assertEquals(15, customers.size(), "15 customers");
+    assertFalse(customers.get(0).isDriving(), "first customer is not driving");
   }
 
   class DummyConfig implements ServerConfiguration

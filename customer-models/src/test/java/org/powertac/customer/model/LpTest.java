@@ -15,13 +15,13 @@
  */
 package org.powertac.customer.model;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Date;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.joptimizer.optimizers.LPOptimizationRequest;
 import com.joptimizer.optimizers.LPPrimalDualMethod;
@@ -33,7 +33,7 @@ import com.joptimizer.optimizers.OptimizationResponse;
 public class LpTest
 {
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
   }
@@ -80,7 +80,7 @@ public class LpTest
        .15, .15, .15, .15, .15, .15, .15, .15, .15, .15, .15, .15,
        .09, .09, .09, .09,
        0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    assertEquals("correct size", columns + slackColumns, obj.length);
+    assertEquals(columns + slackColumns, obj.length, "correct size");
     // constraints: 1 row/timeslot + three rows/ShiftEnergy
     int rows = shifts * rps;
     double[][] a = new double[rows][columns + slackColumns];
@@ -123,7 +123,7 @@ public class LpTest
     opt.setLPOptimizationRequest(or);
     try {
       int returnCode = opt.optimize();
-      assertEquals("success", OptimizationResponse.SUCCESS, returnCode);
+      assertEquals(OptimizationResponse.SUCCESS, returnCode, "success");
       double[] sol = opt.getOptimizationResponse().getSolution();
       Date end = new Date();
       System.out.println("Duration = " + (end.getTime() - start.getTime()));
@@ -166,7 +166,7 @@ public class LpTest
        .15, .15, .15, .15, .15, .15, .15, .15, .15, .15, .15, .15,
        .09, .09, .09, .09,
        0.0, 0.0, 0.0};
-    assertEquals("correct size", columns + slackColumns, obj.length);
+    assertEquals(columns + slackColumns, obj.length, "correct size");
     // constraints: 1 row/timeslot + one row/ShiftEnergy
     int rows = shifts * rps;
     double[][] a = new double[rows][columns + slackColumns];
@@ -209,7 +209,7 @@ public class LpTest
     opt.setLPOptimizationRequest(or);
     try {
       int returnCode = opt.optimize();
-      assertEquals("success", OptimizationResponse.SUCCESS, returnCode);
+      assertEquals(OptimizationResponse.SUCCESS, returnCode, "success");
       double[] sol = opt.getOptimizationResponse().getSolution();
       Date end = new Date();
       System.out.println("Duration = " + (end.getTime() - start.getTime()));

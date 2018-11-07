@@ -16,15 +16,14 @@
 
 package org.powertac.factoredcustomer;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 
 /**
@@ -32,7 +31,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class CapacityProfileTests
 {
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
   }
@@ -47,9 +46,8 @@ public class CapacityProfileTests
     CapacityProfile profile = new CapacityProfile(list);
     List<CapacityProfile> perms =
         profile.getPermutations(PermutationRule.TEMPORAL_SHIFTS);
-    assertNotNull("Non null permutations", perms);
-    assertEquals("Correct number of permutations", perms.size(),
-        CapacityProfile.NUM_TIMESLOTS);
+    assertNotNull(perms, "Non null permutations");
+    assertEquals(perms.size(), CapacityProfile.NUM_TIMESLOTS, "Correct number of permutations");
   }
 
   @Test
@@ -62,7 +60,7 @@ public class CapacityProfileTests
     List<CapacityProfile> perms =
         profile.getPermutations(PermutationRule.BALANCING_SHIFTS);
     // assuming above array in not uniform
-    assertNotNull("Non null permutations", perms);
+    assertNotNull(perms, "Non null permutations");
   }
 }
 

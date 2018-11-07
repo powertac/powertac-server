@@ -37,14 +37,14 @@ public class ViewResource {
     private final Logger log = LoggerFactory.getLogger(ViewResource.class);
 
     private static final String ENTITY_NAME = "view";
-        
+
     private final ViewService viewService;
     private final UserRepository userRepository;
 
     public ViewResource(ViewService viewService, UserRepository userRepository) {
         this.viewService = viewService;
         this.userRepository = userRepository;
-        
+
     }
 
     /**
@@ -122,7 +122,7 @@ public class ViewResource {
     @Timed
     public ResponseEntity<View> getView(@PathVariable Long id) {
         log.debug("REST request to get View : {}", id);
-        View view = viewService.findOne(id);
+        View view = viewService.getOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(view));
     }
 
@@ -136,7 +136,10 @@ public class ViewResource {
     @Timed
     public ResponseEntity<Void> deleteView(@PathVariable Long id) {
         log.debug("REST request to delete View : {}", id);
-        viewService.delete(id);
+        View view = viewService.getOne(id);
+        if (view != null) {
+            viewService.delete(view);
+        }
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
