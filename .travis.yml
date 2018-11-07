@@ -9,7 +9,7 @@ cache:
 before_cache:
   - rm -rf $HOME/.m2/repository/org/powertac
 before_install:
-  - git clone -b $TRAVIS_BRANCH https://github.com/powertac/powertac-core.git
+  - git clone -b master https://github.com/powertac/powertac-core.git
   - cd powertac-core
   - mvn clean install -DskipTests
   - cd ..
