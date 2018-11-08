@@ -38,7 +38,7 @@
         <java.version>1.8</java.version>
         <javassist.version>3.23.1-GA</javassist.version>
         <jcache.version>1.0.1</jcache.version>
-        <jhipster.server.version>1.1.0</jhipster.server.version>
+        <jhipster.server.version>1.3.0</jhipster.server.version>
         <liquibase.version>3.6.2</liquibase.version>
         <liquibase-hibernate5.version>3.6</liquibase-hibernate5.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
@@ -49,6 +49,7 @@
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <metrics-spring.version>3.1.3</metrics-spring.version>
         <node.version>v10.13.0</node.version>
+        <problem-spring-web.version>0.23.0</problem-spring-web.version>
         <!-- These remain empty unless the corresponding profile is active -->
         <profile.no-liquibase />
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
@@ -434,6 +435,11 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>problem-spring-web</artifactId>
+            <version>${problem-spring-web.version}</version>
         </dependency>
         <!-- jhipster-needle-maven-add-dependency -->
     </dependencies>
