@@ -19,7 +19,7 @@ describe('Controller Tests', function () {
         }));
 
         it('should set remember Me', function () {
-            expect($scope.vm.rememberMe).toBeTruthy();
+            expect($scope.vm.rememberMe).toBeFalsy();
         });
     });
 });

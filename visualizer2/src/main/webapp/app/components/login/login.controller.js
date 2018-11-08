@@ -16,7 +16,7 @@
         vm.login = login;
         vm.password = null;
         vm.register = register;
-        vm.rememberMe = true;
+        vm.rememberMe = false;
         vm.requestResetPassword = requestResetPassword;
         vm.username = null;
 
@@ -26,7 +26,7 @@
             vm.credentials = {
                 username: null,
                 password: null,
-                rememberMe: true
+                rememberMe: false
             };
             vm.authenticationError = false;
             $uibModalInstance.dismiss('cancel');
