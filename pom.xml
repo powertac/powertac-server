@@ -578,31 +578,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>${maven-site.version}</version>
-          <configuration>
-            <reportPlugins>
-              <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc.version}</version>
-                <reportSets>
-                  <reportSet>
-                    <reports>
-                      <report>aggregate</report>
-                    </reports>
-                  </reportSet>
-                </reportSets>
-                <configuration>
-                  <failOnError>false</failOnError>
-                  <additionalparam>-Xdoclint:none</additionalparam>
-                  <includeDependencySources>true</includeDependencySources>
-                  <dependencySourceIncludes>
-                    <dependencySourceInclude>org.powertac:*</dependencySourceInclude>
-                  </dependencySourceIncludes>
-                </configuration>
-              </plugin>
-            </reportPlugins>
-          </configuration>
-
         </plugin>
 
 
@@ -655,10 +630,15 @@
         <artifactId>maven-source-plugin</artifactId>
       </plugin>
 
+      <!-- Make sure to always attach javadoc jars -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+
     </plugins>
 
   </build>
-
 
   <!-- Release profile -->
 
@@ -667,14 +647,6 @@
       <id>sonatype-release</id>
       <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
