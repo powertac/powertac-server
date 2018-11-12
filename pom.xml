@@ -129,6 +129,11 @@
       <name>Nexus Release Repository</name>
       <url>${sonatype.staging.url}</url>
     </repository>
+    <site>
+      <id>powertac-github</id>
+      <name>PowerTAC GitHub Pages</name>
+      <url>https://powertac.github.io/</url>
+    </site>
   </distributionManagement>
 
 
