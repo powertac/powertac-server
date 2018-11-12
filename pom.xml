@@ -92,9 +92,11 @@
     <maven-gpg.version>1.6</maven-gpg.version>
     <maven-release.version>2.5.3</maven-release.version>
     <maven-site.version>3.7.1</maven-site.version>
+    <maven-project-info-reports.version>3.0.0</maven-project-info-reports.version>
     <maven-surefire.version>2.22.1</maven-surefire.version>
     <maven-shade.version>3.2.0</maven-shade.version>
     <maven-exec.version>1.6.0</maven-exec.version>
+    <maven-bundle.version>4.1.0</maven-bundle.version>
 
   </properties>
 
@@ -207,14 +209,18 @@
 
       <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>activemq-client</artifactId>
+        <artifactId>activemq-pool</artifactId>
         <version>${active-mq.version}</version>
       </dependency>
 
+      <!-- TODO override transitive dependency from activemq-pool, because the
+      the parent POM of geronimo-jta-1.0.1B_spec version 1.0.1 has an illegal
+      backtick char which gives errors during mvn site. When upgrading activemq,
+      check if this is still needed! -->
       <dependency>
-        <groupId>org.apache.activemq</groupId>
-        <artifactId>activemq-pool</artifactId>
-        <version>${active-mq.version}</version>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-jta_1.0.1B_spec</artifactId>
+        <version>1.1.1</version>
       </dependency>
 
       <dependency>
@@ -450,7 +456,6 @@
           <version>${maven-exec.version}</version>
         </plugin>
 
-
         <!-- AspectJ -->
 
         <plugin>
@@ -581,8 +586,20 @@
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>${maven-project-info-reports.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>${maven-site.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>${maven-bundle.version}</version>
         </plugin>
 
 
@@ -626,7 +643,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        
       </plugin>
 
       <!-- Make sure to always attach source jars -->
@@ -639,6 +655,13 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+
+      <!-- Enable bundle plugin to allow non-standard packaging type -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
       </plugin>
 
     </plugins>
