@@ -150,7 +150,6 @@ public final class CapacityStructure implements StructureInstance
 
   /**
    * True just in case the baseCapacityType is INDIVIDUAL
-   * @return
    */
   public boolean isIndividual ()
   {

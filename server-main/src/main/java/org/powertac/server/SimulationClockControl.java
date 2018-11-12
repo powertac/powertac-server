@@ -111,7 +111,6 @@ public class SimulationClockControl
   /**
    * Returns the instance, which of course will be null if the singleton
    * is not yet initialized.
-   * @return
    */
   public static SimulationClockControl getInstance ()
   {

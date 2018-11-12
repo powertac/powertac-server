@@ -69,50 +69,30 @@
     <module>visualizer2</module>
   </modules>
 
-  <build>
+  <reporting>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-          <execution>
-            <id>src-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <classifier>sources</classifier>
-              <failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
-              <outputDirectory>${project.build.directory}/sources</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.0.0</version>
-        <inherited>false</inherited>
+        <reportSets>
+          <reportSet>
+            <inherited>false</inherited>
+            <reports>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>
+        </reportSets>
         <configuration>
-          <!-- Default configuration for all reports -->
+          <failOnError>false</failOnError>
+          <doclint>none</doclint>
+          <includeDependencySources>true</includeDependencySources>
+          <dependencySourceIncludes>
+            <dependencySourceInclude>org.powertac:*</dependencySourceInclude>
+          </dependencySourceIncludes>
         </configuration>
-        <executions>
-          <execution>
-            <id>aggregate</id>
-            <goals>
-              <goal>aggregate</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <!-- Specific configuration for the aggregate report -->
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
-  </build>
+  </reporting>
 
   <scm>
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>

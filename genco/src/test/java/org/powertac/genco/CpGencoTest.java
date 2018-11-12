@@ -116,7 +116,7 @@ public class CpGencoTest
   }
 
   /**
-   * Test method for {@link org.powertac.genco.CpGenco#withCoefficients(List<java.lang.String>)}.
+   * Test method for {@link org.powertac.genco.CpGenco#withCoefficients(List)}.
    */
   @Test
   public void testWithCoefficients ()
