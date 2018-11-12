@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-if [[ $TRAVIS_PULL_REQUEST == false && ($TRAVIS_BRANCH == $TRAVIS_TAG || $TRAVIS_BRANCH == "master") ]]
+if [[ $TRAVIS_PULL_REQUEST == false && ($TRAVIS_BRANCH == $TRAVIS_TAG || $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "javadox") ]]
 then
-  mvn -nsu -B javadoc:aggregate
-  git clone -b gh-pages https://github.com/$TRAVIS_REPO_SLUG.git dox
+  mvn -nsu -B site
+  mvn -nsu -B site:stage
+  git clone https://github.com/powertac/powertac.github.io.git dox
   cd dox
   mkdir -p $TRAVIS_BRANCH
-  cp -r $TRAVIS_BUILD_DIR/target/site/apidocs/* $TRAVIS_BRANCH
+  cp -r $TRAVIS_BUILD_DIR/target/staging/powertac-server/* $TRAVIS_BRANCH
 
   for branch in $(ls | grep -v index)
   do
@@ -19,5 +20,5 @@ then
 
   git add index.html $TRAVIS_BRANCH
   git commit -m "Updated javadocs for branch $TRAVIS_BRANCH"
-  git push https://erikkemperman:$GITHUB_TOKEN@github.com/$TRAVIS_REPO_SLUG.git
+  git push https://erikkemperman:$GITHUB_TOKEN@github.com/powertac/powertac.github.io.git
 fi
