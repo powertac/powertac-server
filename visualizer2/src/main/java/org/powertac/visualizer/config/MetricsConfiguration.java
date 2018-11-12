@@ -2,8 +2,6 @@ package org.powertac.visualizer.config;
 
 import io.github.jhipster.config.JHipsterProperties;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.JvmAttributeGaugeSet;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -83,11 +81,6 @@ public class MetricsConfiguration extends MetricsConfigurerAdapter implements Se
             // remove the factory created by HikariDataSourceMetricsPostProcessor until JHipster migrate to Micrometer
             hikariDataSource.setMetricsTrackerFactory(null);
             hikariDataSource.setMetricRegistry(metricRegistry);
-        }
-        if (jHipsterProperties.getMetrics().getJmx().isEnabled()) {
-            log.debug("Initializing Metrics JMX reporting");
-            JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
-            jmxReporter.start();
         }
         if (jHipsterProperties.getMetrics().getLogs().isEnabled()) {
             log.info("Initializing Metrics Log reporting");
