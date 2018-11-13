@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-if [[ $TRAVIS_PULL_REQUEST == false && ($TRAVIS_BRANCH == $TRAVIS_TAG || $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "javadox") ]]
+if [[ $TRAVIS_PULL_REQUEST == false && ($TRAVIS_BRANCH == $TRAVIS_TAG || $TRAVIS_BRANCH == "master") ]]
 then
   mvn -nsu -B site
   mvn -nsu -B site:stage
+
   git clone https://github.com/powertac/powertac.github.io.git dox
-  cd dox
+  cd dox/server
   mkdir -p $TRAVIS_BRANCH
   cp -r $TRAVIS_BUILD_DIR/target/staging/powertac-server/* $TRAVIS_BRANCH
 

@@ -69,8 +69,23 @@
     <module>visualizer2</module>
   </modules>
 
+
   <reporting>
+
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -79,19 +94,21 @@
             <inherited>false</inherited>
             <reports>
               <report>aggregate</report>
+              <report>test-aggregate</report>
             </reports>
           </reportSet>
         </reportSets>
         <configuration>
-          <failOnError>false</failOnError>
-          <doclint>none</doclint>
           <includeDependencySources>true</includeDependencySources>
+          <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
           <dependencySourceIncludes>
             <dependencySourceInclude>org.powertac:*</dependencySourceInclude>
           </dependencySourceIncludes>
         </configuration>
       </plugin>
+
     </plugins>
+
   </reporting>
 
   <scm>
