@@ -98,6 +98,14 @@
     </plugins>
 
   </reporting>
+  
+  <!-- Sonatype OSS repo for resolving snapshot dependencies -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
 
   <scm>
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
