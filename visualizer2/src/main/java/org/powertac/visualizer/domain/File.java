@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Objects;
 
+import org.hibernate.annotations.Proxy;
 import org.powertac.visualizer.domain.enumeration.FileType;
 
 /**
@@ -18,6 +19,7 @@ import org.powertac.visualizer.domain.enumeration.FileType;
 @Entity
 @Table(name = "file")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Proxy(lazy = false)
 public class File implements Serializable {
 
     private static final long serialVersionUID = 1L;

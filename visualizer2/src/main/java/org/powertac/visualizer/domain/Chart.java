@@ -2,6 +2,7 @@ package org.powertac.visualizer.domain;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Proxy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -16,6 +17,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "chart")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Proxy(lazy = false)
 public class Chart implements Serializable {
 
     private static final long serialVersionUID = 1L;
