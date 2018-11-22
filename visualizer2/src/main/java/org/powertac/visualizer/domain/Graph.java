@@ -8,6 +8,7 @@ import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.hibernate.annotations.Proxy;
 import org.powertac.visualizer.domain.enumeration.GraphType;
 
 /**
@@ -16,6 +17,7 @@ import org.powertac.visualizer.domain.enumeration.GraphType;
 @Entity
 @Table(name = "graph")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Proxy(lazy = false)
 public class Graph implements Serializable {
 
     private static final long serialVersionUID = 1L;

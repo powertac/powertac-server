@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.hibernate.annotations.Proxy;
 import org.powertac.visualizer.domain.enumeration.GameType;
 
 /**
@@ -19,6 +20,7 @@ import org.powertac.visualizer.domain.enumeration.GameType;
 @Entity
 @Table(name = "game")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Proxy(lazy = false)
 public class Game implements Serializable {
 
     private static final long serialVersionUID = 1L;
