@@ -49,7 +49,7 @@ import org.powertac.factoredcustomer.interfaces.StructureInstance;
  * @author John Collins
  *
  */
-public class FrostyStorageTest
+public class WindmillCoOpTest
 {
   AbstractConfiguration configuration;
   Configurator config;
@@ -72,7 +72,7 @@ public class FrostyStorageTest
   @BeforeEach
   public void setUp () throws Exception
   {
-    File fs = new File("src/test/resources/config/FrostyStorage.xml");
+    File fs = new File("src/test/resources/config/WindmillCoOp.xml");
     configuration = Configurator.readXML(fs);
     config = new Configurator();
     config.setConfiguration(configuration);
@@ -86,6 +86,7 @@ public class FrostyStorageTest
                                       anyLong(),
                                       anyString()))
     .thenReturn(rs);
+    
     when(rs.nextDouble()).thenReturn(0.5);
 
     timeService = mock(TimeService.class);
@@ -105,11 +106,11 @@ public class FrostyStorageTest
 
     broker = mock(Broker.class);
     TariffSpecification defaultConsumption =
-            new TariffSpecification(broker, PowerType.CONSUMPTION)
+            new TariffSpecification(broker, PowerType.PRODUCTION)
             .addRate(new Rate().withValue(-0.40));
     tariff = new Tariff(defaultConsumption);
     //tariff.init();
-    when(tariffMarket.getDefaultTariff(PowerType.CONSUMPTION)).thenReturn(tariff);
+    when(tariffMarket.getDefaultTariff(PowerType.PRODUCTION)).thenReturn(tariff);
     tariffSubscriptionRepo = mock(TariffSubscriptionRepo.class);
     when(fcs.getTariffSubscriptionRepo()).thenReturn(tariffSubscriptionRepo);
 
@@ -139,7 +140,6 @@ public class FrostyStorageTest
         throw new Error("Failed to create customer instance");
       }
     }
-
   }
 
   /**
@@ -153,7 +153,7 @@ public class FrostyStorageTest
   @Test
   public void testConfig ()
   {
-    assertEquals(3, configuration.getInt("factoredcustomer.defaultCapacityBundle.FrostyStorage.count"), "correct count");
+    assertEquals(50, configuration.getInt("factoredcustomer.defaultCapacityBundle.WindmillCoOp-1.population"), "correct population");
   }
 
   @Test
@@ -161,7 +161,7 @@ public class FrostyStorageTest
   {
     assertEquals(1, customers.size(), "one customer created");
     DefaultFactoredCustomer fs = (DefaultFactoredCustomer)customers.get(0);
-    assertEquals(fs.getName(), "FrostyStorage", "correct name");
+    assertEquals(fs.getName(), "WindmillCoOp", "correct name");
   }
 
   @Test
@@ -205,11 +205,11 @@ public class FrostyStorageTest
     Timeslot ts = new Timeslot(300, start.toInstant());
     when(timeslotRepo.currentSerialNumber()).thenReturn(300);
     when(timeService.getCurrentDateTime()).thenReturn(start);
-    WeatherReport weather = new WeatherReport(300, 20.0, 0.0, 0.0, 0.0);
+    WeatherReport weather = new WeatherReport(300, 20.0, 20.0, 0.0, 0.0);
     when(weatherReportRepo.currentWeatherReport()).thenReturn(weather);
     fs.getUtilityOptimizer().handleNewTimeslot(ts);
-    assertEquals(3412.17, usePowerArgs.get(0), 1e-4, "correct power usage");
-    //System.out.println("FrostyStorageTest usePower: " + usePowerArgs.toString());
+    assertEquals(-59.47, usePowerArgs.get(0), 1e-4, "correct power usage");
+    //System.out.println("WindmillCoopTest usePower: " + usePowerArgs.toString());
   }
 
   // ------------------------------------------------------------------------

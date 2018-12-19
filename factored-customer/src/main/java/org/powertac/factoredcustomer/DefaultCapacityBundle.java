@@ -82,7 +82,7 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   protected double storageCapacity = 0.0;
 
   @ConfigurableValue(valueType = "Boolean", dump = false)
-  protected boolean isAdaptive;
+  protected boolean isAdaptive = false;
 
   private CustomerInfo customerInfo;
 
@@ -190,6 +190,12 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
   public String getName ()
   {
     return name;
+  }
+
+  @Override
+  public int getCount ()
+  {
+	return count;
   }
 
   @Override

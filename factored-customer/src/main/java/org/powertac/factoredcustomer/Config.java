@@ -96,27 +96,6 @@ public final class Config
   // =================== Configuration ================
 
   /**
-   * Configures this singleton when it's needed. Not called during instance
-   * creation to allow testing without a full Spring setup. This version is
-   * Deprecated! Please use configure(ServerConfiguration) instead.
-   */
-//  @Deprecated
-//  public void configure ()
-//  {
-//    if (null == serverConfiguration) {
-//      serverConfiguration = (ServerConfiguration)
-//          SpringApplicationContext.getBean("serverPropertiesService");
-//    }
-//    if (null == serverConfiguration) {
-//      // should not happen outside of testing
-//      log.warn("Cannot find serverPropertiesService");
-//    }
-//    else {
-//      serverConfiguration.configureMe(this);
-//    }
-//  }
-
-  /**
    * Configures this instance from the given configuration service.
    */
   public void configure ()
