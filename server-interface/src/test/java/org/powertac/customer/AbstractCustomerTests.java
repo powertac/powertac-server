@@ -14,9 +14,7 @@
  */
 package org.powertac.customer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -26,9 +24,8 @@ import javax.annotation.Resource;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
@@ -46,11 +43,9 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.customer.AbstractCustomer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * Test cases for AbstractCustomer. Uses a Spring application context to access
@@ -58,8 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * 
  * @author Antonios Chrysopoulos
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:test-config.xml" })
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 public class AbstractCustomerTests
 {
@@ -91,7 +85,7 @@ public class AbstractCustomerTests
   Tariff tariff;
   Tariff defaultTariff, defaultTariffControllable;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     customerRepo.recycle();
@@ -141,16 +135,12 @@ public class AbstractCustomerTests
     customer.addCustomerInfo(info);
     customer.addCustomerInfo(info2);
 
-    assertNotNull("not null", customer);
-    assertEquals("correct customerInfo size", 2, customer.getCustomerInfos()
-            .size());
-    assertEquals("correct powerType for first", PowerType.CONSUMPTION,
-                 customer.getCustomerInfos().get(0).getPowerType());
-    assertEquals("correct powerType for second",
-                 PowerType.INTERRUPTIBLE_CONSUMPTION,
-                 customer.getCustomerInfos().get(1).getPowerType());
+    assertNotNull(customer, "not null");
+    assertEquals(2, customer.getCustomerInfos().size(), "correct customerInfo size");
+    assertEquals(PowerType.CONSUMPTION, customer.getCustomerInfos().get(0).getPowerType(), "correct powerType for first");
+    assertEquals(PowerType.INTERRUPTIBLE_CONSUMPTION, customer.getCustomerInfos().get(1).getPowerType(), "correct powerType for second");
     // AbstractCustomer does not do this
-    //assertEquals("two customers on repo", 2, customerRepo.list().size());
+    //assertEquals(2, customerRepo.list().size(), "two customers on repo");
   }
 
   @Test
@@ -164,12 +154,10 @@ public class AbstractCustomerTests
     customer.addCustomerInfo(info);
     customer.addCustomerInfo(info2);
 
-    assertNotNull("not null", customer);
-    assertEquals("correct customerInfo size", 2,
-                 customer.getCustomerInfos().size());
-    assertEquals("correct powerType for first", PowerType.CONSUMPTION,
-                 customer.getCustomerInfos().get(0).getPowerType());
-    //assertEquals("one customer on repo", 1, customerRepo.list().size());
+    assertNotNull(customer, "not null");
+    assertEquals(2, customer.getCustomerInfos().size(), "correct customerInfo size");
+    assertEquals(PowerType.CONSUMPTION, customer.getCustomerInfos().get(0).getPowerType(), "correct powerType for first");
+    //assertEquals(1, customerRepo.list().size(), "one customer on repo");
   }
 
   @Test
@@ -199,24 +187,24 @@ public class AbstractCustomerTests
 //    verify(mockTariffMarket).subscribeToTariff(defaultTariff, info, 100);
 //    verify(mockTariffMarket).subscribeToTariff(defaultTariffControllable, info2, 200);
 
-//    assertEquals("one subscription for CONSUMPTION customerInfo",
-//                 1,
+//    assertEquals(1,
 //                 tariffSubscriptionRepo
 //                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                               .get(0)).size());
-//    assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION customerInfo",
-//                 1,
+//                                                               .get(0)).size(),
+//                   "one subscription for CONSUMPTION customerInfo");
+//    assertEquals(1,
 //                 tariffSubscriptionRepo
 //                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                               .get(1)).size());
+//                                                               .get(1)).size(),
+//                   "one subscription for INTERRUPTIBLE_CONSUMPTION customerInfo");
 //
-//    assertEquals("customer on DefaultTariff",
-//                 mockTariffMarket.getDefaultTariff(customer.getCustomerInfo()
+//    assertEquals(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo()
 //                         .get(0).getPowerType()),
 //                 tariffSubscriptionRepo
 //                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
 //                                                               .get(0)).get(0)
-//                         .getTariff());
+//                         .getTariff(),
+//                   "customer on DefaultTariff");
   }
 
   @Test
@@ -282,7 +270,7 @@ public class AbstractCustomerTests
     tariff3.init();
     tariff3.setState(Tariff.State.OFFERED);
 
-    assertEquals("Five tariffs", 5, tariffRepo.findAllTariffs().size());
+    assertEquals(5, tariffRepo.findAllTariffs().size(), "Five tariffs");
 
     // Changing from default to another tariff
     TariffSubscription sub =
@@ -360,19 +348,19 @@ public class AbstractCustomerTests
                                         .getPowerType()), customer
                                         .getCustomerInfos().get(1));
 
-    assertTrue("Changed to default tariff for CONSUMPTION",
-               tariffSubscriptionRepo
+    assertTrue(tariffSubscriptionRepo
                        .findSubscriptionsForCustomer(customer.getCustomerInfos()
                                                              .get(0)).get(0)
                        .getTariff() == mockTariffMarket
-                       .getDefaultTariff(PowerType.CONSUMPTION));
+                       .getDefaultTariff(PowerType.CONSUMPTION),
+            "Changed to default tariff for CONSUMPTION");
 
-    assertTrue("Changed to default tariff for INTERRUPTIBLE_CONSUMPTION",
-               tariffSubscriptionRepo
+    assertTrue(tariffSubscriptionRepo
                        .findSubscriptionsForCustomer(customer.getCustomerInfos()
                                                              .get(1)).get(0)
                        .getTariff() == mockTariffMarket
-                       .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
+                       .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
+            "Changed to default tariff for INTERRUPTIBLE_CONSUMPTION");
 
     // Last changeSubscription Method checked
 //    when(
@@ -389,19 +377,19 @@ public class AbstractCustomerTests
 //                                        .getPowerType()), lastTariff2, 5,
 //                                customer.getCustomerInfo().get(1));
 //
-//    assertFalse("Changed from default tariff for CONSUMPTION",
-//                tariffSubscriptionRepo
+//    assertFalse(tariffSubscriptionRepo
 //                        .findSubscriptionsForCustomer(customer.getCustomerInfo()
 //                                                              .get(0)).get(1)
 //                        .getTariff() == mockTariffMarket
-//                        .getDefaultTariff(PowerType.CONSUMPTION));
+//                        .getDefaultTariff(PowerType.CONSUMPTION),
+//                    "Changed from default tariff for CONSUMPTION");
 //
-//    assertFalse("Changed from default tariff for INTERRUPTIBLE_CONSUMPTION",
-//                tariffSubscriptionRepo
+//    assertFalse(tariffSubscriptionRepo
 //                        .findSubscriptionsForCustomer(customer.getCustomerInfo()
 //                                                              .get(1)).get(1)
 //                        .getTariff() == mockTariffMarket
-//                        .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
+//                        .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
+//                    "Changed from default tariff for INTERRUPTIBLE_CONSUMPTION");
 
   }
 
@@ -440,14 +428,13 @@ public class AbstractCustomerTests
 
     //customer.subscribeDefault();
 
-    assertEquals("one subscription for CONSUMPTION", 1, tariffSubscriptionRepo
+    assertEquals(1, tariffSubscriptionRepo
             .findSubscriptionsForCustomer(customer.getCustomerInfos().get(0))
-            .size());
-    assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION",
-                 1,
-                 tariffSubscriptionRepo
+            .size(), "one subscription for CONSUMPTION");
+    assertEquals(1, tariffSubscriptionRepo
                          .findSubscriptionsForCustomer(customer.getCustomerInfos()
-                                                               .get(1)).size());
+                                                               .get(1)).size(),
+            "one subscription for INTERRUPTIBLE_CONSUMPTION");
 
     Rate r2 = new Rate().withValue(-0.222);
     Rate r3 = new Rate().withValue(-0.08).withMaxCurtailment(0.1);
@@ -475,8 +462,7 @@ public class AbstractCustomerTests
     tariff3.init();
     tariff3.setState(Tariff.State.OFFERED);
 
-    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
-            .size());
+    assertEquals(5, tariffRepo.findAllTariffs().size(), "Five consumption tariffs");
 
     TariffSubscription tsd =
       tariffSubscriptionRepo
@@ -487,8 +473,8 @@ public class AbstractCustomerTests
               .findSubscriptionForTariffAndCustomer(defaultTariffControllable,
                                                     customer.getCustomerInfos()
                                                             .get(1));
-    assertNotNull("not null", tsd);
-    assertNotNull("not null", tsd2);
+    assertNotNull(tsd, "not null");
+    assertNotNull(tsd2, "not null");
 
     customer.unsubscribe(tsd, 70);
     customer.unsubscribe(tsd2, 70);
@@ -505,26 +491,25 @@ public class AbstractCustomerTests
                                              tariff3);
     sub3.subscribe(24);
 
-    assertEquals("Five subscriptions for customer",
-                 5,
-                 tariffSubscriptionRepo
+    assertEquals(5, tariffSubscriptionRepo
                          .findSubscriptionsForCustomer(customer.getCustomerInfos()
                                                                .get(0)).size()
                          + tariffSubscriptionRepo
                                  .findSubscriptionsForCustomer(customer.getCustomerInfos()
                                                                        .get(1))
-                                 .size());
+                                 .size(),
+            "Five subscriptions for customer");
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
             .getMillis() + TimeService.HOUR));
 
     //TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
     tariff2.setState(Tariff.State.KILLED);
-    assertTrue("tariff revoked", tariff2.isRevoked());
+    assertTrue(tariff2.isRevoked(), "tariff revoked");
 
     //TariffRevoke tex2 = new TariffRevoke(tsc3.getBroker(), tsc3);
     tariff3.setState(Tariff.State.KILLED);
-    assertTrue("tariff revoked", tariff3.isRevoked());
+    assertTrue(tariff3.isRevoked(), "tariff revoked");
 
   }
 

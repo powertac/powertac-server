@@ -19,7 +19,7 @@ import java.util.List;
 public class ChartService {
 
     private final Logger log = LoggerFactory.getLogger(ChartService.class);
-    
+
     private final ChartRepository chartRepository;
 
     public ChartService(ChartRepository chartRepository) {
@@ -40,7 +40,7 @@ public class ChartService {
 
     /**
      *  Get all the charts.
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
@@ -53,13 +53,13 @@ public class ChartService {
 
     /**
      *  Get all the charts owned by this user, plus all shared charts.
-     *  
+     *
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public List<Chart> findByOwnerIsCurrentUserOrShared(String login) {
         log.debug("Request to get all owned and shared Charts");
-        List<Chart> result = chartRepository.findByOwnerIsCurrentUserOrShared(login); 
+        List<Chart> result = chartRepository.findByOwnerIsCurrentUserOrShared(login);
         return result;
     }
 
@@ -70,19 +70,19 @@ public class ChartService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public Chart findOne(Long id) {
+    public Chart getOne(Long id) {
         log.debug("Request to get Chart : {}", id);
         Chart chart = chartRepository.findOneWithEagerRelationships(id);
         return chart;
     }
 
     /**
-     *  Delete the  chart by id.
+     *  Delete the chart.
      *
-     *  @param id the id of the entity
+     *  @param chart the Chart to delete
      */
-    public void delete(Long id) {
-        log.debug("Request to delete Chart : {}", id);
-        chartRepository.delete(id);
+    public void delete(Chart chart) {
+        log.debug("Request to delete Chart : {}", chart);
+        chartRepository.delete(chart);
     }
 }

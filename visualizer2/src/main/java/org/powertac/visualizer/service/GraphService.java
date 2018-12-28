@@ -19,7 +19,7 @@ import java.util.List;
 public class GraphService {
 
     private final Logger log = LoggerFactory.getLogger(GraphService.class);
-    
+
     private final GraphRepository graphRepository;
 
     public GraphService(GraphRepository graphRepository) {
@@ -40,7 +40,7 @@ public class GraphService {
 
     /**
      *  Get all the graphs.
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
@@ -53,13 +53,13 @@ public class GraphService {
 
     /**
      *  Get all the graphs owned by this user, plus all shared graphs.
-     *  
+     *
      *  @return the list of entities
      */
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public List<Graph> findByOwnerIsCurrentUserOrShared(String login) {
         log.debug("Request to get all owned and shared Graphs");
-        List<Graph> result = graphRepository.findByOwnerIsCurrentUserOrShared(login); 
+        List<Graph> result = graphRepository.findByOwnerIsCurrentUserOrShared(login);
         return result;
     }
 
@@ -70,19 +70,19 @@ public class GraphService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public Graph findOne(Long id) {
+    public Graph getOne(Long id) {
         log.debug("Request to get Graph : {}", id);
-        Graph graph = graphRepository.findOne(id);
+        Graph graph = graphRepository.getOne(id);
         return graph;
     }
 
     /**
-     *  Delete the  graph by id.
+     *  Delete the graph.
      *
-     *  @param id the id of the entity
+     *  @param graph the Graph to delete
      */
-    public void delete(Long id) {
-        log.debug("Request to delete Graph : {}", id);
-        graphRepository.delete(id);
+    public void delete(Graph graph) {
+        log.debug("Request to delete Graph : {}", graph);
+        graphRepository.delete(graph);
     }
 }

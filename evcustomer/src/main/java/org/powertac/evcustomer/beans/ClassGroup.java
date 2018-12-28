@@ -27,19 +27,19 @@ public class ClassGroup
 {
   protected String name;
 
-  @ConfigurableValue(valueType = "String",
+  @ConfigurableValue(valueType = "String", dump = false,
       description = "Social class name")
   protected String socialClassName;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Probability of a member of the class owning the car")
   protected double probability;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "Foreign key: id of associated SocialGroup")
   private int groupId;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Probability of actor being male")
   private double maleProbability;
 

@@ -36,7 +36,7 @@ public class GraphResource {
     private final Logger log = LoggerFactory.getLogger(GraphResource.class);
 
     private static final String ENTITY_NAME = "graph";
-        
+
     private final GraphService graphService;
     private final UserRepository userRepository;
 
@@ -121,7 +121,7 @@ public class GraphResource {
     @Timed
     public ResponseEntity<Graph> getGraph(@PathVariable Long id) {
         log.debug("REST request to get Graph : {}", id);
-        Graph graph = graphService.findOne(id);
+        Graph graph = graphService.getOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(graph));
     }
 
@@ -135,7 +135,10 @@ public class GraphResource {
     @Timed
     public ResponseEntity<Void> deleteGraph(@PathVariable Long id) {
         log.debug("REST request to delete Graph : {}", id);
-        graphService.delete(id);
+        Graph graph = graphService.getOne(id);
+        if (graph != null) {
+            graphService.delete(graph);
+        }
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 

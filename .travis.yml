@@ -1,0 +1,17 @@
+os:
+  - linux
+language: java
+jdk:
+  - oraclejdk8
+cache:
+  directories:
+    - $HOME/.m2
+env:
+  global:
+    secure: O41PGHEd6M8SZXuk2YyLVmHl51ujiY6WmXrRntismIyS/XOEyJ/YiuAfZkPTyVx0UyDo45++muaWCnz9nEW8yDHmrjYIQgmcqAjBxUBOAoZeP9dRuKoBxV/hbz2ongJPV4hUgPuhDAx9z5rRm6K4BXUX7LNFMxz8cWWEr0rEi2A=
+install:
+  - .travis/install_core.sh
+script:
+  - mvn -nsu -B -Dmaven.javadoc.skip=true clean install
+after_success:
+  - .travis/deploy_docs.sh

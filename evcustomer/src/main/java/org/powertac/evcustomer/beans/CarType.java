@@ -85,7 +85,7 @@ public class CarType
     return maxCapacity;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Maximum battery capacity")
   public void setMaxCapacity (double capacity)
   {
@@ -97,7 +97,7 @@ public class CarType
     return range;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Maximum range in km")
   public void setRange (double range)
   {
@@ -109,7 +109,7 @@ public class CarType
     return homeChargeKW;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Maximum charge rate in kw, home station")
   public void setHomeChargeKW (double kw)
   {
@@ -121,7 +121,7 @@ public class CarType
     return awayChargeKW;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Maximum charge rate in kw, remote station")
   public void setAwayChargeKW (double kw)
   {
@@ -133,7 +133,7 @@ public class CarType
     return curtailmentFactor;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Expected curtailment per timeslot, as a ratio of homeChargeKW")
   public void setCurtailmentFactor (double ratio)
   {
@@ -145,7 +145,7 @@ public class CarType
     return dischargeFactor;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Expected V2G per timeslot as a fn of homeChargeKW")
   public void setDischargeFactor (double ratio)
   {
@@ -157,7 +157,7 @@ public class CarType
     return downRegFactor;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "expected down regulation per timeslot as fn of homeChargeKW")
   public void setDownRegFactor (double ratio)
   {

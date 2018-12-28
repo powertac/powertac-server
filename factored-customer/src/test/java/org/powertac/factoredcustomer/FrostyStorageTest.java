@@ -3,9 +3,8 @@
  */
 package org.powertac.factoredcustomer;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
@@ -18,9 +17,9 @@ import org.apache.commons.configuration2.AbstractConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
@@ -70,7 +69,7 @@ public class FrostyStorageTest
   /**
    * @throws java.lang.Exception
    */
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     File fs = new File("src/test/resources/config/FrostyStorage.xml");
@@ -146,7 +145,7 @@ public class FrostyStorageTest
   /**
    * @throws java.lang.Exception
    */
-  @After
+  @AfterEach
   public void tearDown () throws Exception
   {
   }
@@ -154,15 +153,15 @@ public class FrostyStorageTest
   @Test
   public void testConfig ()
   {
-    assertEquals("correct count", 3, configuration.getInt("factoredcustomer.defaultCapacityBundle.FrostyStorage.count"));
+    assertEquals(3, configuration.getInt("factoredcustomer.defaultCapacityBundle.FrostyStorage.count"), "correct count");
   }
 
   @Test
   public void testSetup ()
   {
-    assertEquals("one customer created", 1, customers.size());
+    assertEquals(1, customers.size(), "one customer created");
     DefaultFactoredCustomer fs = (DefaultFactoredCustomer)customers.get(0);
-    assertEquals("correct name", "FrostyStorage", fs.getName());
+    assertEquals(fs.getName(), "FrostyStorage", "correct name");
   }
 
   @Test
@@ -209,6 +208,8 @@ public class FrostyStorageTest
     WeatherReport weather = new WeatherReport(300, 20.0, 0.0, 0.0, 0.0);
     when(weatherReportRepo.currentWeatherReport()).thenReturn(weather);
     fs.getUtilityOptimizer().handleNewTimeslot(ts);
+    assertEquals(3412.17, usePowerArgs.get(0), 1e-4, "correct power usage");
+    //System.out.println("FrostyStorageTest usePower: " + usePowerArgs.toString());
   }
 
   // ------------------------------------------------------------------------

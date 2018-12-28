@@ -15,25 +15,22 @@
  */
 package org.powertac.genco;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Collection;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.config.Configurator;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 /**
  * @author jcollins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class
 })
@@ -44,7 +41,7 @@ public class GencoConfigTest
   /**
    *
    */
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     // this probably won't work if tests are packaged in a jarfile
@@ -57,7 +54,7 @@ public class GencoConfigTest
     Configurator processor = new Configurator();
     processor.setConfiguration(config);
     Collection<?> gencos = processor.configureInstances(Genco.class);
-    assertEquals("2 gencos generated", 2, gencos.size());
+    assertEquals(2, gencos.size(), "2 gencos generated");
     Genco nsp1 = null;
     Genco nsp2 = null;
     for (Object item : gencos) {
@@ -67,19 +64,19 @@ public class GencoConfigTest
       else if ("nsp2".equals(genco.getUsername()))
         nsp2 = genco;
     }
-    assertNotNull("nsp1 created", nsp1);
-    assertEquals("nsp1 capacity", 20.0, nsp1.getNominalCapacity(), 1e-6);
-    assertEquals("nsp1 variability", 0.05, nsp1.getVariability(), 1e-6);
-    assertEquals("nsp1 reliability", 0.98, nsp1.getReliability(), 1e-6);
-    assertEquals("nsp1 cost", 20.0, nsp1.getCost(), 1e-6);
-    assertEquals("nsp1 emission", 1.0, nsp1.getCarbonEmissionRate(), 1e-6);
-    assertEquals("nsp1 leadtime", 8, nsp1.getCommitmentLeadtime());
-    assertNotNull("nsp2 created", nsp2);
-    assertEquals("nsp2 capacity", 30.0, nsp2.getNominalCapacity(), 1e-6);
-    assertEquals("nsp2 variability", 0.05, nsp2.getVariability(), 1e-6);
-    assertEquals("nsp2 reliability", 0.97, nsp2.getReliability(), 1e-6);
-    assertEquals("nsp2 cost", 30.0, nsp2.getCost(), 1e-6);
-    assertEquals("nsp2 emission", 0.95, nsp2.getCarbonEmissionRate(), 1e-6);
-    assertEquals("nsp2 leadtime", 6, nsp2.getCommitmentLeadtime());
+    assertNotNull(nsp1, "nsp1 created");
+    assertEquals(20.0, nsp1.getNominalCapacity(), 1e-6, "nsp1 capacity");
+    assertEquals(0.05, nsp1.getVariability(), 1e-6, "nsp1 variability");
+    assertEquals(0.98, nsp1.getReliability(), 1e-6, "nsp1 reliability");
+    assertEquals(20.0, nsp1.getCost(), 1e-6, "nsp1 cost");
+    assertEquals(1.0, nsp1.getCarbonEmissionRate(), 1e-6, "nsp1 emission");
+    assertEquals(8, nsp1.getCommitmentLeadtime(), "nsp1 leadtime");
+    assertNotNull(nsp2, "nsp2 created");
+    assertEquals(30.0, nsp2.getNominalCapacity(), 1e-6, "nsp2 capacity");
+    assertEquals(0.05, nsp2.getVariability(), 1e-6, "nsp2 variability");
+    assertEquals(0.97, nsp2.getReliability(), 1e-6, "nsp2 reliability");
+    assertEquals(30.0, nsp2.getCost(), 1e-6, "nsp2 cost");
+    assertEquals(0.95, nsp2.getCarbonEmissionRate(), 1e-6, "nsp2 emission");
+    assertEquals(6, nsp2.getCommitmentLeadtime(), "nsp2 leadtime");
   }
 }

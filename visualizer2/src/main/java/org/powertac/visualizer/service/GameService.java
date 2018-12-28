@@ -45,7 +45,7 @@ public class GameService {
 
     /**
      *  Get all the games.
-     *  
+     *
      *  @param pageable the pagination information
      *  @return the list of entities
      */
@@ -90,9 +90,9 @@ public class GameService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public Game findOne(Long id) {
+    public Game getOne(Long id) {
         log.debug("Request to get Game : {}", id);
-        Game game = gameRepository.findOne(id);
+        Game game = gameRepository.getOne(id);
         return game;
     }
 
@@ -104,27 +104,26 @@ public class GameService {
     }
 
     /**
-     *  Delete the  game by id.
+     *  Delete the game.
      *
-     *  @param id the id of the entity
+     *  @param game the Game to delete
      */
-    public void delete(Long id) {
-        log.debug("Request to delete Game : {}", id);
-        Game game = gameRepository.findOne(id);
-        Long fileId = game.getStateFileId();
-        if (fileId != null) {
-            fileService.delete(fileId);
+    public void delete(Game game) {
+        log.debug("Request to delete Game : {}", game);
+        File file = game.getStateFile();
+        if (file != null) {
+            fileService.delete(file);
         }
-        fileId = game.getTraceFileId();
-        if (fileId != null) {
-            fileService.delete(fileId);
+        file = game.getTraceFile();
+        if (file != null) {
+            fileService.delete(file);
         }
         if (game.getType().equals(GameType.BOOT)) {
-          fileId = game.getBootFileId();
-          if (fileId != null) {
-            fileService.delete(fileId);
-          }
+            file = game.getBootFile();
+            if (file != null) {
+                fileService.delete(file);
+            }
         }
-        gameRepository.delete(id);
+        gameRepository.delete(game);
     }
 }

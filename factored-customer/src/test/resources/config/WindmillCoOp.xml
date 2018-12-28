@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <factoredcustomer-root>
   <factoredcustomer>
+
+    <config>
+      <allocationDetailsLogging>true</allocationDetailsLogging>
+      <capacityDetailsLogging>true</capacityDetailsLogging>
+      <usageChargesLogging>false</usageChargesLogging>
+
+      <structureTypes>
+        CustomerStructure,TariffSubscriberStructure,
+        CapacityStructure,DefaultCapacityBundle,
+        ProbabilityDistribution,TimeseriesGenerator,
+        ProfileOptimizerStructure
+      </structureTypes>
+    </config>
+
     <customerStructure>
+    	<instances>WindmillCoOp</instances>
       <WindmillCoOp>
         <count>1</count>
         <creatorKey/>
@@ -11,6 +26,7 @@
     </customerStructure>
 
     <defaultCapacityBundle>
+      <instances>WindmillCoOp-1,WindmillCoOp-2</instances>
       <WindmillCoOp-1>
         <id>1</id>
         <count>1</count>
@@ -33,6 +49,7 @@
     </defaultCapacityBundle>
 
     <capacityStructure>
+      <instances>WindmillCoOp-1,WindmillCoOp-2</instances>
       <WindmillCoOp-1>
         <baseCapacityType>INDIVIDUAL</baseCapacityType>
 
@@ -100,6 +117,7 @@
     </capacityStructure>
 
     <tariffSubscriberStructure>
+      <instances>WindmillCoOp-1,WindmillCoOp-2</instances>
       <WindmillCoOp-1>
         <expMeanPriceWeight>0.6</expMeanPriceWeight>
         <maxValuePriceWeight>0.4</maxValuePriceWeight>
@@ -120,6 +138,9 @@
     </tariffSubscriberStructure>
 
     <probabilityDistribution>
+      <instances>
+      	WindmillCoOp-1Inertia,WindmillCoOp-2Inertia,
+      	WindmillCoOp-1Population,WindmillCoOp-2Population</instances>
       <WindmillCoOp-1Inertia>
         <distribution>INTERVAL</distribution>
         <mean>0.3</mean>

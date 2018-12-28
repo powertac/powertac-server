@@ -1,12 +1,15 @@
 package org.powertac.server;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -25,9 +28,8 @@ import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -35,15 +37,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.reset;
 
-//import javax.annotation.Resource;
-
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:weather-test-config.xml" })
+@SpringJUnitConfig(locations = { "classpath:weather-test-config.xml" })
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -81,7 +76,7 @@ public class WeatherServiceTest
   private Competition comp;
   private Configurator config;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     weatherService = new WeatherService();
     timeslotRepo.recycle();
@@ -142,13 +137,11 @@ public class WeatherServiceTest
     String properUrl = "http://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
     String result = weatherService
             .initialize(comp, new ArrayList<String>());
-    assertEquals("correct return value", "WeatherService", result);
-    assertEquals("correct req interval", 24,
-               weatherService.getWeatherReqInterval());
-    assertEquals("correct forecast horizon", 24,
-               weatherService.getForecastHorizon());
-    assertTrue("correct blocking mode", weatherService.isBlocking());
-    assertEquals("correct server url", properUrl, weatherService.getServerUrl());
+    assertEquals(result, "WeatherService", "correct return value");
+    assertEquals(24, weatherService.getWeatherReqInterval(), "correct req interval");
+    assertEquals(24, weatherService.getForecastHorizon(), "correct forecast horizon");
+    assertTrue(weatherService.isBlocking(), "correct blocking mode");
+    assertEquals(properUrl, weatherService.getServerUrl(), "correct server url");
   }
 
   // config max/min
@@ -164,15 +157,11 @@ public class WeatherServiceTest
 
     String result = weatherService
             .initialize(comp, new ArrayList<String>());
-    assertEquals("correct return value", "WeatherService", result);
-    assertEquals("correct url", 0,
-                 "localhost".compareTo(weatherService.getServerUrl()), 1e-6);
-    assertEquals("correct weather req interval", 6,
-                 weatherService.getWeatherReqInterval(), 1e-6);
-    assertEquals("correct blocking mode", true,
-                 weatherService.isBlocking());
-    assertEquals("correct forecast horizon", 12,
-                 weatherService.getForecastHorizon());
+    assertEquals(result, "WeatherService", "correct return value");
+    assertEquals(0, "localhost".compareTo(weatherService.getServerUrl()), 1e-6, "correct url");
+    assertEquals(6, weatherService.getWeatherReqInterval(), 1e-6, "correct weather req interval");
+    assertEquals(true, weatherService.isBlocking(), "correct blocking mode");
+    assertEquals(12, weatherService.getForecastHorizon(), "correct forecast horizon");
   }
 
   @Test

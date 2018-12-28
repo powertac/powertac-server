@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Key class responsible for drawing from a base capacity and adjusting that
  * capacity in response to various static and dynamic factors for each timeslot.
@@ -271,10 +270,10 @@ class DefaultCapacityOriginator implements CapacityOriginator
     if (Double.isNaN(baseCapacity)) {
       throw new Error("Base capacity is NaN!");
     }
-    else if (parentBundle.getPowerType().isProduction()) {
-      // correct sign before going further
-      baseCapacity *= -1.0;
-    }
+    //else if (parentBundle.getPowerType().isProduction()) {
+    //  // correct sign before going further
+    //  baseCapacity *= -1.0;
+    //}
     logCapacityDetails(logIdentifier + ": Base capacity for timeslot "
         + timeslot + " = " + baseCapacity);
 

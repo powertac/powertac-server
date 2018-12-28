@@ -252,7 +252,7 @@ public class FileResourceIntTest {
         int databaseSizeBeforeUpdate = fileRepository.findAll().size();
 
         // Update the file
-        File updatedFile = fileRepository.findOne(file.getId());
+        File updatedFile = fileRepository.getOne(file.getId());
         updatedFile.setType(UPDATED_TYPE);
         updatedFile.setName(UPDATED_NAME);
         updatedFile.setShared(UPDATED_SHARED);

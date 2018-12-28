@@ -46,19 +46,19 @@ public final class Config
   // System configurator
   private ServerConfiguration serverConfiguration;
 
-  @ConfigurableValue(valueType = "Boolean",
+  @ConfigurableValue(valueType = "Boolean", dump = false,
       description = "Toggle logging of tariff allocation details")
   private boolean allocationDetailsLogging = true;
 
-  @ConfigurableValue(valueType = "Boolean",
+  @ConfigurableValue(valueType = "Boolean", dump = false,
       description = "Toogle logging of capacity adjustment details")
   private boolean capacityDetailsLogging = false;
 
-  @ConfigurableValue(valueType = "Boolean",
+  @ConfigurableValue(valueType = "Boolean", dump = false,
       description = "Toggle logging of expected usage charges")
   private boolean usageChargesLogging = false;
 
-  @ConfigurableValue(valueType = "List",
+  @ConfigurableValue(valueType = "List", dump = false,
       description = "classnames of bean types to be configured")
   private List<String> structureTypes = new ArrayList<>();
 
@@ -94,27 +94,6 @@ public final class Config
   }
 
   // =================== Configuration ================
-
-  /**
-   * Configures this singleton when it's needed. Not called during instance
-   * creation to allow testing without a full Spring setup. This version is
-   * Deprecated! Please use configure(ServerConfiguration) instead.
-   */
-//  @Deprecated
-//  public void configure ()
-//  {
-//    if (null == serverConfiguration) {
-//      serverConfiguration = (ServerConfiguration)
-//          SpringApplicationContext.getBean("serverPropertiesService");
-//    }
-//    if (null == serverConfiguration) {
-//      // should not happen outside of testing
-//      log.warn("Cannot find serverPropertiesService");
-//    }
-//    else {
-//      serverConfiguration.configureMe(this);
-//    }
-//  }
 
   /**
    * Configures this instance from the given configuration service.

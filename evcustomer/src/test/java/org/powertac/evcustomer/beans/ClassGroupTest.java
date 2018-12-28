@@ -16,10 +16,11 @@
 
 package org.powertac.evcustomer.beans;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 /**
@@ -32,13 +33,13 @@ public class ClassGroupTest
   private double probability = 0.5;
   private double maleProbability = 0.5;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     initialize();
   }
 
-  @After
+  @AfterEach
   public void tearDown ()
   {
     classGroup = null;

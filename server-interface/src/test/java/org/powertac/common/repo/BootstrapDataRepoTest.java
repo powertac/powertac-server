@@ -15,7 +15,7 @@
  */
 package org.powertac.common.repo;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,10 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-// import org.apache.logging.log4j.LogManager;
-// import org.apache.logging.log4j.Logger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.WeatherReport;
@@ -47,7 +45,7 @@ public class BootstrapDataRepoTest
   /**
    * 
    */
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     uut = new BootstrapDataRepo();
@@ -68,21 +66,21 @@ public class BootstrapDataRepoTest
     uut.add(i1);
     
     List<?> result = uut.getData();
-    assertEquals("two items", 2, result.size());
+    assertEquals(2, result.size(), "two items");
     String r1;
     if (result.get(0) instanceof String)
       r1 = (String)result.get(0);
     else
       r1 = (String)result.get(1);
-    assertNotNull("found a String", r1);
-    assertEquals("correct String", "test string", r1);
+    assertNotNull(r1, "found a String");
+    assertEquals(r1, "test string", "correct String");
     Integer r2;
     if (result.get(0) instanceof Integer)
       r2 = (Integer)result.get(0);
     else
       r2 = (Integer)result.get(1);
-    assertNotNull("found a String", r2);
-    assertEquals("correct Integer", r2, new Integer(42));
+    assertNotNull(r2, "found a String");
+    assertEquals(r2, new Integer(42), "correct Integer");
   }
 
   /**
@@ -99,21 +97,21 @@ public class BootstrapDataRepoTest
     uut.add(data);
     
     List<?> result = uut.getData();
-    assertEquals("two items", 2, result.size());
+    assertEquals(2, result.size(), "two items");
     String r1;
     if (result.get(0) instanceof String)
       r1 = (String)result.get(0);
     else
       r1 = (String)result.get(1);
-    assertNotNull("found a String", r1);
-    assertEquals("correct String", "test string", r1);
+    assertNotNull(r1, "found a String");
+    assertEquals(r1, "test string", "correct String");
     Integer r2;
     if (result.get(0) instanceof Integer)
       r2 = (Integer)result.get(0);
     else
       r2 = (Integer)result.get(1);
-    assertNotNull("found a String", r2);
-    assertEquals("correct Integer", r2, new Integer(42));
+    assertNotNull(r2, "found a String");
+    assertEquals(r2, new Integer(42), "correct Integer");
   }
 
   /**
@@ -129,7 +127,7 @@ public class BootstrapDataRepoTest
     uut.add(new Integer(44));
     
     List<?> result = uut.getData();
-    assertEquals("five items", 5, result.size());
+    assertEquals(5, result.size(), "five items");
     
     TreeSet<String> strings = new TreeSet<>();
     for (Object r: uut.getData(String.class)) {
@@ -137,9 +135,9 @@ public class BootstrapDataRepoTest
     }
     String[] ar = new String[3];
     ar = strings.toArray(ar);
-    assertEquals("first string", "test1", ar[0]);
-    assertEquals("second string", "test2", ar[1]);
-    assertNull("no third string", ar[2]);
+    assertEquals(ar[0], "test1", "first string");
+    assertEquals(ar[1], "test2", "second string");
+    assertNull(ar[2], "no third string");
     
     TreeSet<Integer> nums= new TreeSet<>();
     for (Object r: uut.getData(Integer.class)) {
@@ -147,10 +145,10 @@ public class BootstrapDataRepoTest
     }
     Integer[] an = new Integer[4];
     an = nums.toArray(an);
-    assertEquals("first int", new Integer(42), an[0]);
-    assertEquals("second int", new Integer(43), an[1]);
-    assertEquals("third int", new Integer(44), an[2]);
-    assertNull("no fourth int", an[3]);
+    assertEquals(new Integer(42), an[0], "first int");
+    assertEquals(new Integer(43), an[1], "second int");
+    assertEquals(new Integer(44), an[2], "third int");
+    assertNull(an[3], "no fourth int");
   }
 
   /**
@@ -165,10 +163,10 @@ public class BootstrapDataRepoTest
     uut.add(new Integer(43));
     uut.add(new Integer(44));
     List<?> result = uut.getData();
-    assertEquals("five", 5, result.size());
+    assertEquals(5, result.size(), "five");
     uut.recycle();
     result = uut.getData();
-    assertEquals("zero", 0, result.size());
+    assertEquals(0, result.size(), "zero");
   }
 
   /**
@@ -188,10 +186,9 @@ public class BootstrapDataRepoTest
     }
     List<Object> items;
     Competition bc = uut.getBootstrapCompetition();
-    assertNotNull("found bootstrap competition", bc);
+    assertNotNull(bc, "found bootstrap competition");
     items = uut.getData(CustomerInfo.class);
-    assertEquals("11 customers", 11, items.size());
-    assertEquals("24 weather reports", 336,
-                 uut.getData(WeatherReport.class).size());
+    assertEquals(11, items.size(), "11 customers");
+    assertEquals(336, uut.getData(WeatherReport.class).size(), "24 weather reports");
   }
 }

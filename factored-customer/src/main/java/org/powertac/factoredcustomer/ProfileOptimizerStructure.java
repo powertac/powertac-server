@@ -42,34 +42,34 @@ public final class ProfileOptimizerStructure implements StructureInstance
 
   private String name;
 
-  @ConfigurableValue(valueType = "Boolean")
+  @ConfigurableValue(valueType = "Boolean", dump = false)
   private boolean receiveRecommendations = false;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String permutationRule = null;
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String profileSelectionMethod =
       ProfileSelectionMethod.BEST_UTILITY.toString();
 
   // factors controlling responsiveness to recommendation
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double reactivityFactor = 1.0;  // [0.0, 1.0]
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double receptivityFactor = 1.0;  // [0.0, 1.0]
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double rationalityFactor = 1.0;  // [0.0, 1.0]
 
   // required percent benefit in usage charge vs. forecast profile
-  @ConfigurableValue(valueType = "String")
+  @ConfigurableValue(valueType = "String", dump = false)
   private String usageChargeStance = UsageChargeStance.BENEFIT.toString();
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double usageChargePercentBenefit= 0.01;  // 1% improvement
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double usageChargeThreshold = Double.NaN;  // [0.0, +inf)
 
   // scoring weights of other factors relative to fixed usage charge weight of +/-1.
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double profileChangeWeight = -1.0;  // (-inf, 0.0]
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double bundleValueWeight = +10.0;  //  [0.0, inf]
 
   public ProfileOptimizerStructure (String name)

@@ -1,6 +1,6 @@
 package org.powertac.common.repo;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -8,9 +8,8 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -20,18 +19,15 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
-//import org.powertac.common.interfaces.TariffMarket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:tsr-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:tsr-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -57,7 +53,7 @@ public class TariffSubscriptionRepoTests
   Broker b1;
   Broker b2;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     reset(mockTariffRepo);
@@ -90,36 +86,36 @@ public class TariffSubscriptionRepoTests
     Tariff t1 = new Tariff(ts1);
     t1.init();
     subs = repo.findSubscriptionsForCustomer(c1);
-    assertEquals("none found for customer", 0, subs.size());
+    assertEquals(0, subs.size(), "none found for customer");
     subs = repo.findSubscriptionsForTariff(t1);
-    assertEquals("none found for tariff", 0, subs.size());
+    assertEquals(0, subs.size(), "none found for tariff");
     TariffSubscription sub1 = new TariffSubscription(c1, t1);
     repo.add(sub1);
     subs = repo.findSubscriptionsForCustomer(c1);
-    assertEquals("one found for customer 1", 1, subs.size());
-    assertEquals("correct sub 1", sub1, subs.get(0));
+    assertEquals(1, subs.size(), "one found for customer 1");
+    assertEquals(sub1, subs.get(0), "correct sub 1");
     subs = repo.findSubscriptionsForCustomer(c2);
-    assertEquals("non found for customer 2", 0, subs.size());
+    assertEquals(0, subs.size(), "non found for customer 2");
     subs = repo.findSubscriptionsForTariff(t1);
-    assertEquals("one found for tariff", 1, subs.size());
-    assertEquals("correct sub 2", sub1, subs.get(0));
+    assertEquals(1, subs.size(), "one found for tariff");
+    assertEquals(sub1, subs.get(0), "correct sub 2");
     subs = repo.findSubscriptionsForBroker(b1);
-    assertEquals("one found for Bob", 1, subs.size());
-    assertEquals("correct sub 3", sub1, subs.get(0));
+    assertEquals(1, subs.size(), "one found for Bob");
+    assertEquals(sub1, subs.get(0), "correct sub 3");
     subs = repo.findSubscriptionsForBroker(b2);
-    assertEquals("none found for Barb", 0, subs.size());
+    assertEquals(0, subs.size(), "none found for Barb");
 
     TariffSubscription sub2 = new TariffSubscription(c2, t1);
     repo.add(sub2);
     subs = repo.findSubscriptionsForCustomer(c2);
-    assertEquals("one found for customer 2", 1, subs.size());
-    assertEquals("correct sub 3", sub2, subs.get(0));
+    assertEquals(1, subs.size(), "one found for customer 2");
+    assertEquals(sub2, subs.get(0), "correct sub 3");
     subs = repo.findSubscriptionsForTariff(t1);
-    assertEquals("two found for tariff", 2, subs.size());
+    assertEquals(2, subs.size(), "two found for tariff");
     subs = repo.findSubscriptionsForBroker(b1);
-    assertEquals("two found for Bob", 2, subs.size());
+    assertEquals(2, subs.size(), "two found for Bob");
     subs = repo.findSubscriptionsForBroker(b2);
-    assertEquals("none found for Barb", 0, subs.size());
+    assertEquals(0, subs.size(), "none found for Barb");
   }
 
   @Test
@@ -129,15 +125,15 @@ public class TariffSubscriptionRepoTests
     Tariff t1 = new Tariff(ts1);
     t1.init();
     TariffSubscription sub = repo.getSubscription(c1, t1);
-    assertEquals("correct customer", c1, sub.getCustomer());
-    assertEquals("correct tariff", t1, sub.getTariff());
-    assertEquals("no subscribers", 0, sub.getCustomersCommitted());
+    assertEquals(c1, sub.getCustomer(), "correct customer");
+    assertEquals(t1, sub.getTariff(), "correct tariff");
+    assertEquals(0, sub.getCustomersCommitted(), "no subscribers");
     subs = repo.findSubscriptionsForCustomer(c1);
-    assertEquals("one found for customer", 1, subs.size());
-    assertEquals("correct sub 1", sub, subs.get(0));
+    assertEquals(1, subs.size(), "one found for customer");
+    assertEquals(sub, subs.get(0), "correct sub 1");
     subs = repo.findSubscriptionsForTariff(t1);
-    assertEquals("one found for tariff", 1, subs.size());
-    assertEquals("correct sub 2", sub, subs.get(0));
+    assertEquals(1, subs.size(), "one found for tariff");
+    assertEquals(sub, subs.get(0), "correct sub 2");
   }
 
   @Test
@@ -153,10 +149,10 @@ public class TariffSubscriptionRepoTests
     TariffSubscription sub2 = repo.getSubscription(c1, t2);
     sub1.subscribe(19);
     subs = repo.findSubscriptionsForCustomer(c1);
-    assertEquals("two found", 2, subs.size());
+    assertEquals(2, subs.size(), "two found");
     subs = repo.findActiveSubscriptionsForCustomer(c1);
-    assertEquals("one found", 1, subs.size());
-    assertEquals("correct sub 1", sub1, subs.get(0));
+    assertEquals(1, subs.size(), "one found");
+    assertEquals(sub1, subs.get(0), "correct sub 1");
   }
 
   @Test
@@ -168,8 +164,8 @@ public class TariffSubscriptionRepoTests
     t2.init();
     TariffSubscription sub1 = repo.getSubscription(c1, t1);
     TariffSubscription sub2 = repo.getSubscription(c1, t2);
-    assertEquals("found s1", sub1, repo.findSubscriptionForTariffAndCustomer(t1, c1));
-    assertEquals("found s2", sub2, repo.findSubscriptionForTariffAndCustomer(t2, c1));
+    assertEquals(sub1, repo.findSubscriptionForTariffAndCustomer(t1, c1), "found s1");
+    assertEquals(sub2, repo.findSubscriptionForTariffAndCustomer(t2, c1), "found s2");
   }
 
   @Test
@@ -188,8 +184,8 @@ public class TariffSubscriptionRepoTests
     when(mockTariffRepo.findTariffById(ts1.getId())).thenReturn(t1);
     when(mockTariffRepo.findTariffById(ts2.getId())).thenReturn(t2);
     subs = repo.getRevokedSubscriptionList(c1);
-    assertEquals("one killed", 1, subs.size());
-    assertEquals("t2 killed", sub2, subs.get(0));
+    assertEquals(1, subs.size(), "one killed");
+    assertEquals(sub2, subs.get(0), "t2 killed");
   }
 
   @Test
@@ -202,11 +198,11 @@ public class TariffSubscriptionRepoTests
     t2.init();
     TariffSubscription sub1 = repo.getSubscription(c1, t1);
     TariffSubscription sub2 = repo.getSubscription(c1, t2);
-    assertEquals("found s1", sub1, repo.findSubscriptionForTariffAndCustomer(t1, c1));
-    assertEquals("found s2", sub2, repo.findSubscriptionForTariffAndCustomer(t2, c1));
+    assertEquals(sub1, repo.findSubscriptionForTariffAndCustomer(t1, c1), "found s1");
+    assertEquals(sub2, repo.findSubscriptionForTariffAndCustomer(t2, c1), "found s2");
     repo.recycle();
     subs = repo.findSubscriptionsForCustomer(c1);
-    assertEquals("no subs found", 0, subs.size());
+    assertEquals(0, subs.size(), "no subs found");
   }
 
 }

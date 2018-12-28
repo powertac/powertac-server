@@ -55,7 +55,7 @@ public class GameResource {
 
 
     private static final String ENTITY_NAME = "game";
-        
+
     private final GameService gameService;
     private UserRepository userRepository;
 
@@ -153,7 +153,7 @@ public class GameResource {
     @Timed
     public ResponseEntity<Game> getGame(@PathVariable Long id) {
         log.debug("REST request to get Game : {}", id);
-        Game game = gameService.findOne(id);
+        Game game = gameService.getOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(game));
     }
 
@@ -167,7 +167,10 @@ public class GameResource {
     @Timed
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         log.debug("REST request to delete Game : {}", id);
-        gameService.delete(id);
+        Game game = gameService.getOne(id);
+        if (game != null) {
+            gameService.delete(game);
+        }
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
@@ -204,7 +207,7 @@ public class GameResource {
         if (check.size() > 0) {
             if (overwrite) {
                 for (Game g : check) {
-                    gameService.delete(g.getId());
+                    gameService.delete(g);
                 }
             } else {
                 return ResponseEntity.badRequest()
@@ -252,7 +255,7 @@ public class GameResource {
         if (check.size() > 0) {
             if (overwrite) {
                 for (Game g : check) {
-                    gameService.delete(g.getId());
+                    gameService.delete(g);
                 }
             } else {
                 return ResponseEntity.badRequest()

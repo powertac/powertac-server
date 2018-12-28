@@ -15,10 +15,8 @@
  */
 package org.powertac.customer.model;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Collection;
@@ -30,8 +28,8 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
@@ -76,7 +74,7 @@ public class LiftTruckTest
   private TimeslotRepo tsRepo;
   private ServiceAccessor serviceAccessor;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     tsRepo = mock(TimeslotRepo.class);
@@ -140,9 +138,8 @@ public class LiftTruckTest
   public void testLiftTruck ()
   {
     LiftTruck truck = new LiftTruck("Test");
-    assertNotNull("constructed", truck);
-    assertEquals("1 trucks 2nd shift",
-                 8, truck.getNChargers());
+    assertNotNull(truck, "constructed");
+    assertEquals(8, truck.getNChargers(), "1 trucks 2nd shift");
   }
 
   @Test
@@ -162,104 +159,104 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("two instances", 2, instances.size());
+    assertEquals(2, instances.size(), "two instances");
     Map<String, LiftTruck> trucks = mapNames(instances);
 
     LiftTruck twoshift = trucks.get("twoShift");
-    assertNotNull("found twoShift", twoshift);
+    assertNotNull(twoshift, "found twoShift");
     twoshift.ensureShifts();
     Shift[] schedule = twoshift.getShiftSchedule();
-    assertNotNull("schedule exists", schedule);
-    assertEquals("correct size", 168, schedule.length);
-    assertNull("idle Mon 0:00", schedule[0]);
+    assertNotNull(schedule, "schedule exists");
+    assertEquals(168, schedule.length, "correct size");
+    assertNull(schedule[0], "idle Mon 0:00");
     Shift s1 = schedule[8];
-    assertNotNull("entry for 8:00 Monday", s1);
-    assertEquals("8:00 Monday start", 8, s1.getStart());
-    assertEquals("8:00 trucks", 8, s1.getTrucks());
-    assertEquals("s1 runs to 17:00", s1, schedule[17]);
+    assertNotNull(s1, "entry for 8:00 Monday");
+    assertEquals(8, s1.getStart(), "8:00 Monday start");
+    assertEquals(8, s1.getTrucks(), "8:00 trucks");
+    assertEquals(s1, schedule[17], "s1 runs to 17:00");
     Shift s2 = schedule[18];
-    assertNotNull("second shift exists", s2);
-    assertEquals("18:00 start", 18, s2.getStart());
-    assertEquals("Tue 3:00", s2, schedule[27]);
-    assertEquals("Tue 3:00 trucks", 6, s2.getTrucks());
-    assertNull("Idle Tue 4:00", schedule[28]);
-    assertEquals("Tue 8:00 is s1", s1, schedule[32]);
-    assertEquals("Tue 18:00 is s2", s2, schedule[42]);
-    assertEquals("Fri 18:00 is s2", s2, schedule[18 + LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Sat 3:00 is s2", s2, schedule[3 + LiftTruck.HOURS_DAY * 5]);
-    assertNull("Sat 4:00 is null", schedule[4 + LiftTruck.HOURS_DAY * 5]);
+    assertNotNull(s2, "second shift exists");
+    assertEquals(18, s2.getStart(), "18:00 start");
+    assertEquals(s2, schedule[27], "Tue 3:00");
+    assertEquals(6, s2.getTrucks(), "Tue 3:00 trucks");
+    assertNull(schedule[28], "Idle Tue 4:00");
+    assertEquals(s1, schedule[32], "Tue 8:00 is s1");
+    assertEquals(s2, schedule[42], "Tue 18:00 is s2");
+    assertEquals(s2, schedule[18 + LiftTruck.HOURS_DAY * 4], "Fri 18:00 is s2");
+    assertEquals(s2, schedule[3 + LiftTruck.HOURS_DAY * 5], "Sat 3:00 is s2");
+    assertNull(schedule[4 + LiftTruck.HOURS_DAY * 5], "Sat 4:00 is null");
     Shift s3 = schedule[8 + LiftTruck.HOURS_DAY * 5];
-    assertNotNull("Sat day shift", s3);
-    assertEquals("Sat trucks", 3, s3.getTrucks());
-    assertNull("idle Sun", schedule[8 + LiftTruck.HOURS_DAY * 6]);
+    assertNotNull(s3, "Sat day shift");
+    assertEquals(3, s3.getTrucks(), "Sat trucks");
+    assertNull(schedule[8 + LiftTruck.HOURS_DAY * 6], "idle Sun");
 
     LiftTruck threeshift = trucks.get("threeShift");
-    assertNotNull("found threeshift", threeshift);
+    assertNotNull(threeshift, "found threeshift");
     threeshift.ensureShifts();
     schedule = threeshift.getShiftSchedule();
-    assertNotNull("exists", schedule);
-    assertEquals("size", 168, schedule.length);
-    assertNull("idle Mon midnight", schedule[0]);
-    assertNull("idle 5:00 Mon", schedule[5]);
+    assertNotNull(schedule, "exists");
+    assertEquals(168, schedule.length, "size");
+    assertNull(schedule[0], "idle Mon midnight");
+    assertNull(schedule[5], "idle 5:00 Mon");
     s1 = schedule[6];
-    assertNotNull("not idle 6:00 Mon", s1);
-    assertEquals("s1 start", 6, s1.getStart());
-    assertEquals("s1 dur", 8, s1.getDuration());
-    assertEquals("s1 trucks", 8, s1.getTrucks());
-    assertEquals("s1 Mon 13:00", s1, schedule[13]);
+    assertNotNull(s1, "not idle 6:00 Mon");
+    assertEquals(6, s1.getStart(), "s1 start");
+    assertEquals(8, s1.getDuration(), "s1 dur");
+    assertEquals(8, s1.getTrucks(), "s1 trucks");
+    assertEquals(s1, schedule[13], "s1 Mon 13:00");
     s2 = schedule[14];
-    assertNotNull("not idle Mon 14:00", s2);
-    assertNotSame("different from s1", s1, s2);
-    assertEquals("s2 start", 14, s2.getStart());
-    assertEquals("s2 dur", 8, s2.getDuration());
-    assertEquals("s2 trucks", 6, s2.getTrucks());
-    assertEquals("s2 Mon 21:00", s2, schedule[21]);
+    assertNotNull(s2, "not idle Mon 14:00");
+    assertNotSame(s1, s2, "different from s1");
+    assertEquals(14, s2.getStart(), "s2 start");
+    assertEquals(8, s2.getDuration(), "s2 dur");
+    assertEquals(6, s2.getTrucks(), "s2 trucks");
+    assertEquals(s2, schedule[21], "s2 Mon 21:00");
     s3 = schedule[22];
-    assertNotNull("not idle Mon 22:00", s3);
-    assertNotSame("different from s1", s1, s3);
-    assertNotSame("different from s2", s2, s3);
-    assertEquals("s3 start", 22, s3.getStart());
-    assertEquals("s3 dur", 8, s3.getDuration());
-    assertEquals("s3 trucks", 4, s3.getTrucks());
-    assertEquals("s3 Tue 5:00", s3, schedule[29]);
+    assertNotNull(s3, "not idle Mon 22:00");
+    assertNotSame(s1, s3, "different from s1");
+    assertNotSame(s2, s3, "different from s2");
+    assertEquals(22, s3.getStart(), "s3 start");
+    assertEquals(8, s3.getDuration(), "s3 dur");
+    assertEquals(4, s3.getTrucks(), "s3 trucks");
+    assertEquals(s3, schedule[29], "s3 Tue 5:00");
     // check Friday - Sat AM
-    assertEquals("Fri 0:00", s3, schedule[LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Fri 5:00", s3, schedule[5 + LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Fri 6:00", s1, schedule[6 + LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Fri 13:00", s1, schedule[13 + LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Fri 14:00", s2, schedule[14 + LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Fri 21:00", s2, schedule[21 + LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Fri 22:00", s3, schedule[22+ LiftTruck.HOURS_DAY * 4]);
-    assertEquals("Sat 5:00", s3, schedule[5 + LiftTruck.HOURS_DAY * 5]);
+    assertEquals(s3, schedule[LiftTruck.HOURS_DAY * 4], "Fri 0:00");
+    assertEquals(s3, schedule[5 + LiftTruck.HOURS_DAY * 4], "Fri 5:00");
+    assertEquals(s1, schedule[6 + LiftTruck.HOURS_DAY * 4], "Fri 6:00");
+    assertEquals(s1, schedule[13 + LiftTruck.HOURS_DAY * 4], "Fri 13:00");
+    assertEquals(s2, schedule[14 + LiftTruck.HOURS_DAY * 4], "Fri 14:00");
+    assertEquals(s2, schedule[21 + LiftTruck.HOURS_DAY * 4], "Fri 21:00");
+    assertEquals(s3, schedule[22+ LiftTruck.HOURS_DAY * 4], "Fri 22:00");
+    assertEquals(s3, schedule[5 + LiftTruck.HOURS_DAY * 5], "Sat 5:00");
     Shift s4 = schedule[6 + LiftTruck.HOURS_DAY * 5];
-    assertNotNull("not idle Sat 6:00", s4);
-    assertNotSame("different from s1", s1, s4);
-    assertNotSame("different from s2", s2, s4);
-    assertNotSame("different from s3", s3, s4);
-    assertEquals("s4 start", 6, s4.getStart());
-    assertEquals("s4 dur", 8, s4.getDuration());
-    assertEquals("s4 trucks", 3, s4.getTrucks());
-    assertEquals("Sat 6:00", s4, schedule[6 + LiftTruck.HOURS_DAY * 5]);
-    assertEquals("Sat 13:00", s4, schedule[13 + LiftTruck.HOURS_DAY * 5]);
+    assertNotNull(s4, "not idle Sat 6:00");
+    assertNotSame(s1, s4, "different from s1");
+    assertNotSame(s2, s4, "different from s2");
+    assertNotSame(s3, s4, "different from s3");
+    assertEquals(6, s4.getStart(), "s4 start");
+    assertEquals(8, s4.getDuration(), "s4 dur");
+    assertEquals(3, s4.getTrucks(), "s4 trucks");
+    assertEquals(s4, schedule[6 + LiftTruck.HOURS_DAY * 5], "Sat 6:00");
+    assertEquals(s4, schedule[13 + LiftTruck.HOURS_DAY * 5], "Sat 13:00");
     Shift s5 = schedule[14 + LiftTruck.HOURS_DAY * 5];
-    assertNotNull("not idle Sat 14:00", s5);
-    assertNotSame("different from s1", s1, s5);
-    assertNotSame("different from s2", s2, s5);
-    assertNotSame("different from s3", s3, s5);
-    assertNotSame("different from s4", s4, s5);
-    assertEquals("s5 start", 14, s5.getStart());
-    assertEquals("s5 dur", 8, s5.getDuration());
-    assertEquals("s5 trucks", 2, s5.getTrucks());
-    assertEquals("Sat 14:00", s5, schedule[14 + LiftTruck.HOURS_DAY * 5]);
-    assertEquals("Sat 21:00", s5, schedule[21 + LiftTruck.HOURS_DAY * 5]);
-    assertNull("idle Sat 22:00", schedule[22 + LiftTruck.HOURS_DAY * 5]);
-    assertNull("idle Sun 0:00", schedule[LiftTruck.HOURS_DAY * 6]);
-    assertNull("idle Sun 5:00", schedule[5 + LiftTruck.HOURS_DAY * 6]);
-    assertEquals("Sun 6:00", s4, schedule[6 + LiftTruck.HOURS_DAY * 6]);
-    assertEquals("Sun 13:00", s4, schedule[13 + LiftTruck.HOURS_DAY * 6]);
-    assertEquals("Sun 14:00", s5, schedule[14 + LiftTruck.HOURS_DAY * 6]);
-    assertEquals("Sun 21:00", s5, schedule[21 + LiftTruck.HOURS_DAY * 6]);
-    assertNull("idle Sun 22:00", schedule[22 + LiftTruck.HOURS_DAY * 6]);
+    assertNotNull(s5, "not idle Sat 14:00");
+    assertNotSame(s1, s5, "different from s1");
+    assertNotSame(s2, s5, "different from s2");
+    assertNotSame(s3, s5, "different from s3");
+    assertNotSame(s4, s5, "different from s4");
+    assertEquals(14, s5.getStart(), "s5 start");
+    assertEquals(8, s5.getDuration(), "s5 dur");
+    assertEquals(2, s5.getTrucks(), "s5 trucks");
+    assertEquals(s5, schedule[14 + LiftTruck.HOURS_DAY * 5], "Sat 14:00");
+    assertEquals(s5, schedule[21 + LiftTruck.HOURS_DAY * 5], "Sat 21:00");
+    assertNull(schedule[22 + LiftTruck.HOURS_DAY * 5], "idle Sat 22:00");
+    assertNull(schedule[LiftTruck.HOURS_DAY * 6], "idle Sun 0:00");
+    assertNull(schedule[5 + LiftTruck.HOURS_DAY * 6], "idle Sun 5:00");
+    assertEquals(s4, schedule[6 + LiftTruck.HOURS_DAY * 6], "Sun 6:00");
+    assertEquals(s4, schedule[13 + LiftTruck.HOURS_DAY * 6], "Sun 13:00");
+    assertEquals(s5, schedule[14 + LiftTruck.HOURS_DAY * 6], "Sun 14:00");
+    assertEquals(s5, schedule[21 + LiftTruck.HOURS_DAY * 6], "Sun 21:00");
+    assertNull(schedule[22 + LiftTruck.HOURS_DAY * 6], "idle Sun 22:00");
     
   }
 
@@ -281,11 +278,11 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("three instances", 3, instances.size());
+    assertEquals(3, instances.size(), "three instances");
     Map<String, LiftTruck> trucks = mapNames(instances);
 
     LiftTruck test1 = trucks.get("test1");
-    assertNotNull("found test1", test1);
+    assertNotNull(test1, "found test1");
     Shift[] schedule = test1.getShiftSchedule();
     for (Shift shift: schedule) {
       if (null != shift)
@@ -293,7 +290,7 @@ public class LiftTruckTest
     }
 
     LiftTruck test2 = trucks.get("test2");
-    assertNotNull("found test2", test2);
+    assertNotNull(test2, "found test2");
     schedule = test2.getShiftSchedule();
     for (Shift shift: schedule) {
       if (null != shift)
@@ -301,7 +298,7 @@ public class LiftTruckTest
     }
 
     LiftTruck test3 = trucks.get("test3");
-    assertNotNull("found test3", test3);
+    assertNotNull(test3, "found test3");
     schedule = test3.getShiftSchedule();
     for (Shift shift: schedule) {
       if (null != shift)
@@ -323,21 +320,21 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("one instance", 1, instances.size());
+    assertEquals(1, instances.size(), "one instance");
     Map<String, LiftTruck> trucks = mapNames(instances);
 
     LiftTruck test = trucks.get("test");
-    assertNotNull("found uut", test);
+    assertNotNull(test, "found uut");
     test.ensureShifts();
     Shift[] schedule = test.getShiftSchedule();
-    assertNotNull("schedule exists", schedule);
-    assertEquals("correct size", 168, schedule.length);
+    assertNotNull(schedule, "schedule exists");
+    assertEquals(168, schedule.length, "correct size");
     Shift s4 = schedule[0];
-    assertEquals("Mon 0:00 start", 18, s4.getStart());
-    assertEquals("Mon 0:00 dur", 10, s4.getDuration());
-    assertEquals("Mon 0:00 trucks", 2, s4.getTrucks());
-    assertEquals("Mon 3:00", s4, schedule[3]);
-    assertNull("idle Mon 4:00", schedule[4]);
+    assertEquals(18, s4.getStart(), "Mon 0:00 start");
+    assertEquals(10, s4.getDuration(), "Mon 0:00 dur");
+    assertEquals(2, s4.getTrucks(), "Mon 0:00 trucks");
+    assertEquals(s4, schedule[3], "Mon 3:00");
+    assertNull(schedule[4], "idle Mon 4:00");
   }
 
   // battery validation
@@ -361,18 +358,18 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("two instances", 2, instances.size());
+    assertEquals(2, instances.size(), "two instances");
     Map<String, LiftTruck> trucks = mapNames(instances);
 
     LiftTruck shortTruck = trucks.get("short");
-    assertEquals("short before validation", 6, shortTruck.getNBatteries());
+    assertEquals(6, shortTruck.getNBatteries(), "short before validation");
     shortTruck.validateBatteries();
-    assertEquals("short after validation", 14, shortTruck.getNBatteries());
+    assertEquals(14, shortTruck.getNBatteries(), "short after validation");
 
     LiftTruck longTruck = trucks.get("long");
-    assertEquals("long before validation", 10, longTruck.getNBatteries());
+    assertEquals(10, longTruck.getNBatteries(), "long before validation");
     longTruck.validateBatteries();
-    assertEquals("long after validation", 16, longTruck.getNBatteries());
+    assertEquals(16, longTruck.getNBatteries(), "long after validation");
   }
 
   // charger validation - check limits
@@ -390,25 +387,25 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("three instances", 3, instances.size());
+    assertEquals(3, instances.size(), "three instances");
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck tkw = trucks.get("truck_kw");
     tkw.ensureShifts();
-    assertEquals("8 chargers tkw", 8, tkw.getNChargers());
+    assertEquals(8, tkw.getNChargers(), "8 chargers tkw");
     tkw.validateChargers();
-    assertEquals("10 after tkw validation", 10, tkw.getNChargers());
+    assertEquals(10, tkw.getNChargers(), "10 after tkw validation");
 
     LiftTruck ckw = trucks.get("charge_kw");
     ckw.ensureShifts();
-    assertEquals("8 chargers", 8, ckw.getNChargers());
+    assertEquals(8, ckw.getNChargers(), "8 chargers");
     ckw.validateChargers();
-    assertEquals("12 after validation", 12, ckw.getNChargers());
+    assertEquals(12, ckw.getNChargers(), "12 after validation");
 
     LiftTruck nc = trucks.get("ncharge");
     nc.ensureShifts();
-    assertEquals("3 chargers", 3, nc.getNChargers());
+    assertEquals(3, nc.getNChargers(), "3 chargers");
     nc.validateChargers();
-    assertEquals("4 after validation", 4, nc.getNChargers());
+    assertEquals(4, nc.getNChargers(), "4 after validation");
   }
 
   // charger validation
@@ -426,9 +423,9 @@ public class LiftTruckTest
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck c5 = trucks.get("c5");
     c5.ensureShifts();
-    assertEquals("5 chargers c5", 5, c5.getNChargers());
+    assertEquals(5, c5.getNChargers(), "5 chargers c5");
     c5.validateChargers();
-    assertEquals("5 after c5 validation", 5, c5.getNChargers());
+    assertEquals(5, c5.getNChargers(), "5 after c5 validation");
   }
 
   // charger validation with null shift at midnight
@@ -448,9 +445,9 @@ public class LiftTruckTest
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck c5 = trucks.get("c5");
     c5.ensureShifts();
-    assertEquals("5 chargers c5", 5, c5.getNChargers());
+    assertEquals(5, c5.getNChargers(), "5 chargers c5");
     c5.validateChargers();
-    assertEquals("5 after c5 validation", 5, c5.getNChargers());
+    assertEquals(5, c5.getNChargers(), "5 after c5 validation");
   }
 
   // initialize fills in unconfigured fields
@@ -494,31 +491,23 @@ public class LiftTruckTest
     //  5    8    8  256    8  384  128
     //  6    8   16  192    7  336  144
     //  7    0    0   96    8  384  288
-    assertNotNull("needs not null", needs);
-    assertEquals("8 items", 8, needs.length);
-    assertEquals("duration[0] is 6", 6, needs[0].getDuration());
-    assertEquals("[0] ends at 16", 16, needs[0].getNextShift().getStart());
-    assertEquals("[0] requires", 192.0 / truck.getChargeEfficiency(),
-                 needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] max surplus", 60.0 / truck.getChargeEfficiency(),
-                 needs[0].getMaxSurplus(), 1e-6);
-    assertEquals("[1] ends at 0", 0, needs[1].getNextShift().getStart());
-    assertEquals("[1] requires", 96.0 / truck.getChargeEfficiency(),
-                 needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] surplus", 288.0 / truck.getChargeEfficiency(),
-                 needs[1].getMaxSurplus(), 1e-6);
-    assertEquals("[1] dur", 8, needs[1].getDuration());
-    assertEquals("[2] ends at 8", 8, needs[2].getNextShift().getStart());
-    assertEquals("[2] requires", 256.0 / truck.getChargeEfficiency(),
-                 needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] surplus", 128.0 / truck.getChargeEfficiency(),
-                 needs[2].getMaxSurplus(), 1e-6);
-    assertEquals("[7] ends at 0", 0, needs[7].getNextShift().getStart());
-    assertEquals("[7] requires", 96.0 / truck.getChargeEfficiency(),
-                 needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] surplus", 288.0 / truck.getChargeEfficiency(),
-                 needs[7].getMaxSurplus(), 1e-6);
-    assertEquals("[7] dur", 8, needs[7].getDuration());
+    assertNotNull(needs, "needs not null");
+    assertEquals(8, needs.length, "8 items");
+    assertEquals(6, needs[0].getDuration(), "duration[0] is 6");
+    assertEquals(16, needs[0].getNextShift().getStart(), "[0] ends at 16");
+    assertEquals(192.0 / truck.getChargeEfficiency(), needs[0].getEnergyNeeded(), 1e-6, "[0] requires");
+    assertEquals(60.0 / truck.getChargeEfficiency(), needs[0].getMaxSurplus(), 1e-6, "[0] max surplus");
+    assertEquals(0, needs[1].getNextShift().getStart(), "[1] ends at 0");
+    assertEquals(96.0 / truck.getChargeEfficiency(), needs[1].getEnergyNeeded(), 1e-6, "[1] requires");
+    assertEquals(288.0 / truck.getChargeEfficiency(), needs[1].getMaxSurplus(), 1e-6, "[1] surplus");
+    assertEquals(8, needs[1].getDuration(), "[1] dur");
+    assertEquals(8, needs[2].getNextShift().getStart(), "[2] ends at 8");
+    assertEquals(256.0 / truck.getChargeEfficiency(), needs[2].getEnergyNeeded(), 1e-6, "[2] requires");
+    assertEquals(128.0 / truck.getChargeEfficiency(), needs[2].getMaxSurplus(), 1e-6, "[2] surplus");
+    assertEquals(0, needs[7].getNextShift().getStart(), "[7] ends at 0");
+    assertEquals(96.0 / truck.getChargeEfficiency(), needs[7].getEnergyNeeded(), 1e-6, "[7] requires");
+    assertEquals(288.0 / truck.getChargeEfficiency(), needs[7].getMaxSurplus(), 1e-6, "[7] surplus");
+    assertEquals(8, needs[7].getDuration(), "[7] dur");
   }
 
   @Test
@@ -533,10 +522,10 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("one instance", 1, instances.size());
+    assertEquals(1, instances.size(), "one instance");
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck truck = trucks.get("short");
-    assertNotNull("found short", truck);
+    assertNotNull(truck, "found short");
 
     truck.setServiceAccessor(serviceAccessor);
     truck.initialize();
@@ -554,25 +543,17 @@ public class LiftTruckTest
     //  5    8    8  256    5  240  -16
     //  6    8   16  192    5  240   48
     //  7    0    0   96    5  240  144
-    assertNotNull("needs not null", needs);
-    assertEquals("8 items", 8, needs.length);
-    assertEquals("duration[0] is 6", 6, needs[0].getDuration());
-    assertEquals("[0] requires", 192.0 / truck.getChargeEfficiency(),
-                 needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] max surplus", -12.0 / truck.getChargeEfficiency() + 14,
-                 needs[0].getMaxSurplus(), 1e-6);
-    assertEquals("[1] requires", 96.0 / truck.getChargeEfficiency(),
-                 needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] surplus", 128.0 / truck.getChargeEfficiency(),
-                 needs[1].getMaxSurplus(), 1e-6);
-    assertEquals("[2] requires", 256.0 / truck.getChargeEfficiency(),
-                 needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] surplus", -16.0 / truck.getChargeEfficiency(),
-                 needs[2].getMaxSurplus(), 1e-6);
-    assertEquals("[7] requires", 96.0 / truck.getChargeEfficiency(),
-                 needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] surplus", 144.0 / truck.getChargeEfficiency(),
-                 needs[7].getMaxSurplus(), 1e-6);
+    assertNotNull(needs, "needs not null");
+    assertEquals(8, needs.length, "8 items");
+    assertEquals(6, needs[0].getDuration(), "duration[0] is 6");
+    assertEquals(192.0 / truck.getChargeEfficiency(), needs[0].getEnergyNeeded(), 1e-6, "[0] requires");
+    assertEquals(-12.0 / truck.getChargeEfficiency() + 14, needs[0].getMaxSurplus(), 1e-6, "[0] max surplus");
+    assertEquals(96.0 / truck.getChargeEfficiency(), needs[1].getEnergyNeeded(), 1e-6, "[1] requires");
+    assertEquals(128.0 / truck.getChargeEfficiency(), needs[1].getMaxSurplus(), 1e-6, "[1] surplus");
+    assertEquals(256.0 / truck.getChargeEfficiency(), needs[2].getEnergyNeeded(), 1e-6, "[2] requires");
+    assertEquals(-16.0 / truck.getChargeEfficiency(), needs[2].getMaxSurplus(), 1e-6, "[2] surplus");
+    assertEquals(96.0 / truck.getChargeEfficiency(), needs[7].getEnergyNeeded(), 1e-6, "[7] requires");
+    assertEquals(144.0 / truck.getChargeEfficiency(), needs[7].getMaxSurplus(), 1e-6, "[7] surplus");
   }
 
   @Test
@@ -591,10 +572,10 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("one instance", 1, instances.size());
+    assertEquals(1, instances.size(), "one instance");
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck tk = trucks.get("idle");
-    assertNotNull("got configured", tk);
+    assertNotNull(tk, "got configured");
     tk.setServiceAccessor(serviceAccessor);
     tk.initialize();
     DateTime now =
@@ -611,27 +592,20 @@ public class LiftTruckTest
     //  5    8    8  256    5  240  -16
     //  6    8   16    0    5  240  240
     //  7    0    0  192    5  240   48
-    assertNotNull("needs not null", needs);
-    assertEquals("8 items", 8, needs.length);
-    assertEquals("duration[0] is 6", 6, needs[0].getDuration());
-    assertNull("[0] ends at idle", needs[0].getNextShift());
-    assertEquals("[0] req", 0.0, needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] sur", 180.0 / tk.getChargeEfficiency() + 4.0,
-                 needs[0].getMaxSurplus(), 1e-6);
-    assertNotNull("[1] not null", needs[1].getNextShift());
-    assertEquals("[1] ends 00:00", 0, needs[1].getNextShift().getStart());
-    assertEquals("[1] req", 192.0 / tk.getChargeEfficiency(),
-                 needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] sur", 32.0 / tk.getChargeEfficiency(),
-                 needs[1].getMaxSurplus(), 1e-6);
-    assertEquals("[2] req", 256.0 / tk.getChargeEfficiency(),
-                 needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] sur", -16.0 / tk.getChargeEfficiency(),
-                 needs[2].getMaxSurplus(), 1e-6);
-    assertEquals("[7] req", 192.0 / tk.getChargeEfficiency(),
-                 needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] sur", 48.0 / tk.getChargeEfficiency(),
-                 needs[7].getMaxSurplus(), 1e-6);
+    assertNotNull(needs, "needs not null");
+    assertEquals(8, needs.length, "8 items");
+    assertEquals(6, needs[0].getDuration(), "duration[0] is 6");
+    assertNull(needs[0].getNextShift(), "[0] ends at idle");
+    assertEquals(0.0, needs[0].getEnergyNeeded(), 1e-6, "[0] req");
+    assertEquals(180.0 / tk.getChargeEfficiency() + 4.0, needs[0].getMaxSurplus(), 1e-6, "[0] sur");
+    assertNotNull(needs[1].getNextShift(), "[1] not null");
+    assertEquals(0, needs[1].getNextShift().getStart(), "[1] ends 00:00");
+    assertEquals(192.0 / tk.getChargeEfficiency(), needs[1].getEnergyNeeded(), 1e-6, "[1] req");
+    assertEquals(32.0 / tk.getChargeEfficiency(), needs[1].getMaxSurplus(), 1e-6, "[1] sur");
+    assertEquals(256.0 / tk.getChargeEfficiency(), needs[2].getEnergyNeeded(), 1e-6, "[2] req");
+    assertEquals(-16.0 / tk.getChargeEfficiency(), needs[2].getMaxSurplus(), 1e-6, "[2] sur");
+    assertEquals(192.0 / tk.getChargeEfficiency(), needs[7].getEnergyNeeded(), 1e-6, "[7] req");
+    assertEquals(48.0 / tk.getChargeEfficiency(), needs[7].getMaxSurplus(), 1e-6, "[7] sur");
   }
 
   @Test
@@ -650,10 +624,10 @@ public class LiftTruckTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(LiftTruck.class);
-    assertEquals("one instance", 1, instances.size());
+    assertEquals(1, instances.size(), "one instance");
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck tk = trucks.get("idle");
-    assertNotNull("got configured", tk);
+    assertNotNull(tk, "got configured");
     tk.setServiceAccessor(serviceAccessor);
     tk.initialize();
     // start on Sunday
@@ -672,34 +646,24 @@ public class LiftTruckTest
     //  6    8    8  256    5  240  -16
     //  7    8   16    0    5  240  240
     //  8    8    0  192    5  240   48
-    assertNotNull("needs not null", needs);
-    assertEquals("9 items", 9, needs.length);
-    assertEquals("duration[0] is 2", 2, needs[0].getDuration());
-    assertEquals("[0] req", 128.0 / tk.getChargeEfficiency(),
-                 needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] sur", -68.0 / tk.getChargeEfficiency() + 75.0,
-                 needs[0].getMaxSurplus(), 1e-6);
-    assertNull("[1] ends at idle", needs[1].getNextShift());
-    assertEquals("[1] req", 0.0, needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] sur", 240.0 / tk.getChargeEfficiency(),
-                 needs[1].getMaxSurplus(), 1e-6);
-    assertNotNull("[2] not null", needs[2].getNextShift());
-    assertEquals("[2] ends 00:00", 0, needs[2].getNextShift().getStart());
-    assertEquals("[2] req", 192.0 / tk.getChargeEfficiency(),
-                 needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] sur", 32.0 / tk.getChargeEfficiency(),
-                 needs[2].getMaxSurplus(), 1e-6);
-    assertEquals("[3] req", 256.0 / tk.getChargeEfficiency(),
-                 needs[3].getEnergyNeeded(), 1e-6);
-    assertEquals("[3] sur", -16.0 / tk.getChargeEfficiency(),
-                 needs[3].getMaxSurplus(), 1e-6);
-    assertEquals("[7] req", 0.0, needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] sur", 240.0 / tk.getChargeEfficiency(),
-                 needs[7].getMaxSurplus(), 1e-6);
-    assertEquals("[8] req", 192.0 / tk.getChargeEfficiency(),
-                 needs[8].getEnergyNeeded(), 1e-6);
-    assertEquals("[8] sur", 48.0 / tk.getChargeEfficiency(),
-                 needs[8].getMaxSurplus(), 1e-6);
+    assertNotNull(needs, "needs not null");
+    assertEquals(9, needs.length, "9 items");
+    assertEquals(2, needs[0].getDuration(), "duration[0] is 2");
+    assertEquals(128.0 / tk.getChargeEfficiency(), needs[0].getEnergyNeeded(), 1e-6, "[0] req");
+    assertEquals(-68.0 / tk.getChargeEfficiency() + 75.0, needs[0].getMaxSurplus(), 1e-6, "[0] sur");
+    assertNull(needs[1].getNextShift(), "[1] ends at idle");
+    assertEquals(0.0, needs[1].getEnergyNeeded(), 1e-6, "[1] req");
+    assertEquals(240.0 / tk.getChargeEfficiency(), needs[1].getMaxSurplus(), 1e-6, "[1] sur");
+    assertNotNull(needs[2].getNextShift(), "[2] not null");
+    assertEquals(0, needs[2].getNextShift().getStart(), "[2] ends 00:00");
+    assertEquals(192.0 / tk.getChargeEfficiency(), needs[2].getEnergyNeeded(), 1e-6, "[2] req");
+    assertEquals(32.0 / tk.getChargeEfficiency(), needs[2].getMaxSurplus(), 1e-6, "[2] sur");
+    assertEquals(256.0 / tk.getChargeEfficiency(), needs[3].getEnergyNeeded(), 1e-6, "[3] req");
+    assertEquals(-16.0 / tk.getChargeEfficiency(), needs[3].getMaxSurplus(), 1e-6, "[3] sur");
+    assertEquals(0.0, needs[7].getEnergyNeeded(), 1e-6, "[7] req");
+    assertEquals(240.0 / tk.getChargeEfficiency(), needs[7].getMaxSurplus(), 1e-6, "[7] sur");
+    assertEquals(192.0 / tk.getChargeEfficiency(), needs[8].getEnergyNeeded(), 1e-6, "[8] req");
+    assertEquals(48.0 / tk.getChargeEfficiency(), needs[8].getMaxSurplus(), 1e-6, "[8] sur");
   }
 
   @Test
@@ -726,20 +690,20 @@ public class LiftTruckTest
 
     LiftTruck.CapacityPlan plan =
         truck.getCapacityPlan(tariff, now.toInstant(), 95);
-    assertNotNull("Created a plan", plan);
-    assertNull("No solution yet", plan.getCapacityProfile().getProfile());
+    assertNotNull(plan, "Created a plan");
+    assertNull(plan.getCapacityProfile().getProfile(), "No solution yet");
     plan.createPlan(1.0);
 
     double[] usage = plan.getCapacityProfile().getProfile();
-    assertEquals("correct length", 102, usage.length);
+    assertEquals(102, usage.length, "correct length");
 
     ShiftEnergy[] needs = plan.updateNeeds();
-    assertEquals("correct length", 13, needs.length);
+    assertEquals(13, needs.length, "correct length");
 
   }
 
   /**
-   * Test method for {@link org.powertac.customer.model.LiftTruck#step(org.powertac.common.Timeslot)}.
+   * Test method for {@link org.powertac.customer.model.LiftTruck#step()}.
    */
   @Test
   public void testStep ()

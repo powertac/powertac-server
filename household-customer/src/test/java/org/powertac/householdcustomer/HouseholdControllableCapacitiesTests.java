@@ -15,18 +15,9 @@
  */
 package org.powertac.householdcustomer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +27,9 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -69,9 +59,8 @@ import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.householdcustomer.customers.Village;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -80,8 +69,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:test-config.xml" })
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -135,7 +123,7 @@ public class HouseholdControllableCapacitiesTests
   private Competition comp;
   private List<Object[]> accountingArgs;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     customerRepo.recycle();
@@ -224,7 +212,7 @@ public class HouseholdControllableCapacitiesTests
 
   }
 
-  @After
+  @AfterEach
   public void tearDown ()
   {
     timeService = null;
@@ -257,8 +245,7 @@ public class HouseholdControllableCapacitiesTests
     inits.add("DefaultBroker");
     inits.add("TariffMarket");
     householdCustomerService.initialize(comp, inits);
-    assertEquals("correct first configuration file", "VillageType1.properties",
-                 householdCustomerService.getConfigFile1());
+    assertEquals("VillageType1.properties", householdCustomerService.getConfigFile1(), "correct first configuration file");
 //    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
 //            .currentCompetition().getExpectedTimeslotCount()
 //                                                                  / VillageConstants.HOURS_OF_DAY);
@@ -284,9 +271,8 @@ public class HouseholdControllableCapacitiesTests
     inits.add("DefaultBroker");
     inits.add("TariffMarket");
     String result = householdCustomerService.initialize(comp, inits);
-    assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "VillageDefault.properties",
-                 householdCustomerService.getConfigFile1());
+    assertEquals(result, "HouseholdCustomer", "correct return value");
+    assertEquals("VillageDefault.properties", householdCustomerService.getConfigFile1(), "correct configuration file");
 //    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
 //            .currentCompetition().getExpectedTimeslotCount()
 //                                                                  / VillageConstants.HOURS_OF_DAY);
@@ -299,7 +285,7 @@ public class HouseholdControllableCapacitiesTests
   {
     List<String> inits = new ArrayList<String>();
     String result = householdCustomerService.initialize(comp, inits);
-    assertNull("return null value", result);
+    assertNull(result, "return null value");
     inits.add("DefaultBroker");
     inits.add("TariffMarket");
   }
@@ -309,8 +295,7 @@ public class HouseholdControllableCapacitiesTests
   public void testServiceInitialization ()
   {
     initializeService();
-    assertEquals("Two Consumers Created", 2, householdCustomerService
-            .getVillageList().size());
+    assertEquals(2, householdCustomerService.getVillageList().size(), "Two Consumers Created");
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
@@ -335,16 +320,12 @@ public class HouseholdControllableCapacitiesTests
 
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
-        assertEquals("one subscription for each customerInfo",
-                     1,
-                     tariffSubscriptionRepo
-                             .findSubscriptionsForCustomer(customerInfo).size());
+        assertEquals(1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customerInfo).size(), "one subscription for each customerInfo");
 
-        assertEquals("customer on DefaultTariff",
-                     mockTariffMarket.getDefaultTariff(customerInfo
+        assertEquals(mockTariffMarket.getDefaultTariff(customerInfo
                              .getPowerType()), tariffSubscriptionRepo
                              .findSubscriptionsForCustomer(customerInfo).get(0)
-                             .getTariff());
+                             .getTariff(), "customer on DefaultTariff");
       }
     }
   }
@@ -382,15 +363,13 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList())
       for (CustomerInfo customerInfo: customer.getCustomerInfos())
-        assertFalse("Household consumed power for each customerInfo",
-                    tariffSubscriptionRepo
+        assertFalse(tariffSubscriptionRepo
                             .findActiveSubscriptionsForCustomer(customerInfo) == null
                             || tariffSubscriptionRepo
                                     .findActiveSubscriptionsForCustomer(customerInfo)
-                                    .get(0).getTotalUsage() < 0);
+                                    .get(0).getTotalUsage() < 0, "Household consumed power for each customerInfo");
 
-    assertEquals("Tariff Transactions Created", 16 * householdCustomerService
-            .getVillageList().size(), accountingArgs.size());
+    assertEquals(16 * householdCustomerService.getVillageList().size(), accountingArgs.size(), "Tariff Transactions Created");
 
   }
 
@@ -451,19 +430,18 @@ public class HouseholdControllableCapacitiesTests
     tariff3.init();
     tariff3.setState(Tariff.State.OFFERED);
 
-    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
-            .size());
+    assertEquals(5, tariffRepo.findAllTariffs().size(), "Five consumption tariffs");
 
-    assertNotNull("first tariff found", tariff1);
-    assertNotNull("second tariff found", tariff2);
-    assertNotNull("third tariff found", tariff3);
+    assertNotNull(tariff1, "first tariff found");
+    assertNotNull(tariff2, "second tariff found");
+    assertNotNull(tariff3, "third tariff found");
 
     List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
     List<Tariff> tclist2 =
       tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    assertEquals("3 consumption tariffs", 3, tclist1.size());
-    assertEquals("2 interruptible consumption tariffs", 2, tclist2.size());
+    assertEquals(3, tclist1.size(), "3 consumption tariffs");
+    assertEquals(2, tclist2.size(), "2 interruptible consumption tariffs");
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
             .thenReturn(tclist1).thenReturn(tclist2);
@@ -538,19 +516,18 @@ public class HouseholdControllableCapacitiesTests
     tariff3.init();
     tariff3.setState(Tariff.State.OFFERED);
 
-    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
-            .size());
+    assertEquals(5, tariffRepo.findAllTariffs().size(), "Five consumption tariffs");
 
-    assertNotNull("first tariff found", tariff1);
-    assertNotNull("second tariff found", tariff2);
-    assertNotNull("third tariff found", tariff3);
+    assertNotNull(tariff1, "first tariff found");
+    assertNotNull(tariff2, "second tariff found");
+    assertNotNull(tariff3, "third tariff found");
 
     List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
     List<Tariff> tclist2 =
       tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    assertEquals("3 consumption tariffs", 3, tclist1.size());
-    assertEquals("2 interruptible consumption tariffs", 2, tclist2.size());
+    assertEquals(3, tclist1.size(), "3 consumption tariffs");
+    assertEquals(2, tclist2.size(), "2 interruptible consumption tariffs");
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
             .thenReturn(tclist1).thenReturn(tclist2);
@@ -675,14 +652,14 @@ public class HouseholdControllableCapacitiesTests
     tariff1.init();
     tariff1.setState(Tariff.State.OFFERED);
 
-    assertNotNull("first tariff found", tariff1);
+    assertNotNull(tariff1, "first tariff found");
 
     List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
     List<Tariff> tclist2 =
       tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    assertEquals("2 consumption tariffs", 2, tclist1.size());
-    assertEquals("1 interruptible consumption tariffs", 1, tclist2.size());
+    assertEquals(2, tclist1.size(), "2 consumption tariffs");
+    assertEquals(1, tclist2.size(), "1 interruptible consumption tariffs");
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
             .thenReturn(tclist1).thenReturn(tclist2);
@@ -847,7 +824,7 @@ public class HouseholdControllableCapacitiesTests
     tariff1.init();
     tariff1.setState(Tariff.State.OFFERED);
 
-    assertEquals("Three tariffs", 3, tariffRepo.findAllTariffs().size());
+    assertEquals(3, tariffRepo.findAllTariffs().size(), "Three tariffs");
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
@@ -862,11 +839,11 @@ public class HouseholdControllableCapacitiesTests
                                             .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
                                     tariff1, customerInfo);
 
-        assertFalse("Changed from default tariff for INTERRUPTIBLE_CONSUMPTION",
-                    tariffSubscriptionRepo
+        assertFalse(tariffSubscriptionRepo
                             .findSubscriptionsForCustomer(customerInfo).get(1)
                             .getTariff() == mockTariffMarket
-                            .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
+                            .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
+                "Changed from default tariff for INTERRUPTIBLE_CONSUMPTION");
 
         List<TariffSubscription> subs =
           tariffSubscriptionRepo.findSubscriptionsForCustomer(customerInfo);

@@ -15,12 +15,11 @@
  */
 package org.powertac.logtool;
 
-//import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
- * Test cases for the sample broker implementation.
+ * TODO this does nothing?
  * 
  * @author John Collins
  */
@@ -28,14 +27,11 @@ public class LogtoolTest
 {
   //private Instant baseTime;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
   }
   
-  /**
-   * Test method for {@link org.powertac.logtool.core.PowerTacBroker#SampleBroker(java.lang.String, org.powertac.logtool.SampleBrokerService)}.
-   */
   @Test
   public void testSomething ()
   {

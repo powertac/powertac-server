@@ -27,7 +27,7 @@ public class SocialGroup
   private String name;
 
   @ConfigurableValue(valueType = "Integer",
-          description = "Group ID")
+          description = "Group ID", dump = false)
   private int id;
 
   public SocialGroup (String name)

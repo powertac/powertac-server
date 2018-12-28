@@ -23,7 +23,7 @@
 
     <capacityStructure>
       <SolarLeasing>
-        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+        <baseCapacityType>POPULATION</baseCapacityType>
 
         <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
         <hourlySkew>

@@ -120,17 +120,17 @@ implements CustomerModelAccessor
 //  private double currentChargeRate = 1.0;
 //  private double stateOfCharge = 0.7;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       bootstrapState = true,
       description = "Battery capacity currently being used in trucks")
   private double capacityInUse = 0.0; // capacity in use during shift
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       bootstrapState = true,
       description = "Offline battery energy, currently in the trucks")
   private double energyInUse = 0.0; // energy content of in-use batteries
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       bootstrapState = true,
       description = "Online battery energy, currently being charged")
   private double energyCharging = 0.0; // energy content of charging batteries
@@ -633,7 +633,7 @@ implements CustomerModelAccessor
     this.name = name;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "mean power usage when truck is in use")
   @StateChange
   public void setTruckKW (double value)
@@ -646,7 +646,7 @@ implements CustomerModelAccessor
     return truckKW;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Std dev of truck power usage")
   @StateChange
   public void setTruckStd (double stdDev)
@@ -663,7 +663,7 @@ implements CustomerModelAccessor
    * Converts a list of Strings to a sorted list of Shifts. Entries in the
    * list represent pairs of (start, duration) values. 
    */
-  @ConfigurableValue(valueType = "List",
+  @ConfigurableValue(valueType = "List", dump = false,
       description = "shift spec [block, shift, ..., block, shift, ...]")
   public void setShiftData (List<String> data)
   {
@@ -793,7 +793,7 @@ implements CustomerModelAccessor
     return shiftSchedule;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "size of battery pack in kWh")
   @StateChange
   public void setBatteryCapacity (double value)
@@ -806,7 +806,7 @@ implements CustomerModelAccessor
     return batteryCapacity;
   }
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "total number of battery packs")
   @StateChange
   public void setNBatteries (int value)
@@ -819,7 +819,7 @@ implements CustomerModelAccessor
     return nBatteries;
   }
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "number of battery chargers")
   @StateChange
   public void setNChargers (int value)
@@ -832,7 +832,7 @@ implements CustomerModelAccessor
     return nChargers;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "maximum charge rate of one truck's battery pack")
   @StateChange
   public void setMaxChargeKW (double value)
@@ -845,7 +845,7 @@ implements CustomerModelAccessor
     return maxChargeKW;
   }
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "ratio of charge energy to battery energy")
   @StateChange
   public void setChargeEfficiency (double value)
@@ -858,7 +858,7 @@ implements CustomerModelAccessor
     return chargeEfficiency;
   }
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "planning horizon in timeslots - should be at least 48")
   @StateChange
   public void setPlanningHorizon (int horizon)
@@ -871,7 +871,7 @@ implements CustomerModelAccessor
     return planningHorizon;
   }
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "minimum useful horizon of existing plan")
   @StateChange
   public void setMinPlanningHorizon (int horizon)

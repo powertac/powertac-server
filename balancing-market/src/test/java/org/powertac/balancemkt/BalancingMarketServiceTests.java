@@ -1,8 +1,8 @@
 package org.powertac.balancemkt;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 import static org.powertac.util.ListTools.*;
 
 import java.util.ArrayList;
@@ -14,10 +14,9 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.balancemkt.BalancingMarketService;
@@ -39,13 +38,11 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:test-config.xml" })
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class
 })
@@ -66,10 +63,10 @@ public class BalancingMarketServiceTests
 
   @Autowired
   private OrderbookRepo orderbookRepo;
-  
+
   @Autowired
   private Accounting accountingService;
-  
+
   @Autowired
   private ServerConfiguration serverPropertiesService;
 
@@ -83,13 +80,13 @@ public class BalancingMarketServiceTests
   private List<Tariff> tariffList = new ArrayList<>();
   private DateTime start;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     // create a Competition, needed for initialization
     comp = Competition.newInstance("du-test");
     Competition.setCurrent(comp);
-    
+
     Instant base =
             Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     start = new DateTime(start, DateTimeZone.UTC);
@@ -123,7 +120,7 @@ public class BalancingMarketServiceTests
     }).when(serverPropertiesService).configureMe(any());
   }
 
-  @After
+  @AfterEach
   public void tearDown ()
   {
     // clear all repos
@@ -146,12 +143,6 @@ public class BalancingMarketServiceTests
     MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     balancingMarketService.initialize(comp, new ArrayList<>());
-    assertEquals("correct setting", -0.06,
-                 balancingMarketService.getBalancingCostMin(), 1e-6);
-    assertEquals("correct setting", -0.06,
-                 balancingMarketService.getBalancingCostMax(), 1e-6);
-    assertEquals("correct setting", -0.06,
-                 balancingMarketService.getBalancingCost(), 1e-6);
   }
 
   @Test
@@ -159,21 +150,12 @@ public class BalancingMarketServiceTests
   {
     initializeService();
     when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(1.0);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-500.0);    
-    assertEquals("correct balance",
-                 500.0,
-                 balancingMarketService.getMarketBalance(brokerList.get(0)),
-                 1e-6);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1000.0);    
-    assertEquals("correct balance",
-                 0.0,
-                 balancingMarketService.getMarketBalance(brokerList.get(0)),
-                 1e-6);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1500.0);    
-    assertEquals("correct balance",
-                 -500.0,
-                 balancingMarketService.getMarketBalance(brokerList.get(0)),
-                 1e-6);
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-500.0);
+    assertEquals(500.0, balancingMarketService.getMarketBalance(brokerList.get(0)), 1e-6, "correct balance");
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1000.0);
+    assertEquals(0.0, balancingMarketService.getMarketBalance(brokerList.get(0)), 1e-6, "correct balance");
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-1500.0);
+    assertEquals(-500.0, balancingMarketService.getMarketBalance(brokerList.get(0)), 1e-6, "correct balance");
   }
 
   @Test
@@ -181,7 +163,7 @@ public class BalancingMarketServiceTests
   {
     initializeService();
     when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-50.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(-50.0);
     double marketBalance = -150.0; // Compute market balance
     //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
@@ -189,14 +171,13 @@ public class BalancingMarketServiceTests
     //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> theChargeInfoList =
         balancingMarketService.balanceTimeslot(brokerList, report);
-    assertEquals("correct balance report",
-                 marketBalance, report.getValue(), 1e-6);
+    assertEquals(marketBalance, report.getValue(), 1e-6, "correct balance report");
 
-    assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
+    assertEquals(3, theChargeInfoList.size(), "correct number of balance tx");
     for (ChargeInfo ci : theChargeInfoList.values()) {
       marketBalance -= ci.getNetLoadKWh();
     }
-    assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
+    assertEquals(0.0, marketBalance, 1e-6, "correct balancing transactions");
   }
 
   @Test
@@ -204,7 +185,7 @@ public class BalancingMarketServiceTests
   {
     initializeService();
     when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(50.0);    
+    when(accountingService.getCurrentNetLoad((Broker) any())).thenReturn(50.0);
     double marketBalance = 150.0; // Compute market balance
 
     //Timeslot current = timeslotRepo.currentTimeslot();
@@ -213,14 +194,13 @@ public class BalancingMarketServiceTests
     //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> theChargeInfoList =
         balancingMarketService.balanceTimeslot(brokerList, report);
-    assertEquals("correct balance report",
-                 marketBalance, report.getValue(), 1e-6);
+    assertEquals(marketBalance, report.getValue(), 1e-6, "correct balance report");
 
-    assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
+    assertEquals(3, theChargeInfoList.size(), "correct number of balance tx");
     for (ChargeInfo ci : theChargeInfoList.values()) {
       marketBalance -= ci.getNetLoadKWh();
     }
-    assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
+    assertEquals(0.0, marketBalance, 1e-6, "correct balancing transactions");
   }
 
   @Test
@@ -235,7 +215,7 @@ public class BalancingMarketServiceTests
     when(accountingService.getCurrentNetLoad(brokerList.get(1))).
       thenReturn(0.0);
     when(accountingService.getCurrentNetLoad(brokerList.get(2))).
-      thenReturn(8791119.0);    
+      thenReturn(8791119.0);
 
     // Compute market balance
     for (Broker b : brokerList) {
@@ -252,50 +232,11 @@ public class BalancingMarketServiceTests
     // ensure each broker was balanced correctly
     for (Broker broker : brokerList) {
       ChargeInfo ci = chargeInfos.get(broker);
-      assertNotNull("found ChargeInfo", ci);
-      assertEquals("broker correctly balanced",
-                   0.0,
-                   (balancingMarketService.getMarketBalance(broker)
-                           - ci.getNetLoadKWh()),
-                   1e-6);
+      assertNotNull(ci, "found ChargeInfo");
+      assertEquals(0.0, (balancingMarketService.getMarketBalance(broker) - ci.getNetLoadKWh()), 1e-6, "broker correctly balanced");
       balance -= ci.getNetLoadKWh();
     }
-    assertEquals("market fully balanced", 0.0, balance, 1e-6);
-  }
-
-  @Test
-  public void testScenario1BalancingCharges ()
-  {
-    initializeService();
-    balancingMarketService.setRmPremium(1.0);
-
-    when(accountingService.getCurrentMarketPosition((Broker) any())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad(brokerList.get(0))).thenReturn(200.0);    
-    when(accountingService.getCurrentNetLoad(brokerList.get(1))).thenReturn(-400.0);
-    when(accountingService.getCurrentNetLoad(brokerList.get(2))).thenReturn(0.0);    
-
-    // List solution =
-    // balancingMarketService.computeNonControllableBalancingCharges(brokerList)
-    //Timeslot current = timeslotRepo.currentTimeslot();
-    BalancingMarketService.DoubleWrapper report =
-        balancingMarketService.makeDoubleWrapper();
-    //BalanceReport report = new BalanceReport(current.getSerialNumber());
-    Map<Broker, ChargeInfo> chargeInfos =
-        balancingMarketService.balanceTimeslot(brokerList, report);
-
-    // Correct solution list is [-4, 14, 2] (but negated)
-    ChargeInfo ci = chargeInfos.get(brokerList.get(0)); // BalancingTransaction.findByBroker(brokerList.get(0));
-    assertNotNull("non-null btx, broker 1", ci);
-    assertEquals("correct balancing charge broker1",
-                 4.0, ci.getBalanceCharge(), 1e-6);
-    ci = chargeInfos.get(brokerList.get(1)); // BalancingTransaction.findByBroker(brokerList.get(1));
-    assertNotNull("non-null btx, broker 2", ci);
-    assertEquals("correct balancing charge broker2",
-                 -14.0, ci.getBalanceCharge(), 1e-6);
-    ci = chargeInfos.get(brokerList.get(2)); // BalancingTransaction.findByBroker(brokerList.get(2));
-    assertNotNull("non-null btx, broker 3", ci);
-    assertEquals("correct balancing charge broker3",
-                 -2.0, ci.getBalanceCharge(), 1e-6);
+    assertEquals(0.0, balance, 1e-6, "market fully balanced");
   }
 
   @Test
@@ -306,12 +247,9 @@ public class BalancingMarketServiceTests
     balancingMarketService.setRmPremium(1.1);
 
     // make sure we can retrieve current spot price
-    assertEquals("correct spot price", 0.0201,
-                 balancingMarketService.getSpotPrice(), 1e-6);
-    assertEquals("correct pMinus", -0.0198 / 1.1,
-                 balancingMarketService.getPMinus(), 1e-6);
-    assertEquals("correct pPlus", 0.0212 * 1.1,
-                 balancingMarketService.getPPlus(), 1e-6);
+    assertEquals(0.0201, balancingMarketService.getSpotPrice(), 1e-6, "correct spot price");
+    assertEquals(-0.0198 / 1.1, balancingMarketService.getPMinus(), 1e-6, "correct pMinus");
+    assertEquals(0.0212 * 1.1, balancingMarketService.getPPlus(), 1e-6, "correct pPlus");
   }
 
   @SuppressWarnings("unused")
@@ -333,7 +271,7 @@ public class BalancingMarketServiceTests
     // this should be the spot price
     orderbookRepo.makeOrderbook(ts0, 20.1);
   }
-  
+
   // make sure balancing orders are correctly allocated
   @Test
   public void testBalancingOrderAllocation ()
@@ -354,16 +292,15 @@ public class BalancingMarketServiceTests
             new TariffSpecification(b2, PowerType.INTERRUPTIBLE_CONSUMPTION);
     b1ts1.addRate(new Rate().withValue(0.13).withMaxCurtailment(0.2));
     tariffRepo.addSpecification(b2ts1);
-    
+
     BalancingOrder bo1t1 = new BalancingOrder(b1, b1ts1, 0.8, 0.2);
     tariffRepo.addBalancingOrder(bo1t1);
     BalancingOrder bo1t2 = new BalancingOrder(b1, b1ts2, 0.6, 0.15);
     tariffRepo.addBalancingOrder(bo1t2);
     BalancingOrder bo2t1 = new BalancingOrder(b2, b2ts1, 0.7, 0.1);
     tariffRepo.addBalancingOrder(bo2t1);
-    
-    assertEquals("correct number of bo", 3,
-                 tariffRepo.getBalancingOrders().size());
+
+    assertEquals(3, tariffRepo.getBalancingOrders().size(), "correct number of bo");
 
     //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
@@ -371,8 +308,8 @@ public class BalancingMarketServiceTests
     //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
             balancingMarketService.balanceTimeslot(brokerList, report);
-    assertEquals("correct count", 3, chargeInfos.size());
-    
+    assertEquals(3, chargeInfos.size(), "correct count");
+
     ChargeInfo c1b1 = findFirst(chargeInfos.values(),
                                 new Predicate<ChargeInfo>() {
       @Override
@@ -381,12 +318,12 @@ public class BalancingMarketServiceTests
         return (item.getBroker() == b1);
       }
     });
-    assertNotNull("found correct chargeInfo", c1b1);
+    assertNotNull(c1b1, "found correct chargeInfo");
     List<BalancingOrder> orders = c1b1.getBalancingOrders();
-    assertEquals("found 2 balancing orders", 2, orders.size());
-    assertTrue("contains bo1t1", orders.contains(bo1t1));
-    assertTrue("contains bo1t2", orders.contains(bo1t2));
-    
+    assertEquals(2, orders.size(), "found 2 balancing orders");
+    assertTrue(orders.contains(bo1t1), "contains bo1t1");
+    assertTrue(orders.contains(bo1t2), "contains bo1t2");
+
     ChargeInfo c1b2 = findFirst(chargeInfos.values(),
                                 new Predicate<ChargeInfo>() {
       @Override
@@ -395,10 +332,10 @@ public class BalancingMarketServiceTests
         return (item.getBroker() == b2);
       }
     });
-    assertNotNull("found correct chargeInfo", c1b2);
+    assertNotNull(c1b2, "found correct chargeInfo");
     orders = c1b2.getBalancingOrders();
-    assertEquals("found 1 balancing order", 1, orders.size());
-    assertTrue("contains bo2t1", orders.contains(bo2t1));
+    assertEquals(1, orders.size(), "found 1 balancing order");
+    assertTrue(orders.contains(bo2t1), "contains bo2t1");
   }
 
 

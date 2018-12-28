@@ -15,7 +15,14 @@ https://github.com/powertac/powertac-server/wiki for information on design, deve
 
 ## PowerTAC Continuous Integration Server
 
-The server is built and tested on a regular basis on the [Minnesota jenkins server](http://tac04.cs.umn.edu:8080/).
+PowerTAC is automatically built by Travis CI on new commits and pull requests. Furthermore, maven reports are generated for
+releases (tags) and commits to the master branch. These reports can subsequently be found at
+
+https://powertac.github.io/index.html
+
+These reports include the JavaDocs, at
+
+https://powertac.github.io/master/apidocs/index.html  (replace `master` with a specific tag if you want a particular release).
 
 ## Module structure
 

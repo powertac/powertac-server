@@ -35,6 +35,8 @@ public interface CapacityBundle
                    CustomerStructure customerStructure);
 
   String getName ();
+  
+  int getCount();
 
   int getPopulation ();
 

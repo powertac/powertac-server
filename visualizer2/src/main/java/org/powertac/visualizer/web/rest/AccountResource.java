@@ -37,7 +37,7 @@ public class AccountResource {
     private final UserRepository userRepository;
 
     private final UserService userService;
-    
+
     private final PersistentTokenRepository persistentTokenRepository;
 
     public AccountResource(UserRepository userRepository, UserService userService,
@@ -171,10 +171,11 @@ public class AccountResource {
     @Timed
     public void invalidateSession(@PathVariable String series) throws UnsupportedEncodingException {
         String decodedSeries = URLDecoder.decode(series, "UTF-8");
+        PersistentToken token = persistentTokenRepository.getOne(decodedSeries);
         userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(u ->
             persistentTokenRepository.findByUser(u).stream()
                 .filter(persistentToken -> StringUtils.equals(persistentToken.getSeries(), decodedSeries))
-                .findAny().ifPresent(t -> persistentTokenRepository.delete(decodedSeries)));
+                .findAny().ifPresent(t -> persistentTokenRepository.delete(token)));
     }
 
     private boolean checkPasswordLength(String password) {

@@ -57,8 +57,8 @@ public interface BalancingMarket
   public Double getBalancingCost ();
 
   /**
-   * Returns the value used for spot price per MWh if unavailable from 
-   * wholesale market. 
+   * Returns the value used for spot price per MWh if unavailable from
+   * wholesale market.
    */
   public double getDefaultSpotPrice ();
 }

@@ -248,7 +248,7 @@ public class GraphResourceIntTest {
         int databaseSizeBeforeUpdate = graphRepository.findAll().size();
 
         // Update the graph
-        Graph updatedGraph = graphRepository.findOne(graph.getId());
+        Graph updatedGraph = graphRepository.getOne(graph.getId());
         updatedGraph.setName(UPDATED_NAME);
         updatedGraph.setType(UPDATED_TYPE);
         updatedGraph.setShared(UPDATED_SHARED);

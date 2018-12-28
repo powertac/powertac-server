@@ -15,7 +15,7 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.mockito.ArgumentCaptor;
@@ -25,9 +25,8 @@ import javax.annotation.Resource;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
@@ -35,9 +34,8 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
@@ -48,8 +46,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
  * Need to mock: Accounting, TariffMarket
  * @author John Collins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@SpringJUnitConfig(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 @TestExecutionListeners(listeners = {
   DependencyInjectionTestExecutionListener.class,
@@ -80,7 +77,7 @@ public class TariffSubscriptionTests
   TariffSpecification spec;
   Tariff tariff;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     //timeService = new TimeService();
@@ -104,17 +101,17 @@ public class TariffSubscriptionTests
   public void testTariffSubscription ()
   {
     TariffSubscription sub = new TariffSubscription(customer, tariff);
-    assertNotNull("not null", sub);
-    assertEquals("correct customer", customer, sub.getCustomer());
-    assertEquals("correct tariff", tariff, sub.getTariff());
-    assertEquals("no customers committed", 0, sub.getCustomersCommitted());
+    assertNotNull(sub, "not null");
+    assertEquals(customer, sub.getCustomer(), "correct customer");
+    assertEquals(tariff, sub.getTariff(), "correct tariff");
+    assertEquals(0, sub.getCustomersCommitted(), "no customers committed");
   }
 
   @Test
   public void testGetTotalUsage ()
   {
     TariffSubscription sub = new TariffSubscription(customer, tariff);
-    assertEquals("correct initially", 0.0, sub.getTotalUsage(), 1e-6);
+    assertEquals(0.0, sub.getTotalUsage(), 1e-6, "correct initially");
   }
 
   @Test
@@ -124,7 +121,7 @@ public class TariffSubscriptionTests
     sub.subscribe(3);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer, 3, 0.0, -0.0);
-    assertEquals("3 committed", 3, sub.getCustomersCommitted());
+    assertEquals(3, sub.getCustomersCommitted(), "3 committed");
   }
 
   @Test
@@ -134,14 +131,14 @@ public class TariffSubscriptionTests
     sub.subscribe(33);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer, 33, 0.0, -0.0);
-    assertEquals("33 committed", 33, sub.getCustomersCommitted());
+    assertEquals(33, sub.getCustomersCommitted(), "33 committed");
     sub.unsubscribe(8);
     verify(mockAccounting, never()).addTariffTransaction(TariffTransaction.Type.WITHDRAW, 
                                                          tariff, customer, 8, 0.0, 0.0);
     verify(mockTariffMarket).subscribeToTariff(tariff, customer, -8);
-    assertEquals("33 still committed", 33, sub.getCustomersCommitted());
+    assertEquals(33, sub.getCustomersCommitted(), "33 still committed");
     sub.deferredUnsubscribe(8);
-    assertEquals("25 now committed", 25, sub.getCustomersCommitted());
+    assertEquals(25, sub.getCustomersCommitted(), "25 now committed");
   }
 
   // TODO - test subscribe and unsubscribe with non-zero signup and withdraw payments
@@ -269,8 +266,8 @@ public class TariffSubscriptionTests
     verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
                                                 eq(tariff), eq(customer), eq(33), eq(-330.0), 
                                                 chargeArg.capture());
-    assertEquals("correct charge", 330.0 * 0.11, chargeArg.getValue(), 1e-6);
-    assertEquals("correct total", 10.0, sub.getTotalUsage(), 1e-6);
+    assertEquals(330.0 * 0.11, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(10.0, sub.getTotalUsage(), 1e-6, "correct total");
   }
 
   @Test
@@ -286,12 +283,12 @@ public class TariffSubscriptionTests
     verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
                                                 eq(tariff), eq(customer), eq(33), eq(-330.0), 
                                                 chargeArg.capture());
-    assertEquals("correct charge", 330.0 * 0.11, chargeArg.getValue(), 1e-6);
-    assertEquals("correct total", 10.0, sub.getTotalUsage(), 1e-6);
+    assertEquals(330.0 * 0.11, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(10.0, sub.getTotalUsage(), 1e-6, "correct total");
     verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.PERIODIC),
                                                 eq(tariff), eq(customer), eq(33), eq(0.0), 
                                                 chargeArg.capture());
-    assertEquals("correct periodic charge", 33.0 / 24.0, chargeArg.getValue(), 1e-6);
+    assertEquals(33.0 / 24.0, chargeArg.getValue(), 1e-6, "correct periodic charge");
   }
 
   @Test
@@ -301,18 +298,18 @@ public class TariffSubscriptionTests
     sub.subscribe(33);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer, 33, 0.0, -0.0);
-    assertEquals("no expired customers", 0, sub.getExpiredCustomerCount());
+    assertEquals(0, sub.getExpiredCustomerCount(), "no expired customers");
     // move forward 3 days and subscribe some more
     Instant now = timeService.getCurrentTime();
     timeService.setCurrentTime(now.plus(TimeService.DAY * 3));
-    assertEquals("still no expired customers", 0, sub.getExpiredCustomerCount());
+    assertEquals(0, sub.getExpiredCustomerCount(), "still no expired customers");
     sub.subscribe(22);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer, 22, 0.0, -0.0);
-    assertEquals("55 subscriptions", 55, sub.getCustomersCommitted());
+    assertEquals(55, sub.getCustomersCommitted(), "55 subscriptions");
     // move forward another three days, there should now be 33 expired
     timeService.setCurrentTime(now.plus(TimeService.DAY * 6));
-    assertEquals("33 expired customers", 33, sub.getExpiredCustomerCount());
+    assertEquals(33, sub.getExpiredCustomerCount(), "33 expired customers");
   }
 
   @Test
@@ -329,7 +326,7 @@ public class TariffSubscriptionTests
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 myTariff, customer, 33, 0.0, -0.0);
     // no min duration, so they should all be expired
-    assertEquals("33 expired customers", 33, sub.getExpiredCustomerCount());
+    assertEquals(33, sub.getExpiredCustomerCount(), "33 expired customers");
   }
 
   @Test
@@ -338,14 +335,12 @@ public class TariffSubscriptionTests
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
     sub.setRegulationCap(new RegulationAccumulator(4.5, -3.0));
-    assertEquals("no regulation yet", 0.0, sub.getRegulation(), 1e-6);
+    assertEquals(0.0, sub.getRegulation(), 1e-6, "no regulation yet");
     RegulationAccumulator remaining = sub.getRemainingRegulationCapacity();
-    assertEquals("population up ", 4.5 * 33,
-                 remaining.getUpRegulationCapacity(), 1e-6);
-    assertEquals("population down ", -3.0 * 33,
-                 remaining.getDownRegulationCapacity(), 1e-6);
+    assertEquals(4.5 * 33, remaining.getUpRegulationCapacity(), 1e-6, "population up");
+    assertEquals(-3.0 * 33, remaining.getDownRegulationCapacity(), 1e-6, "population down");
     sub.usePower(330.0);
-    assertEquals("still no regulation", 0.0, sub.getRegulation(), 1e-6);
+    assertEquals(0.0, sub.getRegulation(), 1e-6, "still no regulation");
   }
 
   @Test
@@ -372,15 +367,15 @@ public class TariffSubscriptionTests
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-100.0),
                               chargeArg.capture());
-    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    assertEquals(9.0, chargeArg.getValue(), 1e-6, "correct charge");
     sub.postBalancingControl(30.0); // balancing takes some back
     verify(mockAccounting)
         .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
-    assertEquals("correct charge", -2.7, chargeArg.getValue(), 1e-6);
-    assertEquals("correct regulation", 3.0, sub.getRegulation(), 1e-6);
-    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
+    assertEquals(-2.7, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(3.0, sub.getRegulation(), 1e-6, "correct regulation");
+    assertEquals(0.0, sub.getRegulation(), 1e-6, "no regulation");
   }
 
   @Test
@@ -407,15 +402,15 @@ public class TariffSubscriptionTests
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-100.0),
                               chargeArg.capture());
-    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    assertEquals(9.0, chargeArg.getValue(), 1e-6, "correct charge");
     sub.postBalancingControl(-30.0);
     verify(mockAccounting)
         .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(-30.0),
                               chargeArg.capture());
-    assertEquals("correct charge", 2.7, chargeArg.getValue(), 1e-6);
-    assertEquals("correct regulation", -3.0, sub.getRegulation(), 1e-6);
-    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
+    assertEquals(2.7, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(-3.0, sub.getRegulation(), 1e-6, "correct regulation");
+    assertEquals(0.0, sub.getRegulation(), 1e-6, "no regulation");
   }
 
   @Test
@@ -445,25 +440,21 @@ public class TariffSubscriptionTests
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-100.0),
                               chargeArg.capture());
-    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    assertEquals(9.0, chargeArg.getValue(), 1e-6, "correct charge");
     RegulationAccumulator cap = sub.getRemainingRegulationCapacity();
-    assertEquals("correct up-reg", 50.0,
-                 cap.getUpRegulationCapacity(), 1e-6);
-    assertEquals("correct dn-reg", -20.0,
-                 cap.getDownRegulationCapacity(), 1e-6);
+    assertEquals(50.0, cap.getUpRegulationCapacity(), 1e-6, "correct up-reg");
+    assertEquals(-20.0, cap.getDownRegulationCapacity(), 1e-6, "correct dn-reg");
     sub.postBalancingControl(30.0);
     verify(mockAccounting)
         .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
-    assertEquals("correct charge", 4.5, chargeArg.getValue(), 1e-6);
-    assertEquals("correct regulation", 3.0, sub.getRegulation(), 1e-6);
-    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
+    assertEquals(4.5, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(3.0, sub.getRegulation(), 1e-6, "correct regulation");
+    assertEquals(0.0, sub.getRegulation(), 1e-6, "no regulation");
     cap = sub.getRemainingRegulationCapacity();
-    assertEquals("correct up-reg", 20.0,
-                 cap.getUpRegulationCapacity(), 1e-6);
-    assertEquals("correct dn-reg", -20.0,
-                 cap.getDownRegulationCapacity(), 1e-6);
+    assertEquals(20.0, cap.getUpRegulationCapacity(), 1e-6, "correct up-reg");
+    assertEquals(-20.0, cap.getDownRegulationCapacity(), 1e-6, "correct dn-reg");
   }
 
   @Test
@@ -487,17 +478,15 @@ public class TariffSubscriptionTests
     timeslotRepo.findOrCreateBySerialNumber(10);
     timeService.setCurrentTime(timeService.getCurrentTime()
         .plus(TimeService.HOUR));
-    assertEquals("correct timeslot", 1, timeslotRepo.currentTimeslot()
-        .getSerialNumber());
+    assertEquals(1, timeslotRepo.currentTimeslot().getSerialNumber(), "correct timeslot");
 
     sub.usePower(100.0); // per-member value
     verify(mockAccounting)
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-100.0),
                               chargeArg.capture());
-    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
-    assertEquals("full regulation available", 50.0, sub
-        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
+    assertEquals(9.0, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(50.0, sub.getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6, "full regulation available");
     timeService.setCurrentTime(timeService.getCurrentTime()
         .plus(TimeService.HOUR));
     sub.postRatioControl(0.2);
@@ -506,11 +495,10 @@ public class TariffSubscriptionTests
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-80.0),
                               chargeArg.capture());
-    assertEquals("correct charge", 7.2, chargeArg.getValue(), 1e-6);
-    assertEquals("partial regulation available", 30.0, sub
-        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
-    assertEquals("correct regulation", 2.0, sub.getRegulation(), 1e-6);
-    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
+    assertEquals(7.2, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(30.0, sub.getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6, "partial regulation available");
+    assertEquals(2.0, sub.getRegulation(), 1e-6, "correct regulation");
+    assertEquals(0.0, sub.getRegulation(), 1e-6, "no regulation");
   }
 
   @Test
@@ -532,8 +520,7 @@ public class TariffSubscriptionTests
         .plus(TimeService.HOUR));
 
     sub.usePower(100.0);
-    assertEquals("correct remaining regulation", 50.0, sub
-        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
+    assertEquals(50.0, sub.getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6, "correct remaining regulation");
   }
 
   @Test
@@ -556,8 +543,7 @@ public class TariffSubscriptionTests
 
     sub.usePower(100.0);
     sub.unsubscribe(2);
-    assertEquals("correct remaining regulation", 40.0, sub
-        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
+    assertEquals(40.0, sub.getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6, "correct remaining regulation");
   }
 
   @Test
@@ -581,7 +567,6 @@ public class TariffSubscriptionTests
     sub.usePower(100.0);
     sub.unsubscribe(2);
     sub.unsubscribe(8);
-    assertEquals("correct remaining regulation", 0.0, sub
-        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
+    assertEquals(0.0, sub.getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6, "correct remaining regulation");
   }
 }

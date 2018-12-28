@@ -221,7 +221,7 @@ public class ChartResourceIntTest {
         int databaseSizeBeforeUpdate = chartRepository.findAll().size();
 
         // Update the chart
-        Chart updatedChart = chartRepository.findOne(chart.getId());
+        Chart updatedChart = chartRepository.getOne(chart.getId());
         updatedChart.setName(UPDATED_NAME);
         updatedChart.setShared(UPDATED_SHARED);
 

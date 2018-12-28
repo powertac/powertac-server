@@ -16,17 +16,17 @@
 
 package org.powertac.evcustomer.beans;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.configuration2.CompositeConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
-
-import static org.junit.Assert.*;
 
 
 /**
@@ -44,14 +44,14 @@ public class CarTypeTest
   private SimpleConfig configSvc;
   private CompositeConfiguration config;
 
-  @Before
+  @BeforeEach
   public void setUp ()
   {
     carType = new CarType(carName);
     configSvc = new SimpleConfig();
   }
 
-  @After
+  @AfterEach
   public void tearDown ()
   {
     carType = null;
@@ -84,15 +84,15 @@ public class CarTypeTest
       @SuppressWarnings("unchecked")
       Collection<CarType> cars =
           (Collection<CarType>) configSvc.configureInstances(carClass);
-      assertEquals("correct number", 2, cars.size());
+      assertEquals(2, cars.size(), "correct number");
       CarType result = null;
       for (CarType car : cars) {
         if (car.getName().equals("Tesla_40_kWh")) {
           result = car;
         }
       }
-      assertNotNull("collection contains Tesla", result);
-      assertEquals("correct range", 257.6, result.getRange(), 1e-6);
+      assertNotNull(result, "collection contains Tesla");
+      assertEquals(257.6, result.getRange(), 1e-6, "correct range");
     }
     catch (ClassNotFoundException e) {
       fail("car class not found");

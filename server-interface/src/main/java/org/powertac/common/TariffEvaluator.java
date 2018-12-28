@@ -440,7 +440,6 @@ public class TariffEvaluator
 
     // Compute the final cost number for each tariff
     HashMap<Tariff, EvalData> costs = new HashMap<Tariff, EvalData>();
-    double maxCost = 0.0;
     double signupCost = 0.0;
     for (Tariff tariff: tariffs) {
       EvalData eval = evaluatedTariffs.get(tariff);
@@ -477,17 +476,18 @@ public class TariffEvaluator
       // don't consider current tariff if it's revoked
       if (!revoked || tariff != currentTariff) {
         double utility =
-            computeNormalizedDifference(finalCost.costEstimate - maxCost,
-                                        defaultEval.costEstimate - maxCost);
+            computeNormalizedDifference(finalCost.costEstimate,
+                                        defaultEval.costEstimate);
         utility -= inconvenienceWeight * finalCost.inconvenience;
-        //log.info("adding TariffUtility(" + tariff.getId() + ", " + constrainUtility(utility) + " (" + utility + ")");
+        //log.info("utility for tariff {} = {}, constrained to {}", tariff.getId(),
+        //         utility, constrainUtility(utility));
         if (Double.isNaN(utility)) {
           log.error(getName() + ": utility is NaN for tariff "
                     + tariff.getId());
         }
-        log.debug("tariff {}: maxCost={}, adjCost={}, default={}, utility={}",
-                  tariff.getId(), maxCost, finalCost.costEstimate - maxCost,
-                  defaultEval.costEstimate - maxCost, utility);
+        log.debug("tariff {}: adjCost={}, default={}, utility={}",
+                  tariff.getId(), finalCost.costEstimate,
+                  defaultEval.costEstimate, utility);
         TariffUtility tu =
             new TariffUtility(tariff, constrainUtility(utility));
         evals.add(tu);

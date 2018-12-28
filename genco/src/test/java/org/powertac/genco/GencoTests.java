@@ -15,10 +15,8 @@
  */
 package org.powertac.genco;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -26,8 +24,8 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Competition;
@@ -61,7 +59,7 @@ public class GencoTests
   private Configurator config;
   private TimeService timeService;
   
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     Competition comp = Competition.newInstance("Genco test").withTimeslotsOpen(4);
@@ -96,8 +94,8 @@ public class GencoTests
   @Test
   public void testGenco ()
   {
-    assertNotNull("created something", genco);
-    assertEquals("correct name", "Test", genco.getUsername());
+    assertNotNull(genco, "created something");
+    assertEquals(genco.getUsername(), "Test", "correct name");
   }
 
   @Test
@@ -112,13 +110,11 @@ public class GencoTests
   public void testUpdateModel ()
   {
     when(seed.nextDouble()).thenReturn(0.5);
-    assertEquals("correct initial capacity",
-                 100.0, genco.getCurrentCapacity(), 1e-6);
-    assertTrue("initially in operation", genco.isInOperation());
+    assertEquals(100.0, genco.getCurrentCapacity(), 1e-6, "correct initial capacity");
+    assertTrue(genco.isInOperation(), "initially in operation");
     genco.updateModel(start);
-    assertEquals("correct updated capacity",
-                 100.0, genco.getCurrentCapacity(), 1e-6);
-    assertTrue("still in operation", genco.isInOperation());
+    assertEquals(100.0, genco.getCurrentCapacity(), 1e-6, "correct updated capacity");
+    assertTrue(genco.isInOperation(), "still in operation");
   }
 
   @SuppressWarnings("unused")
@@ -139,23 +135,21 @@ public class GencoTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(start);
     Timeslot ts2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
     Timeslot ts3 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
-    assertEquals("4 enabled timeslots", 4, timeslotRepo.enabledTimeslots().size());
+    assertEquals(4, timeslotRepo.enabledTimeslots().size(), "4 enabled timeslots");
     // 50 mwh already sold in ts2
     MarketPosition posn2 = new MarketPosition(genco, ts2, -50.0);
     genco.addMarketPosition(posn2, ts2.getSerialNumber());
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals("four orders", 4, orderList.size());
+    assertEquals(4, orderList.size(), "four orders");
     Order first = orderList.get(0);
-    assertEquals("first order for ts2",
-                 ts2.getSerialNumber(), first.getTimeslotIndex());
-    assertEquals("first order price", 1.0, first.getLimitPrice(), 1e-6);
-    assertEquals("first order for 50 mwh", -50.0, first.getMWh(), 1e-6);
+    assertEquals(ts2.getSerialNumber(), first.getTimeslotIndex(), "first order for ts2");
+    assertEquals(1.0, first.getLimitPrice(), 1e-6, "first order price");
+    assertEquals(-50.0, first.getMWh(), 1e-6, "first order for 50 mwh");
     Order second = orderList.get(1);
-    assertEquals("second order for ts3",
-                 ts3.getSerialNumber(), second.getTimeslotIndex());
-    assertEquals("second order price", 1.0, second.getLimitPrice(), 1e-6);
-    assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
+    assertEquals(ts3.getSerialNumber(), second.getTimeslotIndex(), "second order for ts3");
+    assertEquals(1.0, second.getLimitPrice(), 1e-6, "second order price");
+    assertEquals(-100.0, second.getMWh(), 1e-6, "second order for 100 mwh");
   }
 
   // set commitment leadtime to a larger number and make sure ordering
@@ -180,24 +174,24 @@ public class GencoTests
     }).when(mockProxy).routeMessage(isA(Order.class));
     // set up some timeslots
     Timeslot ts0 = timeslotRepo.makeTimeslot(start);
-    assertEquals("first ts has sn=24", 24, ts0.getSerialNumber());
+    assertEquals(24, ts0.getSerialNumber(), "first ts has sn=24");
     timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
     timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
     timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 3));
     timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 4));
-    assertEquals("4 enabled timeslots", 4, timeslotRepo.enabledTimeslots().size());
+    assertEquals(4, timeslotRepo.enabledTimeslots().size(), "4 enabled timeslots");
 
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals("two orders", 2, orderList.size());
+    assertEquals(2, orderList.size(), "two orders");
     Order first = orderList.get(0);
-    assertEquals("first order for ts3", 27, first.getTimeslotIndex());
-    assertEquals("first order price", 1.0, first.getLimitPrice(), 1e-6);
-    assertEquals("first order for 100 mwh", -100.0, first.getMWh(), 1e-6);
+    assertEquals(27, first.getTimeslotIndex(), "first order for ts3");
+    assertEquals(1.0, first.getLimitPrice(), 1e-6, "first order price");
+    assertEquals(-100.0, first.getMWh(), 1e-6, "first order for 100 mwh");
     Order second = orderList.get(1);
-    assertEquals("second order for ts4", 28, second.getTimeslotIndex());
-    assertEquals("second order price", 1.0, second.getLimitPrice(), 1e-6);
-    assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
+    assertEquals(28, second.getTimeslotIndex(), "second order for ts4");
+    assertEquals(1.0, second.getLimitPrice(), 1e-6, "second order price");
+    assertEquals(-100.0, second.getMWh(), 1e-6, "second order for 100 mwh");
   }
 
   // set commitment leadtime & market position and make sure ordering
@@ -222,12 +216,12 @@ public class GencoTests
     }).when(mockProxy).routeMessage(isA(Order.class));
     // set up some timeslots
     Timeslot ts0 = timeslotRepo.makeTimeslot(start);
-    assertEquals("first ts has sn=24", 24, ts0.getSerialNumber());
+    assertEquals(24, ts0.getSerialNumber(), "first ts has sn=24");
     //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
     //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
     //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 3));
     //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 4));
-    assertEquals("4 enabled timeslots", 4, timeslotRepo.enabledTimeslots().size());
+    assertEquals(4, timeslotRepo.enabledTimeslots().size(), "4 enabled timeslots");
 
     // 50 mwh already sold in ts2
     Timeslot ts2 = timeslotRepo.findBySerialNumber(26);
@@ -236,18 +230,18 @@ public class GencoTests
 
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals("three orders", 3, orderList.size());
+    assertEquals(3, orderList.size(), "three orders");
     Order order = orderList.get(0);
-    assertEquals("first order for ts2", 26, order.getTimeslotIndex());
-    assertEquals("first order price", 1.0, order.getLimitPrice(), 1e-6);
-    assertEquals("first order for 50 mwh", -50.0, order.getMWh(), 1e-6);
+    assertEquals(26, order.getTimeslotIndex(), "first order for ts2");
+    assertEquals(1.0, order.getLimitPrice(), 1e-6, "first order price");
+    assertEquals(-50.0, order.getMWh(), 1e-6, "first order for 50 mwh");
     order = orderList.get(1);
-    assertEquals("second order for ts3", 27, order.getTimeslotIndex());
-    assertEquals("second order price", 1.0, order.getLimitPrice(), 1e-6);
-    assertEquals("second order for 100 mwh", -100.0, order.getMWh(), 1e-6);
+    assertEquals(27, order.getTimeslotIndex(), "second order for ts3");
+    assertEquals(1.0, order.getLimitPrice(), 1e-6, "second order price");
+    assertEquals(-100.0, order.getMWh(), 1e-6, "second order for 100 mwh");
     order = orderList.get(2);
-    assertEquals("third order for ts4", 28, order.getTimeslotIndex());
-    assertEquals("third order price", 1.0, order.getLimitPrice(), 1e-6);
-    assertEquals("third order for 100 mwh", -100.0, order.getMWh(), 1e-6);
+    assertEquals(28, order.getTimeslotIndex(), "third order for ts4");
+    assertEquals(1.0, order.getLimitPrice(), 1e-6, "third order price");
+    assertEquals(-100.0, order.getMWh(), 1e-6, "third order for 100 mwh");
   }
 }

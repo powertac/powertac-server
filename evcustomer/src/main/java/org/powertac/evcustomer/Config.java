@@ -45,55 +45,55 @@ public final class Config
   private double epsilon = 2.7;
   private double lambda = 20;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Aversion to TOU tariff")
   private double touFactor = 0.05;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Aversion to tariffs involving curtailment")
   private double interruptibilityFactor = 0.1;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Aversion to variable-price tariffs")
   private double variablePricingFactor = 0.1;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Aversion to tiered rates")
   private double tieredRateFactor = 0.1;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "Minimum expected duration of subscription in days")
   private int minDefaultDuration = 7;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
       description = "Maximum expected duration of subscription in days")
   private int maxDefaultDuration = 21;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Rationality of these customers")
   private double rationalityFactor = 0.9;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
           description = "Number of tariffs/broker to consider")
   private int tariffCount = 5;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Aversion to switching brokers")
   private double brokerSwitchFactor = 0.02;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Importance of inconvenience factors")
   private double weightInconvenience = 0.2;
 
-  @ConfigurableValue(valueType = "Double",
+  @ConfigurableValue(valueType = "Double", dump = false,
       description = "Tariff evaluation inertia")
   private double nsInertia = 0.8;
 
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Integer", dump = false,
           description = "Length in timeslots of evaluation profile")
   private int profileLength = 48;
 
-  @ConfigurableValue(valueType = "List",
+  @ConfigurableValue(valueType = "List", dump = false,
       description = "classnames of bean types to be configured")
   private List<String> beanTypes;
 

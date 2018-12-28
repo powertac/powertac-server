@@ -47,27 +47,27 @@ public final class TimeseriesGenerator implements StructureInstance
   private String name;
 
   // These will come from the properties file
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double y0;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> yh;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> yd;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double phi1;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double Phi1;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double theta1;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double Theta1;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double sigma;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double lambda;
-  @ConfigurableValue(valueType = "Double")
+  @ConfigurableValue(valueType = "Double", dump = false)
   private double gamma;
-  @ConfigurableValue(valueType = "List")
+  @ConfigurableValue(valueType = "List", dump = false)
   private List<String> refSeries;
 
   private final Map<Integer, Double> genSeries = new HashMap<>();

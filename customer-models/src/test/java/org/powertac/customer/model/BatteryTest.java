@@ -15,14 +15,9 @@
  */
 package org.powertac.customer.model;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,8 +30,8 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -82,7 +77,7 @@ public class BatteryTest
   private TimeslotRepo tsRepo;
   private ServiceAccessor serviceAccessor;
 
-  @Before
+  @BeforeEach
   public void setUp () throws Exception
   {
     tsRepo = mock(TimeslotRepo.class);
@@ -139,8 +134,8 @@ public class BatteryTest
   public void testCreate ()
   {
     Battery battery = new Battery("test");
-    assertNotNull("constructed", battery);
-    assertEquals("correct capacity", 50.0, battery.getCapacityKWh(), 1e-6);
+    assertNotNull(battery, "constructed");
+    assertEquals(50.0, battery.getCapacityKWh(), 1e-6, "correct capacity");
   }
 
   @Test
@@ -160,18 +155,18 @@ public class BatteryTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(Battery.class);
-    assertEquals("two instances", 2, instances.size());
+    assertEquals(2, instances.size(), "two instances");
     Map<String, Battery> batteries = mapNames(instances);
     Battery b1 = batteries.get("b1");
-    assertNotNull("Found b1", b1);
-    assertEquals("correct capacity", 30.0, b1.getCapacityKWh(), 1e-6);
-    assertEquals("correct charge", 10.0, b1.getMaxChargeKW(), 1e-6);
-    assertEquals("correct discharge", -12.0, b1.getMaxDischargeKW(), 1e-6);
+    assertNotNull(b1, "Found b1");
+    assertEquals(30.0, b1.getCapacityKWh(), 1e-6, "correct capacity");
+    assertEquals(10.0, b1.getMaxChargeKW(), 1e-6, "correct charge");
+    assertEquals(-12.0, b1.getMaxDischargeKW(), 1e-6, "correct discharge");
     Battery b2 = batteries.get("b2");
-    assertNotNull("Found b2", b2);
-    assertEquals("correct capacity", 60.0, b2.getCapacityKWh(), 1e-6);
-    assertEquals("correct charge", 4.0, b2.getMaxChargeKW(), 1e-6);
-    assertEquals("correct discharge", -6.0, b2.getMaxDischargeKW(), 1e-6);
+    assertNotNull(b2, "Found b2");
+    assertEquals(60.0, b2.getCapacityKWh(), 1e-6, "correct capacity");
+    assertEquals(4.0, b2.getMaxChargeKW(), 1e-6, "correct charge");
+    assertEquals(-6.0, b2.getMaxDischargeKW(), 1e-6, "correct discharge");
   }
 
   @Test
@@ -195,7 +190,7 @@ public class BatteryTest
     configurator.setConfiguration(config);
     Collection<?> instances =
         configurator.configureInstances(Battery.class);
-    assertEquals("two instances", 2, instances.size());
+    assertEquals(2, instances.size(), "two instances");
     Map<String, Battery> batteries = mapNames(instances);
     Battery b1 = batteries.get("b1");
     b1.setServiceAccessor(serviceAccessor);
@@ -203,16 +198,16 @@ public class BatteryTest
     Battery b2 = batteries.get("b2");
     b2.setServiceAccessor(serviceAccessor);
     b2.initialize();
-    assertEquals("fixed capacity", 1.0, b1.getCapacityKWh(), 1e-6);
-    assertEquals("fixed capacity", 1.0, b2.getCapacityKWh(), 1e-6);
-    assertEquals("fixed charge rate", 1.0, b1.getMaxChargeKW(), 1e-6);
-    assertEquals("fixed charge rate", 1.0, b2.getMaxChargeKW(), 1e-6);
-    assertEquals("fixed discharge rate", -1.0, b1.getMaxDischargeKW(), 1e-6);
-    assertEquals("fixed discharge rate", -1.0, b2.getMaxDischargeKW(), 1e-6);
-    assertEquals("fixed sdr", 0.0, b1.getSelfDischargeRate(), 1e-6);
-    assertEquals("fixed sdr", 0.0, b2.getSelfDischargeRate(), 1e-6);
-    assertEquals("fixed ce", 1.0, b1.getChargeEfficiency(), 1e-6);
-    assertEquals("fixed ce", 1.0, b2.getChargeEfficiency(), 1e-6);
+    assertEquals(1.0, b1.getCapacityKWh(), 1e-6, "fixed capacity");
+    assertEquals(1.0, b2.getCapacityKWh(), 1e-6, "fixed capacity");
+    assertEquals(1.0, b1.getMaxChargeKW(), 1e-6, "fixed charge rate");
+    assertEquals(1.0, b2.getMaxChargeKW(), 1e-6, "fixed charge rate");
+    assertEquals(-1.0, b1.getMaxDischargeKW(), 1e-6, "fixed discharge rate");
+    assertEquals(-1.0, b2.getMaxDischargeKW(), 1e-6, "fixed discharge rate");
+    assertEquals(0.0, b1.getSelfDischargeRate(), 1e-6, "fixed sdr");
+    assertEquals(0.0, b2.getSelfDischargeRate(), 1e-6, "fixed sdr");
+    assertEquals(1.0, b1.getChargeEfficiency(), 1e-6, "fixed ce");
+    assertEquals(1.0, b2.getChargeEfficiency(), 1e-6, "fixed ce");
   }
 
   @Test
@@ -223,14 +218,14 @@ public class BatteryTest
     battery.initialize();
     when(subscription.getRegulation()).thenReturn(-5.0);
     battery.step();
-    assertEquals("correct soc", 4.725, battery.getStateOfCharge(), 1e-6);
+    assertEquals(4.725, battery.getStateOfCharge(), 1e-6, "correct soc");
     ArgumentCaptor<RegulationCapacity> arg =
         ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(arg.capture());
     RegulationCapacity rc = arg.getValue();
     assertNotNull(rc);
-    assertEquals("correct up", 4.725, rc.getUpRegulationCapacity(), 1e-6);
-    assertEquals("correct down", -20.0, rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(4.725, rc.getUpRegulationCapacity(), 1e-6, "correct up");
+    assertEquals(-20.0, rc.getDownRegulationCapacity(), 1e-6, "correct down");
   }
 
   @Test
@@ -241,14 +236,14 @@ public class BatteryTest
     battery.initialize();
     when(subscription.getRegulation()).thenReturn(-25.0);
     battery.step();
-    assertEquals("correct soc", 23.725, battery.getStateOfCharge(), 1e-6);
+    assertEquals(23.725, battery.getStateOfCharge(), 1e-6, "correct soc");
     ArgumentCaptor<RegulationCapacity> arg =
         ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(arg.capture());
     RegulationCapacity rc = arg.getValue();
     assertNotNull(rc);
-    assertEquals("correct up", 20.0, rc.getUpRegulationCapacity(), 1e-6);
-    assertEquals("correct down", -20.0, rc.getDownRegulationCapacity(), 1e-6);
+    assertEquals(20.0, rc.getUpRegulationCapacity(), 1e-6, "correct up");
+    assertEquals(-20.0, rc.getDownRegulationCapacity(), 1e-6, "correct down");
   }
 
   // map names to instances
