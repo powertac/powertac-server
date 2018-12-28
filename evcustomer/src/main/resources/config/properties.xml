@@ -349,7 +349,7 @@
       </classGroup>
 
       <carType>
-	<instances>Tesla40,Tesla60,Tesla85,Leaf24</instances>
+	<instances>Tesla40,Tesla60,Tesla85,Leaf24,Bolt60</instances>
 	<!--
 	    kwh is the maximum capacity of the battery
 	    range is the maximum range of a full battery
@@ -370,20 +370,20 @@
 	<Tesla85>
 	  <maxCapacity>85</maxCapacity>
 	  <range>563.5</range>
-	  <homeChargeKW>3.3</homeChargeKW>
+	  <homeChargeKW>6.6</homeChargeKW>
 	  <awayChargeKW>3.3</awayChargeKW>
 	</Tesla85>
 	<Leaf24>
 	  <maxCapacity>24</maxCapacity>
 	  <range>222.2</range>
-	  <homeChargeKW>6.6</homeChargeKW>
+	  <homeChargeKW>1.1</homeChargeKW>
 	  <awayChargeKW>3.3</awayChargeKW>
 	</Leaf24>
 	<Bolt60>
-	  <maxCapacity>60</maxCapacity>
-	  <range>380.0</range>
-          <homeChargeKW>6.6</homeChargeKW>
-          <awayChargeKW>3.3</awayChargeKW>
+		<maxCapacity>60</maxCapacity>
+		<range>400</range>
+		<homeChargeKW>3.3</homeChargeKW>
+		<awayChargeKW>6.6</awayChargeKW>
 	</Bolt60>
       </carType>
 
