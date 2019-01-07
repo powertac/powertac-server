@@ -89,13 +89,22 @@ public class EvCustomer
 
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
-  private Map<Integer, GroupActivity> groupActivities;
+  private List<GroupActivity> groupActivities;
+
+  // No activity while asleep
+  // Note that we don't go past midnight, avoiding cross-day data
+  private int earlyWake = 6;
+  private int wakeRange = 3;
+  private int earlySleep = 20;
+  private int sleepRange = 4;
+  private Activity sleepActivity;
 
   private CustomerServiceAccessor service;
   private RandomSeed generator;
 
   // ignore quantities less than epsilon
-  private double epsilon = 1e-6;
+  private double capacityEpsilon = 0.01; // 10 watt-hours
+  private double distanceEpsilon = 0.1; // 100 meters -- they should walk!
 
   // Vehicle state
   // We are driving this timeslot, so we can't charge
@@ -110,8 +119,7 @@ public class EvCustomer
   private boolean connected = true;
 
   private final int dataMapSize = 48;
-  private Map<Integer, TimeslotData> timeslotDataMap =
-      new HashMap<Integer, TimeslotData>(dataMapSize);
+  private Map<Integer, TimeslotData> timeslotDataMap;
 
   public EvCustomer (String name)
   {
@@ -134,7 +142,7 @@ public class EvCustomer
   public CustomerInfo initialize (SocialGroup socialGroup,
                                   String gender,
                                   Map<Integer, Activity> activities,
-                                  Map<Integer, GroupActivity> groupActivities,
+                                  List<GroupActivity> groupActivities,
                                   CarType car,
                                   CustomerServiceAccessor service,
                                   Config config)
@@ -149,6 +157,9 @@ public class EvCustomer
     this.generator =
         service.getRandomSeedRepo().getRandomSeed(name, 1, "model");
     setCurrentCapacity(0.5 * car.getMaxCapacity());
+
+    // Set up dummy Sleep activity
+    sleepActivity = new Activity("sleep");
 
     // For now all risk attitudes have same probability
     riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
@@ -245,19 +256,19 @@ public class EvCustomer
     // check for non-zero regulation request
     double actualRegulation =
         sub.getRegulation() * customerInfo.getPopulation();
-    if (Math.abs(actualRegulation) < epsilon) {
+    if (Math.abs(actualRegulation) < capacityEpsilon) {
       return;
     }
 
     // compute the regulation factor and do the regulation
-    log.info(name + " regulate : " + actualRegulation);
+    log.info("{} regulate: {}", name, actualRegulation);
 
     double startCapacity = currentCapacity;
     try {
-      if (actualRegulation > epsilon) {
+      if (actualRegulation > capacityEpsilon) {
         discharge(actualRegulation);
       }
-      else if (actualRegulation < -epsilon) {
+      else if (actualRegulation < -capacityEpsilon) {
         charge(-1 * actualRegulation);
       }
     }
@@ -265,7 +276,7 @@ public class EvCustomer
       log.error(name +" : "+ ce);
     }
 
-    if (Math.abs(startCapacity - currentCapacity) > epsilon) {
+    if (Math.abs(startCapacity - currentCapacity) > capacityEpsilon) {
       log.info(String.format("%s regulated from %.1f to %.1f",
           name, startCapacity, currentCapacity));
     }
@@ -288,7 +299,7 @@ public class EvCustomer
       return; // only runs once/day
 
     // First time
-    if (timeslotDataMap.size() != dataMapSize) {
+    if (null == timeslotDataMap || timeslotDataMap.size() != dataMapSize) {
       timeslotDataMap = new HashMap<Integer, TimeslotData>(dataMapSize);
       for (int i = 0; i < dataMapSize; i++) {
         timeslotDataMap.put(i, new TimeslotData(0.0));
@@ -310,19 +321,25 @@ public class EvCustomer
 
   private void planTomorrow (int nextDay)
   {
-    // TODO Need hour- and day-weights
-    // TODO We need to check (+ unit testing) that intended is always >= 0
+    Activity[] dayActivities = new Activity[24];
 
     // Only do activities between waking up and going to bed
-    int wakeupSlot = 6 + generator.nextInt(3);
-    int sleepSlot = 21 + generator.nextInt(4);
+    int wakeupSlot = earlyWake + generator.nextInt(wakeRange);
+    for (int i = 0; i < wakeupSlot; i++) {
+      dayActivities[i] = sleepActivity;
+    }
+    int sleepSlot = earlySleep + generator.nextInt(sleepRange);
+    for (int i = sleepSlot; i < 24; i++) {
+      dayActivities[i] = sleepActivity;
+    }
+    
 
     // Randomly pick activities we're going to do today
-    // For now : if we do activity, we do all kms in picked time slot
+    // For now : if we do activity, we do all kms < 60 in picked time slot
     // Otherwise we get too many slots without charging
+    // TODO: indexing is wrong, assumes every activity is in every groupActivity
     Map<Integer, Double> intended = new HashMap<Integer, Double>();
-    for (int activityId = 0; activityId < activities.size(); activityId++) {
-      GroupActivity groupActivity = groupActivities.get(activityId);
+    for (GroupActivity groupActivity : groupActivities) {
       double probability = groupActivity.getProbability(gender);
       double dailyDistance = groupActivity.getDailyKm(gender);
 
@@ -344,7 +361,7 @@ public class EvCustomer
   private int pickSlotForEvent (int wakeupSlot, int sleepSlot,
                                 Map<Integer, Double> intended)
   {
-    // Make a list of all avalable spots
+    // Make a list of all available spots
     List<Integer> available = new ArrayList<Integer>();
     for (int i = wakeupSlot; i < sleepSlot; i++) {
       if (intended.get(i) == null) {
@@ -365,10 +382,12 @@ public class EvCustomer
     int chargingHours = 0;
     for (int i = dataMapSize - 1; i >= 0; i--) {
       TimeslotData pointer = timeslotDataMap.get(i);
-      if (pointer.getIntendedDistance() > epsilon) {
+      if (pointer.getIntendedDistance() > distanceEpsilon) {
         chargingHours = 0;
       }
       else {
+        // TODO: assumes that charging is always available if not driving!
+        // See Issue #961.
         chargingHours += 1;
         pointer.setHoursTillNextDrive(chargingHours);
       }
@@ -381,7 +400,11 @@ public class EvCustomer
     double intendedDistance = timeslotData.getIntendedDistance();
     double neededCapacity = getNeededCapacity(intendedDistance);
 
-    if (intendedDistance < epsilon || neededCapacity > currentCapacity) {
+    if (intendedDistance < distanceEpsilon) {
+      return;
+    }
+    if (neededCapacity > currentCapacity) {
+      log.warn("Customer {} out of juice!", getName());
       return;
     }
 
@@ -419,8 +442,8 @@ public class EvCustomer
 
     // Aggregate daily kms
     double dailyKm = 0.0;
-    for (Map.Entry<Integer, GroupActivity> entry : groupActivities.entrySet()) {
-      dailyKm += entry.getValue().getDailyKm(gender);
+    for (GroupActivity entry : groupActivities) {
+      dailyKm += entry.getDailyKm(gender);
     }
 
     return getNeededCapacity(dailyKm);
@@ -461,12 +484,12 @@ public class EvCustomer
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
     loads[2] = Math.min(loads[2], getDischargingCapacity());
-    if (loads[2] < epsilon)
+    if (loads[2] < capacityEpsilon)
       loads[2] = 0;
 
     // This is the amount we could charge extra (down regulate)
     loads[3] = -1 * (getChargingCapacity() - (loads[0] + loads[1]));
-    if (loads[3] > -epsilon)
+    if (loads[3] > -capacityEpsilon)
       loads[3] = 0;
 
     // We need the available regulations in the next timeslot
@@ -485,7 +508,7 @@ public class EvCustomer
     double neededCapacity = 0.0;
     while (pointer < dataMapSize) {
       double tsDistance = timeslotDataMap.get(pointer++).getIntendedDistance();
-      if (tsDistance < epsilon) {
+      if (tsDistance < distanceEpsilon) {
         break;
       }
       else {
@@ -507,7 +530,7 @@ public class EvCustomer
     while (--pointer >= hour) {
       double tsDistance = timeslotDataMap.get(pointer).getIntendedDistance();
 
-      if (tsDistance < epsilon) {
+      if (tsDistance < distanceEpsilon) {
         // Not driving, charge as much as needed and possible
         // TODO Add home / away detection
         neededCapacity -= Math.min(neededCapacity, car.getHomeChargeKW());
@@ -539,7 +562,7 @@ public class EvCustomer
   // TODO Set min charge to 20%?
   public void discharge (double kwh) throws ChargeException
   {
-    if (currentCapacity >= (kwh - epsilon)) {
+    if (currentCapacity >= (kwh - capacityEpsilon)) {
       setCurrentCapacity(currentCapacity - kwh);
     }
     else {
@@ -556,7 +579,7 @@ public class EvCustomer
       double startCapacity = currentCapacity;
       setCurrentCapacity(currentCapacity + kwh);
 
-      if (Math.abs(startCapacity - currentCapacity) > epsilon) {
+      if (Math.abs(startCapacity - currentCapacity) > capacityEpsilon) {
         log.info(String.format("%s charging from %.1f to %.1f",
             name, startCapacity, currentCapacity));
       }
@@ -610,7 +633,7 @@ public class EvCustomer
     return activities;
   }
 
-  Map<Integer, GroupActivity> getActivityDetails ()
+  List<GroupActivity> getGroupActivities ()
   {
     return groupActivities;
   }

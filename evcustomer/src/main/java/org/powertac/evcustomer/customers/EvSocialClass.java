@@ -312,22 +312,17 @@ public class EvSocialClass extends AbstractCustomer
   /**
    * Extracts the GroupActivity instances associated with the given group
    */
-  private HashMap<Integer, GroupActivity>
+  private ArrayList<GroupActivity>
   getGroupActivities (Map<String, Collection<?>> beans, SocialGroup group)
   {
-    HashMap<Integer, GroupActivity> result =
-        new HashMap<Integer, GroupActivity>();
+    ArrayList<GroupActivity> result = new ArrayList<>();
     for (Object thing: beans.get("GroupActivity")) {
       GroupActivity ga = (GroupActivity) thing;
       if (ga.getGroupId() == group.getId()) {
         // one of ours
-        result.put(ga.getActivityId(), ga);
+        result.add(ga);
       }
     }
-    if (result.size() != activities.size())
-       log.error("found " + result.size()
-                + " group-activities for group " + group.getId()
-                + ", should be " + activities.size());
     return result;
   }
 

@@ -42,7 +42,9 @@ import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -59,9 +61,9 @@ public class EvCustomerTest
   private EvCustomer evCustomer;
   private String cName = "Joe";
   private SocialGroup socialGroup;
-  private Map<Integer, Activity> activities;
+  private HashMap<Integer, Activity> activities;
   private Activity activity;
-  private Map<Integer, GroupActivity> details;
+  private List<GroupActivity> gas;
   private GroupActivity detail;
   private CarType carType;
 
@@ -82,7 +84,7 @@ public class EvCustomerTest
     service = new ServiceAccessor();
 
     socialGroup = new SocialGroup(groupId, "Group " + groupId);
-    activity = new Activity(0, "TestActivity", 1, 1);
+    activity = new Activity("TestActivity");
     detail = new GroupActivity("test-ga");
     detail.initialize(0, maleDailyKm, femaleDailyKm, 1, 1);
     carType = new CarType("TestCar");
@@ -98,12 +100,12 @@ public class EvCustomerTest
       activities = new HashMap<>();
       activities.put(activity.getId(), activity);
     }
-    if (details == null) {
-      details = new HashMap<>();
-      details.put(detail.getActivityId(), detail);
+    if (gas == null) {
+      gas = new ArrayList<>();
+      gas.add(detail);
     }
     Config config = Config.getInstance();
-    evCustomer.initialize(socialGroup, gender, activities, details,
+    evCustomer.initialize(socialGroup, gender, activities, gas,
         carType, service, config);
   }
 
@@ -140,7 +142,7 @@ public class EvCustomerTest
   }
 
   @Test
-  public void testDischargeInvalid () throws EvCustomer.ChargeException
+  public void testDischargeInvalid () //throws EvCustomer.ChargeException
   {
     assertThrows(EvCustomer.ChargeException.class, () -> {
       carType.setMaxCapacity(100.0);
@@ -162,7 +164,7 @@ public class EvCustomerTest
   }
 
   @Test()
-  public void testChargeInvalid () throws EvCustomer.ChargeException
+  public void testChargeInvalid () //throws EvCustomer.ChargeException
   {
     assertThrows(EvCustomer.ChargeException.class, () -> {
       carType.setMaxCapacity(100.0);
@@ -213,7 +215,7 @@ public class EvCustomerTest
     // ActivityDetails aren't dependent on gender
     initialize("male");
 
-    Map<Integer, GroupActivity> groupActivities = evCustomer.getActivityDetails();
+    List<GroupActivity> groupActivities = evCustomer.getGroupActivities();
     GroupActivity activityDetail2 = groupActivities.get(activity.getId());
 
     assertEquals(activityDetail2.getActivityId(),         detail.getActivityId());
@@ -355,9 +357,8 @@ public class EvCustomerTest
     initialize("male");
 
     double totalKms = 0.0;
-    for (Map.Entry<Integer, GroupActivity> entry :
-        evCustomer.getActivityDetails().entrySet()) {
-      totalKms += entry.getValue().getMaleDailyKm();
+    for (GroupActivity entry : evCustomer.getGroupActivities()) {
+      totalKms += entry.getMaleDailyKm();
     }
     double totalKwh = evCustomer.getNeededCapacity(totalKms);
 
@@ -367,9 +368,8 @@ public class EvCustomerTest
     initialize("female");
 
     totalKms = 0.0;
-    for (Map.Entry<Integer, GroupActivity> entry :
-        evCustomer.getActivityDetails().entrySet()) {
-      totalKms += entry.getValue().getMaleDailyKm();
+    for (GroupActivity entry : evCustomer.getGroupActivities()) {
+      totalKms += entry.getMaleDailyKm();
     }
     totalKwh = evCustomer.getNeededCapacity(totalKms);
 
