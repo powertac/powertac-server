@@ -22,6 +22,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.powertac.common.Competition;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -42,6 +43,7 @@ public class TariffEvaluationHelperTest
   @BeforeEach
   public void setUp () throws Exception
   {
+    Competition.newInstance("test");
     teh = new TariffEvaluationHelper();
     timeService = new TimeService();
     tariffRepo = new TariffRepo();
