@@ -97,16 +97,23 @@ public class Activity
 
   @ConfigurableValue(valueType = "Double", dump = false,
           description = "Probability of charger at destination")
-  private double awayChargerProbability = 0.0;
+  private double chargerProbability = 0.0;
   
-  // epsilon to avoid numeric problems in probability calculations
-  private double epsilon = 1e-6;
+
+  /**
+   * Default constructor, needed for wrapper classes
+   */
+  public Activity ()
+  {
+    super();
+  }
 
   /**
    * Normal constructor, usable by auto-config
    */
   public Activity (String name)
   {
+    super();
     this.name = name;
   }
 
@@ -133,9 +140,14 @@ public class Activity
     return name;
   }
   
-  public double getAwayChargerProbability ()
+  public double getChargerProbability ()
   {
-    return awayChargerProbability;
+    return chargerProbability;
+  }
+  
+  public void setChargerProbability (double prob)
+  {
+    chargerProbability = prob;
   }
   
   /**
@@ -229,6 +241,27 @@ public class Activity
   }
 
   /**
+   * Returns the probability of doing this activity on the given day, driven either
+   * by weekend/weekday probabilities, or by the weekly profile.
+   */
+  public double getDayProbability (int dayOfWeek)
+  {
+    double result = 1.0;
+    if (dayOfWeek < 1 || dayOfWeek > 7) {
+      log.error("bad day-of-week {} in probabilityForTimeslot", dayOfWeek);
+    }
+    else if (getWeeklyProfileOptional().isPresent()) {
+      // use weekday/weekend numbers
+      result *= getDayWeight(dayOfWeek);
+    }
+    else {
+      // remember that day-of-week is [1-7]
+      result *= weeklyProfile[dayOfWeek - 1];
+    }
+    return result;
+  }
+
+  /**
    * Finds a time for this activity that does not conflict with previously scheduled
    * activities on the given day. If a time is found, it is added to the
    * scheduled array.
@@ -236,122 +269,24 @@ public class Activity
   public Activity[]
           pickTimeslot (int dow, Activity[] scheduled, RandomSeed generator)
   {
-    if (dow < 1 || dow > 7) {
-      log.error("bad day-of-week {} in probabilityForTimeslot", dow);
-      return scheduled;
-    }
-    double dayProbability = 1.0;
-    if (null == weeklyProfile) {
-      // use weekday/weekend numbers
-      dayProbability *= getDayWeight(dow);
-    }
-    else {
-      // remember that day-of-week is [1-7]
-      dayProbability *= weeklyProfile[dow - 1];
-    }
-
-    // We draw two samples here to ensure repeatability.
-    // The first determines whether this activity is scheduled at all.
-    double p1 = generator.nextDouble();
-    double p2 = generator.nextDouble();
-    if (dayProbability < p1) {
-      return scheduled;
-    }
-
-    // attempt to schedule this activity
-    double[] probabilities = new double[scheduled.length];
-    Arrays.fill(probabilities, 1.0);
-    // clear the committed timeslots and count the rest
-    int open = 0;
-    for (int i = 0; i < scheduled.length; i++) {
-      if (null != scheduled[i]) {
-        probabilities[i] = 0.0;
-      }
-      else {
-        open += 1;
-      }
-    }
-    
-    // if there are no open slots, there's not much we can do
-    if (0 == open)
-      return scheduled;
-    
-    // if this activity has a non-zero interval, then clear out all the probabilities
-    // where it cannot start
-    if (getInterval() > 0) {
-      open = 0;
-      for (int i = 0; i < scheduled.length; i++) {
-        if (i + getInterval() >= scheduled.length) {
-          // can't start here
-          probabilities[i] = 0.0;
-          continue;
-        }
-        if (0.0 == probabilities[i])
-          // can't start here
-          continue;
-        for (int j = i + 1; j < i + getInterval() + 1; j++) {
-          if (0.0 == probabilities[j]) {
-            // available interval ends too soon
-            probabilities[i] = 0.0;
-            break;
-          }
-        }
-        if (1.0 == probabilities[i]) {
-          // if probabilities[i] is still 1.0, then this is a valid place to start
-          open += 1;
-        }
-      }
-    }
-    
-    // populate timeslot array with raw probabilities for open timeslots,
-    // track sum for normalization
-    double psum = 0.0;
-    for (int ts = 0; ts < scheduled.length; ts++) {
-      if (1.0 == probabilities[ts]) { // possible choice
-        probabilities[ts] *= getProbabilityForTimeslot(dow, ts, open);
-        psum += probabilities[ts];
-      }
-    }
-    if (psum < epsilon) {
-      // no possible choices, cannot schedule this activity
-      return scheduled;
-    }
-    // normalize to 1.0
-    for (int ts = 0; ts < scheduled.length; ts++) {
-      probabilities[ts] /= psum;
-    }
-    // Find a slot for this activity based on normalized probabilities.
-    // Note that we only get here if the first draw on the generator was large enough,
-    // so we use the second draw here to avoid a biased result
-    for (int ts = 0; ts < scheduled.length; ts++) {
-      p2 -= probabilities[ts];
-      if (p2 <= epsilon) {
-        scheduled[ts] = this;
-        if (getInterval() > 0)
-          scheduled[ts + getInterval()] = this;
-        break;
-      }
-    }
     return scheduled;
   }
 
-  // Returns probability for given day-of-week and timeslot. Probability is the product
-  // of day probability and hour probability.
-  double getProbabilityForTimeslot (int dow, int slot, long openSlots)
+  // Returns normalized probability for given day-of-week and timeslot.
+  public double getProbabilityForTimeslot (int dow, int slot, int openSlots)
   {
+    double result = 1.0;
     if (slot < 0 || slot > 23) {
       log.error("bad slot {} in probabilityForTimeslot", slot);
-      return 0.0;
+      result = 0.0;
     }
-
-    double result = 1.0;
     // probability independent of timeslot unless dailyProfile is given
-    if (null != dailyProfile) {
-      result *= dailyProfile[slot];
+    else if (getDailyProfileOptional().isPresent()) {
+      result = getDailyProfileOptional().get()[slot];
     }
     else {
       // spread probability evenly across open slots
-      result /= (double) openSlots;
+      result = 1.0;
     }
     return result;
   }

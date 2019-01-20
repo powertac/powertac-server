@@ -45,9 +45,14 @@ import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.SocialGroup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Stack;
+import java.util.function.BiFunction;
 
 
 /**
@@ -105,6 +110,8 @@ public class EvCustomer
   // ignore quantities less than epsilon
   private double capacityEpsilon = 0.01; // 10 watt-hours
   private double distanceEpsilon = 0.1; // 100 meters -- they should walk!
+  // epsilon to avoid numeric problems in probability calculations
+  private double epsilon = 1e-6;
 
   // Vehicle state
   // We are driving this timeslot, so we can't charge
@@ -118,8 +125,10 @@ public class EvCustomer
       description = "True if vehicle is currently plugged in")
   private boolean connected = true;
 
-  private final int dataMapSize = 48;
-  private Map<Integer, TimeslotData> timeslotDataMap;
+  // We plan 48 hours out
+  private final int dataMapSize = 24;
+  private TimeslotData[] todayMap;
+  private TimeslotData[] tomorrowMap;
 
   public EvCustomer (String name)
   {
@@ -149,7 +158,10 @@ public class EvCustomer
   {
     this.socialGroup = socialGroup;
     this.activities = activities;
-    this.groupActivities = groupActivities;
+    this.groupActivities = new ArrayList<GroupActivity> (groupActivities);
+    this.groupActivities.sort((g1, g2) ->
+    (activities.get(g2.getActivityId()).getInterval()
+            - activities.get(g1.getActivityId()).getInterval()));
     this.gender = gender;
     this.car = car;
     this.service = service;
@@ -157,9 +169,6 @@ public class EvCustomer
     this.generator =
         service.getRandomSeedRepo().getRandomSeed(name, 1, "model");
     setCurrentCapacity(0.5 * car.getMaxCapacity());
-
-    // Set up dummy Sleep activity
-    sleepActivity = new Activity("sleep");
 
     // For now all risk attitudes have same probability
     riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
@@ -176,6 +185,7 @@ public class EvCustomer
 
     // set up tariff evaluation
     evaluator = createTariffEvaluator();
+    sleepActivity = new Activity("sleep");
     return customerInfo;
   }
 
@@ -299,104 +309,209 @@ public class EvCustomer
       return; // only runs once/day
 
     // First time
-    if (null == timeslotDataMap || timeslotDataMap.size() != dataMapSize) {
-      timeslotDataMap = new HashMap<Integer, TimeslotData>(dataMapSize);
-      for (int i = 0; i < dataMapSize; i++) {
-        timeslotDataMap.put(i, new TimeslotData(0.0));
-      }
+    if (null == todayMap) {
+      tomorrowMap = new TimeslotData[dataMapSize];
       planTomorrow(day);
     }
 
     // Tomorrow is now today, move data
-    for (int i = 0; i < 24; i++) {
-      timeslotDataMap.put(i, timeslotDataMap.get(i + 24));
+    // TODO - Could re-use structure to reduce GC load
+    todayMap = tomorrowMap;
+    tomorrowMap = new TimeslotData[dataMapSize];
+    for (int i = 0; i < dataMapSize; i++) {
+      tomorrowMap[i] = new TimeslotData();
     }
 
     // Let's see what we want to do tomorrow
     planTomorrow(day + 1);
 
-    // Update driving info
+    // Update driving info for today
     updateChargingHours();
   }
 
   private void planTomorrow (int nextDay)
   {
-    Activity[] dayActivities = new Activity[24];
-
     // Only do activities between waking up and going to bed
     int wakeupSlot = earlyWake + generator.nextInt(wakeRange);
     for (int i = 0; i < wakeupSlot; i++) {
-      dayActivities[i] = sleepActivity;
+      tomorrowMap[i].setActivity(sleepActivity);
     }
     int sleepSlot = earlySleep + generator.nextInt(sleepRange);
-    for (int i = sleepSlot; i < 24; i++) {
-      dayActivities[i] = sleepActivity;
+    for (int i = sleepSlot; i < dataMapSize; i++) {
+      tomorrowMap[i].setActivity(sleepActivity);
     }
     
 
     // Randomly pick activities we're going to do today
-    // For now : if we do activity, we do all kms < 60 in picked time slot
+    // For now : if we do activity, we do all in picked time slot
     // Otherwise we get too many slots without charging
-    // TODO: indexing is wrong, assumes every activity is in every groupActivity
-    Map<Integer, Double> intended = new HashMap<Integer, Double>();
+    double[] intended = new double[tomorrowMap.length];
     for (GroupActivity groupActivity : groupActivities) {
-      double probability = groupActivity.getProbability(gender);
-      double dailyDistance = groupActivity.getDailyKm(gender);
+      Activity act = activities.get(groupActivity.getActivityId());
 
-      // Probs > 1.0 will always happen (why),
-      // hence the distance factoring == 1
-      if (probability >= generator.nextDouble()) {
-        int pickedTS = pickSlotForEvent(wakeupSlot, sleepSlot, intended);
-        double distance = dailyDistance * 2.0 * generator.nextDouble();
-        intended.put(pickedTS, distance);
+      // We draw all samples here to ensure repeatability.
+      // The first two determine whether this activity is scheduled at all.
+      double p1 = generator.nextDouble();
+      double p2 = generator.nextDouble();
+      double p3 = generator.nextDouble();
+      if (groupActivity.getProbability(gender) >= p1
+              && act.getDayProbability(nextDay) >= p2) {
+
+        // attempt to schedule current activity
+        double[] probabilities = new double[tomorrowMap.length];
+        Arrays.fill(probabilities, 1.0);
+        // clear the committed timeslots and count the rest
+        int open = 0;
+        for (int i = 0; i < tomorrowMap.length; i++) {
+          if (tomorrowMap[i].getActivity().isPresent()) {
+            probabilities[i] = 0.0;
+          }
+          else {
+            open += 1;
+          }
+        }
+
+        // if there are no open slots, there's not much we can do
+        if (0 == open)
+          continue;
+
+        // if this activity has a non-zero interval, then clear out all the probabilities
+        // where it cannot start
+        if (act.getInterval() > 0) {
+          open = 0;
+          for (int i = 0; i < tomorrowMap.length; i++) {
+            if (i + act.getInterval() >= tomorrowMap.length) {
+              // can't start here
+              probabilities[i] = 0.0;
+              continue;
+            }
+            if (0.0 == probabilities[i])
+              // can't start here
+              continue;
+            for (int j = i + 1; j < i + act.getInterval() + 1; j++) {
+              if (0.0 == probabilities[j]) {
+                // available interval ends too soon
+                probabilities[i] = 0.0;
+                break;
+              }
+            }
+            if (1.0 == probabilities[i]) {
+              // if probabilities[i] is still 1.0, then this is a valid place to start
+              open += 1;
+            }
+          }
+        }
+        
+        // populate probabilities array with raw probabilities for open timeslots,
+        // track sum for normalization
+        double psum = 0.0;
+        for (int ts = 0; ts < tomorrowMap.length; ts++) {
+          if (1.0 == probabilities[ts]) { // possible choice
+            probabilities[ts] = act.getProbabilityForTimeslot(nextDay, ts, open);
+            psum += probabilities[ts];
+          }
+        }
+        if (psum > epsilon) {
+          // schedule this activity
+          // normalize to 1.0
+          for (int ts = 0; ts < tomorrowMap.length; ts++) {
+            probabilities[ts] /= psum;
+          }
+          // Find a slot for this activity based on normalized probabilities.
+          // Note that we only get here if earlier draws on the generator was large enough,
+          // so we use the final draw here to avoid a biased result
+          for (int ts = 0; ts < tomorrowMap.length; ts++) {
+            p3 -= probabilities[ts];
+            if (p3 <= epsilon) {
+              tomorrowMap[ts].setActivity(act);
+              tomorrowMap[ts].setGroupActivity(groupActivity);
+              if (act.getInterval() > 0) {
+                tomorrowMap[ts + act.getInterval()].setActivity(act);
+                tomorrowMap[ts + act.getInterval()].setGroupActivity(groupActivity);
+                //todo: somehow need to record where it's returning to
+              }
+              break;
+            }
+          }
+        }
       }
     }
 
-    for (int i = 0; i < 24; i++) {
-      Double intendedDistance = intended.get(i) != null ? intended.get(i) : 0.0;
-      timeslotDataMap.put(i + 24, new TimeslotData(intendedDistance));
-    }
-  }
-
-  private int pickSlotForEvent (int wakeupSlot, int sleepSlot,
-                                Map<Integer, Double> intended)
-  {
-    // Make a list of all available spots
-    List<Integer> available = new ArrayList<Integer>();
-    for (int i = wakeupSlot; i < sleepSlot; i++) {
-      if (intended.get(i) == null) {
-        available.add(i);
+    for (int i = 0; i < tomorrowMap.length; i++) {
+      double intendedDistance = 0.0;
+      if (tomorrowMap[i].getGroupActivity().isPresent()) {
+        intendedDistance =
+                tomorrowMap[i].getGroupActivity().get().getDailyKm(getGender());
       }
+      tomorrowMap[i].setIntendedDistance(intendedDistance);
     }
-    // No spots available, just ignore
-    if (available.size() == 0) {
-      return -1;
-    }
-    // Spots available, just pick one
-    return available.get(generator.nextInt(available.size()));
   }
 
-  // runs through datamap backwards to find charging intervals.
+  // runs through daily activities to record available charging capacity and hours.
   private void updateChargingHours ()
   {
-    int chargingHours = 0;
-    for (int i = dataMapSize - 1; i >= 0; i--) {
-      TimeslotData pointer = timeslotDataMap.get(i);
-      if (pointer.getIntendedDistance() > distanceEpsilon) {
-        chargingHours = 0;
-      }
-      else {
-        // TODO: assumes that charging is always available if not driving!
-        // See Issue #961.
-        chargingHours += 1;
-        pointer.setHoursTillNextDrive(chargingHours);
+    double currentCapacity = 0.0;
+    Stack<Activity> activityStack = new Stack<>();
+
+    // Start by assuming car is at home all day
+    for (TimeslotData entry: todayMap) {
+      entry.setChargingCapacity(car.getHomeChargeKW());
+    }
+
+    // Assume car is at home at midnight, then walk forward recording available
+    // charging capacity
+    for (int i = 0; i < todayMap.length; i++) {
+      if (todayMap[i].getActivity().isPresent()) {
+        Activity current = todayMap[i].getActivity().get();
+        if (current.getInterval() > 0) {
+          if (activityStack.peek().equals(current)) {
+            // current activity is second instance of an out-and-back
+            activityStack.pop();
+          }
+          else {
+            // current activity is first instance of an out-and-back
+            activityStack.push(current);
+            double sample = generator.nextDouble();
+            if (todayMap[i].getActivity().get().getChargerProbability() <= sample) {
+              currentCapacity = car.getAwayChargeKW();
+            }
+            else {
+              currentCapacity = 0.0;
+            }
+            for (int j = i; j < todayMap.length; j++) {
+              if (todayMap[j].getActivity().isPresent()
+                      && todayMap[j].getActivity().get() == current) {
+                // return trip
+                break;
+              }
+              todayMap[j].setChargingCapacity(currentCapacity);
+            }
+          }
+        }
       }
     }
+    if (!activityStack.isEmpty()) {
+      log.error("Activity stack should be empty: car {}, activity {}",
+                car.getName(), activityStack.peek().getName());
+    }
+//    for (int i = dataMapSize - 1; i >= 0; i--) {
+//      TimeslotData pointer = timeslotDataMap.get(i);
+//      if (pointer.getIntendedDistance() > distanceEpsilon) {
+//        chargingHours = 0;
+//      }
+//      else {
+//        // TODO: assumes that charging is always available if not driving!
+//        // See Issue #961.
+//        chargingHours += 1;
+//        pointer.setHoursTillNextDrive(chargingHours);
+//      }
+//    }
   }
 
   public void doActivities (int day, int hour)
   {
-    TimeslotData timeslotData = timeslotDataMap.get(hour);
+    //TODO - keep track of plugged-in state and capacity of charger
+    TimeslotData timeslotData = todayMap[hour];
     double intendedDistance = timeslotData.getIntendedDistance();
     double neededCapacity = getNeededCapacity(intendedDistance);
 
@@ -469,7 +584,7 @@ public class EvCustomer
     // This the amount we need to have at the next TS
     double minCapacity = getLongTermNeeded(hour + 1);
     // This is the amount we would like to have at the end of this TS
-    int hoursOfCharge = timeslotDataMap.get(hour).getHoursTillNextDrive();
+    int hoursOfCharge = todayMap[hour].getHoursTillNextDrive();
     double nomCapacity = Math.max(getShortTermNeeded(hour + hoursOfCharge),
         car.getMaxCapacity() * riskAttitude.preferredMinimumCapacity);
 
@@ -493,9 +608,9 @@ public class EvCustomer
       loads[3] = 0;
 
     // We need the available regulations in the next timeslot
-    timeslotDataMap.get(hour).setUpRegulationCharge(loads[1]);
-    timeslotDataMap.get(hour).setUpRegulation(loads[2]);
-    timeslotDataMap.get(hour).setDownRegulation(loads[3]);
+    todayMap[hour].setUpRegulationCharge(loads[1]);
+    todayMap[hour].setUpRegulation(loads[2]);
+    todayMap[hour].setDownRegulation(loads[3]);
 
     return loads;
   }
@@ -507,7 +622,7 @@ public class EvCustomer
   {
     double neededCapacity = 0.0;
     while (pointer < dataMapSize) {
-      double tsDistance = timeslotDataMap.get(pointer++).getIntendedDistance();
+      double tsDistance = todayMap[pointer++].getIntendedDistance();
       if (tsDistance < distanceEpsilon) {
         break;
       }
@@ -528,7 +643,7 @@ public class EvCustomer
     double neededCapacity = 0.0;
     int pointer = dataMapSize;
     while (--pointer >= hour) {
-      double tsDistance = timeslotDataMap.get(pointer).getIntendedDistance();
+      double tsDistance = todayMap[pointer].getIntendedDistance();
 
       if (tsDistance < distanceEpsilon) {
         // Not driving, charge as much as needed and possible
@@ -672,71 +787,118 @@ public class EvCustomer
     return driving;
   }
 
-  Map<Integer, TimeslotData> getTimeslotDataMap ()
+  TimeslotData[] getTodayMap ()
   {
-    return timeslotDataMap;
+    return todayMap;
   }
   
-  // =========== helper classes ==================
+  // =========== helper classes ==================  
   class TimeslotData
   {
+    // include GroupActivity and Activity to support scheduling and status
+    private GroupActivity groupActivity;
+    private Activity activity;
+    private Activity previousActivity;
+    
+    private double chargingCapacity = 0.0;
+    
     private double intendedDistance = 0.0;
     private double upRegulation = 0.0;
     private double upRegulationCharge = 0.0;
     private double downRegulation = 0.0;
     private int hoursTillNextDrive = 0;
 
-    public TimeslotData (double distance)
+    TimeslotData ()
     {
-      intendedDistance = distance;
+      super();
     }
 
-    public double getIntendedDistance ()
+    Optional<GroupActivity> getGroupActivity ()
+    {
+      return Optional.ofNullable(groupActivity);
+    }
+
+    void setGroupActivity (GroupActivity ga)
+    {
+      groupActivity = ga;
+    }
+
+    Optional<Activity> getActivity ()
+    {
+      return Optional.ofNullable(activity);
+    }
+
+    void setActivity (Activity act)
+    {
+      activity = act;
+    }
+
+    Optional<Activity> getPreviousActivity ()
+    {
+      return Optional.ofNullable(previousActivity);
+    }
+
+    void setPreviousActivity (Activity act)
+    {
+      previousActivity = act;
+    }
+
+    double getChargingCapacity ()
+    {
+      return chargingCapacity;
+    }
+
+    void setChargingCapacity (double capacity)
+    {
+      chargingCapacity = capacity;
+    }
+
+    double getIntendedDistance ()
     {
       return intendedDistance;
     }
 
-    public void setIntendedDistance (double intendedDistance)
+    void setIntendedDistance (double intendedDistance)
     {
       this.intendedDistance = intendedDistance;
     }
 
-    public double getUpRegulation ()
+    double getUpRegulation ()
     {
       return upRegulation;
     }
 
-    public void setUpRegulation (double upRegulation)
+    void setUpRegulation (double upRegulation)
     {
       this.upRegulation = upRegulation;
     }
 
-    public double getUpRegulationCharge ()
+    double getUpRegulationCharge ()
     {
       return upRegulationCharge;
     }
 
-    public void setUpRegulationCharge (double upRegulationCharge)
+    void setUpRegulationCharge (double upRegulationCharge)
     {
       this.upRegulationCharge = upRegulationCharge;
     }
 
-    public double getDownRegulation ()
+    double getDownRegulation ()
     {
       return downRegulation;
     }
 
-    public void setDownRegulation (double downRegulation)
+    void setDownRegulation (double downRegulation)
     {
       this.downRegulation = downRegulation;
     }
 
-    public int getHoursTillNextDrive ()
+    int getHoursTillNextDrive ()
     {
       return hoursTillNextDrive;
     }
 
-    public void setHoursTillNextDrive (int hoursTillNextDrive)
+    void setHoursTillNextDrive (int hoursTillNextDrive)
     {
       this.hoursTillNextDrive = hoursTillNextDrive;
     }

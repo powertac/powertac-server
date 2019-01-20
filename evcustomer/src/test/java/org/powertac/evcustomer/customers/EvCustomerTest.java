@@ -263,15 +263,15 @@ public class EvCustomerTest
     mockSeed.setDoubleSeed(new double[]{0.5});
     mockSeed.resetCounters();
     evCustomer.makeDayPlanning(0,  0);
-    Map<Integer, EvCustomer.TimeslotData> data =
-        evCustomer.getTimeslotDataMap();
-    assertEquals(48, data.size(), "correct map size");
+    EvCustomer.TimeslotData[] data =
+        evCustomer.getTodayMap();
+    assertEquals(24, data.length, "correct map size");
     // first trip should be 10 km in hour 9
-    assertEquals(9, data.get(0).getHoursTillNextDrive(), "9 hours away");
-    assertEquals(0.0, data.get(0).getIntendedDistance(), 1e-6, "no driving in 0 hour");
-    assertEquals(1, data.get(8).getHoursTillNextDrive(), "1 hr from 8");
-    assertEquals(0.0, data.get(8).getIntendedDistance(), 1e-6, "no driving in 8 hour");
-    assertEquals(10.0, data.get(9).getIntendedDistance(), 1e-6, "10 km in hr 9");
+    assertEquals(9, data[0].getHoursTillNextDrive(), "9 hours away");
+    assertEquals(0.0, data[0].getIntendedDistance(), 1e-6, "no driving in 0 hour");
+    assertEquals(1, data[8].getHoursTillNextDrive(), "1 hr from 8");
+    assertEquals(0.0, data[8].getIntendedDistance(), 1e-6, "no driving in 8 hour");
+    assertEquals(10.0, data[9].getIntendedDistance(), 1e-6, "10 km in hr 9");
   }
 
   @Test

@@ -145,7 +145,6 @@ public class ActivityTest
     assertTrue(daily.isPresent());
     assertEquals(0.0, daily.get()[3], 1e-6, "zero at 3:00");
     assertEquals(0.4, daily.get()[7], 1e-6, ".4 at 7:00");
-    assertEquals(0.55, commuting.getAwayChargerProbability(), "charger at destination");
     assertEquals(0.2, visit.getWeekdayWeight(), 1e-6, "visit weekday weight");
   }
   
