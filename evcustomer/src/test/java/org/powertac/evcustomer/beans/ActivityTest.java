@@ -173,7 +173,7 @@ public class ActivityTest
     assertEquals(0.5, daily[8], 1e-6, ".5 at 8:00");
     assertEquals(0.1, daily[9], 1e-6, ".1 at 9:00");
   }
-  
+
   @Test
   public void probabilityForTimeslot ()
   {
@@ -190,99 +190,23 @@ public class ActivityTest
     assertEquals(2, acts.size(), "two activities");
 
     Activity min = acts.get("min");
-    assertEquals(0.5, min.getProbabilityForTimeslot(1, 1, 2));
-    assertEquals(0.5, min.getProbabilityForTimeslot(1, 1, 2));
-    assertEquals(0.25, min.getProbabilityForTimeslot(7, 23, 4));
+    assertEquals(1.0, min.getProbabilityForTimeslot(1));
+    assertEquals(1.0, min.getProbabilityForTimeslot(1));
+    assertEquals(1.0, min.getProbabilityForTimeslot(23));
 
     // check over/under
-    assertEquals(0.5, min.getProbabilityForTimeslot(0, 2, 2));
-    assertEquals(0.5, min.getProbabilityForTimeslot(8, 2, 2));
-    assertEquals(0.0, min.getProbabilityForTimeslot(1, -1, 2));
-    assertEquals(0.0, min.getProbabilityForTimeslot(2, 24, 2));
+    assertEquals(1.0, min.getProbabilityForTimeslot(2));
+    assertEquals(1.0, min.getProbabilityForTimeslot(2));
+    assertEquals(0.0, min.getProbabilityForTimeslot(-1));
+    assertEquals(0.0, min.getProbabilityForTimeslot(24));
 
     Activity daily = acts.get("daily");
-    assertEquals(0.0, daily.getProbabilityForTimeslot(1, 0, 2), 1e-6);
-    assertEquals(0.0, daily.getProbabilityForTimeslot(2, 5, 2), 1e-6);
-    assertEquals(0.4, daily.getProbabilityForTimeslot(3, 6, 2), 1e-6);
-    assertEquals(0.5, daily.getProbabilityForTimeslot(4, 7, 2), 1e-6);
-    assertEquals(0.1, daily.getProbabilityForTimeslot(5, 8, 2), 1e-6);
-    assertEquals(0.0, daily.getProbabilityForTimeslot(6, 9, 2), 1e-6);
-    assertEquals(0.5, daily.getProbabilityForTimeslot(7, 7, 2), 1e-6);
-  }
-
-  @Test
-  public void pickTimeslot ()
-  {
-    Activity dummy = new Activity("dummy");
-    Activity[] scheduled = new Activity[24];
-    for (int i : new int[] {0,1,2,3,4,5,23}) {
-      scheduled[i] = dummy;
-    }
-    TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("evcustomer.beans.activity.instances", "actD0,actD1,actD9,actW0,act0,act9,act16");
-    map.put("evcustomer.beans.activity.actD1.interval", "1");
-    map.put("evcustomer.beans.activity.actD9.interval", "9");
-    map.put("evcustomer.beans.activity.actW0.weeklyProfile",
-            "0.6,0.8,1.0,0.9,0.9,0.2,0.1");
-    map.put("evcustomer.beans.activity.act1.dailyProfile",
-            "0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3");
-    map.put("evcustomer.beans.activity.act1.interval", "1");
-    map.put("evcustomer.beans.activity.act9.dailyProfile",
-            "1,1,1,1,1,1,8,10,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1");
-    map.put("evcustomer.beans.activity.act9.interval", "9");
-    config = new MapConfiguration(map);
-    Configurator configurator = new Configurator();
-    configurator.setConfiguration(config);
-    Collection<?> instances =
-        configurator.configureInstances(Activity.class);
-    Map<String, Activity> acts = mapNames(instances);
-
-    Activity uut = acts.get("actD0");
-    when(seed.nextDouble()).thenReturn(0.5);
-    // target method modified its parameter
-    Activity[] sch = scheduled.clone();
-    sch = uut.pickTimeslot(2, sch, seed);
-    assertEquals(dummy, sch[0]);
-    int target = (int)(0.5 * 18.0) + 5; // six blanked out at start, 17 available
-    assertNull(sch[target - 1]);
-    assertEquals(uut, sch[target]);
-    assertNull(sch[target + 1]);
-
-    uut = acts.get("actW0");
-    sch = scheduled.clone();
-    sch = uut.pickTimeslot(6, sch, seed);
-    for (int i = 6; i < 23; i++) {
-      assertNull(sch[i], "should be null " + i);
-    }
-    sch = scheduled.clone();
-    sch = uut.pickTimeslot(5, sch, seed);
-    assertEquals(uut, sch[(int)(0.5 * 18.0) + 5]);
-
-    uut = acts.get("actD1");
-    // interval = 1, otherwise default
-    sch = scheduled.clone();
-    sch = uut.pickTimeslot(3, sch, seed);
-    target = (int)(0.5 * 17.0) + 5;
-    assertNull(sch[target - 1]);
-    assertEquals(uut, sch[target]);
-    assertEquals(uut, sch[target + 1]);
-    assertNull(sch[target + 2]);
-
-    uut = acts.get("actD9");
-    // interval = 1, otherwise default
-    sch = scheduled.clone();
-    sch = uut.pickTimeslot(3, sch, seed);
-    target = (int)(0.5 * 9.0) + 5;
-    assertNull(sch[target - 1]);
-    assertEquals(uut, sch[target]);
-    assertNull(sch[target + 1]);
-    assertNull(sch[target + 8]);
-    assertEquals(uut, sch[target + 9]);
-    assertNull(sch[target + 10]);
-
-    uut = acts.get("act1");
-    
-    uut = acts.get("act9");
-    // interval = 9
+    assertEquals(0.0, daily.getProbabilityForTimeslot(0), 1e-6);
+    assertEquals(0.0, daily.getProbabilityForTimeslot(5), 1e-6);
+    assertEquals(0.4, daily.getProbabilityForTimeslot(6), 1e-6);
+    assertEquals(0.5, daily.getProbabilityForTimeslot(7), 1e-6);
+    assertEquals(0.1, daily.getProbabilityForTimeslot(8), 1e-6);
+    assertEquals(0.0, daily.getProbabilityForTimeslot(9), 1e-6);
+    assertEquals(0.5, daily.getProbabilityForTimeslot(7), 1e-6);
   }
 }

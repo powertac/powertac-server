@@ -250,7 +250,7 @@ public class Activity
     if (dayOfWeek < 1 || dayOfWeek > 7) {
       log.error("bad day-of-week {} in probabilityForTimeslot", dayOfWeek);
     }
-    else if (getWeeklyProfileOptional().isPresent()) {
+    else if (!getWeeklyProfileOptional().isPresent()) {
       // use weekday/weekend numbers
       result *= getDayWeight(dayOfWeek);
     }
@@ -261,19 +261,8 @@ public class Activity
     return result;
   }
 
-  /**
-   * Finds a time for this activity that does not conflict with previously scheduled
-   * activities on the given day. If a time is found, it is added to the
-   * scheduled array.
-   **/
-  public Activity[]
-          pickTimeslot (int dow, Activity[] scheduled, RandomSeed generator)
-  {
-    return scheduled;
-  }
-
   // Returns normalized probability for given day-of-week and timeslot.
-  public double getProbabilityForTimeslot (int dow, int slot, int openSlots)
+  public double getProbabilityForTimeslot (int slot)
   {
     double result = 1.0;
     if (slot < 0 || slot > 23) {
@@ -285,7 +274,6 @@ public class Activity
       result = getDailyProfileOptional().get()[slot];
     }
     else {
-      // spread probability evenly across open slots
       result = 1.0;
     }
     return result;

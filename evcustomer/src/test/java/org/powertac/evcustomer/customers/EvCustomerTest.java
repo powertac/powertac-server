@@ -88,8 +88,8 @@ public class EvCustomerTest
     detail = new GroupActivity("test-ga");
     detail.initialize(0, maleDailyKm, femaleDailyKm, 1, 1);
     carType = new CarType("TestCar");
-    carType.configure("TestCar", 100.0, 200.0, 10.0, 10.0);
-    mockSeed.setDoubleSeed(new double[]{0.4});
+    carType.configure("TestCar", 100.0, 200.0, 10.0, 5.0);
+    mockSeed.setDoubleSeed(new double[]{0.4,0.4,0.1});
     mockSeed.setIntSeed(new int[]{0, 51, 52, 53, 54, 55});
   }
 
@@ -141,16 +141,16 @@ public class EvCustomerTest
     assertEquals(25.0, evCustomer.getCurrentCapacity(), 1E-06, "reduced capacity");
   }
 
-  @Test
-  public void testDischargeInvalid () //throws EvCustomer.ChargeException
-  {
-    assertThrows(EvCustomer.ChargeException.class, () -> {
-      carType.setMaxCapacity(100.0);
-      initialize("female");
-      evCustomer.discharge(51.0);
-      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
-    });
-  }
+//  @Test
+//  public void testDischargeInvalid () //throws EvCustomer.ChargeException
+//  {
+//    assertThrows(EvCustomer.ChargeException.class, () -> {
+//      carType.setMaxCapacity(100.0);
+//      initialize("female");
+//      evCustomer.discharge(51.0);
+//      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
+//    });
+//  }
 
   @Test
   public void testChargeValid () throws EvCustomer.ChargeException
@@ -163,17 +163,17 @@ public class EvCustomerTest
     assertEquals(25.0, evCustomer.getCurrentCapacity(), 1E-06, "25 remains");
   }
 
-  @Test()
-  public void testChargeInvalid () //throws EvCustomer.ChargeException
-  {
-    assertThrows(EvCustomer.ChargeException.class, () -> {
-      carType.setMaxCapacity(100.0);
-      initialize("female");
-      assertEquals(50.0, evCustomer.getCurrentCapacity(), 1E-06, "initial capacity");
-      evCustomer.charge(51.0);
-      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
-    });
-  }
+//  @Test
+//  public void testChargeInvalid () //throws EvCustomer.ChargeException
+//  {
+//    assertThrows(EvCustomer.ChargeException.class, () -> {
+//      carType.setMaxCapacity(100.0);
+//      initialize("female");
+//      assertEquals(50.0, evCustomer.getCurrentCapacity(), 1E-06, "initial capacity");
+//      evCustomer.charge(51.0);
+//      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
+//    });
+//  }
 
   @Test
   public void testNeededCapacity ()
@@ -260,18 +260,18 @@ public class EvCustomerTest
   {
     initialize("female");
     mockSeed.setIntSeed(new int[]{1, 2});
-    mockSeed.setDoubleSeed(new double[]{0.5});
+    mockSeed.setDoubleSeed(new double[]{0.5,0.5,0.3});
     mockSeed.resetCounters();
     evCustomer.makeDayPlanning(0,  0);
     EvCustomer.TimeslotData[] data =
         evCustomer.getTodayMap();
     assertEquals(24, data.length, "correct map size");
     // first trip should be 10 km in hour 9
-    assertEquals(9, data[0].getHoursTillNextDrive(), "9 hours away");
+    assertEquals(11, data[0].getHoursTillNextDrive(), "11 hours away");
     assertEquals(0.0, data[0].getIntendedDistance(), 1e-6, "no driving in 0 hour");
-    assertEquals(1, data[8].getHoursTillNextDrive(), "1 hr from 8");
-    assertEquals(0.0, data[8].getIntendedDistance(), 1e-6, "no driving in 8 hour");
-    assertEquals(10.0, data[9].getIntendedDistance(), 1e-6, "10 km in hr 9");
+    assertEquals(1, data[10].getHoursTillNextDrive(), "1 hr from 11");
+    assertEquals(0.0, data[10].getIntendedDistance(), 1e-6, "no driving in 10 hour");
+    assertEquals(10.0, data[11].getIntendedDistance(), 1e-6, "10 km in hr 11");
   }
 
   @Test
@@ -386,8 +386,10 @@ public class EvCustomerTest
     assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
 
     evCustomer.doActivities(0, 6);
-    assertEquals(evCustomer.isDriving(), true);
-    assertEquals(46, evCustomer.getCurrentCapacity(), 1E-06);
+    assertFalse(evCustomer.isDriving());
+    evCustomer.doActivities(0, 7);
+    assertTrue(evCustomer.isDriving());
+    assertEquals(45.0, evCustomer.getCurrentCapacity(), 1E-06);
   }
 
   // =============== helper classes =================

@@ -311,6 +311,9 @@ public class EvCustomer
     // First time
     if (null == todayMap) {
       tomorrowMap = new TimeslotData[dataMapSize];
+      for (int i = 0; i < dataMapSize; i++) {
+        tomorrowMap[i] = new TimeslotData();
+      }
       planTomorrow(day);
     }
 
@@ -345,7 +348,7 @@ public class EvCustomer
     // Randomly pick activities we're going to do today
     // For now : if we do activity, we do all in picked time slot
     // Otherwise we get too many slots without charging
-    double[] intended = new double[tomorrowMap.length];
+    //double[] intended = new double[tomorrowMap.length];
     for (GroupActivity groupActivity : groupActivities) {
       Activity act = activities.get(groupActivity.getActivityId());
 
@@ -378,7 +381,7 @@ public class EvCustomer
         // if this activity has a non-zero interval, then clear out all the probabilities
         // where it cannot start
         if (act.getInterval() > 0) {
-          open = 0;
+          //open = 0;
           for (int i = 0; i < tomorrowMap.length; i++) {
             if (i + act.getInterval() >= tomorrowMap.length) {
               // can't start here
@@ -397,7 +400,8 @@ public class EvCustomer
             }
             if (1.0 == probabilities[i]) {
               // if probabilities[i] is still 1.0, then this is a valid place to start
-              open += 1;
+              //open += 1;
+              probabilities[i] = act.getProbabilityForTimeslot(i);
             }
           }
         }
@@ -407,7 +411,7 @@ public class EvCustomer
         double psum = 0.0;
         for (int ts = 0; ts < tomorrowMap.length; ts++) {
           if (1.0 == probabilities[ts]) { // possible choice
-            probabilities[ts] = act.getProbabilityForTimeslot(nextDay, ts, open);
+            probabilities[ts] = act.getProbabilityForTimeslot(ts);
             psum += probabilities[ts];
           }
         }
@@ -418,7 +422,7 @@ public class EvCustomer
             probabilities[ts] /= psum;
           }
           // Find a slot for this activity based on normalized probabilities.
-          // Note that we only get here if earlier draws on the generator was large enough,
+          // Note that we only get here if earlier draw on the generator was large enough,
           // so we use the final draw here to avoid a biased result
           for (int ts = 0; ts < tomorrowMap.length; ts++) {
             p3 -= probabilities[ts];
@@ -494,18 +498,19 @@ public class EvCustomer
       log.error("Activity stack should be empty: car {}, activity {}",
                 car.getName(), activityStack.peek().getName());
     }
-//    for (int i = dataMapSize - 1; i >= 0; i--) {
-//      TimeslotData pointer = timeslotDataMap.get(i);
-//      if (pointer.getIntendedDistance() > distanceEpsilon) {
-//        chargingHours = 0;
-//      }
-//      else {
-//        // TODO: assumes that charging is always available if not driving!
-//        // See Issue #961.
-//        chargingHours += 1;
-//        pointer.setHoursTillNextDrive(chargingHours);
-//      }
-//    }
+
+    // record time available for charging
+    int chargingHours = 0;
+    for (int i = todayMap.length - 1; i >= 0; i--) {
+      TimeslotData data = todayMap[i];
+      if (data.getIntendedDistance() > epsilon) {
+        chargingHours = 0;
+      }
+      else {
+        chargingHours += 1;
+        data.setHoursTillNextDrive(chargingHours);
+      }
+    }
   }
 
   public void doActivities (int day, int hour)
@@ -526,8 +531,8 @@ public class EvCustomer
     try {
       double before = currentCapacity;
       discharge(neededCapacity);
-      log.info(String.format("%s driving %.1f kms d%d h%d / %.1f kWh from %.1f to %.1f",
-          name, intendedDistance, neededCapacity, before, currentCapacity));
+      log.info("{} driving {} kms {} kWh from {} to {}",
+          name, intendedDistance, neededCapacity, before, currentCapacity);
       driving = true;
     }
     catch (ChargeException ce) {
