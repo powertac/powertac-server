@@ -278,4 +278,15 @@ public class Activity
     }
     return result;
   }
+
+  // Test methods -------------------------------------
+  public void setInterval (int value)
+  {
+    interval = value;
+  }
+
+  public void setId (int value)
+  {
+    id = value;
+  }
 }

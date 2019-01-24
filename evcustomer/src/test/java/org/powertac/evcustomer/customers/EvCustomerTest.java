@@ -84,29 +84,59 @@ public class EvCustomerTest
     service = new ServiceAccessor();
 
     socialGroup = new SocialGroup(groupId, "Group " + groupId);
-    activity = new Activity("TestActivity");
-    detail = new GroupActivity("test-ga");
-    detail.initialize(0, maleDailyKm, femaleDailyKm, 1, 1);
+    activities = new HashMap<>();
+    gas = new ArrayList<>();
     carType = new CarType("TestCar");
     carType.configure("TestCar", 100.0, 200.0, 10.0, 5.0);
     mockSeed.setDoubleSeed(new double[]{0.4,0.4,0.1});
     mockSeed.setIntSeed(new int[]{0, 51, 52, 53, 54, 55});
   }
 
-  // first random seed gets eaten up here...
+  // default activity setup 
   public void initialize (String gender)
   {
-    if (activities == null) {
-      activities = new HashMap<>();
-      activities.put(activity.getId(), activity);
-    }
-    if (gas == null) {
-      gas = new ArrayList<>();
-      gas.add(detail);
-    }
+    activity = addActivity("TestActivity", 0, 0);
+    detail = addGroupActivity("test-ga", activity,
+                              maleDailyKm, femaleDailyKm, 1.0, 1.0);
+    config(gender);
+  }
+
+  // final config independent of activity setup
+  public void config (String gender)
+  {
+    // consumes 1 double, 2 int random values
     Config config = Config.getInstance();
     evCustomer.initialize(socialGroup, gender, activities, gas,
         carType, service, config);
+  }
+
+  private Activity addActivity (String name, int id, int interval)
+  {
+    Activity act = new Activity(name);
+    act.setInterval(interval);
+    act.setId(id);
+    activities.put(id, act);
+    return act;
+  }
+
+  private Activity addActivity (String name, int id, int interval,
+                                double chargerProbability)
+  {
+    Activity result = addActivity(name, id, interval);
+    result.setChargerProbability(chargerProbability);
+    return result;
+  }
+
+  private GroupActivity
+    addGroupActivity (String name, Activity activity,
+                      double maleKm, double femaleKm,
+                      double maleProbability, double femaleProbability)
+  {
+    GroupActivity result = new GroupActivity (name);
+    result.initialize(activity.getId(), maleKm, femaleKm,
+                      maleProbability, femaleProbability);
+    gas.add(result);
+    return result;
   }
 
   @Test
@@ -262,7 +292,7 @@ public class EvCustomerTest
     mockSeed.setIntSeed(new int[]{1, 2});
     mockSeed.setDoubleSeed(new double[]{0.5,0.5,0.3});
     mockSeed.resetCounters();
-    evCustomer.makeDayPlanning(0,  0);
+    evCustomer.makeDayPlanning(0, 0);
     EvCustomer.TimeslotData[] data =
         evCustomer.getTodayMap();
     assertEquals(24, data.length, "correct map size");
@@ -272,6 +302,87 @@ public class EvCustomerTest
     assertEquals(1, data[10].getHoursTillNextDrive(), "1 hr from 11");
     assertEquals(0.0, data[10].getIntendedDistance(), 1e-6, "no driving in 10 hour");
     assertEquals(10.0, data[11].getIntendedDistance(), 1e-6, "10 km in hr 11");
+  }
+
+  // Single out-and-back activity
+  @Test
+  public void testDayPlanningInterval1 ()
+  {
+    addGroupActivity("i1", addActivity("interval6", 0, 6, 1.0),
+                     10.0, 10.0, 1.0, 1.0);
+    mockSeed.setIntSeed(new int[]{1,1,2});
+    // one seed for init, four 1st pass through makeDayPlanning, three subsequent passes
+    mockSeed.setDoubleSeed(new double[]{0.5,1.0,1.0,0.5,0.8});
+    mockSeed.resetCounters();
+    config("female");
+
+    evCustomer.makeDayPlanning(0, 0);
+    EvCustomer.TimeslotData[] data =
+        evCustomer.getTodayMap();
+    assertEquals(24, data.length, "correct map size");
+    // first trip should be 10 km in hour 9
+    assertEquals(11, data[0].getHoursTillNextDrive(), "11 hours away");
+    assertEquals(10.0, data[0].getChargingCapacity(), 1e-6);
+    assertEquals(0.0, data[0].getIntendedDistance(), 1e-6, "no driving in 0 hour");
+    assertEquals(1, data[10].getHoursTillNextDrive(), "1 hr from 11");
+    assertEquals(0.0, data[10].getIntendedDistance(), 1e-6, "no driving at 10");
+    assertEquals(10.0, data[10].getChargingCapacity(), 1e-6);
+    assertEquals(10.0, data[11].getIntendedDistance(), 1e-6, "10 km in hr 11");
+    assertEquals(0.0, data[12].getIntendedDistance(), 1e-6, "no driving at 12");
+    assertEquals(5.0, data[12].getChargingCapacity(), 1e-6);
+    
+    assertEquals(0.0, data[16].getIntendedDistance(), 1e-6, "no driving 16");
+    assertEquals(5.0, data[16].getChargingCapacity(), 1e-6);
+    assertEquals(10.0, data[17].getIntendedDistance(), 1e-6, "return 10 km hr 17");
+    assertEquals(0.0, data[18].getIntendedDistance(), 1e-6, "no driving 18");
+    assertEquals(10.0, data[18].getChargingCapacity(), 1e-6);
+  }
+
+  // single out-and-back, with simple activity partway through
+  @Test
+  public void testDayPlanningInterval1a ()
+  {
+    addGroupActivity("i1a", addActivity("interval8", 0, 8, 1.0),
+                     20.0, 20.0, 1.0, 1.0);
+    addGroupActivity("i2", addActivity("side trip", 1, 0),
+                     8.0, 8.0, 1.0, 1.0);
+    mockSeed.setIntSeed(new int[]{1,1,2,1,1,2});
+    // one seed for init, four 1st pass through makeDayPlanning, three subsequent passes
+    mockSeed.setDoubleSeed(new double[]{0.5,1.0,1.0,0.5,0.5,0.5,0.5,1.0,1.0,0.5,0.5,0.5,0.5,0.4});
+    mockSeed.resetCounters();
+    config("female");
+
+    evCustomer.makeDayPlanning(0, 0);
+    EvCustomer.TimeslotData[] data =
+        evCustomer.getTodayMap();
+    assertEquals(24, data.length, "correct map size");
+    // first trip should be 10 km in hour 9
+    assertEquals(10, data[0].getHoursTillNextDrive(), "10 hours away");
+    assertEquals(0.0, data[0].getIntendedDistance(), 1e-6, "no driving in 0 hour");
+    assertEquals(1, data[9].getHoursTillNextDrive(), "1 hr from 10");
+    assertEquals(0.0, data[9].getIntendedDistance(), 1e-6, "no driving 9");
+    assertEquals(20.0, data[10].getIntendedDistance(), 1e-6, "20 km in hr 10");
+    assertEquals(0.0, data[11].getIntendedDistance(), 1e-6, "no driving in 11 hour");
+
+    assertEquals(0.0, data[13].getIntendedDistance(), 1e-6, "no driving 13");
+    assertEquals(8.0, data[14].getIntendedDistance(), 1e-6, "return 8 km hr 14");
+    assertEquals(0.0, data[15].getIntendedDistance(), 1e-6, "no driving 15");
+
+    assertEquals(0.0, data[17].getIntendedDistance(), 1e-6, "no driving 17");
+    assertEquals(20.0, data[18].getIntendedDistance(), 1e-6, "return 20 km hr 18");
+    assertEquals(0.0, data[19].getIntendedDistance(), 1e-6, "no driving 19");
+  }
+
+  @Test
+  public void testDayPlanningInterval2 ()
+  {
+    
+  }
+
+  @Test
+  public void testDayPlanningInterval2a ()
+  {
+    
   }
 
   @Test
@@ -408,7 +519,9 @@ public class EvCustomerTest
     @Override
     public double nextDouble ()
     {
-      return delegate.nextDouble();
+      double result = delegate.nextDouble();
+      //System.out.println("nextDouble " + result);
+      return result;
     }
 
     void setDoubleSeed (double[] seed)
@@ -419,7 +532,9 @@ public class EvCustomerTest
     @Override
     public int nextInt ()
     {
-      return delegate.nextInt(1);
+      int result = delegate.nextInt(1);
+      //System.out.println("nextInt " + result);
+      return result;
     }
 
     @Override

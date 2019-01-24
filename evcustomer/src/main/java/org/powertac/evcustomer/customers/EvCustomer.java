@@ -468,7 +468,7 @@ public class EvCustomer
       if (todayMap[i].getActivity().isPresent()) {
         Activity current = todayMap[i].getActivity().get();
         if (current.getInterval() > 0) {
-          if (activityStack.peek().equals(current)) {
+          if (!activityStack.isEmpty() && activityStack.peek().equals(current)) {
             // current activity is second instance of an out-and-back
             activityStack.pop();
           }
@@ -476,13 +476,13 @@ public class EvCustomer
             // current activity is first instance of an out-and-back
             activityStack.push(current);
             double sample = generator.nextDouble();
-            if (todayMap[i].getActivity().get().getChargerProbability() <= sample) {
+            if (todayMap[i].getActivity().get().getChargerProbability() >= sample) {
               currentCapacity = car.getAwayChargeKW();
             }
             else {
               currentCapacity = 0.0;
             }
-            for (int j = i; j < todayMap.length; j++) {
+            for (int j = i + 1; j < todayMap.length; j++) {
               if (todayMap[j].getActivity().isPresent()
                       && todayMap[j].getActivity().get() == current) {
                 // return trip

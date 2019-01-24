@@ -10,9 +10,11 @@ import java.util.Random;
 public class PredictableRandom extends Random
 {
   private static final long serialVersionUID = 1L;
-  private int doubleCounter = 0;
-  private double[] doubleSeed = new double[]{0};
+  private int doubleIndex = 0;
+  private int doubleCounter = 0; // count calls
+  private double[] doubleSeed = new double[]{0.0};
 
+  private int intIndex = 0;
   private int intCounter = 0;
   private int[] intSeed = new int[]{0};
 
@@ -32,19 +34,21 @@ public class PredictableRandom extends Random
   public double nextDouble ()
   {
     // Keep repeating the last value
-    if (doubleCounter >= doubleSeed.length - 1) {
+    doubleCounter += 1;
+    if (doubleIndex > doubleSeed.length - 1) {
       return doubleSeed[doubleSeed.length - 1];
     }
-    return doubleSeed[doubleCounter++];
+    return doubleSeed[doubleIndex++];
   }
 
   @Override
   public int nextInt (int ignored)
   {
-    if (intCounter >= intSeed.length - 1) {
+    intCounter += 1;
+    if (intIndex > intSeed.length - 1) {
       return intSeed[intSeed.length - 1];
     }
-    return intSeed[intCounter++];
+    return intSeed[intIndex++];
   }
 
   public void setIntSeed (int[] intSeed)
@@ -57,9 +61,21 @@ public class PredictableRandom extends Random
     this.doubleSeed = doubleSeed;
   }
 
+  public int getDoubleCounter ()
+  {
+    return doubleCounter;
+  }
+
+  public int getIntCounter ()
+  {
+    return intCounter;
+  }
+
   public void resetCounters ()
   {
+    doubleIndex = 0;
     doubleCounter = 0;
+    intIndex = 0;
     intCounter = 0;
   }
 }
