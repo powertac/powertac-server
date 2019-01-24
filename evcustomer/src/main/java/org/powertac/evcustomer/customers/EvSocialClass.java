@@ -98,6 +98,7 @@ public class EvSocialClass extends AbstractCustomer
   // bootstrap state
   private int population;
 
+  // bootstrapState is true to support boot/sim detection
   @ConfigurableValue(valueType = "List",
       bootstrapState = true, dump = false,
       description = "List of customer attributes")
@@ -166,7 +167,14 @@ public class EvSocialClass extends AbstractCustomer
     ArrayList<CarType> carList = new ArrayList<CarType>(carTypes.values());
     double ccProbability = 0.0;
     for (CarType car : carList) {
-      ccProbability += classCars.get(car.getName()).getProbability();
+      ClassCar cc = classCars.get(car.getName());
+      if (null != cc) {
+        ccProbability += cc.getProbability();
+      }
+      else {
+        log.info("Car type {} not configured for {}",
+                 car.getName(), this.getName());
+      }
     }
 
     for (int i = 0; i < population; i++) {
@@ -247,7 +255,10 @@ public class EvSocialClass extends AbstractCustomer
   {
     double picker = generator.nextDouble() * scale;
     for (CarType car : carList) {
-      picker -= classCars.get(car.getName()).getProbability();
+      ClassCar cc = classCars.get(car.getName());
+      if (null != cc) {
+        picker -= cc.getProbability();
+      }
       if (picker <= 0.0) return car;
     }
     return carList.get(carList.size() - 1);

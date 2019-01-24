@@ -20,11 +20,12 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.RandomSeed;
-import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
@@ -46,13 +47,10 @@ import org.powertac.evcustomer.beans.SocialGroup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.function.BiFunction;
 
 
 /**
@@ -129,6 +127,9 @@ public class EvCustomer
   private final int dataMapSize = 24;
   private TimeslotData[] todayMap;
   private TimeslotData[] tomorrowMap;
+
+  // ability to print readable date/time
+  private DateTimeFormatter dtf = DateTimeFormat.forPattern("E.h");
 
   public EvCustomer (String name)
   {
@@ -531,8 +532,9 @@ public class EvCustomer
     try {
       double before = currentCapacity;
       discharge(neededCapacity);
-      log.info("{} driving {} kms {} kWh from {} to {}",
-          name, intendedDistance, neededCapacity, before, currentCapacity);
+      log.info("{} driving at {}, {} kms {} kWh from {} to {}",
+          name, dtf.print(service.getTimeService().getCurrentDateTime()),
+          intendedDistance, neededCapacity, before, currentCapacity);
       driving = true;
     }
     catch (ChargeException ce) {

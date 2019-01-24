@@ -31,7 +31,7 @@ public class ClassCar
 
   @ConfigurableValue(valueType = "Double", dump = false,
       description = "Probability of a member of the class owning the car")
-  protected double probability;
+  protected double probability = 0.0;
 
   @ConfigurableValue(valueType = "String", dump = false,
       description = "Car type name")

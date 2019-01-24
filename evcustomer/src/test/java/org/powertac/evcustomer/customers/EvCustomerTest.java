@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +57,7 @@ public class EvCustomerTest
   private TariffSubscriptionRepo mockSubscriptionRepo;
   private RandomSeedRepo mockSeedRepo;
   private MockRandomSeed mockSeed;
+  private TimeService mockTimeService;
   private ServiceAccessor service;
 
   private EvCustomer evCustomer;
@@ -75,6 +77,9 @@ public class EvCustomerTest
   public void setUp ()
   {
     evCustomer = new EvCustomer(cName);
+    mockTimeService = mock(TimeService.class);
+    when (mockTimeService.getCurrentDateTime())
+    .thenReturn(new DateTime(DateTime.now()));
     mockSeedRepo = mock(RandomSeedRepo.class);
     mockSeed = new MockRandomSeed("Test", groupId, cName);
     when(mockSeedRepo.getRandomSeed(anyString(),
@@ -589,7 +594,7 @@ public class EvCustomerTest
     @Override
     public TimeService getTimeService ()
     {
-      return null;
+      return mockTimeService;
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.*;
+import org.powertac.common.msg.BrokerAccept;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.msg.TimeslotComplete;
@@ -379,12 +380,20 @@ public class DefaultBrokerService
       dispatch(this, "handleMessage", msg);
     }
   }
+
+  /**
+   * Handles the BrokerAccept message for completeness
+   */
+  public void handleMessage (BrokerAccept ba)
+  {
+    log.info("Broker login accepted");
+  }
   
   /**
    * Handles a TariffTransaction. We only care about certain types: PRODUCE,
    * CONSUME, SIGNUP, and WITHDRAW.
    */
-  public void handleMessage(TariffTransaction ttx)
+  public void handleMessage (TariffTransaction ttx)
   {
     TariffTransaction.Type txType = ttx.getTxType();
     CustomerInfo customer = ttx.getCustomerInfo();
