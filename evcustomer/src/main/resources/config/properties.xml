@@ -24,37 +24,37 @@
 				<HighIncome-1>
 					<minCount>10</minCount>
 					<maxCount>20</maxCount>
-					<homeCharger>1.0</homeCharger>
+					<homeChargerProbability>1.0</homeChargerProbability>
 				</HighIncome-1>
 
 				<HighIncome-2>
 					<minCount>15</minCount>
 					<maxCount>25</maxCount>
-					<homeCharger>1.0</homeCharger>
+					<homeChargerProbability>1.0</homeChargerProbability>
 				</HighIncome-2>
 
 				<MiddleIncome-1>
 					<minCount>20</minCount>
 					<maxCount>30</maxCount>
-					<homeCharger>0.6</homeCharger>
+					<homeChargerProbability>0.6</homeChargerProbability>
 				</MiddleIncome-1>
 
 				<MiddleIncome-2>
 					<minCount>20</minCount>
 					<maxCount>30</maxCount>
-					<homeCharger>0.5</homeCharger>
+					<homeChargerProbability>0.5</homeChargerProbability>
 				</MiddleIncome-2>
 
 				<MiddleIncome-3>
 					<minCount>20</minCount>
 					<maxCount>30</maxCount>
-					<homeCharger>0.4</homeCharger>
+					<homeChargerProbability>0.4</homeChargerProbability>
 				</MiddleIncome-3>
 
 				<LowIncome-1>
 					<minCount>10</minCount>
 					<maxCount>20</maxCount>
-					<homeCharger>0.1</homeCharger>
+					<homeChargerProbability>0.1</homeChargerProbability>
 				</LowIncome-1>
 
 			</evSocialClass>
@@ -544,49 +544,49 @@
 						0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
 					</dailyProfile>
 					<interval>9</interval>
-					<awayCharger>.9</awayCharger>
+					<chargerProbability>.9</chargerProbability>
 				</commuting>
 				<business_trip>
 					<id>1</id>
 					<weekdayWeight>.2</weekdayWeight>
 					<weekendWeight>.05</weekendWeight>
 					<interval>4</interval>
-					<awayCharger>.9</awayCharger>
+					<chargerProbability>.9</chargerProbability>
 				</business_trip>
 				<personal_care>
 					<id>2</id>
 					<weekdayWeight>.2</weekdayWeight>
 					<weekendWeight>.1</weekendWeight>
 					<interval>2</interval>
-					<awayCharger>.2</awayCharger>
+					<chargerProbability>.2</chargerProbability>
 				</personal_care>
 				<shopping>
 					<id>3</id>
 					<weekdayWeight>.2</weekdayWeight>
 					<weekendWeight>.5</weekendWeight>
 					<interval>3</interval>
-					<awayCharger>.4</awayCharger>
+					<chargerProbability>.4</chargerProbability>
 				</shopping>
 				<education>
 					<id>4</id>
 					<weekdayWeight>.6</weekdayWeight>
 					<weekendWeight>.2</weekendWeight>
 					<interval>6</interval>
-					<awayCharger>.8</awayCharger>
+					<chargerProbability>.8</chargerProbability>
 				</education>
 				<visit>
 					<id>5</id>
 					<weekdayWeight>.2</weekdayWeight>
 					<weekendWeight>1</weekendWeight>
 					<interval>4</interval>
-					<awayCharger>.8</awayCharger>
+					<chargerProbability>.8</chargerProbability>
 				</visit>
 				<sports>
 					<id>6</id>
 					<weekdayWeight>.05</weekdayWeight>
 					<weekendWeight>.4</weekendWeight>
 					<interval>4</interval>
-					<awayCharger>.05</awayCharger>
+					<chargerProbability>.05</chargerProbability>
 				</sports>
 				<touring>
 					<id>7</id>

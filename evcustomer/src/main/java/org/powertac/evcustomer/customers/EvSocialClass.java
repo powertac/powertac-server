@@ -86,6 +86,9 @@ public class EvSocialClass extends AbstractCustomer
   @ConfigurableValue(valueType = "Integer", description = "maximum population")
   private int maxCount;
 
+  @ConfigurableValue(valueType = "Double", description = "probability of home charger")
+  private double homeChargerProbability = 1.0;
+
   private ArrayList<EvCustomer> evCustomers;
 
   // indexed bean lists
@@ -147,6 +150,11 @@ public class EvSocialClass extends AbstractCustomer
       // sim session - restore from boot record
       configureForSim(beans);
     }
+  }
+
+  public double getHomeChargerProbability ()
+  {
+    return homeChargerProbability;
   }
 
   private void configureForBoot (Map<String, Collection<?>> beans)
