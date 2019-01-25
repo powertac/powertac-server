@@ -96,7 +96,7 @@ public class EvCustomer
 
   // No activity while asleep
   // Note that we don't go past midnight, avoiding cross-day data
-  private int earlyWake = 6;
+  private int earlyWake = 5;
   private int wakeRange = 3;
   private int earlySleep = 20;
   private int sleepRange = 4;
@@ -327,7 +327,8 @@ public class EvCustomer
     }
 
     // Let's see what we want to do tomorrow
-    planTomorrow(day + 1);
+    int tomorrow = (day - 1) % 7 + 1;
+    planTomorrow(tomorrow);
 
     // Update driving info for today
     updateChargingHours();
@@ -352,6 +353,9 @@ public class EvCustomer
     //double[] intended = new double[tomorrowMap.length];
     for (GroupActivity groupActivity : groupActivities) {
       Activity act = activities.get(groupActivity.getActivityId());
+      if (nextDay < 6 && act.getName().equals("commuting")) {
+        log.debug("commuting");
+      }
 
       // We draw all samples here to ensure repeatability.
       // The first two determine whether this activity is scheduled at all.
@@ -411,7 +415,7 @@ public class EvCustomer
         // track sum for normalization
         double psum = 0.0;
         for (int ts = 0; ts < tomorrowMap.length; ts++) {
-          if (1.0 == probabilities[ts]) { // possible choice
+          if (probabilities[ts] > 0.0) { // possible choice
             probabilities[ts] = act.getProbabilityForTimeslot(ts);
             psum += probabilities[ts];
           }
@@ -433,7 +437,6 @@ public class EvCustomer
               if (act.getInterval() > 0) {
                 tomorrowMap[ts + act.getInterval()].setActivity(act);
                 tomorrowMap[ts + act.getInterval()].setGroupActivity(groupActivity);
-                //todo: somehow need to record where it's returning to
               }
               break;
             }
@@ -532,8 +535,9 @@ public class EvCustomer
     try {
       double before = currentCapacity;
       discharge(neededCapacity);
-      log.info("{} driving at {}, {} kms {} kWh from {} to {}",
-          name, dtf.print(service.getTimeService().getCurrentDateTime()),
+      log.info("{} {} at {}, {} kms {} kWh from {} to {}",
+          name, timeslotData.getActivity().get().getName(),
+          dtf.print(service.getTimeService().getCurrentDateTime()),
           intendedDistance, neededCapacity, before, currentCapacity);
       driving = true;
     }
@@ -597,11 +601,11 @@ public class EvCustomer
 
     // This is the amount we need to charge, CONSUMPTION can't be regulated
     loads[0] = Math.max(0, minCapacity - currentCapacity);
-    loads[0] = Math.min(loads[0], getChargingCapacity());
+    loads[0] = Math.min(loads[0], todayMap[hour].getChargingCapacity());
 
     // This is the amount we would like to charge, minus CONSUMPTION
     loads[1] = Math.max(0, (nomCapacity - currentCapacity) - loads[0]);
-    loads[1] = Math.min(loads[1], getChargingCapacity());
+    loads[1] = Math.min(loads[1], todayMap[hour].getChargingCapacity());
 
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
@@ -610,7 +614,7 @@ public class EvCustomer
       loads[2] = 0;
 
     // This is the amount we could charge extra (down regulate)
-    loads[3] = -1 * (getChargingCapacity() - (loads[0] + loads[1]));
+    loads[3] = -1 * (todayMap[hour].getChargingCapacity() - (loads[0] + loads[1]));
     if (loads[3] > -capacityEpsilon)
       loads[3] = 0;
 
@@ -720,11 +724,12 @@ public class EvCustomer
     return distance / fuelEconomy;
   }
 
-  public double getChargingCapacity ()
-  {
-    // TODO Get home / away detection
-    return Math.min(car.getHomeChargeKW(), car.getMaxCapacity() - currentCapacity);
-  }
+  // Get this from the current TimeslotData instance
+//  public double getChargingCapacity ()
+//  {
+//    // TODO Get home / away detection
+//    return Math.min(car.getHomeChargeKW(), car.getMaxCapacity() - currentCapacity);
+//  }
 
   public double getDischargingCapacity ()
   {

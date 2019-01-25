@@ -302,11 +302,11 @@ public class EvCustomerTest
         evCustomer.getTodayMap();
     assertEquals(24, data.length, "correct map size");
     // first trip should be 10 km in hour 9
-    assertEquals(11, data[0].getHoursTillNextDrive(), "11 hours away");
-    assertEquals(0.0, data[0].getIntendedDistance(), 1e-6, "no driving in 0 hour");
-    assertEquals(1, data[10].getHoursTillNextDrive(), "1 hr from 11");
-    assertEquals(0.0, data[10].getIntendedDistance(), 1e-6, "no driving in 10 hour");
-    assertEquals(10.0, data[11].getIntendedDistance(), 1e-6, "10 km in hr 11");
+    assertEquals(10, data[0].getHoursTillNextDrive(), "10 hours away");
+    assertEquals(0.0, data[0].getIntendedDistance(), 1e-6, "no driving at 0");
+    assertEquals(1, data[9].getHoursTillNextDrive(), "1 hr from 9");
+    assertEquals(0.0, data[9].getIntendedDistance(), 1e-6, "no driving at 9");
+    assertEquals(10.0, data[10].getIntendedDistance(), 1e-6, "10 km at 10");
   }
 
   // Single out-and-back activity
@@ -362,20 +362,20 @@ public class EvCustomerTest
         evCustomer.getTodayMap();
     assertEquals(24, data.length, "correct map size");
     // first trip should be 10 km in hour 9
-    assertEquals(10, data[0].getHoursTillNextDrive(), "10 hours away");
+    assertEquals(9, data[0].getHoursTillNextDrive(), "9 hours away");
     assertEquals(0.0, data[0].getIntendedDistance(), 1e-6, "no driving in 0 hour");
-    assertEquals(1, data[9].getHoursTillNextDrive(), "1 hr from 10");
-    assertEquals(0.0, data[9].getIntendedDistance(), 1e-6, "no driving 9");
-    assertEquals(20.0, data[10].getIntendedDistance(), 1e-6, "20 km in hr 10");
-    assertEquals(0.0, data[11].getIntendedDistance(), 1e-6, "no driving in 11 hour");
+    assertEquals(1, data[8].getHoursTillNextDrive(), "1 hr from 8");
+    assertEquals(0.0, data[8].getIntendedDistance(), 1e-6, "no driving 9");
+    assertEquals(20.0, data[9].getIntendedDistance(), 1e-6, "20 km in hr 10");
+    assertEquals(0.0, data[10].getIntendedDistance(), 1e-6, "no driving in 11 hour");
 
-    assertEquals(0.0, data[13].getIntendedDistance(), 1e-6, "no driving 13");
-    assertEquals(8.0, data[14].getIntendedDistance(), 1e-6, "return 8 km hr 14");
-    assertEquals(0.0, data[15].getIntendedDistance(), 1e-6, "no driving 15");
+    assertEquals(0.0, data[12].getIntendedDistance(), 1e-6, "no driving 13");
+    assertEquals(8.0, data[13].getIntendedDistance(), 1e-6, "return 8 km hr 14");
+    assertEquals(0.0, data[14].getIntendedDistance(), 1e-6, "no driving 15");
 
-    assertEquals(0.0, data[17].getIntendedDistance(), 1e-6, "no driving 17");
-    assertEquals(20.0, data[18].getIntendedDistance(), 1e-6, "return 20 km hr 18");
-    assertEquals(0.0, data[19].getIntendedDistance(), 1e-6, "no driving 19");
+    assertEquals(0.0, data[16].getIntendedDistance(), 1e-6, "no driving 17");
+    assertEquals(20.0, data[17].getIntendedDistance(), 1e-6, "return 20 km hr 18");
+    assertEquals(0.0, data[18].getIntendedDistance(), 1e-6, "no driving 19");
   }
 
   @Test
@@ -501,9 +501,9 @@ public class EvCustomerTest
 
     assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
 
-    evCustomer.doActivities(0, 6);
+    evCustomer.doActivities(0, 5);
     assertFalse(evCustomer.isDriving());
-    evCustomer.doActivities(0, 7);
+    evCustomer.doActivities(0, 6);
     assertTrue(evCustomer.isDriving());
     assertEquals(45.0, evCustomer.getCurrentCapacity(), 1E-06);
   }
