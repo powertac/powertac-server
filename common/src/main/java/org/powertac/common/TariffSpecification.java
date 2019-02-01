@@ -208,6 +208,10 @@ public class TariffSpecification extends TariffMessage
   public List<Rate> getRates ()
   {
     List<Rate> result = new ArrayList<Rate>();
+    if (null == rates) {
+      log.error("Null rates tariff {}", this.getId());
+      return result;
+    }
     for (RateCore rate : rates) {
       if (rate instanceof Rate) {
         result.add((Rate)rate);
