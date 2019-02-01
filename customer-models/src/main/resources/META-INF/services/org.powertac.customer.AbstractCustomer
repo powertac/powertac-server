@@ -1,4 +1,0 @@
-# Customer model type list
-org.powertac.customer.coldstorage.ColdStorage # Cold-storage warehouses
-org.powertac.customer.model.LiftTruck # forklift truck fleets
-org.powertac.customer.model.Battery # battery packs

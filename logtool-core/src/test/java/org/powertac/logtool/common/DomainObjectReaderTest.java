@@ -6,11 +6,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.DistributionTransaction;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.Order;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffSubscription;
 import org.powertac.common.msg.BalancingOrder;
 
 public class DomainObjectReaderTest
@@ -211,6 +213,34 @@ public class DomainObjectReaderTest
     }
     catch (MissingDomainObject mdo) {
       fail("should not happen: " + mdo.toString());
+    }
+  }
+  
+  @Test
+  public void readSubscribe ()
+  {
+    String cu = "812:org.powertac.common.CustomerInfo::1895::new::Village::10";
+    String ca = "1255:org.powertac.common.Broker::601::new::CrocodileAgent";
+    String r = "1773:org.powertac.common.Rate::200076920::new::1878::-1::-1::-1::-1::0.0::true::-0.045598969348039364::0.0::0::0.0::0.1";
+    String ts = "1774:org.powertac.common.TariffSpecification::1878::new::601::INTERRUPTIBLE_CONSUMPTION::0::0.0::0.0::-0.6";
+    String sub = "9204:org.powertac.common.TariffSubscription::2588::new::1895::1878";
+    String add = "9204:org.powertac.common.TariffSubscription::2588::subscribe::10";
+    try {
+      CustomerInfo customer = (CustomerInfo) dor.readObject(cu);
+      assertNotNull(customer, "valid customer");
+      Broker crocodile = (Broker) dor.readObject(ca);
+      assertNotNull(crocodile, "valid broker");
+      Rate rate = (Rate) dor.readObject(r);
+      assertNotNull(rate, "valid rate");
+      TariffSpecification spec = (TariffSpecification) dor.readObject(ts);
+      spec.addRate(rate);
+      assertNotNull(spec, "valid tariff spec");
+      assertEquals(rate, spec.getRates().get(0), "spec contains rate");
+      TariffSubscription tsub = (TariffSubscription) dor.readObject(sub);
+      assertNotNull(tsub, "valid subscription");
+    }
+    catch (MissingDomainObject mdo) {
+      fail("missing DO " + mdo.toString());
     }
   }
 }
