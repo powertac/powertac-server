@@ -146,6 +146,10 @@ implements InitializationService
       description = "Std deviation coefficient (nu)")
   private double stdCoefficient = 1.2;
 
+  @ConfigurableValue(valueType = "Double",
+      description = "multiplier for bootstrap consumption data")
+  private double bootstrapConsumptionMultiplier = 1.06;
+
   @ConfigurableValue (valueType = "Double",
       publish = true,
       description = "Per-point fee (lambda)")
@@ -231,7 +235,7 @@ implements InitializationService
                  data.length);
       }
       for (int i = 0; i < Math.min(first.length, data.length); i += 1) {
-        result[i] -= data[i];
+        result[i] -= data[i] * bootstrapConsumptionMultiplier;
       }
     }
     // Initialize running mean, sigma

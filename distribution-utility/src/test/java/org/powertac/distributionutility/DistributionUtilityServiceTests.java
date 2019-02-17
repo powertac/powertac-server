@@ -206,8 +206,8 @@ public class DistributionUtilityServiceTests
     setBootRecord();
     cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "true");
     initializeService();
-    assertEquals(9.5, distributionUtilityService.getRunningMean(), 1e-6, "correct mean");
-    assertEquals(3.8729833, distributionUtilityService.getRunningSigma(), 1e-5, "correct sigma");
+    assertEquals(9.5 * 1.06, distributionUtilityService.getRunningMean(), 1e-6, "correct mean");
+    assertEquals(4.1053623, distributionUtilityService.getRunningSigma(), 1e-5, "correct sigma");
     assertEquals(4, distributionUtilityService.getRunningCount(), "correct count");
   }
 
@@ -292,6 +292,7 @@ public class DistributionUtilityServiceTests
     cfgMap.put("distributionutility.distributionUtilityService.assessmentInterval", "2");
     cfgMap.put("distributionutility.distributionUtilityService.stdCoefficient", "1.1");
     cfgMap.put("distributionutility.distributionUtilityService.feePerPoint", "10.0");
+    cfgMap.put("distributionutility.distributionUtilityService.bootstrapConsumptionMultiplier", "1.0");
     setBootRecord();
     initializeService();
 
@@ -429,6 +430,7 @@ public class DistributionUtilityServiceTests
     cfgMap.put("distributionutility.distributionUtilityService.assessmentCount", "2");
     cfgMap.put("distributionutility.distributionUtilityService.stdCoefficient", "1.1");
     cfgMap.put("distributionutility.distributionUtilityService.feePerPoint", "10.0");
+    cfgMap.put("distributionutility.distributionUtilityService.bootstrapConsumptionMultiplier", "1.0");
     setBootRecord();
     initializeService();
 
