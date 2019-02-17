@@ -55,9 +55,12 @@ security:
         enabled: false
 
 server:
-    session:
+    servlet:
+      session:
+        timeout: 100000m
         cookie:
-            http-only: true
+          max-age: 100000m
+          http-only: true
 
 info:
     project:

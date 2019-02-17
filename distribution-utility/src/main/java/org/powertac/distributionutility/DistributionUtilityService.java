@@ -200,7 +200,8 @@ implements InitializationService
                          * (distributionFeeMax - distributionFeeMin));
     if (!useTransportFee)
       distributionFee = 0.0;
-    log.info("Configured DU: distro fee = " + distributionFee);
+    log.info("Configured DU: distroFee={}, capFee={}, feePerPoint={}, mSmall={}, mLarge={}",
+             distributionFee, useCapacityFee, feePerPoint, mSmall, mLarge);
     
     serverProps.publishConfiguration(this);
     return "DistributionUtility";
@@ -401,6 +402,7 @@ implements InitializationService
   {
     int index = (timeslot - timeslotOffset) % assessmentInterval;
     double totalConsumption = 0.0;
+    double totalProduction = 0.0;
     for (Broker broker: brokerList) {
       // pull up the netDemand array for this broker
       double[] brokerDemand = brokerNetDemand.get(broker);
@@ -416,25 +418,31 @@ implements InitializationService
         brokerDemand[index] = 0.0;
       }
       else {
-        double netConsumption =
-            -(data.get(Type.PRODUCE) + data.get(Type.CONSUME));
-        brokerDemand[index] = netConsumption;
-        totalConsumption += netConsumption;
+        double consumption = data.get(Type.CONSUME);
+        double production = data.get(Type.PRODUCE);
+        //double netConsumption = 
+        //-(data.get(Type.PRODUCE) + data.get(Type.CONSUME));
+        
+        brokerDemand[index] = -(consumption + production);
+        totalConsumption += consumption;
+        totalProduction += production;
       }
     }
-    log.info("Total net consumption for ts {} = {}",
-             timeslot, totalConsumption);
-    netDemand[index] = totalConsumption;
+    double netConsumption = -(totalConsumption + totalProduction);
+    log.info("ts {}: consumption = {}, production = {}, net = {}",
+             timeslot, totalConsumption, totalProduction,
+             netConsumption);
+    netDemand[index] = netConsumption;
     // Update running mean and var
     if (runningCount == 0) {
       // first time through, assume this is a boot session
-      runningMean = totalConsumption;
+      runningMean = netConsumption;
       runningVar = 0.0;
       runningCount = 1;
     }
     else {
       // use recurrence formula to update mean, sigma
-      updateStats(totalConsumption);
+      updateStats(netConsumption);
       log.info("Net demand k = {}, mean = {}, sigma = {}",
                runningCount, runningMean, runningSigma);
     }
