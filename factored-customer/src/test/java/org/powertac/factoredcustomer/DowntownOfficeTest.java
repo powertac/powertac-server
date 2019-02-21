@@ -49,7 +49,7 @@ import org.powertac.factoredcustomer.interfaces.StructureInstance;
  * @author John Collins
  *
  */
-public class WindmillCoOpTest
+public class DowntownOfficeTest
 {
   AbstractConfiguration configuration;
   Configurator config;
@@ -72,7 +72,7 @@ public class WindmillCoOpTest
   @BeforeEach
   public void setUp () throws Exception
   {
-    File fs = new File("src/test/resources/config/WindmillCoOp.xml");
+    File fs = new File("src/test/resources/config/DowntownOffices.xml");
     configuration = Configurator.readXML(fs);
     config = new Configurator();
     config.setConfiguration(configuration);
@@ -106,11 +106,11 @@ public class WindmillCoOpTest
 
     broker = mock(Broker.class);
     TariffSpecification defaultConsumption =
-            new TariffSpecification(broker, PowerType.PRODUCTION)
-            .addRate(new Rate().withValue(0.10));
+            new TariffSpecification(broker, PowerType.CONSUMPTION)
+            .addRate(new Rate().withValue(-0.40));
     tariff = new Tariff(defaultConsumption);
     //tariff.init();
-    when(tariffMarket.getDefaultTariff(PowerType.PRODUCTION)).thenReturn(tariff);
+    when(tariffMarket.getDefaultTariff(PowerType.CONSUMPTION)).thenReturn(tariff);
     tariffSubscriptionRepo = mock(TariffSubscriptionRepo.class);
     when(fcs.getTariffSubscriptionRepo()).thenReturn(tariffSubscriptionRepo);
 
@@ -153,7 +153,7 @@ public class WindmillCoOpTest
   @Test
   public void testConfig ()
   {
-    assertEquals(50, configuration.getInt("factoredcustomer.defaultCapacityBundle.WindmillCoOp-1.population"), "correct population");
+    assertEquals(30, configuration.getInt("factoredcustomer.defaultCapacityBundle.DowntownOffices.population"), "correct population");
   }
 
   @Test
@@ -161,7 +161,7 @@ public class WindmillCoOpTest
   {
     assertEquals(1, customers.size(), "one customer created");
     DefaultFactoredCustomer fs = (DefaultFactoredCustomer)customers.get(0);
-    assertEquals(fs.getName(), "WindmillCoOp", "correct name");
+    assertEquals(fs.getName(), "DowntownOffices", "correct name");
   }
 
   @Test
@@ -174,8 +174,8 @@ public class WindmillCoOpTest
     // create a subscription
     TariffSubscription sub = mock(TariffSubscription.class);
     when(sub.getTariff()).thenReturn(tariff);
-    when(sub.getCustomersCommitted()).thenReturn(3);
-    sub.setCustomersCommitted(3);
+    when(sub.getCustomersCommitted()).thenReturn(5);
+    sub.setCustomersCommitted(5);
     List<TariffSubscription> subs = new ArrayList<>();
     subs.add(sub);
     when(tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(ci))
@@ -208,7 +208,7 @@ public class WindmillCoOpTest
     WeatherReport weather = new WeatherReport(300, 20.0, 20.0, 0.0, 0.0);
     when(weatherReportRepo.currentWeatherReport()).thenReturn(weather);
     fs.getUtilityOptimizer().handleNewTimeslot(ts);
-    assertEquals(-158.66, usePowerArgs.get(0), 1e-4, "correct power usage");
+    assertEquals(399.97, usePowerArgs.get(0), 1e-4, "correct power usage");
     //System.out.println("WindmillCoopTest usePower: " + usePowerArgs.toString());
   }
 
