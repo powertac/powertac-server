@@ -16,6 +16,8 @@
 
 package org.powertac.factoredcustomer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -39,6 +41,9 @@ import java.util.Map;
 //@Domain
 public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
 {
+  private static Logger log =
+          LogManager.getLogger(DefaultCapacityBundle.class.getName());
+
   protected FactoredCustomerService service;
   private CustomerStructure customerStructure;
 
@@ -149,30 +154,55 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
       optimizerStructure = new ProfileOptimizerStructure(name);
     }
 
-    if (this.count > 1) {
-      for (int j = 0; j < this.count; j++) {
-        // Bad smell - strong, undocumented assumption about naming in config file.
-        CapacityStructure capacityStructure =
-            (CapacityStructure) capacities.get(name + (j + 1));
-        if (capacityStructure == null) {
-          throw new Error("No CapacityStructure for " + name + (j + 1));
-        }
-        capacityStructure.initialize(service);
-        capacityOriginators.add(createCapacityOriginator(capacityStructure));
-        if (!capacityStructure.isIndividual())
-          allIndividual = false;
+    //if (this.count > 1) {
+    String capName = name;
+    for (int j = 0; j < this.count; j++) {
+      // Bad smell - strong, undocumented assumption about naming in config file.
+      if (this.count > 1) {
+        capName = name + (j + 1);
       }
-    }
-    else {
-      allIndividual = false; // makes no sense for single instance
       CapacityStructure capacityStructure =
-          (CapacityStructure) capacities.get(name);
+              (CapacityStructure) capacities.get(capName);
       if (capacityStructure == null) {
-        throw new Error("No CapacityStructure for " + name);
+        throw new Error("No CapacityStructure for " + capName + (j + 1));
       }
       capacityStructure.initialize(service);
       capacityOriginators.add(createCapacityOriginator(capacityStructure));
+      if (!capacityStructure.isIndividual())
+        allIndividual = false;
     }
+    if (allIndividual && this.population > this.count) {
+      // we need a capacity structure for each member of the population. The
+      // first has already been created.
+      if (count > 1) {
+        // faulty configuration
+        log.error("Fault config, count {} > 1 and population {} > count",
+                  this.count, this.population);
+      }
+      if (population % count != 0) {
+        // faulty configuration
+        log.error("Population {} not integer multiple of count {}",
+                  this.population, this.count);
+      }
+      CapacityStructure capacityStructure =
+              (CapacityStructure) capacities.get(capName);
+      if (capacityStructure == null) {
+        throw new Error("No CapacityStructure for " + capName);
+      }
+      for (int i = 1; i < population; i++) {
+        capacityOriginators.add(createCapacityOriginator(capacityStructure));          
+      }
+    }
+//    else {
+//      allIndividual = false; // makes no sense for single instance
+//      CapacityStructure capacityStructure =
+//          (CapacityStructure) capacities.get(name);
+//      if (capacityStructure == null) {
+//        throw new Error("No CapacityStructure for " + name);
+//      }
+//      capacityStructure.initialize(service);
+//      capacityOriginators.add(createCapacityOriginator(capacityStructure));
+//    }
   }
 
   protected CapacityOriginator createCapacityOriginator (

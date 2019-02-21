@@ -208,7 +208,7 @@ public class WindmillCoOpTest
     WeatherReport weather = new WeatherReport(300, 20.0, 20.0, 0.0, 0.0);
     when(weatherReportRepo.currentWeatherReport()).thenReturn(weather);
     fs.getUtilityOptimizer().handleNewTimeslot(ts);
-    assertEquals(-59.47, usePowerArgs.get(0), 1e-4, "correct power usage");
+    assertEquals(-158.66, usePowerArgs.get(0), 1e-4, "correct power usage");
     //System.out.println("WindmillCoopTest usePower: " + usePowerArgs.toString());
   }
 

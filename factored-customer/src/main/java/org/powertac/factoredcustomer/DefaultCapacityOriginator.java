@@ -284,9 +284,11 @@ class DefaultCapacityOriginator implements CapacityOriginator
             timeService.getCurrentDateTime(), true);
     adjustedCapacity = adjustCapacityForCurrentWeather(adjustedCapacity, true);
 
-    // moved up one level
-    //adjustedCapacity =
-    //    adjustCapacityForSubscription(timeslot, adjustedCapacity, subscription);
+    // adjust for subscribed population
+    if (!parentBundle.isAllIndividual()) {
+      adjustedCapacity =
+              adjustCapacityForSubscription(timeslot, adjustedCapacity, subscription);
+    }
 
     CapacityAccumulator result =
         addRegCapacityMaybe(subscription, timeslot, adjustedCapacity);

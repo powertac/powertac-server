@@ -22,7 +22,7 @@
         <count>1</count>
         <population>1</population>
         <type>SOLAR_PRODUCTION</type>
-	<customerSize>LARGE</customerSize>
+				<customerSize>LARGE</customerSize>
         <multiContracting>false</multiContracting>
         <canNegotiate>false</canNegotiate>
         <isAdaptive>false</isAdaptive>
@@ -32,7 +32,7 @@
         <count>1</count>
         <population>1</population>
         <type>SOLAR_PRODUCTION</type>
-	<customerSize>LARGE</customerSize>
+				<customerSize>LARGE</customerSize>
         <multiContracting>false</multiContracting>
         <canNegotiate>false</canNegotiate>
         <isAdaptive>false</isAdaptive>
