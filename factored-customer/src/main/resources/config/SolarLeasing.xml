@@ -75,8 +75,8 @@
       </SolarLeasingInertia>
       <SolarLeasingPopulation>
         <distribution>NORMAL</distribution>
-        <mean>5</mean>
-        <stdDev>2</stdDev>
+        <mean>35000</mean> <!-- 7000 * 5 kW -->
+        <stdDev>14000</stdDev>
       </SolarLeasingPopulation>
     </probabilityDistribution>
   </factoredcustomer>

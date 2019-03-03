@@ -148,7 +148,7 @@ implements InitializationService
 
   @ConfigurableValue(valueType = "Double",
       description = "multiplier for bootstrap consumption data")
-  private double bootstrapConsumptionMultiplier = 1.06;
+  private double bootstrapConsumptionMultiplier = 1.02;
 
   @ConfigurableValue (valueType = "Double",
       publish = true,

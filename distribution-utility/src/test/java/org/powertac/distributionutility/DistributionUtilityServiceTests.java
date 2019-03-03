@@ -206,8 +206,8 @@ public class DistributionUtilityServiceTests
     setBootRecord();
     cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "true");
     initializeService();
-    assertEquals(9.5 * 1.06, distributionUtilityService.getRunningMean(), 1e-6, "correct mean");
-    assertEquals(4.1053623, distributionUtilityService.getRunningSigma(), 1e-5, "correct sigma");
+    assertEquals(9.5 * 1.02, distributionUtilityService.getRunningMean(), 1e-6, "correct mean");
+    assertEquals(3.95044, distributionUtilityService.getRunningSigma(), 1e-5, "correct sigma");
     assertEquals(4, distributionUtilityService.getRunningCount(), "correct count");
   }
 
