@@ -538,6 +538,24 @@ public class TariffTests
     assertEquals(2.0, te.getMaxUpRegulation(4.0, 11.0), 1e-6, "high curtailment");
   }
 
+  // single rate, no regulation rate, balancing order, interruptible
+  @Test
+  public void testBOregulation ()
+  {
+    TariffSpecification spec =
+            new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+                .withExpiration(exp)
+                .withMinDuration(TimeService.WEEK * 8);
+    Rate r1 = new Rate()
+            .withValue(-0.120)
+            .withMaxCurtailment(0.3);
+    spec.addRate(r1);
+    Tariff te = new Tariff(spec);
+    te.init();
+    assertEquals(2.4, te.getRegulationCharge(-20.0, 0.0, false), 1e-6, "correct up-reg charge");
+    assertEquals(-3.6, te.getRegulationCharge(30.0, 0.0, false), 1e-6, "correct down-reg charge");
+  }
+
   // single rate, regulation rate, storage
   @Test
   public void testRegRate ()

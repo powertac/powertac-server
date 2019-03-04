@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 by John Collins.
+ * Copyright (c) 2011-2019 by John Collins.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -341,7 +341,7 @@ public class Tariff
    * tariff has a RegulationRate, then that will determine the charge;
    * otherwise the call will be delegated to getUsageCharge(). 
    * Regulation usage does not contribute to cumulative usage, since it's
-   * assumed to balance out over time.
+   * assumed to balance out over time. TODO: is this reasonable?
    * Note that
    * negative values for kwh represent up-regulation, while positive values
    * represent down-regulation.
@@ -353,7 +353,9 @@ public class Tariff
                                      boolean recordUsage)
   {
     if (null == regulationRate) {
-      return getUsageCharge(-kwh, cumulativeUsage, recordUsage);
+      // TODO: not clear that this produces correct sign when used for
+      // down-regulation on a production tariff. Need a test case.
+      return getUsageCharge(kwh, cumulativeUsage, recordUsage);
     }
 
     if (kwh < 0.0) {
