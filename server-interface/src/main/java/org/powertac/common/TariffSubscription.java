@@ -334,7 +334,9 @@ public class TariffSubscription
    * a separate TariffTransaction for the fixed periodic payment if it's non-zero.
    * Note that the power usage value and the numbers in the
    * TariffTransaction are aggregated across the subscribed population,
-   * not per-member values.
+   * not per-member values. This is where the signs on energy and cost are inverted
+   * to convert from the customer-centric view in the tariff to the broker-centric
+   * view in the transactions.
    */
   public void usePower (double kwh)
   {
@@ -547,7 +549,7 @@ public class TariffSubscription
   }
 
   /**
-   * Posts a BalancingControlEvent to the subscription and generate the correct
+   * Posts a BalancingControlEvent to the subscription and generates the correct
    * TariffTransaction. This updates
    * the regulation for the current timeslot by the amount of the control.
    * A positive value for kwh represents up-regulation, or an
@@ -562,7 +564,7 @@ public class TariffSubscription
     getAccounting().addRegulationTransaction(tariff,
         customer, customersCommitted, kwh,
         customersCommitted *
-          tariff.getRegulationCharge(-kwh / customersCommitted, 
+          -tariff.getRegulationCharge(-kwh / customersCommitted, 
                                      totalUsage, true));
     double kWhPerMember = kwh / customersCommitted; 
     addRegulation(kWhPerMember);

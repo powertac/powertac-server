@@ -204,7 +204,7 @@ public class CapacityControlServiceTest
   public void regulationCapacityRegRate ()
   {
     TariffSpecification specRR =
-      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+      new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION)
           .withExpiration(baseTime.plus(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.11))
@@ -284,8 +284,6 @@ public class CapacityControlServiceTest
     Object[] args = answers.get(customer1);
     assertNotNull(args, "customer1 included");
     assertEquals(5, args.length, "correct arg count");
-    //assertEquals("correct type", TariffTransaction.Type.PRODUCE,
-    //             (TariffTransaction.Type) args[0]);
     assertEquals(tariff, (Tariff) args[0], "correct tariff");
     assertEquals(40.0, (Double) args[3], 1e-6, "correct kwh");
     assertEquals(-4.4, (Double) args[4], 1e-6, "correct charge");
@@ -293,8 +291,6 @@ public class CapacityControlServiceTest
     args = answers.get(customer2);
     assertNotNull(args, "customer2 included");
     assertEquals(5, args.length, "correct arg count");
-    //assertEquals("correct type", TariffTransaction.Type.PRODUCE,
-    //             (TariffTransaction.Type) args[0]);
     assertEquals(tariff, (Tariff) args[0], "correct tariff");
     assertEquals(60.0, (Double) args[3], 1e-6, "correct kwh");
     assertEquals(-6.6, (Double) args[4], 1e-6, "correct charge");
@@ -373,7 +369,7 @@ public class CapacityControlServiceTest
         //             (TariffTransaction.Type) args[0]);
         assertEquals(tariffRR1, (Tariff) args[0], "correct tariff");
         assertEquals(-15000.0/370.0, (Double) args[3], 1e-6, "correct kwh");
-        assertEquals(-0.05 * 15000.0/370.0, (Double) args[4], 1e-6, "correct charge");
+        assertEquals(0.05 * 15000.0/370.0, (Double) args[4], 1e-6, "correct charge");
 
         args = answers.get(customer2);
         assertNotNull(args, "customer2 included");
@@ -382,7 +378,7 @@ public class CapacityControlServiceTest
         //             (TariffTransaction.Type) args[0]);
         assertEquals(tariffRR1, (Tariff) args[0], "correct tariff");
         assertEquals(-22000.0/370.0, (Double) args[3], 1e-6, "correct kwh");
-        assertEquals(-0.05 * 22000.0/370.0, (Double) args[4], 1e-6, "correct kwh");
+        assertEquals(0.05 * 22000.0/370.0, (Double) args[4], 1e-6, "correct charge");
   }
 
   /**

@@ -379,6 +379,44 @@ public class TariffSubscriptionTests
   }
 
   @Test
+  public void testBalancingControlUpRR ()
+  {
+    spec =
+      new TariffSpecification(broker, PowerType.ELECTRIC_VEHICLE)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5))
+          .addRate(new RegulationRate()
+                   .withUpRegulationPayment(0.11)
+                   .withDownRegulationPayment(-0.08));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
+    sub.subscribe(10);
+    verify(mockAccounting)
+        .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
+                              10, 0.0, -0.0);
+    timeslotRepo.findOrCreateBySerialNumber(10);
+    sub.usePower(100.0); // customer uses energy
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+                              eq(customer), eq(10), eq(-100.0),
+                              chargeArg.capture());
+    assertEquals(9.0, chargeArg.getValue(), 1e-6, "correct charge");
+    sub.postBalancingControl(30.0); // balancing takes some back
+    verify(mockAccounting)
+        .addRegulationTransaction(eq(tariff),
+                              eq(customer), eq(10), eq(30.0),
+                              chargeArg.capture());
+    assertEquals(-3.3, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(3.0, sub.getRegulation(), 1e-6, "correct regulation");
+    assertEquals(0.0, sub.getRegulation(), 1e-6, "no regulation");
+  }
+
+  @Test
   public void testBalancingControlDown ()
   {
     spec =
@@ -449,7 +487,7 @@ public class TariffSubscriptionTests
         .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
-    assertEquals(4.5, chargeArg.getValue(), 1e-6, "correct charge");
+    assertEquals(-4.5, chargeArg.getValue(), 1e-6, "correct charge");
     assertEquals(3.0, sub.getRegulation(), 1e-6, "correct regulation");
     assertEquals(0.0, sub.getRegulation(), 1e-6, "no regulation");
     cap = sub.getRemainingRegulationCapacity();
