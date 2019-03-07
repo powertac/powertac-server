@@ -1,0 +1,4 @@
+# Customer model type list, needed by ServiceLoader
+org.powertac.customer.coldstorage.ColdStorage # Cold-storage warehouses
+org.powertac.customer.model.LiftTruck # forklift truck fleets
+org.powertac.customer.model.Battery # battery packs
