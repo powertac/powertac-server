@@ -441,6 +441,10 @@ public class EvCustomerTest
     assertEquals(70, evCustomer.getCurrentCapacity(), 1E-06);
     loads = evCustomer.getLoads(0, 0);
     assertEquals(0.0, loads[1], 1E-06);
+    assertEquals(20.0, loads[2], 1e-6);
+    assertEquals(-20.0, loads[3], 1e-6);
+    //System.out.format("loads=[%.3f,%.3f,%.3f,%.3f]\n",
+    //                  loads[0], loads[1], loads[2], loads[3]);
   }
 
   @Test
@@ -506,6 +510,52 @@ public class EvCustomerTest
     evCustomer.doActivities(0, 6);
     assertTrue(evCustomer.isDriving());
     assertEquals(45.0, evCustomer.getCurrentCapacity(), 1E-06);
+  }
+
+  @Test
+  public void testRegulationCapacityUpperLimit ()
+  {
+    carType = new CarType("Test2");
+    carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
+
+    mockSeed.setIntSeed(new int[]{1, 1});
+    mockSeed.setDoubleSeed(new double[]{0});
+    initialize("male");
+    evCustomer.makeDayPlanning(0, 0);
+
+    assertEquals(evCustomer.getRiskAttitude(), "neutral");
+
+    evCustomer.setCurrentCapacity(90.0);
+    assertEquals(90.0, evCustomer.getCurrentCapacity(), 1E-06);
+    double[] loads = evCustomer.getLoads(0, 0);
+    assertEquals(0.0, loads[1], 1E-06);
+    assertEquals(20.0, loads[2], 1e-6);
+    assertEquals(-10.0, loads[3], 1e-6);
+    //System.out.format("loads=[%.3f,%.3f,%.3f,%.3f]\n",
+    //                  loads[0], loads[1], loads[2], loads[3]);
+  }
+
+  @Test
+  public void testRegulationCapacityLowerLimit ()
+  {
+    carType = new CarType("Test2");
+    carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
+
+    mockSeed.setIntSeed(new int[]{1, 1});
+    mockSeed.setDoubleSeed(new double[]{0});
+    initialize("male");
+    evCustomer.makeDayPlanning(0, 0);
+
+    assertEquals(evCustomer.getRiskAttitude(), "neutral");
+
+    evCustomer.setCurrentCapacity(10.0);
+    assertEquals(10.0, evCustomer.getCurrentCapacity(), 1E-06);
+    double[] loads = evCustomer.getLoads(0, 0);
+    assertEquals(20.0, loads[1], 1E-06);
+    assertEquals(10.0, loads[2], 1e-6);
+    assertEquals(0.0, loads[3], 1e-6);
+    System.out.format("loads=[%.3f,%.3f,%.3f,%.3f]\n",
+                      loads[0], loads[1], loads[2], loads[3]);
   }
 
   // =============== helper classes =================

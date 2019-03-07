@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, 2014, 2015, 2018 the original author or authors.
+ * Copyright 2013, 2014, 2015, 2018, 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -245,6 +245,8 @@ public class EvCustomer
       sub = subs.get(0);
     }
 
+    // Strong assumption that each instance of driving is completed within a
+    // single timeslot!
     driving = false;
 
     // Always do handleRegulations first, setRegulation last
@@ -615,6 +617,7 @@ public class EvCustomer
 
     // This is the amount we could charge extra (down regulate)
     loads[3] = -1 * (todayMap[hour].getChargingCapacity() - (loads[0] + loads[1]));
+    loads[3] = Math.max(loads[3], (getCurrentCapacity() - car.getMaxCapacity()));
     if (loads[3] > -capacityEpsilon)
       loads[3] = 0;
 
