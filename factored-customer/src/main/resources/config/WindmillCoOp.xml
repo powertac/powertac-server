@@ -53,8 +53,8 @@
         </windSpeedMap>
         <windDirectionInfluence>DIRECT</windDirectionInfluence>
         <windDirectionMap>
-          0~90: 0.5,
-          91~180: 0.8,
+          0~90: 1.0,
+          91~180: 0.9,
           181~270: 1.0,
           271~360: 0.9
         </windDirectionMap>
