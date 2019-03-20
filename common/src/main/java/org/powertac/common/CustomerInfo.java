@@ -163,6 +163,7 @@ public class CustomerInfo //implements Serializable
   /**
    * Fluent setter for customerClass attribute.
    */
+  @StateChange
   public CustomerInfo withCustomerClass (CustomerClass cClass)
   {
     customerClass = cClass;

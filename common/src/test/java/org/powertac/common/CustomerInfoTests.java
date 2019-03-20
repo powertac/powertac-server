@@ -6,6 +6,7 @@ import java.io.StringWriter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.enumerations.PowerType;
 
 import com.thoughtworks.xstream.XStream;
@@ -28,6 +29,7 @@ public class CustomerInfoTests
     assertEquals(PowerType.CONSUMPTION, info.getPowerType(), "correct power type");
     assertFalse(info.isMultiContracting(), "no multicontracting");
     assertFalse(info.isCanNegotiate(), "can't negotiate");
+    assertEquals(CustomerClass.SMALL, info.getCustomerClass(), "small customer");
   }
 
   @Test
@@ -77,6 +79,7 @@ public class CustomerInfoTests
   {
     CustomerInfo ci = new CustomerInfo("Sam", 44);
     ci.withPowerType(PowerType.ELECTRIC_VEHICLE);
+    ci.withCustomerClass(CustomerClass.LARGE);
     XStream xstream = XMLMessageConverter.getXStream();
     xstream.processAnnotations(CustomerInfo.class);
     StringWriter serialized = new StringWriter();
@@ -89,6 +92,6 @@ public class CustomerInfoTests
     assertEquals(44, xci.getPopulation(), "correct population");
     //assertEquals(2, xci.getPowerTypes().size(), "correct number of PowerTypes");
     assertEquals(PowerType.ELECTRIC_VEHICLE, xci.getPowerType(), "electric vehicle");
+    assertEquals(CustomerClass.LARGE, xci.getCustomerClass(), "correct class");
   }
-
 }
