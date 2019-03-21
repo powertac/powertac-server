@@ -1,6 +1,7 @@
 package org.powertac.logtool.common;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,9 +12,14 @@ import org.powertac.common.DistributionTransaction;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.Order;
 import org.powertac.common.Rate;
+import org.powertac.common.RegulationRate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.msg.BalancingOrder;
+import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.springframework.test.util.ReflectionTestUtils;
+
 
 public class DomainObjectReaderTest
 {
@@ -81,6 +87,58 @@ public class DomainObjectReaderTest
       assertEquals(broker, o.getBroker(), "correct broker");
       assertEquals(2.109375, o.getMWh(), 1e-6, "correct mwh");
       assertEquals(-31.835472671068615, o.getLimitPrice(), 1e-6, "correct price");
+    }
+    catch (MissingDomainObject mdo) {
+      fail("bad exception " + mdo.toString());
+    }
+  }
+
+  @Test
+  public void readRRTariffSpec ()
+  {
+    String brokerLog = "42476:org.powertac.common.Broker::4773::new::Bunnie";
+    String regRateLog = "88002:org.powertac.common.RegulationRate::501428076::-rr::501428079::SECONDS::0.6::-0.15";
+    String rateLog = "88003:org.powertac.common.Rate::501428077::-rr::501428079::-1::-1::-1::-1::0.0::true::-0.4::0.0::0::0.0::0.0";
+    String specLog = "88003:org.powertac.common.TariffSpecification::501428079::-rr::4773::BATTERY_STORAGE::14::10.0::-20.0::0.0::null";
+
+    // We need the builder here to connect rates to tariff specs
+    DomainBuilder builder = new DomainBuilder();
+    TariffRepo trepo = mock(TariffRepo.class);
+    ReflectionTestUtils.setField(builder, "tariffRepo", trepo);
+    BrokerRepo brepo = mock(BrokerRepo.class);
+    ReflectionTestUtils.setField(builder, "brokerRepo", brepo);    
+    ReflectionTestUtils.setField(builder, "dor", dor);
+    builder.setup();
+
+    try {
+      Object result = dor.readObject(brokerLog);
+      assertNotNull(result, "broker created");
+
+      result = dor.readObject(regRateLog);
+      assertNotNull(result, "regRate created");
+      assertEquals(result.getClass().getName(),
+                   "org.powertac.common.RegulationRate",
+                   "regRate correct class");
+      RegulationRate regRate = (RegulationRate)result;
+
+      result = dor.readObject(rateLog);
+      assertNotNull(result, "rate created");
+      assertEquals(result.getClass().getName(),
+                   "org.powertac.common.Rate",
+                   "rate correct class");
+      Rate rate = (Rate)result;
+
+      result = dor.readObject(specLog);
+      assertNotNull(result, "spec created");
+      assertEquals(result.getClass().getName(),
+                   "org.powertac.common.TariffSpecification",
+                   "spec correct class");
+      TariffSpecification spec = (TariffSpecification)result;
+      
+      assertEquals(1, spec.getRates().size(), "one rate");
+      assertEquals(501428077, spec.getRates().get(0).getId(), "correct rate ID");
+      assertEquals(1, spec.getRegulationRates().size(), "one regRate");
+      assertEquals(501428076, spec.getRegulationRates().get(0).getId(), "correct regRate ID");
     }
     catch (MissingDomainObject mdo) {
       fail("bad exception " + mdo.toString());

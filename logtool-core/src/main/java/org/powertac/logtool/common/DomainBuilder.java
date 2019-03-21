@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
+import org.powertac.common.RateCore;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.BrokerRepo;
@@ -72,7 +73,7 @@ public class DomainBuilder implements Analyzer
     dor.registerNewObjectListener(new BrokerHandler(), Broker.class);
     dor.registerNewObjectListener(new CustomerHandler(), CustomerInfo.class);
     dor.registerNewObjectListener(new TariffSpecHandler(), TariffSpecification.class);
-    dor.registerNewObjectListener(new RateHandler(), Rate.class);
+    dor.registerNewObjectListener(new RateHandler(), RateCore.class);
     dor.registerNewObjectListener(new TimeslotHandler(), Timeslot.class);
   }
 
@@ -116,16 +117,16 @@ public class DomainBuilder implements Analyzer
     {
       TariffSpecification spec = (TariffSpecification)thing;
       // attach pending Rates
-      ArrayList<Rate> rates = pendingRates.get(spec.getId());
+      ArrayList<RateCore> rates = pendingRates.get(spec.getId());
       if (null != rates)
-        for (Rate rate : rates)
+        for (RateCore rate : rates)
           spec.addRate(rate);
       tariffRepo.addSpecification(spec);
     }
   }
 
-  private HashMap<Long, ArrayList<Rate>> pendingRates =
-          new HashMap<Long, ArrayList<Rate>>();
+  private HashMap<Long, ArrayList<RateCore>> pendingRates =
+          new HashMap<Long, ArrayList<RateCore>>();
 
   // -------------------------------
   // add new Rates to their Tariffs
@@ -134,7 +135,7 @@ public class DomainBuilder implements Analyzer
     @Override
     public void handleNewObject (Object thing)
     {
-      Rate rate = (Rate)thing;
+      RateCore rate = (RateCore)thing;
       TariffSpecification spec =
               tariffRepo.findSpecificationById(rate.getTariffId());
       if (null != spec) {
@@ -143,9 +144,9 @@ public class DomainBuilder implements Analyzer
       }
       else {
         // otherwise save rate for later
-        ArrayList<Rate> rates = pendingRates.get(rate.getTariffId());
+        ArrayList<RateCore> rates = pendingRates.get(rate.getTariffId());
         if (null == rates) {
-          rates = new ArrayList<Rate>();
+          rates = new ArrayList<RateCore>();
           pendingRates.put(rate.getTariffId(), rates);
         }
         rates.add(rate);
