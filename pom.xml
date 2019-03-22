@@ -217,11 +217,11 @@
       the parent POM of geronimo-jta-1.0.1B_spec version 1.0.1 has an illegal
       backtick char which gives errors during mvn site. When upgrading activemq,
       check if this is still needed! -->
-      <!-- <dependency>
+      <dependency>
         <groupId>org.apache.geronimo.specs</groupId>
         <artifactId>geronimo-jta_1.0.1B_spec</artifactId>
         <version>1.1.1</version>
-      </dependency> -->
+      </dependency>
 
       <dependency>
         <groupId>com.thoughtworks.xstream</groupId>
