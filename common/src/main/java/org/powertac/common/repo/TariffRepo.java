@@ -132,6 +132,18 @@ public class TariffRepo implements DomainRepo
     return result;
   }
 
+  public synchronized List<TariffSpecification>
+  findTariffSpecificationsByBrokerAndType (Broker broker, PowerType type)
+  {
+    List<TariffSpecification> result = new ArrayList<>();
+    for (TariffSpecification spec : specs.values()) {
+      if (spec.getBroker() == broker && spec.getPowerType().canUse(type)) {
+        result.add(spec);
+      }
+    }
+    return result;
+  }
+
   public synchronized List<TariffSpecification> findAllTariffSpecifications()
   {
     return new ArrayList<>(specs.values());

@@ -183,12 +183,14 @@ public class TariffSpecificationTests
             withUpRegulationPayment(.05).
             withDownRegulationPayment(-.05).
             withResponse(RegulationRate.ResponseTime.SECONDS);
+    Instant now = timeService.getCurrentTime();
     TariffSpecification spec = 
             new TariffSpecification(broker,
                                     PowerType.CONSUMPTION).
                                     withMinDuration(20000l).
                                     withSignupPayment(35.0).
                                     withPeriodicPayment(-0.05).
+                                    withExpiration(now.plus(TimeService.DAY * 2)).
                                     addSupersedes(42l).
                                     addRate(r).
                                     addRate(rr);
@@ -197,7 +199,7 @@ public class TariffSpecificationTests
     xstream.autodetectAnnotations(true);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(spec));
-//    System.out.println(serialized.toString());
+    System.out.println(serialized.toString());
     TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
     assertNotNull(xspec, "deserialized something");
     //assertEquals(spec, xspec, "correct match");
@@ -206,6 +208,7 @@ public class TariffSpecificationTests
     assertNotNull(supersedes, "non-empty supersedes list");
     assertEquals(1, supersedes.size(), "one entry");
     assertEquals(new Long(42l), supersedes.get(0), "correct entry");
+    assertEquals(now.plus(TimeService.DAY * 2), xspec.getExpiration(), "correct expiration");
     Rate xr = (Rate)xspec.getRates().get(0);
     assertNotNull(xr, "rate present");
     assertTrue(xr.isFixed(), "correct rate type");
