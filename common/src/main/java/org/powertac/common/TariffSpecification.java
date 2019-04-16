@@ -54,16 +54,13 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 
  * @author John Collins
  */
-@Domain(fields = {"broker", "powerType", "minDuration",
-                  "signupPayment", "earlyWithdrawPayment", "periodicPayment",
+@Domain(fields = {"broker", "powerType", "minDuration", "signupPayment",
+                  "earlyWithdrawPayment", "periodicPayment", "expiration",
                   "supersedes"})
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
   static private Logger log = LogManager.getLogger(TariffSpecification.class);
-
-  /** Last date new subscriptions will be accepted. Null means never expire. */
-  private Instant expiration = null;
 
   /** Minimum contract duration (in milliseconds) */
   @XStreamAsAttribute
@@ -87,13 +84,18 @@ public class TariffSpecification extends TariffMessage
   @XStreamAsAttribute
   private double periodicPayment = 0.0;
 
+  /** Last date, in msec past epoch, that new subscriptions will be accepted.
+   *  Zero means never expire. */
+  @XStreamAsAttribute
+  private long expiration = 0l;
+
   private List<RateCore> rates;
 
   private List<Long> supersedes;
   
   /**
    * Creates a new TariffSpecification for a broker and a specific powerType.
-   * Attributes are provided by the fluent {@code withX() methods}.
+   * Attributes are provided by the fluent {@code withX()} methods.
    */
   public TariffSpecification (Broker broker, PowerType powerType)
   {
@@ -110,18 +112,29 @@ public class TariffSpecification extends TariffMessage
   
   public Instant getExpiration ()
   {
-    return expiration;
+    if (expiration > 0)
+      return new Instant(expiration);
+    else
+      return null;
+  }
+
+  /**
+   * Sets expiration date as msec since epoch. See Issue #1016.
+   */
+  @StateChange
+  public TariffSpecification withExpiration (long expiration)
+  {
+    this.expiration = expiration;
+    return this;
   }
 
   /**
    * Sets the expiration date for this tariff. After this date, customers 
    * will no longer be allowed to subscribe.
    */
-  @StateChange
   public TariffSpecification withExpiration (Instant expiration)
   {
-    this.expiration = expiration;
-    return this;
+    return this.withExpiration(expiration.getMillis());
   }
 
   public long getMinDuration ()

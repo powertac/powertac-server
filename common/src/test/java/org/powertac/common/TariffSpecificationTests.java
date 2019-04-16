@@ -199,7 +199,7 @@ public class TariffSpecificationTests
     xstream.autodetectAnnotations(true);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(spec));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
     assertNotNull(xspec, "deserialized something");
     //assertEquals(spec, xspec, "correct match");

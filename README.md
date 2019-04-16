@@ -2,6 +2,7 @@
 
 Core modules needed for both broker and server:
 
+- [metadata](metadata/README.md)
 - [aop](aop/README.md)
 - [common](common/README.md)
 - [broker-core](broker-core/README.md)

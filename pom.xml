@@ -24,6 +24,7 @@
 
   <!-- Core components -->
   <modules>
+    <module>powertac-metadata</module>
     <module>powertac-aop</module>
     <module>common</module>
     <module>broker-core</module>
