@@ -17,9 +17,11 @@
 
   <!-- Require more or less recent Maven version -->
   <!-- http://maven.apache.org/ref/3.2.1/maven-model-builder/super-pom.html -->
+  <!--
   <prerequisites>
     <maven>${maven.version}</maven>
   </prerequisites>
+  -->
 
 
   <!-- Core components -->

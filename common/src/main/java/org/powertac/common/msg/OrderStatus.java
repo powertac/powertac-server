@@ -32,7 +32,7 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  * 
  * @author John Collins
  */
-@Domain
+@Domain(fields = {"broker", "orderId", "status"})
 @XStreamAlias("order-status")
 public class OrderStatus
 extends XStreamStateLoggable

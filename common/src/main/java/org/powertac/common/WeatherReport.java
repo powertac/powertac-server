@@ -32,7 +32,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 *
 * @version 1.0 - 03/May/2011
 */
-@Domain
+@Domain(fields = {"timeslot", "temperature", "windSpeed", "windDirection", "cloudCover"})
 @XStreamAlias("weather-report")
 public class WeatherReport
 {

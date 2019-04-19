@@ -36,7 +36,7 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  *
  * @author Carsten Block, David Dauer, John Collins
  */
-@Domain
+@Domain(fields = {"broker", "timeslot", "balance"})
 @XStreamAlias("market-posn")
 public class MarketPosition //implements Serializable 
 {

@@ -28,7 +28,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 *
 * @version 1.0 - 03/Jun/2011
 */
-@Domain
+@Domain(fields = {"forecastTime", "temperature", "windSpeed",
+                  "windDirection", "cloudCover"})
 @XStreamAlias("weather-prediction")
 public class WeatherForecastPrediction
 {

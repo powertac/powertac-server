@@ -32,7 +32,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * timeslot in which a non-zero quantity was traded. 
  * @author Daniel Schnurr, John Collins
  */
-@Domain
+@Domain(fields = {"timeslot", "executionMWh", "executionPrice", "dateExecuted"})
 @XStreamAlias("trade")
 public class ClearedTrade
 {

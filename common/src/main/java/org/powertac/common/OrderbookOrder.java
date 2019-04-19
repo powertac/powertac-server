@@ -26,7 +26,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  * an Orderbook.
  * @author Daniel Schnurr
  */
-@Domain
+@Domain(fields = {"mWh", "limitPrice"})
 @XStreamAlias("orderbook-bid")
 public class OrderbookOrder implements Comparable<Object> 
 {

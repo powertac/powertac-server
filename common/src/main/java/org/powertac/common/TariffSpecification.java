@@ -54,13 +54,18 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 
  * @author John Collins
  */
-@Domain(fields = {"broker", "powerType", "minDuration", "signupPayment",
-                  "earlyWithdrawPayment", "periodicPayment", "expiration",
+@Domain(fields = {"broker", "powerType", "expiration", "minDuration",
+                  "signupPayment", "earlyWithdrawPayment", "periodicPayment",
                   "supersedes"})
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
   static private Logger log = LogManager.getLogger(TariffSpecification.class);
+
+  /** Last date, in msec past epoch, that new subscriptions will be accepted.
+   *  Zero means never expire. */
+  @XStreamAsAttribute
+  private long expiration = 0l;
 
   /** Minimum contract duration (in milliseconds) */
   @XStreamAsAttribute
@@ -83,11 +88,6 @@ public class TariffSpecification extends TariffMessage
   /** Flat payment per period for two-part tariffs */
   @XStreamAsAttribute
   private double periodicPayment = 0.0;
-
-  /** Last date, in msec past epoch, that new subscriptions will be accepted.
-   *  Zero means never expire. */
-  @XStreamAsAttribute
-  private long expiration = 0l;
 
   private List<RateCore> rates;
 

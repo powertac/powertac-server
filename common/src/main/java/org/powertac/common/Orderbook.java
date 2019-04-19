@@ -40,7 +40,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * @author Daniel Schnurr, John Collins
  * @version 1.2 , 05/02/2011
  */
-@Domain
+@Domain(fields = {"timeslot", "clearingPrice", "dateExecuted"})
 @XStreamAlias("orderbook")
 public class Orderbook 
 {

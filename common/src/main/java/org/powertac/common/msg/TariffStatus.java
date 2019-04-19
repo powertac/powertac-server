@@ -28,7 +28,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * of a tariff.
  * @author jcollins
  */
-@Domain
+@Domain(fields = {"broker", "tariffId", "updateId", "status"})
 @XStreamAlias("tariff-status")
 public class TariffStatus extends TariffMessage
 {

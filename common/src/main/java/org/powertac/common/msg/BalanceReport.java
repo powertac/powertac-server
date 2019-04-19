@@ -29,7 +29,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * @author John Collins
  */
 @XStreamAlias("balance-report")
-@Domain
+@Domain(fields = {"timeslotIndex", "newImbalance"})
 public class BalanceReport
 {
   @XStreamAsAttribute

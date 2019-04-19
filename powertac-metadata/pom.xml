@@ -19,6 +19,13 @@
 
   <dependencies>
 
+    <!-- Power TAC -->
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>powertac-aop</artifactId>
+      <version>1.7.0-SNAPSHOT</version>
+    </dependency>
+
     <!-- Spring -->
     <dependency>
       <groupId>org.springframework</groupId>
@@ -49,12 +56,14 @@
   <build>
 
     <plugins>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-compiler-plugin</artifactId>
-      <version>3.6.1</version>
-      <configuration>
-        <compilerArgs>-proc:none</compilerArgs>
-      </configuration>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>${maven-compiler.version}</version>
+	<configuration>
+          <compilerArgs>-proc:none</compilerArgs>
+	</configuration>
+      </plugin>
     </plugins>
 
   </build>
