@@ -18,6 +18,8 @@ package org.powertac.server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.powertac.common.metadata.StateLogService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -50,6 +52,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogService
 {
+  @Autowired
+  private StateLogService stateLogger;
+
   private String filenamePrefix = "powertac";
   
   public LogService ()
@@ -93,6 +98,7 @@ public class LogService
       System.setProperty("statefile", logDir + "/" + filename + ".state");
       
       ((LoggerContext) LogManager.getContext(false)).reconfigure();
+      stateLogger.init();
     }
     catch (Exception ioe) {
       System.out.println("Can't open log file");
