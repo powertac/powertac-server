@@ -97,7 +97,7 @@ public class StateLogging
       writeLog(clazz.getName(), id, "new", args);
     }
   }
-  
+
   private Object[] collectProperties(Object thing) {
     ArrayList<Object> properties = new ArrayList<Object>();
     try {
