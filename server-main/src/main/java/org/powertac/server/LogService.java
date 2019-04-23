@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
 public class LogService
 {
   @Autowired
-  private StateLogService stateLogger;
+  private StateLogService stateLogService;
 
   private String filenamePrefix = "powertac";
   
@@ -98,11 +98,12 @@ public class LogService
       System.setProperty("statefile", logDir + "/" + filename + ".state");
       
       ((LoggerContext) LogManager.getContext(false)).reconfigure();
-      stateLogger.init();
+      stateLogService.init();
     }
     catch (Exception ioe) {
+      ioe.printStackTrace();
       System.out.println("Can't open log file");
-      System.exit(0);
+      //System.exit(0);
     }
   }
 

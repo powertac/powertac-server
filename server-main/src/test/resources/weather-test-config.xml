@@ -91,6 +91,9 @@
   </bean>
    -->  
   
+  <bean id="stateLogService"
+        class="org.powertac.common.metadata.StateLogService" />
+  
   <bean id="weatherReportRepo"
         class="org.powertac.common.repo.WeatherReportRepo">
   </bean>

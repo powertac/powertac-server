@@ -147,4 +147,7 @@
   <bean id="springApplicationContext"
         class="org.powertac.common.spring.SpringApplicationContext" />
 
+  <bean id="stateLogService"
+        class="org.powertac.common.metadata.StateLogService" />
+
 </beans>

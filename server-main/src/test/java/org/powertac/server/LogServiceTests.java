@@ -21,20 +21,24 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.powertac.common.metadata.StateLogService;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class LogServiceTests
 {
   static private LogService logService;
   static private Logger staticLog = LogManager.getLogger(LogService.class.getName());
+
   private Logger log;
   private Logger stateLog;
-  
+
   public LogServiceTests ()
   {
     super();
@@ -46,6 +50,7 @@ public class LogServiceTests
   {
     // initialize the log service (config src/test/resources/log4j2-test.xml)
     logService = new LogService();
+    ReflectionTestUtils.setField(logService, "stateLogService", new StateLogService());
   }
   
   // per-test setup
@@ -109,12 +114,14 @@ public class LogServiceTests
     assertTrue(stateFile.exists(), "state file exists");
     try {
       BufferedReader stateReader = new BufferedReader(new FileReader(stateFile));
-      String line1 = stateReader.readLine();
-      assertNotNull(line1, "line one in file");
-      String[] fields = line1.split(":");
-      assertEquals(2, fields.length, "2 fields");
+      String line;
+      String[] fields;
+      confirmSchemaHeader(stateReader);
+      line = stateReader.readLine();
+      fields = line.split(":");
+      assertEquals(2, fields.length, "two fields");
       assertTrue(fields[0].matches("\\d+"), "first field is a number");
-      assertTrue(fields[1].matches("sim-state"), "second field is state");
+      assertTrue(fields[1].matches("sim-state"));
       stateReader.close();
     }
     catch (Exception e) {
@@ -143,6 +150,7 @@ public class LogServiceTests
     assertTrue(stateFile.exists(), "state file exists");
     try {
       BufferedReader stateReader = new BufferedReader(new FileReader(stateFile));
+      confirmSchemaHeader(stateReader);
       String line1 = stateReader.readLine();
       assertNotNull(line1, "line one in file");
       String[] fields = line1.split(":");
@@ -156,5 +164,22 @@ public class LogServiceTests
     }
     
     logService.stopLog();
+  }
+
+  private void confirmSchemaHeader (BufferedReader stateReader)
+    throws IOException
+  {
+    String line = stateReader.readLine();
+    //System.out.println(line1);
+    assertNotNull(line, "line one in file");
+    String[] fields = line.split(":");
+    assertEquals(3, fields.length, "3 fields schema prefix");
+    assertTrue(fields[0].matches("\\d+"), "first field is a number");
+    assertTrue(fields[1].matches("Domain-schema-version"), "second field is schema tag");
+    while (null != (line = stateReader.readLine())) {
+      fields = line.split(":");
+      if (fields[1].matches("schema.end"))
+        break;
+    }
   }
 }
