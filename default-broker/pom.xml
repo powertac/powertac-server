@@ -27,6 +27,19 @@
 
   </dependencies>
 
+  <build>
+    <plugins>
+      <!-- explicit compile to prevent annotation processing -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>${maven-compiler.version}</version>
+	<configuration>
+          <compilerArgs>-proc:none</compilerArgs>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
 
   <scm>
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>

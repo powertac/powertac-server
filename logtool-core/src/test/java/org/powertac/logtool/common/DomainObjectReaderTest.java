@@ -3,6 +3,8 @@ package org.powertac.logtool.common;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
+import java.util.HashMap;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -28,7 +30,23 @@ public class DomainObjectReaderTest
   @BeforeEach
   public void setUp () throws Exception
   {
+    HashMap<String, String[]> schema = new HashMap<>();
+    schema.put("org.powertac.common.TariffSpecification",
+               "broker,powerType,expiration,minDuration,signupPayment,earlyWithdrawPayment,periodicPayment,supersedes"
+               .split(","));
+    schema.put("org.powertac.common.Rate",
+               "tariffId,weeklyBegin,weeklyEnd,dailyBegin,dailyEnd,tierThreshold,fixed,minValue,maxValue,noticeInterval,expectedMean,maxCurtailment"
+               .split(","));
+    schema.put("org.powertac.common.RegulationRate",
+               "tariffId,response,upRegulationPayment,downRegulationPayment"
+               .split(","));
+    schema.put("org.powertac.common.HourlyCharge",
+               "rateId,value,atTime".split(","));
+    schema.put("org.powertac.common.msg.BalancingOrder",
+               "exerciseRatio,price,tariffId,broker".split(","));
+            
     dor = new DomainObjectReader();
+    dor.setSchema(schema);
   }
 
   @Test

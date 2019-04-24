@@ -34,13 +34,11 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.TimeService;
-import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
-import org.powertac.common.state.Domain;
 import org.powertac.common.xml.PowerTypeConverter;
 import org.powertac.du.DefaultBroker;
 import org.powertac.logtool.LogtoolContext;
@@ -64,6 +62,7 @@ public class DomainObjectReader
   @Autowired
   private TimeService timeService;
   
+  HashMap<String, String[]> schema;
   HashMap<Long, Object> idMap;
   HashMap<Class<?>, Class<?>> ifImplementors;
   HashMap<String, Class<?>> substitutes;
@@ -165,6 +164,14 @@ public class DomainObjectReader
       messageListeners.put(type, list);
     }
     list.add(listener);
+  }
+  
+  /**
+   * Sets the schema for this log.
+   */
+  public void setSchema (HashMap<String, String[]> schema)
+  {
+    this.schema = schema;
   }
 
   /**
@@ -421,9 +428,9 @@ public class DomainObjectReader
   private Object restoreInstance (Class<?> clazz, String[] args)
           throws MissingDomainObject
   {
-    Domain domain = clazz.getAnnotation(Domain.class);
-    if (domain instanceof Domain) {
-      // only do this for @Domain classes
+    String[] fieldNames = schema.get(clazz.getName());
+    if (null != fieldNames) {
+      // only do this for @Domain classes that are in the recorded schema
       Object thing = null;
       try {
         Constructor<?> cons = clazz.getDeclaredConstructor();
@@ -435,7 +442,7 @@ public class DomainObjectReader
                   + ": " + e.toString());
         return null;
       }
-      String[] fieldNames = domain.fields();
+      // #1016 -- String[] fieldNames = domain.fields();
       Field[] fields = new Field[fieldNames.length];
       Class<?>[] types = new Class<?>[fieldNames.length];
       for (int i = 0; i < fieldNames.length; i++) {

@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -38,6 +40,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.logging.log4j.LogManager;
+import org.powertac.common.Competition;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.repo.DomainRepo;
@@ -235,6 +238,9 @@ public class LogtoolCore
         tool.setup();
       }
       BufferedReader in = new BufferedReader(inputReader);
+      // extract schema, hand it off to the reader
+      reader.setSchema(extractSchema(in));
+      
       int lineNumber = 0;
       while (!simEnd) {
         synchronized(this) {
@@ -267,6 +273,37 @@ public class LogtoolCore
 
   public synchronized void interrupt() {
     isInterrupted = true;
+  }
+  
+  private HashMap<String, String[]> extractSchema (BufferedReader input)
+  throws IOException
+  {
+    HashMap<String, String[]> result = new HashMap<>();
+    BufferedReader schema = input;
+    int offset = 1; // embedded schema has msec field first
+    schema.mark(64);
+    String line = schema.readLine();
+    if (line.indexOf("Domain-schema") == -1) {
+      // pull in default schema for older logs
+      schema.reset();
+      InputStream defaultStream =
+              Competition.class.getClassLoader().getResourceAsStream("metadata/domain-default.schema");
+      schema = new BufferedReader(new InputStreamReader(defaultStream));
+      offset = 0;
+    }
+    line = schema.readLine();
+    if (!line.startsWith("Domain-schema")) {
+      log.error("Bad default schema: {}", line);
+      return result;
+    }
+    while (null != (line = schema.readLine())) {
+      String[] tokens = line.split(":");
+      if (tokens[offset].startsWith("schema.end"))
+        break;
+      // first token is class, rest are fields
+      result.put(tokens[offset], tokens[offset + 1].split(","));
+    }
+    return result;
   }
 
   class SimStartHandler implements NewObjectListener
