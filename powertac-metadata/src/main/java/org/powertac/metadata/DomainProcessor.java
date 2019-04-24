@@ -81,6 +81,9 @@ public class DomainProcessor extends AbstractProcessor
     //for (String key : opts.keySet())
     //  System.out.println("Key " + key);
     String artifactVersion = opts.get("core.versionId");
+    if (null == artifactVersion) {
+      System.out.println("Could not retrieve versionId");
+    }
     out.format("Domain-schema-version:%s\n", artifactVersion);
     if (annotations.size() != 1) {
       System.out.println("Should be only one annotation, saw " + annotations.size());

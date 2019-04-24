@@ -55,12 +55,14 @@ public class StateLogService
   {
     InputStream schema =
             getClass().getClassLoader().getResourceAsStream("metadata/domain.schema");
+    log.debug("found schema");
     Reader rdr = new InputStreamReader(schema);
     BufferedReader reader = new BufferedReader(rdr);
     String line;
     try {
       while (null != (line = reader.readLine())) {
         stateLog.info(line);
+        log.debug("Schema line {}", line);
       }
     }
     catch (IOException ioe) {
