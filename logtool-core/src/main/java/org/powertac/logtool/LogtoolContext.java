@@ -16,6 +16,10 @@
 package org.powertac.logtool;
 
 import java.lang.reflect.Method;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.logtool.common.DomainObjectReader;
@@ -39,13 +43,21 @@ public abstract class LogtoolContext
   ApplicationContext context;
   LogtoolCore core;
   DomainObjectReader dor;
+  
+  // Common number formatting in subclasses
+  protected DecimalFormat df;
 
-  /** Set up the Spring context */
+
+  /** Set up the Spring context, initialize common number formatting setup */
   protected void initialize() {
     ClassPathXmlApplicationContext ctx =
         new ClassPathXmlApplicationContext("logtool.xml");
     ctx.registerShutdownHook();
     setContext(ctx);
+    
+    df = (DecimalFormat)NumberFormat.getInstance(Locale.US);
+    df.setMaximumFractionDigits(4);
+    df.setGroupingUsed(false);
   }
 
   protected void setContext(ApplicationContext context) {
