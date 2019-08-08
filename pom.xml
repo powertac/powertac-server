@@ -48,7 +48,7 @@
     <sonatype.release.args />
 
     <!-- Managed common dependency versions -->
-    <aspectj.version>1.9.2</aspectj.version>
+    <aspectj.version>1.9.4</aspectj.version>
 
     <active-mq.version>5.15.7</active-mq.version>
     <xstream.version>1.4.11.1</xstream.version>
@@ -73,7 +73,7 @@
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
 
-    <maven-aspectj.version>1.11</maven-aspectj.version>
+    <maven-aspectj.version>1.12.1</maven-aspectj.version>
     <maven-aspectj.compliance>${java.version}</maven-aspectj.compliance>
 
     <maven-antrun.version>1.8</maven-antrun.version>
@@ -180,7 +180,6 @@
         <artifactId>spring-jms</artifactId>
         <version>${spring.version}</version>
       </dependency>
-
 
       <!-- AspectJ -->
 
@@ -456,8 +455,11 @@
 
         <!-- AspectJ -->
 
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+	<plugin>
+          <!-- Temporary, see -->
+          <!-- https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
+	  <!-- <groupId>org.codehaus.mojo</groupId> -->
+	  <groupId>com.nickwongdev</groupId>
           <artifactId>aspectj-maven-plugin</artifactId>
           <version>${maven-aspectj.version}</version>
           <!-- Need to override aspectjtools version, see -->
