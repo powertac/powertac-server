@@ -4,25 +4,25 @@
   "appPath": "src/main/webapp/",
   "testPath": "src/test/javascript/spec",
   "dependencies": {
-    "angular": "1.5.8",
-    "angular-aria": "1.5.8",
-    "angular-bootstrap": "1.3.3",
+    "angular": "1.7.8",
+    "angular-aria": "1.7.8",
+    "angular-bootstrap": "2.5.0",
     "angular-cache-buster": "0.4.3",
-    "angular-cookies": "1.5.8",
-    "ngstorage": "0.3.10",
+    "angular-cookies": "1.7.8",
+    "ngstorage": "0.3.11",
     "angular-loading-bar": "0.9.0",
-    "angular-resource": "1.5.8",
-    "angular-sanitize": "1.5.8",
-    "angular-ui-router": "0.3.1",
-    "bootstrap": "3.3.7",
-    "bootstrap-ui-datetime-picker": "2.4.3",
-    "jquery": "3.1.0",
+    "angular-resource": "1.7.8",
+    "angular-sanitize": "1.7.8",
+    "angular-ui-router": "0.4.3",
+    "bootstrap": "3.4.1",
+    "bootstrap-ui-datetime-picker": "2.6.3",
+    "jquery": "3.4.1",
     "json3": "3.3.2",
-    "messageformat": "0.3.1",
-    "modernizr": "3.3.1",
-    "ng-file-upload": "12.0.4",
-    "ngInfiniteScroll": "1.3.0",
-    "sockjs-client": "1.1.2",
+    "messageformat": "2.0.5",
+    "modernizr": "3.7.1",
+    "ng-file-upload": "12.2.13",
+    "ngInfiniteScroll": "1.3.4",
+    "sockjs-client": "1.3.0",
     "stomp-websocket": "2.3.4",
     "angular-bootstrap-file-field": "0.1.3",
     "angular-smart-table": "2.1.8",
@@ -35,12 +35,12 @@
   "overrides": {
     "angular": {
       "dependencies": {
-        "jquery": "3.1.0"
+        "jquery": "3.4.1"
       }
     },
     "angular-cache-buster": {
       "dependencies": {
-        "angular": "1.5.8"
+        "angular": "1.7.8"
       }
     },
     "bootstrap": {
@@ -50,7 +50,7 @@
     },
     "highcharts-ng": {
       "dependencies": {
-        "angular": "1.5.2"
+        "angular": "1.7.8"
       }
     },
     "highcharts": {
@@ -62,8 +62,8 @@
     }
   },
   "resolutions": {
-    "angular": "1.5.8",
-    "angular-bootstrap": "2.0.0",
-    "jquery": "3.1.0"
+    "angular": "1.7.8",
+    "angular-bootstrap": "2.5.0",
+    "jquery": "3.4.1"
   }
 }
