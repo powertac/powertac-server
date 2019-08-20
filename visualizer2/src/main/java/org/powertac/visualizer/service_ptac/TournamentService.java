@@ -169,9 +169,6 @@ public class TournamentService implements MessageListener {
     @PreDestroy
     private void cleanUp() throws Exception {
       try {
-        // TODO Maybe Spring is better at handling these?
-        log.info("\nClean up " + this.getClass().getSimpleName() + " (4) : ");
-
         // Shutdown the proxy if needed
         if (proxy != null) {
             proxy.shutdown();

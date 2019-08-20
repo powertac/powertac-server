@@ -265,8 +265,13 @@ public class AccountResourceIntTest {
 
         Optional<User> userDup = userRepository.findOneByLogin("badguy");
         assertThat(userDup.isPresent()).isTrue();
-        assertThat(userDup.get().getAuthorities()).hasSize(1)
-            .containsExactly(authorityRepository.getOne(AuthoritiesConstants.USER));
+        Authority checkAuth = authorityRepository.getOne(AuthoritiesConstants.USER);
+        Set<Authority> hasAuths = userDup.get().getAuthorities();
+        assertThat(hasAuths).hasSize(1);
+        for (Iterator<Authority> it = hasAuths.iterator(); it.hasNext(); ) {
+            Authority hasAuth = it.next();
+            assertThat(hasAuth.getName().equals(checkAuth.getName()));
+        }
     }
 
     @Test

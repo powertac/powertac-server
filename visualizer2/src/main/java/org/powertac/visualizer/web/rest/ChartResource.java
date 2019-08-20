@@ -120,8 +120,8 @@ public class ChartResource {
     @Timed
     public ResponseEntity<Chart> getChart(@PathVariable Long id) {
         log.debug("REST request to get Chart : {}", id);
-        Chart chart = chartService.getOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(chart));
+        Optional<Chart> chart = chartService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(chart);
     }
 
     /**
@@ -134,10 +134,8 @@ public class ChartResource {
     @Timed
     public ResponseEntity<Void> deleteChart(@PathVariable Long id) {
         log.debug("REST request to delete Chart : {}", id);
-        Chart chart = chartService.getOne(id);
-        if (chart != null) {
-            chartService.delete(chart);
-        }
+        Optional<Chart> chart = chartService.findOne(id);
+        chart.ifPresent(chartService::delete);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 

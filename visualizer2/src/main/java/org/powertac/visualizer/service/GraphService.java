@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service Implementation for managing Graph.
@@ -70,10 +71,9 @@ public class GraphService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public Graph getOne(Long id) {
+    public Optional<Graph> findOne(Long id) {
         log.debug("Request to get Graph : {}", id);
-        Graph graph = graphRepository.getOne(id);
-        return graph;
+        return graphRepository.findById(id);
     }
 
     /**

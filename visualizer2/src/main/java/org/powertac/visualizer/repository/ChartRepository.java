@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Spring Data JPA repository for the Chart entity.
@@ -22,6 +23,6 @@ public interface ChartRepository extends JpaRepository<Chart,Long> {
     List<Chart> findAllWithEagerRelationships();
 
     @Query("select chart from Chart chart left join fetch chart.graphs where chart.id =:id")
-    Chart findOneWithEagerRelationships(@Param("id") Long id);
+    Optional<Chart> findOneWithEagerRelationships(@Param("id") Long id);
 
 }

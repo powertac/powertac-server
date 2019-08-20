@@ -122,8 +122,8 @@ public class ViewResource {
     @Timed
     public ResponseEntity<View> getView(@PathVariable Long id) {
         log.debug("REST request to get View : {}", id);
-        View view = viewService.getOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(view));
+        Optional<View> view = viewService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(view);
     }
 
     /**
@@ -136,10 +136,8 @@ public class ViewResource {
     @Timed
     public ResponseEntity<Void> deleteView(@PathVariable Long id) {
         log.debug("REST request to delete View : {}", id);
-        View view = viewService.getOne(id);
-        if (view != null) {
-            viewService.delete(view);
-        }
+        Optional<View> view = viewService.findOne(id);
+        view.ifPresent(viewService::delete);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 

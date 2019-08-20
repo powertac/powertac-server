@@ -121,8 +121,8 @@ public class GraphResource {
     @Timed
     public ResponseEntity<Graph> getGraph(@PathVariable Long id) {
         log.debug("REST request to get Graph : {}", id);
-        Graph graph = graphService.getOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(graph));
+        Optional<Graph> graph = graphService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(graph);
     }
 
     /**
@@ -135,10 +135,8 @@ public class GraphResource {
     @Timed
     public ResponseEntity<Void> deleteGraph(@PathVariable Long id) {
         log.debug("REST request to delete Graph : {}", id);
-        Graph graph = graphService.getOne(id);
-        if (graph != null) {
-            graphService.delete(graph);
-        }
+        Optional<Graph> graph = graphService.findOne(id);
+        graph.ifPresent(graphService::delete);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 
