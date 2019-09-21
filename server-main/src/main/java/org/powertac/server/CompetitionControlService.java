@@ -281,6 +281,7 @@ public class CompetitionControlService
   @Override
   public void runOnce (boolean bootstrapMode, boolean dumpConfigOnly)
   {
+    log.info("runOnce " + bootstrapMode);
     this.bootstrapMode = bootstrapMode;
     competition = Competition.currentCompetition();
 
