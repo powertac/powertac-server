@@ -8,16 +8,16 @@ import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.ChartService;
 import org.powertac.visualizer.web.rest.errors.ExceptionTranslator;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @see ChartResource
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Visualizer2App.class)
 public class ChartResourceIntTest {
 
@@ -70,7 +70,7 @@ public class ChartResourceIntTest {
 
     private Chart chart;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         ChartResource chartResource = new ChartResource(chartService, userRepository);
@@ -93,7 +93,7 @@ public class ChartResourceIntTest {
         return chart;
     }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         chart = createEntity(em);
     }

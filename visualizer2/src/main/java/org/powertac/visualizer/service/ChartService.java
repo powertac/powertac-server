@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service Implementation for managing Chart.
@@ -70,10 +71,9 @@ public class ChartService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public Chart getOne(Long id) {
+    public Optional<Chart> findOne(Long id) {
         log.debug("Request to get Chart : {}", id);
-        Chart chart = chartRepository.findOneWithEagerRelationships(id);
-        return chart;
+        return chartRepository.findOneWithEagerRelationships(id);
     }
 
     /**

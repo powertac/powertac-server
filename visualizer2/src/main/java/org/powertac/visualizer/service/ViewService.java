@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service Implementation for managing View.
@@ -70,10 +71,9 @@ public class ViewService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public View getOne(Long id) {
+    public Optional<View> findOne(Long id) {
         log.debug("Request to get View : {}", id);
-        View view = viewRepository.getOne(id);
-        return view;
+        return viewRepository.findById(id);
     }
 
     /**

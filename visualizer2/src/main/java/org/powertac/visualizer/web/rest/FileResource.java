@@ -144,8 +144,8 @@ public class FileResource {
     @Timed
     public ResponseEntity<File> getFile(@PathVariable Long id) {
         log.debug("REST request to get File : {}", id);
-        File file = fileService.getOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(file));
+        Optional<File> file = fileService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(file);
     }
 
     /**
@@ -158,10 +158,11 @@ public class FileResource {
     @Timed
     public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
         log.debug("REST request to delete File : {}", id);
-        File file = fileService.getOne(id);
-        if (file != null) {
-            fileService.delete(file);
-            file.getType().getFile(file.getOwner(), file.getName()).delete();
+        Optional<File> file = fileService.findOne(id);
+        if (file.isPresent()) {
+            File ff = file.get();
+            fileService.delete(ff);
+            ff.getType().getFile(ff.getOwner(), ff.getName()).delete();
         }
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
@@ -200,13 +201,17 @@ public class FileResource {
         if (fileType == null) {
             throw new IllegalArgumentException("Unknown type " + type);
         }
-        File file = fileService.getOne(id);
-        java.io.File raw = fileType.getFile(file.getOwner(), file.getName());
+        Optional<File> file = fileService.findOne(id);
+        if (file.isEmpty()) {
+            return;
+        }
+        File ff = file.get();
+        java.io.File raw = fileType.getFile(ff.getOwner(), ff.getName());
         try (
             InputStream in = new BufferedInputStream(new FileInputStream(raw));
             OutputStream out = new BufferedOutputStream(response.getOutputStream())
         ) {
-            response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
+            response.setHeader("Content-Disposition", "attachment; filename=" + ff.getName());
             response.setHeader("Content-Type", fileType.getContentType());
             IOUtils.copy(in, out);
         }

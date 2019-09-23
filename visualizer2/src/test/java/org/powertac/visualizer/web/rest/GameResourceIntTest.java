@@ -8,16 +8,16 @@ import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.GameService;
 import org.powertac.visualizer.web.rest.errors.ExceptionTranslator;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,12 +36,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.powertac.visualizer.domain.enumeration.GameType;
+
 /**
  * Test class for the GameResource REST controller.
  *
  * @see GameResource
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Visualizer2App.class)
 public class GameResourceIntTest {
 
@@ -85,7 +86,7 @@ public class GameResourceIntTest {
 
     private Game game;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         GameResource gameResource = new GameResource(gameService, userRepository);
@@ -111,7 +112,7 @@ public class GameResourceIntTest {
         return game;
     }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         game = createEntity(em);
     }

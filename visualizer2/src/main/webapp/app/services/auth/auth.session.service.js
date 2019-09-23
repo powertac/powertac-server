@@ -36,7 +36,7 @@
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }
-            }).success(function (response) {
+            }).then(function (response) {
                 return response;
             });
         }
@@ -44,15 +44,15 @@
         function logout () {
             JhiTrackerService.disconnect();
 
-            
+
             // logout from the server
-            $http.post('api/logout').success(function (response) {
+            $http.post('api/logout').then(function (response) {
                 delete $localStorage.authenticationToken;
                 // to get a new csrf token call the api
                 $http.get('api/account');
                 return response;
             });
-            
+
         }
     }
 })();

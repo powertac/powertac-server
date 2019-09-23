@@ -9,16 +9,16 @@ import org.powertac.visualizer.service.FileService;
 import org.powertac.visualizer.service.GameService;
 import org.powertac.visualizer.web.rest.errors.ExceptionTranslator;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +38,7 @@ import org.powertac.visualizer.domain.enumeration.FileType;
  *
  * @see FileResource
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Visualizer2App.class)
 public class FileResourceIntTest {
 
@@ -79,7 +79,7 @@ public class FileResourceIntTest {
 
     private File file;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         FileResource fileResource = new FileResource(fileService, gameService, userRepository);
@@ -103,7 +103,7 @@ public class FileResourceIntTest {
         return file;
     }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         file = createEntity(em);
     }

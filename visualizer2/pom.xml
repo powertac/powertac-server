@@ -24,42 +24,40 @@
 
     <properties>
         <argLine>-Djava.security.egd=file:/dev/./urandom -Xmx256m</argLine>
-        <assertj.version>3.11.1</assertj.version>
-        <awaitility.version>3.1.2</awaitility.version>
+        <assertj.version>3.13.2</assertj.version>
+        <awaitility.version>3.1.6</awaitility.version>
         <commons-io.version>2.6</commons-io.version>
-        <commons-lang.version>3.8.1</commons-lang.version>
         <docker-maven-plugin.version>1.2.0</docker-maven-plugin.version>
-        <dropwizard-metrics.version>4.0.3</dropwizard-metrics.version>
-        <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
-        <hibernate.version>5.3.7.Final</hibernate.version>
-        <hibernate-validator.version>5.4.2.Final</hibernate-validator.version>
-        <hikaricp.version>3.2.0</hikaricp.version>
-        <jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
-        <java.version>1.8</java.version>
-        <javassist.version>3.23.1-GA</javassist.version>
+        <dropwizard-metrics.version>4.1.0</dropwizard-metrics.version>
+        <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version>
+        <hibernate.version>5.4.4.Final</hibernate.version>
+        <hibernate-validator.version>6.0.17.Final</hibernate-validator.version>
+        <hikaricp.version>3.3.1</hikaricp.version>
+        <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+        <javassist.version>3.25.0-GA</javassist.version>
         <jcache.version>1.0.1</jcache.version>
-        <jhipster.server.version>1.3.0</jhipster.server.version>
-        <liquibase.version>3.6.2</liquibase.version>
-        <liquibase-hibernate5.version>3.6</liquibase-hibernate5.version>
+        <jhipster.server.version>1.3.1</jhipster.server.version>
+        <liquibase.version>3.7.0</liquibase.version>
+        <liquibase-hibernate5.version>3.7</liquibase-hibernate5.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
         <m2e.apt.activation>jdt_apt</m2e.apt.activation>
-        <mapstruct.version>1.2.0.Final</mapstruct.version>
+        <mapstruct.version>1.3.0.Final</mapstruct.version>
         <maven-eclipse-plugin.version>2.10</maven-eclipse-plugin.version>
         <maven-tomcat-plugin.version>2.2</maven-tomcat-plugin.version>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <metrics-spring.version>3.1.3</metrics-spring.version>
-        <node.version>v10.13.0</node.version>
-        <problem-spring.version>0.24.0-RC.0</problem-spring.version>
+        <node.version>v10.16.3</node.version>
+        <problem-spring.version>0.24.0</problem-spring.version>
         <problem-spring-web.version>${problem-spring.version}</problem-spring-web.version>
         <!-- These remain empty unless the corresponding profile is active -->
         <profile.no-liquibase />
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
-        <prometheus-simpleclient.version>0.5.0</prometheus-simpleclient.version>
+        <prometheus-simpleclient.version>0.6.0</prometheus-simpleclient.version>
         <run.addResources>false</run.addResources>
-        <scala-maven-plugin.version>3.2.2</scala-maven-plugin.version>
-        <scala.version>2.12.1</scala.version>
+        <scala-maven-plugin.version>4.1.1</scala-maven-plugin.version>
+        <scala.version>2.12.9</scala.version>
         <!-- Sonar properties -->
-        <sonar-maven-plugin.version>3.2</sonar-maven-plugin.version>
+        <sonar-maven-plugin.version>3.6.0.1398</sonar-maven-plugin.version>
 
         <sonar.exclusions>src/main/webapp/content/**/*.*, src/main/webapp/bower_components/**/*.*, src/main/webapp/i18n/*.js, target/www/**/*.*</sonar.exclusions>
         <sonar.issue.ignore.multicriteria>S3437,UndocumentedApi,BoldAndItalicTagsCheck</sonar.issue.ignore.multicriteria>
@@ -86,9 +84,9 @@
         <sonar.sources>${project.basedir}/src/main/</sonar.sources>
         <sonar.surefire.reportsPath>${project.testresult.directory}/surefire-reports</sonar.surefire.reportsPath>
         <sonar.tests>${project.basedir}/src/test/</sonar.tests>
-        <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
+        <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
-        <yarn.version>v1.12.1</yarn.version>
+        <yarn.version>v1.17.3</yarn.version>
         <visualizer.mode>research</visualizer.mode>
     </properties>
 
@@ -166,6 +164,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-json-org</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.json</groupId>
+                    <artifactId>json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -317,7 +321,7 @@
             <version>${hibernate.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>${hibernate-validator.version}</version>
         </dependency>
@@ -342,7 +346,7 @@
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct-jdk8</artifactId>
+            <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
         <dependency>
@@ -399,6 +403,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+                <!--<exclusion>-->
+                    <!--<groupId>com.vaadin.external.google</groupId>-->
+                    <!--<artifactId>android-json</artifactId>-->
+                <!--</exclusion>-->
+            </exclusions>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -658,11 +672,6 @@
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>${sonar-maven-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>

@@ -1,6 +1,7 @@
 package org.powertac.visualizer.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.powertac.visualizer.domain.File;
 import org.powertac.visualizer.domain.Game;
@@ -90,10 +91,9 @@ public class GameService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public Game getOne(Long id) {
+    public Optional<Game> findOne(Long id) {
         log.debug("Request to get Game : {}", id);
-        Game game = gameRepository.getOne(id);
-        return game;
+        return gameRepository.findById(id);
     }
 
     @Transactional(readOnly = true)

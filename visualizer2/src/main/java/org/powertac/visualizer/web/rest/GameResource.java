@@ -153,8 +153,8 @@ public class GameResource {
     @Timed
     public ResponseEntity<Game> getGame(@PathVariable Long id) {
         log.debug("REST request to get Game : {}", id);
-        Game game = gameService.getOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(game));
+        Optional<Game> game = gameService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(game);
     }
 
     /**
@@ -167,10 +167,8 @@ public class GameResource {
     @Timed
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         log.debug("REST request to delete Game : {}", id);
-        Game game = gameService.getOne(id);
-        if (game != null) {
-            gameService.delete(game);
-        }
+        Optional<Game> game = gameService.findOne(id);
+        game.ifPresent(gameService::delete);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }
 

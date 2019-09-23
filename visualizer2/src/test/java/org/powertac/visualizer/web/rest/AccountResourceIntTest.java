@@ -10,15 +10,16 @@ import org.powertac.visualizer.security.AuthoritiesConstants;
 import org.powertac.visualizer.service.UserService;
 import org.powertac.visualizer.service.dto.UserDTO;
 import org.powertac.visualizer.web.rest.vm.ManagedUserVM;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @see UserService
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = Visualizer2App.class)
 public class AccountResourceIntTest {
 
@@ -59,7 +60,7 @@ public class AccountResourceIntTest {
 
     private MockMvc restMvc;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
@@ -264,8 +265,13 @@ public class AccountResourceIntTest {
 
         Optional<User> userDup = userRepository.findOneByLogin("badguy");
         assertThat(userDup.isPresent()).isTrue();
-        assertThat(userDup.get().getAuthorities()).hasSize(1)
-            .containsExactly(authorityRepository.getOne(AuthoritiesConstants.USER));
+        Authority checkAuth = authorityRepository.getOne(AuthoritiesConstants.USER);
+        Set<Authority> hasAuths = userDup.get().getAuthorities();
+        assertThat(hasAuths).hasSize(1);
+        for (Iterator<Authority> it = hasAuths.iterator(); it.hasNext(); ) {
+            Authority hasAuth = it.next();
+            assertThat(hasAuth.getName().equals(checkAuth.getName()));
+        }
     }
 
     @Test

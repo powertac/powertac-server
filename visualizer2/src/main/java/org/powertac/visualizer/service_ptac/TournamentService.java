@@ -169,14 +169,10 @@ public class TournamentService implements MessageListener {
     @PreDestroy
     private void cleanUp() throws Exception {
       try {
-        // TODO Maybe Spring is better at handling these?
-        log.info("\nClean up " + this.getClass().getSimpleName() + " (4) : ");
-
         // Shutdown the proxy if needed
         if (proxy != null) {
             proxy.shutdown();
         }
-        log.info("1 ");
 
         // Kill the message pump from within
         messageQueue.clear();
@@ -184,7 +180,6 @@ public class TournamentService implements MessageListener {
         if (messageFeeder != null) {
           messageFeeder.join();
         }
-        log.info("2 ");
 
         // Kill the state machine from within
         eventQueue.clear();
@@ -192,7 +187,6 @@ public class TournamentService implements MessageListener {
         if (stateRunner != null) {
           stateRunner.join();
         }
-        log.info("3 ");
 
         for (Thread t : Thread.getAllStackTraces().keySet()) {
             if (t.getName().contains("Timer-") || t.getName().contains("ActiveMQ")) {
@@ -201,7 +195,6 @@ public class TournamentService implements MessageListener {
                 }
             }
         }
-        log.info("4\n");
       } catch (Exception x) {
         log.warn("Error in TournamentService.cleanUp()", x);
         throw x;

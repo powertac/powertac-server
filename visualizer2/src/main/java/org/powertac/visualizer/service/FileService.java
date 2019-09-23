@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service Implementation for managing File.
@@ -90,10 +91,9 @@ public class FileService {
      *  @return the entity
      */
     @Transactional(readOnly = true)
-    public File getOne(Long id) {
+    public Optional<File> findOne(Long id) {
         log.debug("Request to get File : {}", id);
-        File file = fileRepository.getOne(id);
-        return file;
+        return fileRepository.findById(id);
     }
 
     /**
