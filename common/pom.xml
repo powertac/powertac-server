@@ -73,6 +73,15 @@
     </dependency>
 
 
+    <!-- JavaX -->
+
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>${javax-annotations.version}</version>
+    </dependency>
+
+
     <!-- Logging -->
 
     <!--  TODO which of these are needed here? -->
@@ -108,6 +117,7 @@
 
 
     <!-- Utilities -->
+
     <dependency>
       <groupId>javax.jms</groupId>
       <artifactId>javax.jms-api</artifactId>
@@ -147,7 +157,7 @@
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
+      <artifactId>junit-jupiter</artifactId>
     </dependency>
 
     <dependency>
@@ -164,23 +174,25 @@
 
       <!-- Needs AspectJ build -->
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <!-- Temporary, see -->
+        <!-- https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
+        <!-- <groupId>org.codehaus.mojo</groupId> -->
+        <groupId>com.nickwongdev</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-	<configuration>
-	  <proc>none</proc>
-	</configuration>
+        <configuration>
+          <proc>none</proc>
+        </configuration>
       </plugin>
 
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-compiler-plugin</artifactId>
-	<version>${maven-compiler.version}</version>
-	<configuration>
-	  <!-- <fork>true</fork> -->
-          <compilerArgs>
-	    <arg>-Acore.versionId=${project.version}</arg>
-	  </compilerArgs>
-	</configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <!-- <fork>true</fork> -->
+              <compilerArgs>
+            <arg>-Acore.versionId=${project.version}</arg>
+          </compilerArgs>
+        </configuration>
       </plugin>
     </plugins>
 

@@ -36,7 +36,7 @@
     <!-- Testing -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
+      <artifactId>junit-jupiter</artifactId>
     </dependency>
 
     <dependency>
@@ -57,12 +57,12 @@
 
     <plugins>
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-compiler-plugin</artifactId>
-	<version>${maven-compiler.version}</version>
-	<configuration>
-          <compilerArgs>-proc:none</compilerArgs>
-	</configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler.version}</version>
+        <configuration>
+            <compilerArgs>-proc:none</compilerArgs>
+        </configuration>
       </plugin>
     </plugins>
 

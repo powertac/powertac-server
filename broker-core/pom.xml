@@ -53,7 +53,7 @@
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
+      <artifactId>junit-jupiter</artifactId>
     </dependency>
 
     <dependency>
@@ -78,7 +78,10 @@
 
       <!-- Needs AspectJ build -->
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <!-- Temporary, see -->
+        <!-- https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
+        <!-- <groupId>org.codehaus.mojo</groupId> -->
+        <groupId>com.nickwongdev</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
       </plugin>
 
