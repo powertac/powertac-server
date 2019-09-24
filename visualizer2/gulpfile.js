@@ -10,7 +10,6 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     eslint = require('gulp-eslint'),
     del = require('del'),
-    runSequence = require('run-sequence'),
     browserSync = require('browser-sync'),
     KarmaServer = require('karma').Server,
     plumber = require('gulp-plumber'),
@@ -30,13 +29,13 @@ gulp.task('clean', function () {
     return del([config.dist], { dot: true });
 });
 
-gulp.task('copy', ['copy:fonts', 'copy:common']);
-
 gulp.task('copy:fonts', copy.fonts);
 
 gulp.task('copy:common', copy.common);
 
 gulp.task('copy:images', copy.images);
+
+gulp.task('copy', gulp.series('copy:fonts', 'copy:common'));
 
 gulp.task('images', function () {
     return gulp.src(config.app + 'content/images/**')
@@ -53,7 +52,7 @@ gulp.task('images', function () {
         .pipe(browserSync.reload({stream: true}));
 });
 
-gulp.task('styles', [], function () {
+gulp.task('styles', function () {
     return gulp.src(config.app + 'content/css')
         .pipe(browserSync.reload({stream: true}));
 });
@@ -70,21 +69,15 @@ gulp.task('template:test', function () {
         .pipe(gulp.dest(config.test));
 });
 
-gulp.task('inject', function(cb) {
-    runSequence('inject:dep', 'inject:app', cb);
-});
-
-gulp.task('inject:dep', ['inject:test', 'inject:vendor']);
-
 gulp.task('inject:app', inject.app);
 
 gulp.task('inject:vendor', inject.vendor);
 
-gulp.task('inject:test', ['template:test'], inject.test);
+gulp.task('inject:test', gulp.series('template:test', inject.test));
 
-gulp.task('inject:troubleshoot', inject.troubleshoot);
+gulp.task('inject:dep', gulp.series('inject:test', 'inject:vendor'));
 
-gulp.task('assets:prod', ['images', 'styles', 'html', 'copy:images'], build);
+gulp.task('inject', gulp.series('inject:dep', 'inject:app'));
 
 gulp.task('html', function () {
     return gulp.src(config.app + 'app/**/*.html')
@@ -96,6 +89,8 @@ gulp.task('html', function () {
         }))
         .pipe(gulp.dest(config.tmp));
 });
+
+gulp.task('assets:prod', gulp.series('images', 'styles', 'html', 'copy:images', build));
 
 gulp.task('ngconstant:dev', function () {
     var cfg = require('./src/main/resources/config/mode.json');
@@ -159,12 +154,12 @@ gulp.task('eslint:fix', function () {
         .pipe(gulpIf(util.isLintFixed, gulp.dest(config.app + 'app')));
 });
 
-gulp.task('test', ['inject:test', 'ngconstant:dev'], function (done) {
+gulp.task('test', gulp.series('inject:test', 'ngconstant:dev', function karma(done) {
     new KarmaServer({
         configFile: __dirname + '/' + config.test + 'karma.conf.js',
         singleRun: true
     }, done).start();
-});
+}));
 
 
 gulp.task('watch', function () {
@@ -176,14 +171,10 @@ gulp.task('watch', function () {
     gulp.watch([config.app + '*.html', config.app + 'app/**', config.app + 'i18n/**']).on('change', browserSync.reload);
 });
 
-gulp.task('install', function (cb) {
-    runSequence('template:index', ['inject:dep', 'ngconstant:dev'], 'inject:app', 'inject:troubleshoot', cb);
-});
+gulp.task('install', gulp.series('template:index', 'inject:dep', 'ngconstant:dev', 'inject:app'));
 
-gulp.task('serve', ['install'], serve);
+gulp.task('serve', gulp.series('install', serve));
 
-gulp.task('build', ['clean'], function (cb) {
-    runSequence('template:index', ['copy', 'inject:vendor', 'ngconstant:prod'], 'inject:app', 'inject:troubleshoot', 'assets:prod', cb);
-});
+gulp.task('build', gulp.series('clean', 'template:index', 'copy', 'inject:vendor', 'ngconstant:prod', 'inject:app', 'assets:prod'));
 
-gulp.task('default', ['serve']);
+gulp.task('default', gulp.series('serve'));

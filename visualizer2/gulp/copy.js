@@ -3,7 +3,7 @@
 var gulp = require('gulp'),
     rev = require('gulp-rev'),
     plumber = require('gulp-plumber'),
-    es = require('event-stream'),
+    mergestream = require('merge-stream'),
     flatten = require('gulp-flatten'),
     replace = require('gulp-replace'),
     bowerFiles = require('main-bower-files'),
@@ -20,7 +20,7 @@ module.exports = {
 }
 
 function fonts() {
-    return es.merge(gulp.src(config.bower + 'bootstrap/fonts/*.*')
+    return mergestream(gulp.src(config.bower + 'bootstrap/fonts/*.*')
         .pipe(plumber({errorHandler: handleErrors}))
         .pipe(changed(config.dist + 'content/fonts/'))
         .pipe(rev())
@@ -45,14 +45,14 @@ function fonts() {
 }
 
 function common() {
-    return gulp.src([config.app + 'robots.txt', config.app + 'favicon.ico', config.app + '.htaccess'], { dot: true })
+    return gulp.src([config.app + 'robots.txt', config.app + 'favicon.ico'], { dot: true })
         .pipe(plumber({errorHandler: handleErrors}))
         .pipe(changed(config.dist))
         .pipe(gulp.dest(config.dist));
 }
 
 function swagger() {
-    return es.merge(
+    return mergestream(
         gulp.src([config.bower + 'swagger-ui/dist/**',
              '!' + config.bower + 'swagger-ui/dist/index.html',
              '!' + config.bower + 'swagger-ui/dist/swagger-ui.min.js',
@@ -73,9 +73,14 @@ function swagger() {
     );
 }
 
-function images() {
-    return gulp.src(bowerFiles({filter: ['**/*.{gif,jpg,png}']}), { base: config.bower })
-        .pipe(plumber({errorHandler: handleErrors}))
-        .pipe(changed(config.dist +  'bower_components'))
-        .pipe(gulp.dest(config.dist +  'bower_components'));
+function images(cb) {
+    var files = bowerFiles({filter: ['**/*.{gif,jpg,png}']});
+    if (files.length === 0) {
+        cb();
+    } else {
+        return gulp.src(files, {base: config.bower})
+            .pipe(plumber({errorHandler: handleErrors}))
+            .pipe(changed(config.dist + 'bower_components'))
+            .pipe(gulp.dest(config.dist + 'bower_components'));
+    }
 }
