@@ -15,8 +15,7 @@ var config = require('./config');
 module.exports = {
     app: app,
     vendor: vendor,
-    test: test,
-    troubleshoot: troubleshoot
+    test: test
 }
 
 function app() {
@@ -53,17 +52,3 @@ function test() {
         .pipe(gulp.dest(config.test));
 }
 
-function troubleshoot() {
-    /* this task removes the troubleshooting content from index.html*/
-    return gulp.src(config.app + 'index.html')
-        .pipe(plumber({errorHandler: handleErrors}))
-        /* having empty src as we dont have to read any files*/
-        .pipe(inject(gulp.src('', {read: false}), {
-            starttag: '<!-- inject:troubleshoot -->',
-            removeTags: true,
-            transform: function () {
-                return '<!-- Angular views -->';
-            }
-        }))
-        .pipe(gulp.dest(config.app));
-}
