@@ -70,6 +70,7 @@
   },
   "dependencies": {
     "browserslist": "4.6.6",
-    "caniuse-lite": "1.0.30000989"
+    "caniuse-lite": "1.0.30000989",
+    "lodash.template": "4.5.0"
   }
 }
