@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,6 +78,22 @@ public class BalancingTransactionTests
     String sut = bt.toString();
     //System.out.println(sut);
     assertTrue(sut.matches("Balance tx \\d+-Sally-42.1-3.22"), "match");
+  }
+
+  @Test
+  public void testPropertyNames ()
+  {
+    BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
+    try {
+      Object obj = PropertyUtils.getSimpleProperty(bt, "charge");
+      assertEquals(Double.class, obj.getClass(), "it's a Double");
+      assertEquals(3.22, ((Double)obj).doubleValue(), "correct value");
+      obj = PropertyUtils.getSimpleProperty(bt, "KWh");
+      assertEquals(42.1, ((Double)obj).doubleValue(), "correct kWh");
+    }
+    catch (Exception ex) {
+      fail("Exception " + ex.toString());
+    }
   }
   
   @Test
