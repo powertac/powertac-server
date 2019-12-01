@@ -42,6 +42,7 @@ public class WeatherForecastRepo implements DomainRepo
           LogManager.getLogger(WeatherForecastRepo.class.getName());
 
   // storage
+  // TODO -- potential memory leak -- should discard old ones
   private Map<Integer, WeatherForecast> indexedWeatherForecasts;
 
   // Check if the weather service has run at least once

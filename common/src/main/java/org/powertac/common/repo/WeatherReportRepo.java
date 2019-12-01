@@ -41,6 +41,7 @@ public class WeatherReportRepo implements DomainRepo
           .getName());
 
   // storage
+  // TODO: How many old ones do we need to keep around?
   private Map<Integer, WeatherReport> indexedWeatherReports;
 
   // Check if the weather service has run at least once
