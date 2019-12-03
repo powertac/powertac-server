@@ -42,7 +42,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class BrokerRunner
 {
-  private static Logger log = LogManager.getLogger();
+  private static Logger log = LogManager.getLogger(BrokerRunner.class);
   private AbstractApplicationContext context;
   private PowerTacBroker broker;
 
