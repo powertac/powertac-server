@@ -16,15 +16,13 @@
 package org.powertac.common.repo;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.Orderbook;
-import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,30 +31,30 @@ import org.springframework.stereotype.Service;
  * @author John Collins
  */
 @Service
-public class OrderbookRepo implements DomainRepo
+public class OrderbookRepo extends ManagedRepo
 {
   static private Logger log = LogManager.getLogger(OrderbookRepo.class.getName());
-
-  @Autowired
-  private TimeService timeService;
   
   // local state - keep track of orderbooks by timeslot,
   // the current orderbook, as well as the
   // most recent one for a given timeslot with a non-empty clearing price
   // TODO: potential memory leak -- how long do these need to be kept around?
-  private HashMap<Timeslot, List<Orderbook>> orderbookIndex;
-  private HashMap<Timeslot, Orderbook> timeslotIndex;
-  private HashMap<Timeslot, Orderbook> spotIndex;
+  private TreeMap<Timeslot, List<Orderbook>> orderbookIndex;
+  private TreeMap<Timeslot, Orderbook> timeslotIndex;
+  private TreeMap<Timeslot, Orderbook> spotIndex;
   private Double[] minAskPrices;
   private Double[] maxAskPrices;
+  private int lookback = 48; // keep (at least) two days worth of Orderbooks around
+  private int orderbookCount = 0;
+  private int lastTimeslotSerial = 0;
   
   /** Standard constructor */
   public OrderbookRepo ()
   {
     super();
-    orderbookIndex = new HashMap<Timeslot, List<Orderbook>>();
-    timeslotIndex = new HashMap<Timeslot, Orderbook>();
-    spotIndex = new HashMap<Timeslot, Orderbook>();
+    orderbookIndex = new TreeMap<Timeslot, List<Orderbook>>();
+    timeslotIndex = new TreeMap<Timeslot, Orderbook>();
+    spotIndex = new TreeMap<Timeslot, Orderbook>();
   }
   
   /**
@@ -79,6 +77,9 @@ public class OrderbookRepo implements DomainRepo
     obList.add(result);
     log.debug("Created new Orderbook ts=" + timeslot.getSerialNumber() +
               ", clearingPrice=" + clearingPrice);
+    orderbookCount += 1;
+    if (timeslot.getSerialNumber() > lastTimeslotSerial)
+      lastTimeslotSerial = timeslot.getSerialNumber();
     return result;
   }
   
@@ -160,6 +161,38 @@ public class OrderbookRepo implements DomainRepo
     spotIndex.clear();
     minAskPrices = null;
     maxAskPrices = null;
+    // Start memory usage recorder
+    orderbookCount = 0;
+    setup();
   }
 
+  // Records total usage once every 12 hours, starting in 3 hours
+  // See Issue #1031 for details
+  private void recordUsage ()
+  {
+    log.debug("Orderbook count = {}", orderbookCount);
+  }
+
+  @Override
+  protected void doCleanup ()
+  {
+    if (orderbookIndex.size() > 0) {
+      int oldest = lastTimeslotSerial - lookback;
+      while (orderbookIndex.firstKey().getSerialNumber() < oldest) {
+        Timeslot old = orderbookIndex.firstKey();
+        //System.out.println("removing " + old.getSerialNumber());
+        List<Orderbook> books = orderbookIndex.remove(old);
+        orderbookCount -= books.size();
+        timeslotIndex.remove(old);
+        spotIndex.remove(old);
+      }
+      recordUsage();
+    }
+  }
+
+  // Test support
+  int getOrderbookCount ()
+  {
+    return orderbookCount;
+  }
 }

@@ -95,10 +95,39 @@ public class OrderbookRepoTests
     Orderbook ob2 = repo.makeOrderbook(timeslot2, 23.0);
     assertEquals(ob1, repo.findByTimeslot(timeslot), "found this one");
     assertEquals(ob2, repo.findByTimeslot(timeslot2), "found ob2");
+    assertEquals(2, repo.getOrderbookCount(), "correct count");
     repo.recycle();
     assertNull(repo.findByTimeslot(timeslot), "ts1 empty");
     assertNull(repo.findByTimeslot(timeslot2), "ts2 empty");
     assertEquals(0, repo.size(), "size zero");
+    assertEquals(0, repo.getOrderbookCount(), "count reset to zero");
+  }
+
+  @Test
+  public void testRecycle2 ()
+  {
+    long start = new Instant().getMillis();
+    int rate = 3600;
+    timeService.setClockParameters(new Instant().getMillis(),
+                                   rate, TimeService.HOUR);
+    timeService.setStart(start);
+    timeService.updateTime();
+    repo.recycle();
+    Timeslot timeslot;
+    Orderbook ob;
+    assertEquals(0, repo.size(), "size zero");
+    assertEquals(0, repo.getOrderbookCount(), "count reset to zero");
+    for (int i = 0; i < 63; i++) {
+      // set the start back an hour to make the current time go forward
+      start = start - TimeService.HOUR / rate;
+      timeService.setStart(start);
+      timeService.updateTime();
+      //System.out.println("hour " + timeService.getHourOfDay());
+      timeslot = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
+      ob = repo.makeOrderbook(timeslot, 42.0);
+    }
+    assertEquals(50, repo.size(), "correct size");
+    assertEquals(50, repo.getOrderbookCount(), "correct count");
   }
   
   @Test
@@ -111,6 +140,7 @@ public class OrderbookRepoTests
     for (int i = 0; i < minAskPrices.length; i++) {
       assertEquals(minAskPrices[i], val[i], 1e-8, "same value");
     }
+    timeService.setCurrentTime(start.plus(TimeService.HOUR * 2));
   }
 
 }

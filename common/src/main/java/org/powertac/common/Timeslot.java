@@ -46,7 +46,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  */
 //@Domain
 @XStreamAlias("slot")
-public class Timeslot
+public class Timeslot implements Comparable<Object>
 {
   /** Timeslot does not have ID; it is logged by serial number **/
   //@XStreamAsAttribute
@@ -130,5 +130,11 @@ public class Timeslot
   @Override
   public String toString() {
     return ("timeslot " + serialNumber + ":" + startInstant.toString());
+  }
+
+  @Override
+  public int compareTo (Object arg)
+  {
+    return serialNumber - ((Timeslot)arg).getSerialNumber();
   }
 }

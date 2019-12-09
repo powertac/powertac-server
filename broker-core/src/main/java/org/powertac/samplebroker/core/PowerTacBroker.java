@@ -191,14 +191,6 @@ implements BrokerContext
    */
   public void init ()
   {
-    // initialize repos
-    List<DomainRepo> repos =
-            SpringApplicationContext.listBeansOfType(DomainRepo.class);
-    log.debug("found " + repos.size() + " repos");
-    for (DomainRepo repo : repos) {
-      repo.recycle();
-    }
-
     // set up the adapter
     adapter = new BrokerAdapter(username);
     brokerRepo.add(adapter); // to resolve incoming messages correctly
@@ -424,7 +416,26 @@ implements BrokerContext
   {
     // comp needs to be the "current competition"
     Competition.setCurrent(comp);
-    
+
+    // in a remote broker, we pull out the clock
+    // parameters to init the local clock, and create the initial timeslots.
+    Instant bootBaseTime = comp.getSimulationBaseTime();
+    int bootTimeslotCount =
+        (int)(comp.getBootstrapTimeslotCount() + 
+              comp.getBootstrapDiscardedTimeslots());
+    // now set time to end of bootstrap period.
+    timeService.setClockParameters(comp.getClockParameters());
+    timeService.init(bootBaseTime.plus(bootTimeslotCount * comp.getTimeslotDuration()));
+    log.info("Sim start time: " + timeService.getCurrentDateTime().toString());
+
+    // init repos after time is set
+    List<DomainRepo> repos =
+            SpringApplicationContext.listBeansOfType(DomainRepo.class);
+    log.debug("found " + repos.size() + " repos");
+    for (DomainRepo repo : repos) {
+      repo.recycle();
+    }
+
     // record the customers and brokers
     for (CustomerInfo customer : comp.getCustomers()) {
       customerRepo.add(customer);
@@ -436,16 +447,6 @@ implements BrokerContext
         brokerRepo.add(competitor);
       }
     }
-    // in a remote broker, we pull out the clock
-    // parameters to init the local clock, and create the initial timeslots.
-    Instant bootBaseTime = comp.getSimulationBaseTime();
-    int bootTimeslotCount =
-        (int)(comp.getBootstrapTimeslotCount() + 
-              comp.getBootstrapDiscardedTimeslots());
-    // now set time to end of bootstrap period.
-    timeService.setClockParameters(comp.getClockParameters());
-    timeService.init(bootBaseTime.plus(bootTimeslotCount * comp.getTimeslotDuration()));
-    log.info("Sim start time: " + timeService.getCurrentDateTime().toString());
   }
 
   /**

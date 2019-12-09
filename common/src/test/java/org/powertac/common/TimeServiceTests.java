@@ -192,7 +192,7 @@ public class TimeServiceTests
       fail("unexpected " + ie.toString());
     }
   }
-  
+
   // simple repeated action
   @Test
   public void testRepeatedActionFuture()
@@ -219,6 +219,47 @@ public class TimeServiceTests
     add.perform(ts.getCurrentTime());
     ts.updateTime(); // not yet
     assertEquals(0, var.getValue(), "var unchanged");
+    try {
+      Thread.sleep(2500); // 2.5 seconds -> 15 min sim time
+      ts.updateTime();
+      assertEquals(3, var.getValue(), "var changed");
+      assertEquals(1, actionCount.getValue(), "actionCount=1");
+      Thread.sleep(1000); // 1 second -> 6 min sim time
+      assertEquals(3, var.getValue(), "var not changed");
+      assertEquals(1, actionCount.getValue(), "actionCount=1");
+      Thread.sleep(1500); // 1.5 seconds -> 9 min sim time
+      ts.updateTime();
+      assertEquals(6, var.getValue(), "var changed");
+      assertEquals(2, actionCount.getValue(), "actionCount=2");
+      Thread.sleep(2500); // 2.5 seconds -> 15 min sim time
+      ts.updateTime();
+      assertEquals(9, var.getValue(), "var changed");
+      assertEquals(3, actionCount.getValue(), "actionCount=3");
+    }
+    catch (InterruptedException ie) {
+      fail ("unexpected " + ie.toString());
+    }
+  }
+
+  // simple repeated action
+  @Test
+  public void testRepeatingAction()
+  {
+    final IntHolder var = new IntHolder(0);
+    final IntHolder actionCount = new IntHolder(0);
+    final long interval = 15 * 60 * 1000; // one 15-minute tick
+    final TimedAction action = new TimedAction() {
+      @Override
+      public void perform(Instant time) {
+        actionCount.setValue(actionCount.getValue() + 1);
+        var.setValue(3 * actionCount.getValue());
+      }
+    };
+    RepeatingTimedAction rta =
+            new RepeatingTimedAction(action, interval);
+    ts.addAction(ts.getCurrentTime().plus(interval), rta);
+    ts.updateTime(); // not yet
+    assertEquals(0, var.getValue(), "no action yet");
     try {
       Thread.sleep(2500); // 2.5 seconds -> 15 min sim time
       ts.updateTime();
