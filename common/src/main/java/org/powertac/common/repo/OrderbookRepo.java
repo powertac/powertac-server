@@ -38,7 +38,6 @@ public class OrderbookRepo extends ManagedRepo
   // local state - keep track of orderbooks by timeslot,
   // the current orderbook, as well as the
   // most recent one for a given timeslot with a non-empty clearing price
-  // TODO: potential memory leak -- how long do these need to be kept around?
   private TreeMap<Timeslot, List<Orderbook>> orderbookIndex;
   private TreeMap<Timeslot, Orderbook> timeslotIndex;
   private TreeMap<Timeslot, Orderbook> spotIndex;
