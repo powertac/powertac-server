@@ -31,7 +31,8 @@ import org.powertac.common.exceptions.PowerTacException;
 /**
  * Repository for WeatherReports. The weather reports are indexed by the
  * timeslot that they are issued for. This allows them to be quickly accessed
- * via a hashMap.
+ * via a hashMap. The parameter maxForecastCount controls the number of old
+ * forecasts kept in memory.
  * 
  * @author Erik Onarheim
  */
@@ -42,8 +43,8 @@ public class WeatherForecastRepo implements DomainRepo
           LogManager.getLogger(WeatherForecastRepo.class.getName());
 
   // storage
-  // TODO -- potential memory leak -- should discard old ones
   private Map<Integer, WeatherForecast> indexedWeatherForecasts;
+  private int maxForecastCount = 168 * 2 + 60;
 
   // Check if the weather service has run at least once
   private boolean hasRunOnce = false;
@@ -65,7 +66,9 @@ public class WeatherForecastRepo implements DomainRepo
   public void add (WeatherForecast weather)
   {
     runOnce();
-    indexedWeatherForecasts.put(weather.getTimeslotIndex(), weather);
+    int index = weather.getTimeslotIndex();
+    indexedWeatherForecasts.put(index, weather);
+    indexedWeatherForecasts.remove(index - maxForecastCount);
   }
 
   /**

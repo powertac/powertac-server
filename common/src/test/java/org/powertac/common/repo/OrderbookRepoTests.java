@@ -117,7 +117,7 @@ public class OrderbookRepoTests
     Orderbook ob;
     assertEquals(0, repo.size(), "size zero");
     assertEquals(0, repo.getOrderbookCount(), "count reset to zero");
-    for (int i = 0; i < 63; i++) {
+    for (int i = 0; i < 168*4; i++) {
       // set the start back an hour to make the current time go forward
       start = start - TimeService.HOUR / rate;
       timeService.setStart(start);
@@ -126,8 +126,8 @@ public class OrderbookRepoTests
       timeslot = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       ob = repo.makeOrderbook(timeslot, 42.0);
     }
-    assertEquals(50, repo.size(), "correct size");
-    assertEquals(50, repo.getOrderbookCount(), "correct count");
+    assertEquals(407, repo.size(), "correct size");
+    assertEquals(407, repo.getOrderbookCount(), "correct count");
   }
   
   @Test

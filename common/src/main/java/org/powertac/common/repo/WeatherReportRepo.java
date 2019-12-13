@@ -30,7 +30,8 @@ import org.powertac.common.exceptions.PowerTacException;
 /**
  * Repository for WeatherReports. The weather reports are indexed by the
  * timeslot that they are issued for. This allows them to be quickly accessed
- * via a hashMap.
+ * via a hashMap. The parameter maxReportCount controls the number of
+ * weather reports kept in memory.
  * 
  * @author Erik Onarheim
  */
@@ -41,8 +42,8 @@ public class WeatherReportRepo implements DomainRepo
           .getName());
 
   // storage
-  // TODO: How many old ones do we need to keep around?
   private Map<Integer, WeatherReport> indexedWeatherReports;
+  private int maxReportCount = 168 * 2 + 48; // enough for a boot record
 
   // Check if the weather service has run at least once
   private boolean hasRunOnce = false;
@@ -59,12 +60,14 @@ public class WeatherReportRepo implements DomainRepo
   }
 
   /**
-   * Adds a WeatherReport to the repo
+   * Adds a WeatherReport to the repo, keeping only maxReportCount around
    */
   public void add (WeatherReport weather)
   {
     runOnce();
-    indexedWeatherReports.put(weather.getTimeslotIndex(), weather);
+    int index = weather.getTimeslotIndex();
+    indexedWeatherReports.put(index, weather);
+    indexedWeatherReports.remove(index - maxReportCount);
   }
 
   /**

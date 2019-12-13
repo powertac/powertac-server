@@ -43,7 +43,7 @@ public class OrderbookRepo extends ManagedRepo
   private TreeMap<Timeslot, Orderbook> spotIndex;
   private Double[] minAskPrices;
   private Double[] maxAskPrices;
-  private int lookback = 48; // keep (at least) two days worth of Orderbooks around
+  private int lookback = 168 * 2 + 60; // keep (at least) two days worth of Orderbooks around
   private int orderbookCount = 0;
   private int lastTimeslotSerial = 0;
   
