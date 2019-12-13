@@ -207,7 +207,7 @@ public class TariffSpecificationTests
     List<Long> supersedes = xspec.getSupersedes();
     assertNotNull(supersedes, "non-empty supersedes list");
     assertEquals(1, supersedes.size(), "one entry");
-    assertEquals(new Long(42l), supersedes.get(0), "correct entry");
+    assertEquals(42l, supersedes.get(0).longValue(), "correct entry");
     assertEquals(now.plus(TimeService.DAY * 2), xspec.getExpiration(), "correct expiration");
     Rate xr = (Rate)xspec.getRates().get(0);
     assertNotNull(xr, "rate present");

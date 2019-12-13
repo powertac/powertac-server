@@ -519,7 +519,6 @@
             </includes>
             <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>false</useSystemClassLoader>
-	    <workingDirectory>${project.build.directory}/test-wd</workingDirectory>
           </configuration>
         </plugin>
 
