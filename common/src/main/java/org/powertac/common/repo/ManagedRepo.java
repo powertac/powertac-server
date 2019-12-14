@@ -31,6 +31,9 @@ public abstract class ManagedRepo implements DomainRepo
   @Autowired
   protected TimeService timeService;
   
+  // True if setup has completed
+  private boolean setupComplete = false;
+
   // Run the cleanup every 12 hours
   protected long interval = TimeService.HOUR * 12;
   
@@ -41,15 +44,28 @@ public abstract class ManagedRepo implements DomainRepo
   // called as the last action in the repo's recycle method.
   protected void setup ()
   {
-    RepeatingTimedAction rta =
-            new RepeatingTimedAction(new TimedAction() {
-              @Override
-              public void perform (Instant time) {
-                doCleanup();
-              }
-            }, interval);
-    timeService.addAction(timeService.getCurrentTime().plus(offset),
-                          rta);
+    Instant now = timeService.getCurrentTime();
+    if (null == now) {
+      // time service has not been initialized
+      setupComplete = false;
+    }
+    else if (!setupComplete) {
+      RepeatingTimedAction rta =
+              new RepeatingTimedAction(new TimedAction() {
+                @Override
+                public void perform (Instant time) {
+                  doCleanup();
+                }
+              }, interval);
+      timeService.addAction(timeService.getCurrentTime().plus(offset),
+                            rta);
+      setupComplete = true;
+    }
+  }
+
+  // recycling just clears the setupComplete flag
+  public void recycle () {
+    setupComplete = false;
   }
   
   // Implementations of this method need to clean up memory and log

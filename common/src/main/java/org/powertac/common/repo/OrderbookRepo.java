@@ -62,6 +62,7 @@ public class OrderbookRepo extends ManagedRepo
    */
   public Orderbook makeOrderbook (Timeslot timeslot, Double clearingPrice)
   {
+    setup();
     Orderbook result = new Orderbook(timeslot,
                                      clearingPrice,
                                      timeService.getCurrentTime());
@@ -162,7 +163,7 @@ public class OrderbookRepo extends ManagedRepo
     maxAskPrices = null;
     // Start memory usage recorder
     orderbookCount = 0;
-    setup();
+    super.recycle();
   }
 
   // Records total usage once every 12 hours, starting in 3 hours
