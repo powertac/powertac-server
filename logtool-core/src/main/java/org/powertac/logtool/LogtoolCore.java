@@ -225,6 +225,7 @@ public class LogtoolCore
       }
 
       // Recycle repos from previous session
+      // TODO - make sure time is set first? 
       List<DomainRepo> repos =
           SpringApplicationContext.listBeansOfType(DomainRepo.class);
         for (DomainRepo repo : repos) {

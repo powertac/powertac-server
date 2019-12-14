@@ -80,7 +80,7 @@ public class BootstrapDataRepoTest
     else
       r2 = (Integer)result.get(1);
     assertNotNull(r2, "found a String");
-    assertEquals(r2, new Integer(42), "correct Integer");
+    assertEquals(42, r2.intValue(), "correct Integer");
   }
 
   /**
@@ -111,7 +111,7 @@ public class BootstrapDataRepoTest
     else
       r2 = (Integer)result.get(1);
     assertNotNull(r2, "found a String");
-    assertEquals(r2, new Integer(42), "correct Integer");
+    assertEquals(42, r2.intValue(), "correct Integer");
   }
 
   /**
@@ -122,9 +122,9 @@ public class BootstrapDataRepoTest
   {
     uut.add("test1");
     uut.add("test2");
-    uut.add(new Integer(42));
-    uut.add(new Integer(43));
-    uut.add(new Integer(44));
+    uut.add(42);
+    uut.add(43);
+    uut.add(44);
     
     List<?> result = uut.getData();
     assertEquals(5, result.size(), "five items");
@@ -145,9 +145,9 @@ public class BootstrapDataRepoTest
     }
     Integer[] an = new Integer[4];
     an = nums.toArray(an);
-    assertEquals(new Integer(42), an[0], "first int");
-    assertEquals(new Integer(43), an[1], "second int");
-    assertEquals(new Integer(44), an[2], "third int");
+    assertEquals(42, an[0].intValue(), "first int");
+    assertEquals(43, an[1].intValue(), "second int");
+    assertEquals(44, an[2].intValue(), "third int");
     assertNull(an[3], "no fourth int");
   }
 
@@ -159,9 +159,9 @@ public class BootstrapDataRepoTest
   {
     uut.add("test1");
     uut.add("test2");
-    uut.add(new Integer(42));
-    uut.add(new Integer(43));
-    uut.add(new Integer(44));
+    uut.add(42);
+    uut.add(43);
+    uut.add(44);
     List<?> result = uut.getData();
     assertEquals(5, result.size(), "five");
     uut.recycle();
