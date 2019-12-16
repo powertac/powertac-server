@@ -8,7 +8,7 @@ then
   git clone https://github.com/powertac/powertac.github.io.git dox
   cd dox/server
   mkdir -p $TRAVIS_BRANCH
-  cp -r $TRAVIS_BUILD_DIR/target/staging/powertac-server/* $TRAVIS_BRANCH
+  cp -r $TRAVIS_BUILD_DIR/target/staging/* $TRAVIS_BRANCH
 
   for branch in $(ls | grep -v index)
   do
