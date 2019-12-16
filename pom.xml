@@ -50,7 +50,7 @@
     <!-- Managed common dependency versions -->
     <aspectj.version>1.9.4</aspectj.version>
 
-    <active-mq.version>5.15.9</active-mq.version>
+    <active-mq.version>5.15.11</active-mq.version>
     <xstream.version>1.4.11.1</xstream.version>
 
     <jms-api.version>2.0.1</jms-api.version>
@@ -217,16 +217,6 @@
         <groupId>org.apache.activemq</groupId>
         <artifactId>activemq-pool</artifactId>
         <version>${active-mq.version}</version>
-      </dependency>
-
-      <!-- TODO override transitive dependency from activemq-pool, because the
-      the parent POM of geronimo-jta-1.0.1B_spec version 1.0.1 has an illegal
-      backtick char which gives errors during mvn site. When upgrading activemq,
-      check if this is still needed! -->
-      <dependency>
-        <groupId>org.apache.geronimo.specs</groupId>
-        <artifactId>geronimo-jta_1.0.1B_spec</artifactId>
-        <version>1.1.1</version>
       </dependency>
 
       <dependency>
@@ -642,34 +632,6 @@
           </configuration>
         </plugin>
 
-	<!-- Eclipse m2e lifecycle config -->
-
-	<plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-		    <groupId>com.nickwongdev</groupId>
-		    <artifactId>aspectj-maven-plugin</artifactId>
-		    <versionRange>[1.0,)</versionRange>
-                    <goals>
-                      <goal>test-compile</goal>
-                      <goal>compile</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <execute />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-
       </plugins>
 
     </pluginManagement>
@@ -718,6 +680,48 @@
             <artifactId>maven-gpg-plugin</artifactId>
           </plugin>
         </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for running in Eclipse -->
+    <!-- This stops Maven compaining about this "virtual plugin" -->
+    <profile>
+      <id>eclipse</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.eclipse.m2e</groupId>
+              <artifactId>lifecycle-mapping</artifactId>
+              <version>1.0.0</version>
+              <configuration>
+                <lifecycleMappingMetadata>
+                  <pluginExecutions>
+                    <pluginExecution>
+                      <pluginExecutionFilter>
+                        <groupId>com.nickwongdev</groupId>
+                        <artifactId>aspectj-maven-plugin</artifactId>
+                        <versionRange>[1.0,)</versionRange>
+                        <goals>
+                          <goal>test-compile</goal>
+                          <goal>compile</goal>
+                        </goals>
+                      </pluginExecutionFilter>
+                      <action>
+                        <execute />
+                      </action>
+                    </pluginExecution>
+                  </pluginExecutions>
+                </lifecycleMappingMetadata>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
       </build>
     </profile>
   </profiles>
