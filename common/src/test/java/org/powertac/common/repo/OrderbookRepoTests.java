@@ -126,8 +126,10 @@ public class OrderbookRepoTests
       timeslot = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       ob = repo.makeOrderbook(timeslot, 42.0);
     }
-    assertEquals(406, repo.size(), "correct size");
-    assertEquals(406, repo.getOrderbookCount(), "correct count");
+    int remains = repo.size();
+    assertTrue(remains < 500, "small enough");
+    assertTrue(remains > 168*2+36, "large enough");
+    assertEquals(remains, repo.getOrderbookCount(), "correct count");
   }
   
   @Test
