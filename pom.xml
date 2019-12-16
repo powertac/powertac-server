@@ -50,7 +50,7 @@
     <!-- Managed common dependency versions -->
     <aspectj.version>1.9.4</aspectj.version>
 
-    <active-mq.version>5.15.9</active-mq.version>
+    <active-mq.version>5.15.11</active-mq.version>
     <xstream.version>1.4.11.1</xstream.version>
 
     <jms-api.version>2.0.1</jms-api.version>
@@ -217,16 +217,6 @@
         <groupId>org.apache.activemq</groupId>
         <artifactId>activemq-pool</artifactId>
         <version>${active-mq.version}</version>
-      </dependency>
-
-      <!-- TODO override transitive dependency from activemq-pool, because the
-      the parent POM of geronimo-jta-1.0.1B_spec version 1.0.1 has an illegal
-      backtick char which gives errors during mvn site. When upgrading activemq,
-      check if this is still needed! -->
-      <dependency>
-        <groupId>org.apache.geronimo.specs</groupId>
-        <artifactId>geronimo-jta_1.0.1B_spec</artifactId>
-        <version>1.1.1</version>
       </dependency>
 
       <dependency>
