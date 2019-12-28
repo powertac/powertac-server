@@ -33,6 +33,7 @@ public class MarketBootstrapDataTests
     assertEquals(11, mbd.getMarketPrice().length, "correct price array size");
     assertEquals(0.3, mbd.getMwh()[2], 1e-6, "correct 3rd mwh");
     assertEquals(2.3, mbd.getMarketPrice()[4], 1e-6, "correct 5th price");
+    assertEquals(2.659091, mbd.getMeanMarketPrice(), 1e-6, "correct mean price");
   }
   
   @Test

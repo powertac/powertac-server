@@ -15,6 +15,8 @@
  */
 package org.powertac.common.msg;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.DoubleArrayConverter;
@@ -34,6 +36,8 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
 @XStreamAlias("market-bootstrap-data")
 public class MarketBootstrapData
 {
+  static private Logger log = LogManager.getLogger(MarketBootstrapData.class.getName());
+
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -63,5 +67,21 @@ public class MarketBootstrapData
   public double[] getMarketPrice ()
   {
     return marketPrice;
+  }
+
+  public double getMeanMarketPrice ()
+  {
+    if (mwh.length != marketPrice.length) {
+      log.error("mwh array size {} != price array size {}",
+                mwh.length, marketPrice.length);
+      return 0.0;
+    }
+    double energy = 0.0;
+    double cost = 0.0;
+    for (int i = 0; i < mwh.length; i++) {
+      energy += mwh[i];
+      cost += mwh[i] * marketPrice[i]; // convert to kWh
+    }
+    return cost / energy;
   }
 }
