@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.repo.TariffRepo;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -38,6 +39,7 @@ public class TariffEvaluationHelperTest
   private TariffSpecification tariffSpec;
   private Tariff tariff;
   private TariffRepo tariffRepo;
+  private MarketBootstrapData mbd;
   private Instant start;
   
   @BeforeEach
@@ -52,6 +54,9 @@ public class TariffEvaluationHelperTest
     timeService.init(start.plus(TimeService.HOUR)); // init subtracts one hour
     broker = new Broker ("testBroker");
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION);
+    mbd = new MarketBootstrapData(new double[] {1.0,1.0,1.0},
+                                  new double[] {31.0,32.0,33.0});
+
   }
 
   /**
@@ -372,21 +377,35 @@ public class TariffEvaluationHelperTest
     assertEquals(expected, result, 1e-6, "correct result");
   }
 
-  // thermal storage example, no estimates
+  // regulation discount ratios
+  @Test
+  public void testRegulationDiscount ()
+  {
+    assertEquals(0.9999, teh.regulationDiscount(1.0), 1e-4, "low price");
+    assertEquals(0.9526, teh.regulationDiscount(3.0), 1e-4, "3 x price");
+    assertEquals(0.5, teh.regulationDiscount(4.0), 1e-4, "4 x price");
+    assertEquals(0.00117,teh.regulationDiscount(6.25), 1e-4, "6.25 x price");
+  }
+
+  // storage example, no estimates
   @Test
   public void testEstimateCostSimpleRateStorage1 ()
   {
+    TariffSpecification storageSpec =
+            new TariffSpecification(broker, PowerType.STORAGE);
+
     Rate r = new Rate().withFixed(true).withValue(-.1);
-    tariffSpec.addRate(r);
+    storageSpec.addRate(r);
     RegulationRate rr =
       new RegulationRate().withUpRegulationPayment(0.2)
           .withDownRegulationPayment(-0.05);
-    tariffSpec.addRate(rr);
-    tariff = new Tariff(tariffSpec);
+    storageSpec.addRate(rr);
+    tariff = new Tariff(storageSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
+    tariff.setMarketBootstrapData(mbd);
     tariff.getUsageCharge(10000.0, 0.0, true);
 
     teh.init(.6, .4, .5, 10000.0);
@@ -410,15 +429,23 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
+    tariff.setMarketBootstrapData(mbd);
+    // mean market price = .032
+    // up-regulation price 0.2 ratio is 6.25: discount = .00117
+    // down-regulation price -0.04 ratio should be 1.0
     double result = tariff.getUsageCharge(10000.0, 0.0, true);
     assertEquals(10000.0 * -0.1, result, 1.0e-6, "correct usage charge");
 
     teh.init(.6, .4, .5, 10000.0);
     teh.initializeRegulationFactors(-2.0, 0.0, 1.0);
+    assertEquals(0.2, tariff.getRegulationCharge(-1.0, 0.0, false), 1e-6);
     double[] usage = {100.0, 200.0};
     result = teh.estimateCost(tariff, usage, start);
-    assertEquals(((100.0 - 2.0 + 1.0) * -0.1 + 2.0 * 0.2 - 1.0 * 0.04
-                  + (200.0 - 2.0 + 1.0) * -0.1 + 2.0 * 0.2 - 1.0 * 0.04),
-                  result, 1e-6, "correct result");
+    double corr = 0.0012;
+    assertEquals(((100.0 - 2.0 + 1.0) * -0.1
+            + 2.0 * 0.2 * corr - 1.0 * 0.04
+            + (200.0 - 2.0 + 1.0) * -0.1
+            + 2.0 * 0.2 * corr - 1.0 * 0.04),
+                 result, 1e-4, "correct result");
   }
 }

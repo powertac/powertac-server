@@ -28,6 +28,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
@@ -116,6 +117,7 @@ public class Tariff
   private int tierSign = 1; // -1 for negative tiers
   private Rate[][] rateMap;
   private RegulationRate regulationRate;
+  private MarketBootstrapData marketBootstrapData;
 
   /**
    * Creates a new Tariff from the given TariffSpecification. Note that 
@@ -209,6 +211,19 @@ public class Tariff
   void setId (long id)
   {
     specId = id;
+  }
+
+  /**
+   * Market bootstrap data is needed for evaluation of regulation rates
+   */
+  public void setMarketBootstrapData (MarketBootstrapData mbd)
+  {
+    marketBootstrapData = mbd;
+  }
+
+  public MarketBootstrapData getMarketBootstrapData ()
+  {
+    return marketBootstrapData;
   }
   
   /**
@@ -388,35 +403,36 @@ public class Tariff
    // return quantity;
   //}
 
-  public double overpricedUpRegulationRatio ()
-  {
-    if (!this.hasRegulationRate())
-      return 1.0;
-    double excess =
-            regulationRate.getUpRegulationPayment() // positive
-            - (getMeanConsumptionPrice() // negative * negative
-               * Competition.currentCompetition().getMaxUpRegulationPaymentRatio());
-    if (excess > 0.0)
-      return Math.pow(Competition.currentCompetition().getUpRegulationDiscount(),
-                      excess);
-    else
-      return 1.0;
-  }
-
-  public double overpricedDownRegulationRatio ()
-  {
-    if (!this.hasRegulationRate())
-      return 1.0;
-    double excess =
-            -regulationRate.getDownRegulationPayment() // very negative
-            + (getMeanConsumptionPrice() // negative * positive
-               * Competition.currentCompetition().getMaxDownRegulationPaymentRatio());
-    if (excess > 0.0)
-      return Math.pow(Competition.currentCompetition().getDownRegulationDiscount(),
-                      excess);
-    else
-      return 1.0;
-  }
+  // This does not compute a useful number -- see Issue #1040
+//  public double overpricedUpRegulationRatio ()
+//  {
+//    if (!this.hasRegulationRate())
+//      return 1.0;
+//    double excess =
+//            regulationRate.getUpRegulationPayment() // positive
+//            - (getMeanConsumptionPrice() // negative * negative
+//               * Competition.currentCompetition().getMaxUpRegulationPaymentRatio());
+//    if (excess > 0.0)
+//      return Math.pow(Competition.currentCompetition().getUpRegulationDiscount(),
+//                      excess);
+//    else
+//      return 1.0;
+//  }
+//
+//  public double overpricedDownRegulationRatio ()
+//  {
+//    if (!this.hasRegulationRate())
+//      return 1.0;
+//    double excess =
+//            -regulationRate.getDownRegulationPayment() // very negative
+//            + (getMeanConsumptionPrice() // negative * positive
+//               * Competition.currentCompetition().getMaxDownRegulationPaymentRatio());
+//    if (excess > 0.0)
+//      return Math.pow(Competition.currentCompetition().getDownRegulationDiscount(),
+//                      excess);
+//    else
+//      return 1.0;
+//  }
 
   /** 
    * Returns the usage charge for a single customer using an amount of 

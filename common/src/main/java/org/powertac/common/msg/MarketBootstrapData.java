@@ -69,6 +69,9 @@ public class MarketBootstrapData
     return marketPrice;
   }
 
+  /**
+   * Returns the mean price/MWh over the entire array.
+   */
   public double getMeanMarketPrice ()
   {
     if (mwh.length != marketPrice.length) {
@@ -80,7 +83,7 @@ public class MarketBootstrapData
     double cost = 0.0;
     for (int i = 0; i < mwh.length; i++) {
       energy += mwh[i];
-      cost += mwh[i] * marketPrice[i]; // convert to kWh
+      cost += mwh[i] * marketPrice[i];
     }
     return cost / energy;
   }

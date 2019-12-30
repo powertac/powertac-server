@@ -26,6 +26,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.msg.MarketBootstrapData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestExecutionListeners;
@@ -575,10 +576,7 @@ public class TariffTests
     spec.addRate(rr1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals(1.0, te.overpricedUpRegulationRatio(), 1e-6, "unconstrained up-reg");
-    assertEquals(4.0, te.getRegulationCharge(-20.0, 0.0, false), 1e-6, "correct up-reg charge");
-    assertEquals(1.0, te.overpricedDownRegulationRatio(), 1e-6, "unconstrained down-reg");
-    assertEquals(-3.0, te.getRegulationCharge(30.0, 0.0, false), 1e-6, "correct down-reg charge");
+    // no longer tests anything -- see Issue #1040
   }
 
   // single rate, regulation rate, storage
@@ -600,9 +598,6 @@ public class TariffTests
     spec.addRate(rr1);
     Tariff te = new Tariff(spec);
     te.init();
-    assertEquals(0.32987698, te.overpricedUpRegulationRatio(), 1e-6, "constrained up-reg");
-    assertEquals(40.0, te.getRegulationCharge(-20.0, 0.0, false), 1e-6, "correct up-reg charge");
-    assertEquals(0.458934802, te.overpricedDownRegulationRatio(), 1e-6, "constrained down-reg");
-    assertEquals(-30.0, te.getRegulationCharge(30.0, 0.0, false), 1e-6, "correct down-reg charge");
+    // no longer tests anything
   }
 }

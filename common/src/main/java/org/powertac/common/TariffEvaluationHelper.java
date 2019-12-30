@@ -79,6 +79,10 @@ public class TariffEvaluationHelper
   private double expDischarge = 0.0;
   private double expDown = 0.0;
 
+  // Regulation discount coefficients
+  private double regKnee = 3.0;
+  private double regHalf = 4.0;
+
   // normalized weights
   private double normWtExpected = 0.0;
   private double normWtMax = 0.0;
@@ -148,7 +152,7 @@ public class TariffEvaluationHelper
 
   /**
    * Initializes regulation factors. Applicable only for tariffs with
-   * {@link RegulationRate}s. See Section 4.1.1 of the 2014 spec for
+   * {@link RegulationRate}s. See Section 4.1.1 of the spec for
    * details, especially Eq. 5. Signs are from the standpoint of the
    * customer -- expectedCurtailment and expectedDischarge are negative,
    * expectedDownReg is positive.
@@ -206,18 +210,42 @@ public class TariffEvaluationHelper
     // for up-reg and negative for down-reg. This explains the signs used here.
     double adj = 0.0;
     if (tariff.hasRegulationRate()) {
-      double upreg =
-              (expCurtail + expDischarge) * tariff.overpricedUpRegulationRatio();
+      RegulationRate regRate =
+              tariff.getTariffSpecification().getRegulationRates().get(0);
+      double mktPrice =
+              tariff.getMarketBootstrapData().getMeanMarketPrice() / -1000.0;
+      //System.out.printf("mean mkt price = %.4f%n", mktPrice);
+
+      // Discount with logistic function
+      // 1-1/(1+exp(-3*(x-4))) produces 0.95 for rate 3 times mkt price,
+      // 0.5 for rate 4 time mean mkt price
+      double upregPriceRatio =
+              tariff.getRegulationCharge(-1.0, 0.0, false) / (-1.0 * mktPrice);
+      double upregDiscount = regulationDiscount(upregPriceRatio);
+      double upreg = (expCurtail + expDischarge);
       adj +=
-          tariff.getRegulationCharge(upreg, 0.0, false);
-      double downreg =
-              expDown * tariff.overpricedDownRegulationRatio();
+          upregDiscount * tariff.getRegulationCharge(upreg, 0.0, false);
+      //System.out.printf("upreg %.4f, ratio %4f, discount %.4f, adj %.4f%n",
+      //                  upreg, upregPriceRatio, upregDiscount, adj);
+      double downregPriceRatio =
+              (tariff.getRegulationCharge(1.0, 0.0, false) - 2.0 * mktPrice)
+              / (-1.0 * mktPrice);
+      double downregDiscount = regulationDiscount(downregPriceRatio);
       adj +=
-          tariff.getRegulationCharge(downreg, 0.0, false);
-      // Extra burden for tariffs with higher cost for down-regulation
-      // than for consumption
+          downregDiscount * tariff.getRegulationCharge(expDown, 0.0, false);
+      //System.out.printf("downreg %.4f, ratio %.4f, discount %.4f, adj %.4f%n",
+      //                  expDown, downregPriceRatio, downregDiscount, adj);
     }
     return result + adj * usage.length;
+  }
+
+  // Computes regulation evaluation discount using a logistic curve having
+  // a knee (95%) at a price ratio of 3.0 and 50% point at 4.0.
+  double regulationDiscount (double priceRatio)
+  {
+    return 1.0 - 1.0 / (1.0 + Math.exp(-1.0
+                                       * regKnee
+                                       * (priceRatio - regHalf)));
   }
 
   /**
