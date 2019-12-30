@@ -26,6 +26,7 @@ import org.powertac.common.msg.BrokerAccept;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.msg.TimeslotComplete;
+import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -76,6 +77,9 @@ public class DefaultBrokerService
   
   @Autowired
   private RandomSeedRepo randomSeedRepo;
+
+  @Autowired
+  private BootstrapDataRepo bootstrapDataRepo;
   
   @Autowired
   private ServerConfiguration serverPropertiesService;
@@ -84,7 +88,8 @@ public class DefaultBrokerService
   private Competition competition;
   
   /** parameters */
-  // keep in mind that brokers need to deal with two viewpoints. Tariffs
+  // keep in mind that brokers need to deal with two viewpoints with regard
+  // to signs. Tariffs
   // types take the viewpoint of the customer, while market-related types
   // take the viewpoint of the broker.
   private double defaultConsumptionRate = -1.0; // customer pays
@@ -97,6 +102,8 @@ public class DefaultBrokerService
   private double sellLimitPriceMax = 100.0;    // other broker pays
   private double sellLimitPriceMin = 0.2;    // other broker pays
   private int usageRecordLength = 7 * 24; // one week
+  private double storageTariffValue = 0.04; // per kWh
+  private double storageTariffMargin = 0.02; // buy-sell margin
   
   // bootstrap-mode data - uninitialized for normal sim mode
   private boolean bootstrapMode = false;
@@ -164,6 +171,9 @@ public class DefaultBrokerService
 
     // pull down configuration
     serverPropertiesService.configureMe(this);
+    
+    // Compute the value of storage tariffs
+    computeStorageTariffValue();
 
     // create and publish default tariffs
     TariffSpecification defaultConsumption = new TariffSpecification(face, PowerType.CONSUMPTION)
@@ -179,8 +189,10 @@ public class DefaultBrokerService
     TariffSpecification defaultStorage = new TariffSpecification(face, PowerType.STORAGE)
         .addRate(new Rate().withValue(defaultConsumptionRate))
         .addRate(new RegulationRate()
-           .withUpRegulationPayment(defaultProductionRate)
-           .withDownRegulationPayment(defaultConsumptionRate));
+           .withUpRegulationPayment(getStorageTariffValue() *
+                                    (1.0 + getStorageTariffMargin() / 2.0))
+           .withDownRegulationPayment(- getStorageTariffValue() *
+                                      (1.0 - getStorageTariffMargin() / 2.0)));
     tariffMarketService.setDefaultTariff(defaultStorage);
     customerSubscriptions.put(defaultStorage, new LinkedHashMap<>());
 
@@ -651,9 +663,10 @@ public class DefaultBrokerService
   }
   
   /**
-   * Returns a single MarketBootstrapData instances representing the quantities
+   * Returns a single MarketBootstrapData instance representing the quantities
    * and prices paid by the default broker for the power it purchased over 
-   * the bootstrap period.
+   * the bootstrap period. Intended to be called at the end of a bootstrap
+   * session.
    */
   MarketBootstrapData getMarketBootstrapData (int maxTimeslots)
   {
@@ -773,6 +786,48 @@ public class DefaultBrokerService
   public void setSellLimitPriceMin (double sellLimitPriceMin)
   {
     this.sellLimitPriceMin = sellLimitPriceMin;
+  }
+
+  // storage tariff value
+  public double getStorageTariffValue ()
+  {
+    return storageTariffValue;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+          description = "Bootstrap value for regulation in storage tariff")
+  public void setStorageTariffValue (double storageTariffValue)
+  {
+    this.storageTariffValue = storageTariffValue;
+  }
+
+  // Computes value of storage tariff from bootstrap market data
+  void computeStorageTariffValue ()
+  {
+    if (!isBootstrapMode()) {
+      MarketBootstrapData data =
+              (MarketBootstrapData)(bootstrapDataRepo
+                      .getData(MarketBootstrapData.class).get(0));
+      if (null == data) {
+        log.error("Market bootstrap data not available");
+        return;
+      }
+      storageTariffValue = -1.0 * data.getMeanMarketPrice() / 1000.0;
+      log.info("Storage tariff value = {}", storageTariffValue);
+    }
+  }
+
+  // storage tariff margin
+  public double getStorageTariffMargin ()
+  {
+    return storageTariffMargin;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+          description = "margin for regulation in storage tariff")
+  public void setStorageTariffMargin (double storageTariffMargin)
+  {
+    this.storageTariffMargin = storageTariffMargin;
   }
   
   //-------------------- Customer-model recording ---------------------
@@ -895,7 +950,7 @@ public class DefaultBrokerService
       if (usageIndexOffset < 0) {
         // not yet initialized
         usageIndexOffset = 0; // offset for bootstrap mode
-        if (!bootstrapMode) {
+        if (!isBootstrapMode()) {
           usageIndexOffset =
                   Competition.currentCompetition().getBootstrapTimeslotCount()
                   + Competition.currentCompetition().getBootstrapDiscardedTimeslots();
