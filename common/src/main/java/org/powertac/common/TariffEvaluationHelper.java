@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 by John Collins
+ * Copyright (c) 2012-2020 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.powertac.common;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
-
+import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.spring.SpringApplicationContext;
 
 /**
@@ -82,6 +82,9 @@ public class TariffEvaluationHelper
   // Regulation discount coefficients
   private double regKnee = 3.0;
   private double regHalf = 4.0;
+
+  // Bootstrap market data for computing regulation reward
+  //private MarketBootstrapData marketBootstrapData;
 
   // normalized weights
   private double normWtExpected = 0.0;
@@ -169,6 +172,15 @@ public class TariffEvaluationHelper
   }
 
   /**
+   * Retrieves the market bootstrap data from the Competition.
+   * Needed to discount regulation rates.
+   */
+  public MarketBootstrapData getMarketBootstrapData ()
+  {
+    return Competition.currentCompetition().getMarketBootstrapData();
+  }
+
+  /**
    * Estimate the total cost of buying the given amounts of power
    * from the given tariff, starting in the timeslot identified by startIndex.
    * Payments include usage charges, and periodic payments just in case
@@ -212,31 +224,40 @@ public class TariffEvaluationHelper
     if (tariff.hasRegulationRate()) {
       RegulationRate regRate =
               tariff.getTariffSpecification().getRegulationRates().get(0);
-      double mktPrice =
-              tariff.getMarketBootstrapData().getMeanMarketPrice() / -1000.0;
-      //System.out.printf("mean mkt price = %.4f%n", mktPrice);
-
-      // Discount with logistic function
-      // 1-1/(1+exp(-3*(x-4))) produces 0.95 for rate 3 times mkt price,
-      // 0.5 for rate 4 time mean mkt price
-      double upregPriceRatio =
-              tariff.getRegulationCharge(-1.0, 0.0, false) / (-1.0 * mktPrice);
-      double upregDiscount = regulationDiscount(upregPriceRatio);
-      double upreg = (expCurtail + expDischarge);
-      adj +=
-          upregDiscount * tariff.getRegulationCharge(upreg, 0.0, false);
-      //System.out.printf("upreg %.4f, ratio %4f, discount %.4f, adj %.4f%n",
-      //                  upreg, upregPriceRatio, upregDiscount, adj);
-      double downregPriceRatio =
-              (tariff.getRegulationCharge(1.0, 0.0, false) - 2.0 * mktPrice)
-              / (-1.0 * mktPrice);
-      double downregDiscount = regulationDiscount(downregPriceRatio);
-      adj +=
-          downregDiscount * tariff.getRegulationCharge(expDown, 0.0, false);
-      //System.out.printf("downreg %.4f, ratio %.4f, discount %.4f, adj %.4f%n",
-      //                  expDown, downregPriceRatio, downregDiscount, adj);
+      if (null == getMarketBootstrapData())
+        adj += computeNaiveReg(tariff);
+      else
+        adj += computeDiscountedReg(tariff);
     }
     return result + adj * usage.length;
+  }
+
+  // discount regulation using logistic function centered on 4.0 * mkt price
+  // for up-reg, -2.0 for down
+  double computeDiscountedReg (Tariff tariff)
+  {
+    double result = 0.0;
+    double mktPrice = getMarketBootstrapData().getMeanMarketPrice() / -1000.0;
+    //System.out.printf("mean mkt price = %.4f%n", mktPrice);
+
+    // Discount with logistic function
+    // 1-1/(1+exp(-3*(x-4))) produces 0.95 for rate 3 times mkt price,
+    // 0.5 for rate 4 time mean mkt price
+    double upregPriceRatio =
+            tariff.getRegulationCharge(-1.0, 0.0, false) / (-1.0 * mktPrice);
+    double upregDiscount = regulationDiscount(upregPriceRatio);
+    double upreg = (expCurtail + expDischarge);
+    result += upregDiscount * tariff.getRegulationCharge(upreg, 0.0, false);
+    //System.out.printf("upreg %.4f, ratio %4f, discount %.4f, adj %.4f%n",
+    //                  upreg, upregPriceRatio, upregDiscount, adj);
+    double downregPriceRatio =
+            (tariff.getRegulationCharge(1.0, 0.0, false) - 2.0 * mktPrice)
+            / (-1.0 * mktPrice);
+    double downregDiscount = regulationDiscount(downregPriceRatio);
+    result += downregDiscount * tariff.getRegulationCharge(expDown, 0.0, false);
+    //System.out.printf("downreg %.4f, ratio %.4f, discount %.4f, adj %.4f%n",
+    //                  expDown, downregPriceRatio, downregDiscount, adj);
+    return result;
   }
 
   // Computes regulation evaluation discount using a logistic curve having
@@ -246,6 +267,16 @@ public class TariffEvaluationHelper
     return 1.0 - 1.0 / (1.0 + Math.exp(-1.0
                                        * regKnee
                                        * (priceRatio - regHalf)));
+  }
+
+  // Computes non-discounted regulation value for bootstrap use
+  double computeNaiveReg (Tariff tariff)
+  {
+    double result = 0.0;
+    double upreg = expCurtail + expDischarge;
+    result += tariff.getRegulationCharge(upreg, 0.0, false);
+    result += tariff.getRegulationCharge(expDown, 0.0, false);
+    return result;
   }
 
   /**

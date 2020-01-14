@@ -27,6 +27,7 @@ import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.FullCustomerConverter;
@@ -154,6 +155,9 @@ public class Competition //implements Serializable
   @XStreamImplicit(itemFieldName = "customer")
   @XStreamConverter(FullCustomerConverter.class)
   private ArrayList<CustomerInfo> customers;
+
+  // Market data needed for tariff evaluation, set at start of sim session
+  private MarketBootstrapData marketBootstrapData;
 
   // singleton instance
   private static Competition theCompetition;
@@ -468,6 +472,19 @@ public class Competition //implements Serializable
   {
     downRegulationDiscount = value;
     return this;
+  }
+  
+  /**
+   * Getter and setter for market bootstrap data
+   */
+  public MarketBootstrapData getMarketBootstrapData ()
+  {
+    return marketBootstrapData;
+  }
+
+  public void setMarketBootstrapData (MarketBootstrapData mbd)
+  {
+    marketBootstrapData = mbd;
   }
 
   /**

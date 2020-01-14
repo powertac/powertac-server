@@ -117,7 +117,7 @@ public class Tariff
   private int tierSign = 1; // -1 for negative tiers
   private Rate[][] rateMap;
   private RegulationRate regulationRate;
-  private MarketBootstrapData marketBootstrapData;
+  //private MarketBootstrapData marketBootstrapData;
 
   /**
    * Creates a new Tariff from the given TariffSpecification. Note that 
@@ -211,19 +211,6 @@ public class Tariff
   void setId (long id)
   {
     specId = id;
-  }
-
-  /**
-   * Market bootstrap data is needed for evaluation of regulation rates
-   */
-  public void setMarketBootstrapData (MarketBootstrapData mbd)
-  {
-    marketBootstrapData = mbd;
-  }
-
-  public MarketBootstrapData getMarketBootstrapData ()
-  {
-    return marketBootstrapData;
   }
   
   /**

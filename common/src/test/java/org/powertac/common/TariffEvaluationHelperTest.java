@@ -405,7 +405,7 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    tariff.setMarketBootstrapData(mbd);
+    Competition.currentCompetition().setMarketBootstrapData(mbd);
     tariff.getUsageCharge(10000.0, 0.0, true);
 
     teh.init(.6, .4, .5, 10000.0);
@@ -429,7 +429,7 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    tariff.setMarketBootstrapData(mbd);
+    Competition.currentCompetition().setMarketBootstrapData(mbd);
     // mean market price = .032
     // up-regulation price 0.2 ratio is 6.25: discount = .00117
     // down-regulation price -0.04 ratio should be 1.0
