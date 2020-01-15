@@ -30,6 +30,7 @@ import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CompetitionSetup;
+import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -639,6 +640,18 @@ public class CompetitionSetupService
         if (document != null) {
           if (preGame(document)) {
             bootstrapDataRepo.add(processBootDataset(document));
+            List<Object> mbd =
+                    bootstrapDataRepo.getData(MarketBootstrapData.class);
+            if (null == mbd) {
+              log.error("marketBootstrapData is null");
+              return;
+            }
+            if (0 == mbd.size()) {
+              log.error("marketBootstrapData is empty");
+              return;
+            }
+            Competition.currentCompetition()
+                .setMarketBootstrapData((MarketBootstrapData)mbd.get(0));
             cc.runOnce(false);
             nextGameId();
           }
