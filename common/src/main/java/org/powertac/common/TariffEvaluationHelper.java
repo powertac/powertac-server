@@ -228,6 +228,7 @@ public class TariffEvaluationHelper
         adj += computeNaiveReg(tariff);
       else
         adj += computeDiscountedReg(tariff);
+      log.info("regulation adjustment {}", adj);
     }
     return result + adj * usage.length;
   }
@@ -255,7 +256,8 @@ public class TariffEvaluationHelper
             / (-1.0 * mktPrice);
     double downregDiscount = regulationDiscount(downregPriceRatio);
     result += downregDiscount * tariff.getRegulationCharge(expDown, 0.0, false);
-    //System.out.printf("downreg %.4f, ratio %.4f, discount %.4f, adj %.4f%n",
+    log.info("upreg discount {}, downreg discount {}",
+             upregDiscount, downregDiscount);
     //                  expDown, downregPriceRatio, downregDiscount, adj);
     return result;
   }
