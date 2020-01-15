@@ -425,9 +425,7 @@ public class TariffSubscription
   public void setRegulationCapacity (RegulationCapacity capacity)
   {
     double upRegulation = capacity.getUpRegulationCapacity();
-    double downRegulation =
-            getTariff().overpricedDownRegulationRatio()
-            * capacity.getDownRegulationCapacity();
+    double downRegulation = capacity.getDownRegulationCapacity();
     regulationAccumulator =
             new RegulationAccumulator(upRegulation, downRegulation);
   }

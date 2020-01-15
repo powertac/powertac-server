@@ -53,13 +53,11 @@ import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.msg.EconomicControlEvent;
-import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.msg.TariffUpdate;
 import org.powertac.common.msg.VariableRateUpdate;
-import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -107,9 +105,6 @@ public class TariffMarketService
   
   @Autowired
   private TariffSubscriptionRepo tariffSubscriptionRepo;
-
-  @Autowired
-  private BootstrapDataRepo bootstrapDataRepo;
   
   @Autowired
   private ServerConfiguration serverProps;
@@ -167,9 +162,6 @@ public class TariffMarketService
   private HashSet<Broker> disabledBrokers = new HashSet<>();
 
   private Set<NewTariffListener> registrations = new LinkedHashSet<>();
-
-  // bootstrap market data for computing regulation-rate discounts
-  private MarketBootstrapData marketBootstrapData; 
 
   /**
    * Default constructor
@@ -239,10 +231,6 @@ public class TariffMarketService
                                  (maxRevocationFee - minRevocationFee)));
       log.info("set revocation fee: " + revocationFee);
     }
-
-    // grab the market bootstrap dataset
-    marketBootstrapData = (MarketBootstrapData)
-            bootstrapDataRepo.getData(MarketBootstrapData.class).get(0);
 
     serverProps.publishConfiguration(this);
     return "TariffMarket";
@@ -402,8 +390,6 @@ public class TariffMarketService
           .withMessage("incomplete coverage in multi-rate tariff"));
       return;
     }
-    tariff.setMarketBootstrapData((MarketBootstrapData)
-                                  bootstrapDataRepo.getData(MarketBootstrapData.class));
     for (RegulationRate regRate : spec.getRegulationRates()) {
       // ignore response time setting -- see Issue #1041
       //if (regRate.getResponse() == RegulationRate.ResponseTime.SECONDS) {

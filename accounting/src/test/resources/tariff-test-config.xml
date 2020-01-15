@@ -56,10 +56,10 @@
   
   <bean id="tariffRepo"
         class="org.powertac.common.repo.TariffRepo" />
-  
+
   <bean id="tariffSubscriptionRepo"
         class="org.powertac.common.repo.TariffSubscriptionRepo" />
-  
+
   <bean id="timeslotRepo"
         class="org.powertac.common.repo.TimeslotRepo" />
   

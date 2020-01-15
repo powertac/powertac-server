@@ -563,7 +563,6 @@ public class AbstractCustomerTests
     {
       return null;
     }
-    
   }
 
   class DummyCustomer extends AbstractCustomer
