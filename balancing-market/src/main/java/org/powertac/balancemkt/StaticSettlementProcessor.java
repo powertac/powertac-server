@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 by the original author
+ * Copyright (c) 2012-2020 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,8 +129,10 @@ public class StaticSettlementProcessor extends SettlementProcessor
     computeImbalanceCharges(brokerData, totalImbalance, candidates);
     
     // Exercise balancing controls
+    double exercisedCapacity = 0.0;
     for (ChargeInfo info : brokerData) {
-      exerciseControls(info, candidates, info.getBalanceChargeP2());
+      exercisedCapacity += 
+              exerciseControls(info, candidates, info.getBalanceChargeP2());
     }
     if (log.isInfoEnabled()) {
       // log payments
@@ -157,8 +159,8 @@ public class StaticSettlementProcessor extends SettlementProcessor
       }
 
       // log budget balance
-      log.info("DU budget: rm cost = " + rmCost + ", broker cost = "
-               + brokerCost);
+      log.info("DU budget: rm cost = {}, broker cost = {}, exercised capacity = {}",
+               rmCost, brokerCost, exercisedCapacity);
     }
   }
 
@@ -496,14 +498,17 @@ public class StaticSettlementProcessor extends SettlementProcessor
     return remains;
   }
 
-  private void exerciseControls (ChargeInfo broker,
-                                 SortedSet<BOWrapper> candidates,
-                                 double settlementValue)
+  // Exercises controls, returns total exercised capacity
+  private double exerciseControls (ChargeInfo broker,
+                                   SortedSet<BOWrapper> candidates,
+                                   double settlementValue)
   {
+    double result = 0.0;
     for (BOWrapper candidate: candidates) {
       if (candidate.info == broker && 0.0 != candidate.exercisedCapacity) {
         // add up the exercised capacity first
         broker.addCurtailment(candidate.exercisedCapacity);
+        result += candidate.exercisedCapacity;
       }
     }        
         
@@ -520,6 +525,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
                                       boValue);
       }
     }
+    return result;
   }
 
   // wrapper class for tracking order status
