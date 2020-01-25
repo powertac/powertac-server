@@ -157,6 +157,8 @@ public class Competition //implements Serializable
   private ArrayList<CustomerInfo> customers;
 
   // Market data needed for tariff evaluation, set at start of sim session
+  // Must not be serialized, since it gets serialized elsewhere.
+  @XStreamOmitField
   private MarketBootstrapData marketBootstrapData;
 
   // singleton instance
