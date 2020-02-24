@@ -247,18 +247,21 @@ implements BalancingMarket, SettlementContext, InitializationService
    */
   double getSpotPrice ()
   {
-    Double result = defaultSpotPrice;
+    Double result = defaultSpotPrice / 1000.0; // convert to kwh
     // most recent trade is determined by Competition parameters
     // orderbooks have timeslot and execution time
     Orderbook ob =
         orderbookRepo.findSpotByTimeslot(timeslotRepo.currentTimeslot());
     if (ob != null) {
-      result = ob.getClearingPrice();
+      result = ob.getClearingPrice() / 1000.0;
     }
     else {
       log.info("null Orderbook");
     }
-    return result / 1000.0; // convert to kwh
+    log.info("ts {}, spot price {}",
+             timeslotRepo.currentTimeslot().getSerialNumber(),
+             result);
+    return result;
   }
 
   /**
