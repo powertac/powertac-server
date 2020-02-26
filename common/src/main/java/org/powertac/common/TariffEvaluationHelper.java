@@ -80,8 +80,10 @@ public class TariffEvaluationHelper
   private double expDown = 0.0;
 
   // Regulation discount coefficients
-  private double regKnee = 3.0;
-  private double regHalf = 4.0;
+  private double upregSlope = 3.0;
+  private double upregHalf = 3.9;
+  private double downregSlope = 17;
+  private double downregHalf = 1.8;
 
   // Bootstrap market data for computing regulation reward
   //private MarketBootstrapData marketBootstrapData;
@@ -222,8 +224,8 @@ public class TariffEvaluationHelper
     // for up-reg and negative for down-reg. This explains the signs used here.
     double adj = 0.0;
     if (tariff.hasRegulationRate()) {
-      RegulationRate regRate =
-              tariff.getTariffSpecification().getRegulationRates().get(0);
+      //RegulationRate regRate =
+      //        tariff.getTariffSpecification().getRegulationRates().get(0);
       if (null == getMarketBootstrapData())
         adj += computeNaiveReg(tariff);
       else
@@ -239,36 +241,43 @@ public class TariffEvaluationHelper
   {
     double result = 0.0;
     double mktPrice = getMarketBootstrapData().getMeanMarketPrice() / -1000.0;
-    //System.out.printf("mean mkt price = %.4f%n", mktPrice);
 
     // Discount with logistic function
-    // 1-1/(1+exp(-3*(x-4))) produces 0.95 for rate 3 times mkt price,
+    // 1-1/(1+exp(-3*(x-4))) produces 0.95 for upreg rate 3 times mkt price,
     // 0.5 for rate 4 time mean mkt price
-    double upregPriceRatio =
-            tariff.getRegulationCharge(-1.0, 0.0, false) / (-1.0 * mktPrice);
-    double upregDiscount = regulationDiscount(upregPriceRatio);
+    double upregPrice = tariff.getRegulationCharge(-1.0, 0.0, false); 
+    double upregPriceRatio = upregPrice / mktPrice;
+    double upregDiscount = upRegulationDiscount(upregPriceRatio);
     double upreg = (expCurtail + expDischarge);
     result += upregDiscount * tariff.getRegulationCharge(upreg, 0.0, false);
-    //System.out.printf("upreg %.4f, ratio %4f, discount %.4f, adj %.4f%n",
-    //                  upreg, upregPriceRatio, upregDiscount, adj);
-    double downregPriceRatio =
-            (tariff.getRegulationCharge(1.0, 0.0, false) - 2.0 * mktPrice)
-            / (-1.0 * mktPrice);
-    double downregDiscount = regulationDiscount(downregPriceRatio);
+    double downregPrice = tariff.getRegulationCharge(1.0, 0.0, false); 
+    double downregPriceRatio = 2.0 + downregPrice / mktPrice;
+    double downregDiscount = downRegulationDiscount(downregPriceRatio);
     result += downregDiscount * tariff.getRegulationCharge(expDown, 0.0, false);
-    log.info("upreg discount {}, downreg discount {}",
-             upregDiscount, downregDiscount);
+    log.info("mp {}, upreg {}, upregRatio {}, upreg discount {}, downreg {}, downregRatio {}, downreg discount {}",
+             mktPrice, upregPrice, upregPriceRatio, upregDiscount,
+             downregPrice, downregPriceRatio, downregDiscount);
     //                  expDown, downregPriceRatio, downregDiscount, adj);
     return result;
   }
 
-  // Computes regulation evaluation discount using a logistic curve having
-  // a knee (95%) at a price ratio of 3.0 and 50% point at 4.0.
-  double regulationDiscount (double priceRatio)
+  // Computes up-regulation evaluation discount using a logistic curve having
+  // a slope and 50% point given by the upregSlope and upregHalf parameters.
+  double upRegulationDiscount (double priceRatio)
   {
     return 1.0 - 1.0 / (1.0 + Math.exp(-1.0
-                                       * regKnee
-                                       * (priceRatio - regHalf)));
+                                       * upregSlope
+                                       * (priceRatio - upregHalf)));
+  }
+
+  // Computes up-regulation evaluation discount using a logistic curve having
+  // a slope and 50% point given by the
+  // downregSlope and downregHalf parameters.
+  double downRegulationDiscount (double priceRatio)
+  {
+    return 1.0 - 1.0 / (1.0 + Math.exp(-1.0
+                                       * downregSlope
+                                       * (priceRatio - downregHalf)));
   }
 
   // Computes non-discounted regulation value for bootstrap use
