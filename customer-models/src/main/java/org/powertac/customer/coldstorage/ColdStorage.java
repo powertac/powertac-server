@@ -47,12 +47,22 @@ import org.powertac.customer.AbstractCustomer;
 
 /**
  * *** Description is incorrect ***
- * Model of a cold-storage warehouse with multiple refrigeration units.
- * The size of the refrigeration units is specified as stockCapacity. The
- * number is indeterminate - as many as needed will be used, depending on
- * heat loss and current internal temperature. If currentTemp < nominalTemp and
- * falling or steady, then a unit will be de-energized. If currentTemp >=
- * nominalTemp and rising or steady, then another unit will be activated. 
+ * Model of a cold-storage warehouse with a refrigeration unit having a specified
+ * capacity in tons and specified coefficient of performance, which is the
+ * ratio of heat removed to kWh consumed. The refrigeration unit will be
+ * activated when needed to maintain the interior temperature within a control
+ * range.
+ * The maximum capacity of the warehouse is stockCapacity, specified as
+ * tonnes of water ice. The warehouse is also lined with phase-change
+ * material that acts as a thermal battery of a specified capacity. This
+ * thermal capacity is used to provide demand flexibility which can be used
+ * through curtailment or as regulating capacity. Both up-regulation and
+ * down-regulation are supported to the extent allowed by current
+ * state-of-charge and refrigeration capacity.
+ * 
+ * Given a flat-rate tariff and no regulation, the refrigeration unit will
+ * be run in each hour to bring the thermal battery charge up to its
+ * target state-of-charge, typically 60%.
  * 
  * @author John Collins
  */
@@ -71,10 +81,10 @@ implements CustomerModelAccessor
   static final double GROUND_TEMP = 3.0; // don't freeze the ground
 
   // model parameters
-  private double minTemp = -35.0; // deg C
-  private double maxTemp = -10.0;
+  private double minTemp = -21.0; // deg C
+  private double maxTemp = -19.0;
   private double nominalTemp = -20.0;
-  private double shiftSag = 4.0; // temp diff allowed for cost-shift
+  private double shiftSag = 1.0; // temp diff allowed for cost-shift
   private double evalEnvTemp = 20.0; // assumed outside temp for tariff eval
 
   private double roofArea = 900.0; //m^2
@@ -93,7 +103,11 @@ implements CustomerModelAccessor
   private double ncUsageVariability = 0.2; // for m-r random walk
   private double ncMeanReversion = 0.06;
   private double unitSize = 40.0; // tons
-  private double hysteresis = 0.04; // control range
+  //private double unitMaxKw = 0.0; // unit electricity consumption
+  private double hysteresis = 0.4; // control range
+
+  private double thermalStorageCapacity = 500.0; // kWh
+  private double targetSOC = 0.6;
 
   // model state
   private PowerType powerType;
@@ -113,10 +127,17 @@ implements CustomerModelAccessor
 
   @ConfigurableValue(valueType = "Double",
       bootstrapState = true, dump = false,
-      description = "current thermal mass")
+      description = "current thermal mass in tonnes of ice")
   private double currentStock = 0.0;
 
+  @ConfigurableValue(valueType = "Double",
+      bootstrapState = true, dump = false,
+      description = "current battery SOC")
+  private double batterySOC = 0.6;
+
   private TariffEvaluator tariffEvaluator;
+  private double upregEstimate = -0.1;
+  private double downregEstimate = 0.1;
   private int profileSize = 168; // 1 week to accomodate weekly TOU
 
   /**
@@ -145,25 +166,26 @@ implements CustomerModelAccessor
     CustomerInfo info = new CustomerInfo(name, 1);
     info.withPowerType(powerType)
         .withCustomerClass(CustomerClass.LARGE)
-        .withControllableKW(-unitSize / cop)
-        .withStorageCapacity(stockCapacity * CP_ICE * (maxTemp - minTemp))
-        .withUpRegulationKW(-unitSize / cop)
-        .withDownRegulationKW(unitSize / cop); // optimistic, perhaps
+        .withControllableKW(-getMaxCooling())
+        //.withStorageCapacity(stockCapacity * CP_ICE * (maxTemp - minTemp))
+        .withUpRegulationKW(-getMaxCooling())
+        .withDownRegulationKW(getMaxCooling()); // optimistic, perhaps
     addCustomerInfo(info);
     ensureSeeds();
+    //unitMaxKw = unitSize * TON_CONVERSION / getCop();
     // randomize current temp only if state not set
     if (null == currentTemp) {
       setCurrentTemp(minTemp + (maxTemp - minTemp) * opSeed.nextDouble());
-      currentStock = stockCapacity;
+      setCurrentStock(stockCapacity);
     }
     currentNcUsage = nonCoolingUsage;
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = new TariffEvaluator(this);
     tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
-    tariffEvaluator.initializeRegulationFactors(-getMaxCooling() * 0.05,
+    tariffEvaluator.initializeRegulationFactors(getMaxCooling() * getUpregEstimate(),
                                                 0.0,
-                                                getMaxCooling() * 0.04);
+                                                getMaxCooling() * getDownregEstimate());
   }
 
   // Gets a new random-number opSeed just in case we don't already have one.
@@ -188,28 +210,46 @@ implements CustomerModelAccessor
   }
 
   // ----------------------- Run the model ------------------------
+  /**
+   * Thermal energy is lost through stock turnover and through leakage to
+   * the outdoor environment and the soil. This energy must ultimately be
+   * replaced by running the refrigeration unit, but that is decoupled through
+   * the phase-change thermal battery which changes phase at the nominal
+   * temperature of the warehouse. Up-regulation is provided to the grid by not
+   * running the refrigeration unit when it's scheduled to run, and down-regulation
+   * by running it when it's not otherwise scheduled to run. Warehouse
+   * temperature should not be affected by regulation -- this means that
+   * regulation should only affect the state-of-charge in the thermal battery.
+   */
   @Override
   public void step ()
   {
     totalEnergyUsed = 0.0;
 
     // First, we have to account for controls exercised in the last timeslot.
-    // If there was non-zero regulation, we have to adjust the temperature.
-    double regulation = getSubscription().getRegulation();
-    if (regulation != 0.0) {
-      // positive value is up-regulation, which means we lost that much
-      double tempChange = regulation * cop / currentStock / CP_ICE;
-      log.info(getName() + ": regulation = " + regulation
-               + ", tempChange = " + tempChange);
-      setCurrentTemp(currentTemp + tempChange);
-    }
+    // If there was non-zero regulation, we have to adjust the state of
+    // charge and possibly the temperature.
+    processRegulation();
 
-    // add in temp change due to stock turnover
-    setCurrentTemp(currentTemp + turnoverRise());
+    // add in SOC/temp change due to stock turnover
+    double rise = turnoverRise();
+    double kwhNeeded = getCurrentStock() * rise * CP_ICE;
+    if (batterySOC > 0.0) { // at least some can come from the thermal battery
+      double kwhAvail = thermalStorageCapacity * batterySOC;
+      if (kwhAvail >= kwhNeeded) { // fully satisfied by battery
+        batterySOC -= kwhNeeded / thermalStorageCapacity;
+        rise = 0.0;
+      }
+      else {
+        rise = rise * (1.0 - kwhAvail / kwhNeeded);
+        batterySOC = 0.0;
+      }
+    }
+    setCurrentTemp(getCurrentTemp() + rise);
 
     // start with the non-cooling load - this part is not subject to regulation
     updateNcUsage();
-    useEnergy(currentNcUsage);
+    useEnergy(getCurrentNcUsage());
 
     // use cooling energy to maintain and adjust current temp
     WeatherReport weather = 
@@ -220,7 +260,49 @@ implements CustomerModelAccessor
         computeCoolingEnergy(getCurrentTemp(),
                              getNominalTemp(),
                              outsideTemp);
-    setCurrentTemp(currentTemp + info.getDeltaTemp());
+    // take cooling energy out of the battery if possible
+    double kwhAvail = thermalStorageCapacity * batterySOC;
+    if (kwhAvail >= info.getEnergy()) { // enough in battery
+      batterySOC -= thermalStorageCapacity / info.getEnergy();
+      info.setDeltaTemp(0.0);
+      info.setEnergy(0.0);
+    }
+    else { // take what we can from the battery, update info
+      double ratio = kwhAvail / info.getEnergy();
+      info.setDeltaTemp(info.getDeltaTemp() * (1.0 - ratio));
+      info.setEnergy(info.getEnergy() * (1.0 - ratio));
+      batterySOC = 0.0;
+    }
+    setCurrentTemp(getCurrentTemp() - info.getDeltaTemp());
+    double slackKwh = getMaxCooling(); // cooling energy available in kWh
+                     // TODO -- assumes 1h timeslot
+    if (getCurrentTemp() > getMaxTemp()) { // use enough to recover unconditionally
+      double recovery = getCurrentStock() * CP_ICE
+              * (getCurrentTemp() - getMaxTemp());
+      slackKwh -= (recovery / cop);
+      if (slackKwh < 0.0) { // cannot completely recover
+        useEnergy(getMaxCooling());
+        
+      }
+      else { // TODO - this is not complete
+        double recoveryKw = 0.0;
+        useEnergy(recoveryKw);
+        
+      }
+      
+    }
+
+    // At this point, info.getEnergy() is the minimum we want to use,
+    // and should not be regulated away. We now compute the amount
+    // we would like to add to the battery.
+    double desiredRecharge = 0.0;
+    if (batterySOC < targetSOC) {
+      desiredRecharge = thermalStorageCapacity * (targetSOC - batterySOC);
+    }
+
+    // At this point we know how much energy we would LIKE to use for cooling.
+    // We are constrained by refrigeration capacity, and possibly by
+    // an optimized consumption profile.
 
     // Now we need to record available regulation capacity. Note that only
     // the cooling portion is available for regulation.
@@ -240,10 +322,56 @@ implements CustomerModelAccessor
              + ": regulation capacity (" + capacity.getUpRegulationCapacity()
              + ", " + capacity.getDownRegulationCapacity() + ")");
 
-    useEnergy(info.getEnergy() / cop);
+    //useEnergy(info.getEnergy() / cop);
 
     log.debug("total energy = " + totalEnergyUsed);
     getSubscription().usePower(totalEnergyUsed);
+  }
+
+  // handle regulation, using only the battery, but check and log
+  // an error if there's not enough in the battery
+  void processRegulation ()
+  {
+    double regulation = getSubscription().getRegulation();
+    if (regulation != 0.0) {
+      // positive value is up-regulation, which means we lost that much
+      if (regulation > 0.0) {
+        double batteryCap = thermalStorageCapacity * batterySOC;
+        if (batteryCap > regulation) { // there's enough in the battery
+          batterySOC -= regulation / thermalStorageCapacity;
+          log.info("Regulation {} from thermal battery, new SOC = {}",
+                   regulation, batterySOC);
+          regulation = 0.0; // all came from battery
+        }
+        else { // battery runs down to zero
+          log.warn("Regulation {} > battery capacity {}",
+                   regulation, batteryCap);
+          regulation -= batteryCap;
+          batterySOC = 0.0;
+        }
+      }
+      else { // down-regulation
+        double batteryCap = thermalStorageCapacity * (1.0 - batterySOC);
+        if (batteryCap > -regulation) { // absorb into battery
+          batterySOC += regulation / thermalStorageCapacity;
+          log.info("Regulation {} into thermal battery, new SOC = {}",
+                   regulation, batterySOC);
+          regulation = 0.0;
+        }
+        else { // battery gets filled
+          log.warn("Regulation {} > battery headroom {}",
+                   regulation, -batteryCap);
+          regulation += batteryCap;
+          batterySOC = 1.0;
+        }
+      }
+      if (regulation != 0.0) {
+        double tempChange = regulation * cop / currentStock / CP_ICE;
+        log.info(getName() + ": regulation = " + regulation
+                 + ", tempChange = " + tempChange);
+        setCurrentTemp(currentTemp + tempChange);
+      }
+    }
   }
 
   // digs out the current subscription for this thing. Since the population is
@@ -505,21 +633,32 @@ implements CustomerModelAccessor
   }
 
   // --------------- State and state change -------------
+  public double getCurrentStock ()
+  {
+    return currentStock;
+  }
+
+  @StateChange
+  public void setCurrentStock (double stock)
+  {
+    currentStock = stock;
+  }
+
   public double getCurrentTemp ()
   {
     return currentTemp;
-  }
-
-  // Returns the maximum kWh that can be expended with the cooling unit
-  double getMaxCooling ()
-  {
-    return unitSize * TON_CONVERSION;
   }
 
   @StateChange
   public void setCurrentTemp (double temp)
   {
     currentTemp = temp;
+  }
+
+  // Returns the maximum kWh that can be expended with the cooling unit
+  double getMaxCooling ()
+  {
+    return unitSize * TON_CONVERSION;
   }
   
   void useEnergy (double kWh)
@@ -772,6 +911,38 @@ implements CustomerModelAccessor
                 + " cannot be negative");
     else
       cop = value;
+    return this;
+  }
+
+  public double getUpregEstimate ()
+  {
+    return upregEstimate;
+  }
+
+  @ConfigurableValue(valueType = "Double", dump = false,
+      description = "expected up-regulation ratio to max consumption")
+  public ColdStorage withUpregEstimate  (double value)
+  {
+    if (value > 0.0 || value < -1.0)
+      log.error("upregEstimate {} should be <0 and >-1", value);
+    else
+      upregEstimate = value;
+    return this;
+  }
+
+  public double getDownregEstimate ()
+  {
+    return downregEstimate;
+  }
+
+  @ConfigurableValue(valueType = "Double", dump = false,
+      description = "expected down-regulation ratio to max consumption")
+  public ColdStorage withDownregEstimate  (double value)
+  {
+    if (value < 0.0 || value > 1.0)
+      log.error("upregEstimate {} should be >0 and <1", value);
+    else
+      downregEstimate = value;
     return this;
   }
 
