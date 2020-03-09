@@ -235,8 +235,7 @@ public class TariffEvaluationHelper
     return result + adj * usage.length;
   }
 
-  // discount regulation using logistic function centered on 4.0 * mkt price
-  // for up-reg, -2.0 for down
+  // discount regulation using logistic function
   double computeDiscountedReg (Tariff tariff)
   {
     double result = 0.0;
@@ -254,10 +253,9 @@ public class TariffEvaluationHelper
     double downregPriceRatio = 2.0 + downregPrice / mktPrice;
     double downregDiscount = downRegulationDiscount(downregPriceRatio);
     result += downregDiscount * tariff.getRegulationCharge(expDown, 0.0, false);
-    log.info("mp {}, upreg {}, upregRatio {}, upreg discount {}, downreg {}, downregRatio {}, downreg discount {}",
-             mktPrice, upregPrice, upregPriceRatio, upregDiscount,
-             downregPrice, downregPriceRatio, downregDiscount);
-    //                  expDown, downregPriceRatio, downregDiscount, adj);
+    log.info("mp {}, upregRatio {}, upreg discount {}, downregRatio {}, downreg discount {}",
+             mktPrice, upregPriceRatio, upregDiscount,
+             downregPriceRatio, downregDiscount);
     return result;
   }
 
