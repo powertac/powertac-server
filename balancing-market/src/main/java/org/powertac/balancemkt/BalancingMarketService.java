@@ -98,6 +98,11 @@ implements BalancingMarket, SettlementContext, InitializationService
 
   @ConfigurableValue(valueType = "Double",
           publish = true,
+          description = "Fixed cost/kWh for regulation energy")
+  private double rmFee = 0.035;
+
+  @ConfigurableValue(valueType = "Double",
+          publish = true,
           description = "Spot price/mwh used if unavailable from wholesale market")
   private double defaultSpotPrice = 30.0; // per mwh
 
@@ -266,7 +271,7 @@ implements BalancingMarket, SettlementContext, InitializationService
 
   /**
    * Returns the zero-quantity price for up-regulation energy
-   * in the current timeslot. Units are per kWh
+   * in the current timeslot. Value is positive per kWh
    */
   @Override
   public double getPPlus ()
@@ -284,7 +289,9 @@ implements BalancingMarket, SettlementContext, InitializationService
       if (max != null)
         result = max;
     }
-    return result * rmPremium / 1000.0;
+    result = result * rmPremium / 1000.0 + rmFee;
+    //log.info("PPlus = {}", result);
+    return result;
   }
 
   /**
@@ -307,7 +314,9 @@ implements BalancingMarket, SettlementContext, InitializationService
       if (min != null)
         result = min;
     }
-    return -result / rmPremium / 1000.0;
+    result = -result / rmPremium / 1000.0 - rmFee;
+    //log.info("PMinus = {}", result);
+    return result;
   }
 
   /**
@@ -374,6 +383,16 @@ implements BalancingMarket, SettlementContext, InitializationService
   void setRmPremium (double value)
   {
     rmPremium = value;
+  }
+
+  double getRmFee ()
+  {
+    return rmFee;
+  }
+
+  void setRmFee (double value)
+  {
+    rmFee = value;
   }
 
   /**

@@ -245,11 +245,12 @@ public class BalancingMarketServiceTests
     initializeService();
     updatePrices();
     balancingMarketService.setRmPremium(1.1);
+    balancingMarketService.setRmFee(0.04);
 
     // make sure we can retrieve current spot price
     assertEquals(0.0201, balancingMarketService.getSpotPrice(), 1e-6, "correct spot price");
-    assertEquals(-0.0198 / 1.1, balancingMarketService.getPMinus(), 1e-6, "correct pMinus");
-    assertEquals(0.0212 * 1.1, balancingMarketService.getPPlus(), 1e-6, "correct pPlus");
+    assertEquals(-0.0198 / 1.1 - 0.04, balancingMarketService.getPMinus(), 1e-6, "correct pMinus");
+    assertEquals(0.0212 * 1.1 + 0.04, balancingMarketService.getPPlus(), 1e-6, "correct pPlus");
   }
 
   @SuppressWarnings("unused")
