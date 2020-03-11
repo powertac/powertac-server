@@ -81,9 +81,9 @@ public class TariffEvaluationHelper
 
   // Regulation discount coefficients
   private double upregSlope = 3.0;
-  private double upregHalf = 3.9;
-  private double downregSlope = 17;
-  private double downregHalf = 1.8;
+  private double upregHalf = 4.4;
+  private double downregSlope = 20;
+  private double downregHalf = 0.7;
 
   // Bootstrap market data for computing regulation reward
   //private MarketBootstrapData marketBootstrapData;
@@ -167,10 +167,25 @@ public class TariffEvaluationHelper
   public void initializeRegulationFactors (double expectedCurtailment,
                                            double expectedDischarge,
                                            double expectedDownReg)
- {
+  {
     this.expCurtail = expectedCurtailment;
     this.expDischarge = expectedDischarge;
     this.expDown = expectedDownReg;
+  }
+
+  /**
+   * Initializes regulation rate discount factors. Applicable only for
+   * tariffs with {@link RegulationRate}s.
+   */
+  public void initializeRegulationDiscount (double upregHalf,
+                                            double upregSlope,
+                                            double downregHalf,
+                                            double downregSlope)
+  {
+    this.upregHalf = upregHalf;
+    this.upregSlope = upregSlope;
+    this.downregHalf = downregHalf;
+    this.downregSlope = downregSlope;
   }
 
   /**
