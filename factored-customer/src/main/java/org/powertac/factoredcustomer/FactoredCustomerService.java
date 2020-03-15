@@ -22,6 +22,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -54,7 +55,7 @@ import java.util.Map;
  */
 @Service  // allow autowiring
 public class FactoredCustomerService extends TimeslotPhaseProcessor
-    implements InitializationService, NewTariffListener
+    implements InitializationService, NewTariffListener, CustomerServiceAccessor
 {
   private static Logger log =
       LogManager.getLogger(FactoredCustomerService.class.getName());
@@ -143,32 +144,32 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   }
 
   // mockable component access methods - package visibility
-  TimeService getTimeService ()
+  public TimeService getTimeService ()
   {
     return timeService;
   }
 
-  CustomerRepo getCustomerRepo ()
+  public CustomerRepo getCustomerRepo ()
   {
     return customerRepo;
   }
 
-  TariffRepo getTariffRepo ()
+  public TariffRepo getTariffRepo ()
   {
     return tariffRepo;
   }
 
-  org.powertac.common.repo.TimeslotRepo getTimeslotRepo ()
+  public org.powertac.common.repo.TimeslotRepo getTimeslotRepo ()
   {
     return timeslotRepo;
   }
 
-  RandomSeedRepo getRandomSeedRepo ()
+  public RandomSeedRepo getRandomSeedRepo ()
   {
     return randomSeedRepo;
   }
 
-  TariffSubscriptionRepo getTariffSubscriptionRepo ()
+  public TariffSubscriptionRepo getTariffSubscriptionRepo ()
   {
     return tariffSubscriptionRepo;
   }
@@ -178,12 +179,12 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     return tariffMarketService;
   }
 
-  WeatherReportRepo getWeatherReportRepo ()
+  public WeatherReportRepo getWeatherReportRepo ()
   {
     return weatherReportRepo;
   }
 
-  WeatherForecastRepo getWeatherForecastRepo ()
+  public WeatherForecastRepo getWeatherForecastRepo ()
   {
     return weatherForecastRepo;
   }
@@ -249,5 +250,12 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   List<FactoredCustomer> getCustomers ()
   {
     return customers;
+  }
+
+  @Override
+  public ServerConfiguration getServerConfiguration ()
+  {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

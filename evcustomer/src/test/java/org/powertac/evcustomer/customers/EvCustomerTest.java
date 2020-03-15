@@ -17,8 +17,7 @@
 package org.powertac.evcustomer.customers;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.powertac.common.RandomSeed;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TimeService;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -58,6 +58,7 @@ public class EvCustomerTest
   private RandomSeedRepo mockSeedRepo;
   private MockRandomSeed mockSeed;
   private TimeService mockTimeService;
+  private EvSocialClass mockEsc;
   private ServiceAccessor service;
 
   private EvCustomer evCustomer;
@@ -77,6 +78,9 @@ public class EvCustomerTest
   public void setUp ()
   {
     evCustomer = new EvCustomer(cName);
+    mockEsc = mock(EvSocialClass.class);
+    when (mockEsc.createTariffEvaluator(any()))
+    .thenReturn(new TariffEvaluator(evCustomer.createTariffEvaluationWrapper()));
     mockTimeService = mock(TimeService.class);
     when (mockTimeService.getCurrentDateTime())
     .thenReturn(new DateTime(DateTime.now()));
@@ -112,7 +116,7 @@ public class EvCustomerTest
     // consumes 1 double, 2 int random values
     Config config = Config.getInstance();
     evCustomer.initialize(socialGroup, gender, activities, gas,
-        carType, service, config);
+        carType, mockEsc, service, config);
   }
 
   private Activity addActivity (String name, int id, int interval)

@@ -233,7 +233,7 @@ public class EvSocialClass extends AbstractCustomer
     CustomerInfo info =
         customer.initialize(thisGroup, gender, activities,
                             getGroupActivities(beans, thisGroup),
-                            car, service, config);
+                            car, this, service, config);
     addCustomerInfo(info);
     service.getCustomerRepo().add(info);
     return customer;

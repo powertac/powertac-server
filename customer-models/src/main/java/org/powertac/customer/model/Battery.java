@@ -144,7 +144,7 @@ implements CustomerModelAccessor
     }
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
-    tariffEvaluator = new TariffEvaluator(this);
+    tariffEvaluator = createTariffEvaluator(this);
     tariffEvaluator.withInertia(0.7).withRationality(0.99)
         .withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);

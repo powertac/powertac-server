@@ -27,10 +27,13 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 
 /**
@@ -202,6 +205,17 @@ public abstract class AbstractCustomer
    * Called to run the model forward one step.
    */
   public abstract void step ();
+
+  /**
+   * Creates a TariffEvaluator, populated with a pre-configured
+   * TariffEvaluationHelper.
+   */
+  public TariffEvaluator createTariffEvaluator (CustomerModelAccessor cma)
+  {
+    ServerConfiguration config = service.getServerConfiguration();
+    TariffEvaluator te = new TariffEvaluator(cma, config);
+    return te;
+  }
 
   /**
    * Called to evaluate tariffs.

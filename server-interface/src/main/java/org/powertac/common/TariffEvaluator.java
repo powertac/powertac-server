@@ -26,6 +26,7 @@ import java.util.TreeSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
@@ -91,13 +92,26 @@ public class TariffEvaluator
   private int stdDuration = 2; // two-day standardized profile length
   private int profileLength = 168; // length of customer-supplied profile
 
-  public TariffEvaluator (CustomerModelAccessor cma)
+  public TariffEvaluator (CustomerModelAccessor cma,
+                          ServerConfiguration config)
   {
     accessor = cma;
     customerInfo = cma.getCustomerInfo();
     helper = new TariffEvaluationHelper();
+    if (null != config) {
+      config.configureMe(helper);
+    }
+    // TODO - remove after testing
+    log.info("Reg discount coefficients {}, {}, {}, {}",
+             helper.getUpregHalf(), helper.getUpregSlope(),
+             helper.getDownregHalf(), helper.getDownregSlope());
     evaluatedTariffs = new HashMap<>();
     allocations = new LinkedHashMap<>();
+  }
+
+  public TariffEvaluator (CustomerModelAccessor cma)
+  {
+    this(cma, null);
   }
 
   // convenience method for logging support

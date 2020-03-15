@@ -39,6 +39,7 @@ import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.CarType;
@@ -154,6 +155,7 @@ public class EvCustomer
                                   Map<Integer, Activity> activities,
                                   List<GroupActivity> groupActivities,
                                   CarType car,
+                                  EvSocialClass esc,
                                   CustomerServiceAccessor service,
                                   Config config)
   {
@@ -185,17 +187,17 @@ public class EvCustomer
         withStorageCapacity(car.getMaxCapacity());
 
     // set up tariff evaluation
-    evaluator = createTariffEvaluator();
+    configTariffEvaluator(esc);
     sleepActivity = new Activity("sleep");
     return customerInfo;
   }
 
   // ================ Tariff evaluation ===============
-  private TariffEvaluator createTariffEvaluator ()
+  private void configTariffEvaluator (AbstractCustomer ac)
   {
     TariffEvaluationWrapper wrapper =
-        new TariffEvaluationWrapper();
-    TariffEvaluator te = new TariffEvaluator(wrapper);
+        createTariffEvaluationWrapper();
+    TariffEvaluator te = ac.createTariffEvaluator(wrapper);
     te.initializeInconvenienceFactors(config.getTouFactor(),
         config.getTieredRateFactor(),
         config.getVariablePricingFactor(),
@@ -215,7 +217,6 @@ public class EvCustomer
     te.initializeRegulationFactors(car.getHomeChargeKW() * car.getCurtailmentFactor(),
                                    car.getHomeChargeKW() * car.getDischargeFactor(),
                                    car.getHomeChargeKW() * car.getDownRegFactor());
-    return te;
   }
 
   public void evaluateTariffs (List<Tariff> tariffs)
@@ -785,6 +786,11 @@ public class EvCustomer
     }
     catch (Exception ignored) {
     }
+  }
+
+  TariffEvaluationWrapper createTariffEvaluationWrapper ()
+  {
+    return new TariffEvaluationWrapper();
   }
 
   void setGenerator (RandomSeed generator)
