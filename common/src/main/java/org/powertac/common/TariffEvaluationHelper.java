@@ -18,6 +18,7 @@ package org.powertac.common;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.spring.SpringApplicationContext;
 
@@ -80,10 +81,18 @@ public class TariffEvaluationHelper
   private double expDown = 0.0;
 
   // Regulation discount coefficients
-  private double upregSlope = 3.0;
+  @ConfigurableValue(valueType = "Double",
+          description = "Ratio at which up-regulation discount function is 0.5")
   private double upregHalf = 4.4;
-  private double downregSlope = 20;
+  @ConfigurableValue(valueType = "Double",
+          description = "Slope of up-regulation discount function")
+  private double upregSlope = 3.0;
+  @ConfigurableValue(valueType = "Double",
+          description = "Ratio at which down-regulation discount function is 0.5")
   private double downregHalf = 0.7;
+  @ConfigurableValue(valueType = "Double",
+          description = "Slope of down-regulation discount function")
+  private double downregSlope = 15;
 
   // Bootstrap market data for computing regulation reward
   //private MarketBootstrapData marketBootstrapData;
@@ -478,6 +487,61 @@ public class TariffEvaluationHelper
   public double getExpectedRegulation ()
   {
     return expCurtail + expDischarge + expDown;
+  }
+
+  public double getUpregHalf ()
+  {
+    return upregHalf;
+  }
+
+  public double getUpregSlope ()
+  {
+    return upregSlope;
+  }
+
+  public double getDownregHalf ()
+  {
+    return downregHalf;
+  }
+
+  public double getDownregSlope ()
+  {
+    return downregSlope;
+  }
+
+  public static Logger getLog ()
+  {
+    return log;
+  }
+
+  public double getExpCurtail ()
+  {
+    return expCurtail;
+  }
+
+  public double getExpDischarge ()
+  {
+    return expDischarge;
+  }
+
+  public double getExpDown ()
+  {
+    return expDown;
+  }
+
+  public double getAlpha ()
+  {
+    return alpha;
+  }
+
+  public Tariff getTariff ()
+  {
+    return tariff;
+  }
+
+  public TimeService getTimeService ()
+  {
+    return timeService;
   }
 
   // normalizes the weights for expected and max so they add to 1

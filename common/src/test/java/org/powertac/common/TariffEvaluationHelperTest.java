@@ -382,9 +382,9 @@ public class TariffEvaluationHelperTest
   public void testUpRegulationDiscount ()
   {
     assertEquals(0.9999, teh.upRegulationDiscount(1.0), 1e-4, "low price");
-    assertEquals(0.9526, teh.upRegulationDiscount(2.9), 1e-4, "2.9 x price");
-    assertEquals(0.5, teh.upRegulationDiscount(3.9), 1e-4, "3.9 x price");
-    assertEquals(0.001,teh.upRegulationDiscount(6.2), 1e-4, "6.2 x price");
+    assertEquals(0.9526, teh.upRegulationDiscount(3.4), 1e-4, "3.4 x price");
+    assertEquals(0.5, teh.upRegulationDiscount(4.4), 1e-4, "4.4 x price");
+    assertEquals(0.001,teh.upRegulationDiscount(6.7), 1e-4, "6.7 x price");
   }
 
   // regulation discount ratios
@@ -392,11 +392,11 @@ public class TariffEvaluationHelperTest
   public void testDownRegulationDiscount ()
   {
     assertEquals(1.0, teh.downRegulationDiscount(0.0), 1e-4, "very low");
-    assertEquals(0.9999, teh.downRegulationDiscount(1.0), 1e-4, "zero price");
-    assertEquals(0.8455, teh.downRegulationDiscount(1.7), 1e-4, "low price");
-    assertEquals(0.5, teh.downRegulationDiscount(1.8), 1e-4, "halfway");
-    assertEquals(0.1545, teh.downRegulationDiscount(1.9), 1e-4, "high price");
-    assertEquals(0.0011, teh.downRegulationDiscount(2.2), 1e-4, "very high price");
+    assertEquals(0.9998, teh.downRegulationDiscount(0.14), 1e-4, "zero price");
+    assertEquals(0.8581, teh.downRegulationDiscount(0.58), 1e-4, "low price");
+    assertEquals(0.5, teh.downRegulationDiscount(0.7), 1e-4, "halfway");
+    assertEquals(0.1824, teh.downRegulationDiscount(0.8), 1e-4, "high price");
+    assertEquals(0.0110, teh.downRegulationDiscount(1.0), 1e-4, "very high price");
   }
 
   // storage example, no estimates
@@ -434,7 +434,7 @@ public class TariffEvaluationHelperTest
     tariffSpec.addRate(r);
     RegulationRate rr =
       new RegulationRate().withUpRegulationPayment(0.1)
-          .withDownRegulationPayment(-0.02);
+          .withDownRegulationPayment(-0.04);
     tariffSpec.addRate(rr);
     tariff = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
@@ -453,11 +453,12 @@ public class TariffEvaluationHelperTest
     assertEquals(0.1, tariff.getRegulationCharge(-1.0, 0.0, false), 1e-6);
     double[] usage = {100.0, 200.0};
     result = teh.estimateCost(tariff, usage, start);
-    double disc = 0.911; // approx. discount
+    double up = 0.97865; // approx. discount
+    double down = 0.32082;
     assertEquals(((100.0 - 2.0 + 1.0) * -0.1
-            + 2.0 * 0.1 * disc - 1.0 * 0.02
+            + 2.0 * 0.1 * up - 1.0 * 0.04 * down
             + (200.0 - 2.0 + 1.0) * -0.1
-            + 2.0 * 0.1 * disc - 1.0 * 0.02),
+            + 2.0 * 0.1 * up- 1.0 * 0.04 * down),
                  result, 1e-4, "correct result");
   }
 }
