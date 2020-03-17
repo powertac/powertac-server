@@ -622,7 +622,8 @@ public class Configurator
       log.error("cannot configure {}: {}", key, getExceptionDetails(e));
     }
     catch (InvocationTargetException e) {
-      log.error("cannot configure {}: {}", key, getExceptionDetails(e));
+      log.error("cannot configure {}: {}, {}",
+                key, e.getCause(), getExceptionDetails(e));
     }
     catch (NoSuchMethodException e) {
       log.error("cannot configure {}: {}", key, getExceptionDetails(e));

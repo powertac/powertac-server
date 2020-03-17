@@ -83,16 +83,16 @@ public class TariffEvaluationHelper
   // Regulation discount coefficients
   @ConfigurableValue(valueType = "Double",
           description = "Ratio at which up-regulation discount function is 0.5")
-  private double upregHalf = 4.4;
+  private Double upregHalf = 4.4;
   @ConfigurableValue(valueType = "Double",
           description = "Slope of up-regulation discount function")
-  private double upregSlope = 3.0;
+  private Double upregSlope = 3.0;
   @ConfigurableValue(valueType = "Double",
           description = "Ratio at which down-regulation discount function is 0.5")
-  private double downregHalf = 0.7;
+  private Double downregHalf = 0.7;
   @ConfigurableValue(valueType = "Double",
           description = "Slope of down-regulation discount function")
-  private double downregSlope = 15;
+  private Double downregSlope = 15.0;
 
   // Bootstrap market data for computing regulation reward
   //private MarketBootstrapData marketBootstrapData;
@@ -489,22 +489,22 @@ public class TariffEvaluationHelper
     return expCurtail + expDischarge + expDown;
   }
 
-  public double getUpregHalf ()
+  public Double getUpregHalf ()
   {
     return upregHalf;
   }
 
-  public double getUpregSlope ()
+  public Double getUpregSlope ()
   {
     return upregSlope;
   }
 
-  public double getDownregHalf ()
+  public Double getDownregHalf ()
   {
     return downregHalf;
   }
 
-  public double getDownregSlope ()
+  public Double getDownregSlope ()
   {
     return downregSlope;
   }

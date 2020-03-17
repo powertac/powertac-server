@@ -105,7 +105,7 @@ public class OrderbookTests
       .addBid(new OrderbookOrder(6.2, null));
     SortedSet<OrderbookOrder> bids = ob.getBids();
     assertEquals(4, bids.size(), "correct number");
-    assertEquals(null, bids.first().getLimitPrice(), "correct first item price");
+    assertNull(bids.first().getLimitPrice(), "correct first item price");
     assertEquals(-18.2, bids.last().getLimitPrice(), 1e-6, "correct last item price");
     SortedSet<OrderbookOrder> asks = ob.getAsks();
     assertEquals(0, asks.size(), "no asks");
