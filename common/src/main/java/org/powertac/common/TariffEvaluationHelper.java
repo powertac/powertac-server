@@ -82,15 +82,19 @@ public class TariffEvaluationHelper
 
   // Regulation discount coefficients
   @ConfigurableValue(valueType = "Double",
+          publish = true,
           description = "Ratio at which up-regulation discount function is 0.5")
   private Double upregHalf = 4.4;
   @ConfigurableValue(valueType = "Double",
+          publish = true,
           description = "Slope of up-regulation discount function")
   private Double upregSlope = 3.0;
   @ConfigurableValue(valueType = "Double",
+          publish = true,
           description = "Ratio at which down-regulation discount function is 0.5")
   private Double downregHalf = 0.7;
   @ConfigurableValue(valueType = "Double",
+          publish = true,
           description = "Slope of down-regulation discount function")
   private Double downregSlope = 15.0;
 
