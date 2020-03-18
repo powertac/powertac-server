@@ -174,7 +174,8 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     return tariffSubscriptionRepo;
   }
 
-  TariffMarket getTariffMarket ()
+  @Override
+  public TariffMarket getTariffMarket ()
   {
     return tariffMarketService;
   }
@@ -199,7 +200,9 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
 
     for (String name : creatorNames) {
       try {
-        CustomerCreator creator = (CustomerCreator) Class.forName(name).newInstance();
+        CustomerCreator creator =
+                (CustomerCreator) Class.forName(name)
+                .getDeclaredConstructor().newInstance();
         customerFactory.registerCreator(creator);
         log.info("Registered creator: " + name);
       }
@@ -256,6 +259,6 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   public ServerConfiguration getServerConfiguration ()
   {
     // TODO Auto-generated method stub
-    return null;
+    return serverConfiguration;
   }
 }

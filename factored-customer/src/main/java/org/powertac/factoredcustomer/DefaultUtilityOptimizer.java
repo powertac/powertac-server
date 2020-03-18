@@ -34,6 +34,7 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.customer.AbstractCustomer;
 //import org.powertac.common.state.Domain;
 //import org.powertac.common.state.StateChange;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
@@ -53,12 +54,14 @@ import java.util.List;
  * @author Prashant Reddy, John Collins
  */
 //@Domain
-class DefaultUtilityOptimizer implements UtilityOptimizer
+class DefaultUtilityOptimizer
+extends AbstractCustomer
+implements UtilityOptimizer
 {
   private static Logger log =
       LogManager.getLogger(DefaultUtilityOptimizer.class.getName());
 
-  protected FactoredCustomerService service;
+  //protected FactoredCustomerService service;
 
   private final CustomerStructure customerStructure;
   protected final List<CapacityBundle> capacityBundles;
@@ -74,12 +77,20 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     this.customerStructure = customerStructure;
     this.capacityBundles = bundles;
     this.evaluatorMap = new HashMap<>();
+  }
+
+  @Override
+  public void initialize (FactoredCustomerService service)
+  {
+    super.setServiceAccessor(service);
+    this.service = service;
+    super.initialize();
 
     // create evaluation wrappers and tariff evaluators for each bundle
-    for (CapacityBundle bundle : bundles) {
+    for (CapacityBundle bundle : capacityBundles) {
       TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
       TariffEvaluator evaluator =
-          new TariffEvaluator(new TariffEvaluationWrapper(bundle))
+          createTariffEvaluator(new TariffEvaluationWrapper(bundle))
               .withChunkSize(Math.max(1, bundle.getPopulation() / 1000))
               .withTariffSwitchFactor(subStructure.getTariffSwitchFactor())
               .withPreferredContractDuration(subStructure.getExpectedDuration())
@@ -97,14 +108,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
       evaluator.initializeRegulationFactors(subStructure.getExpUpRegulation(),
                                             0.0,
                                             subStructure.getExpDownRegulation());
+      //log.info("evaluator set for bundle {}", bundle.getName());
       evaluatorMap.put(bundle, evaluator);
     }
-  }
 
-  @Override
-  public void initialize (FactoredCustomerService service)
-  {
-    this.service = service;
     inertiaSampler =
         getRandomSeedRepo()
             .getRandomSeed("factoredcustomer.DefaultUtilityOptimizer",
@@ -196,6 +203,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     for (CapacityBundle bundle : capacityBundles) {
       TariffEvaluator evaluator = evaluatorMap.get(bundle);
+      if (null == evaluator)
+        log.error("null evaluator, bundle {}", bundle.getName());
       if (bundle.getSubscriberStructure().getInertiaDistribution() != null) {
         evaluator.withInertia(bundle.getSubscriberStructure()
             .getInertiaDistribution().drawSample());
@@ -221,13 +230,13 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   }
 
   @Override
-  public void handleNewTimeslot (Timeslot timeslot)
+  public void step()
   {
-    usePower(timeslot);
+    usePower();
   }
 
   // TODO - needs fix for #956
-  private void usePower (Timeslot timeslot)
+  private void usePower ()
   {
     for (CapacityBundle bundle : capacityBundles) {
       List<TariffSubscription> subscriptions =
@@ -267,11 +276,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         totalCapacity += currCapacity;
       }
       log.info(bundle.getName() + ": Total " + bundle.getPowerType()
-          + " capacity for timeslot " + timeslot.getSerialNumber() + " = "
-          + totalCapacity);
+          + " capacity " + " = " + totalCapacity);
       logUsageCharges(bundle.getName() + ": Total " + bundle.getPowerType()
-          + " usage charge for timeslot "
-          + timeslot.getSerialNumber() + " = " + totalUsageCharge);
+          + " usage charge " + " = " + totalUsageCharge);
     }
   }
 
@@ -442,6 +449,13 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     {
       return 1;
     }
+  }
+
+  @Override
+  public void evaluateTariffs (List<Tariff> tariffs)
+  {
+    // TODO Auto-generated method stub
+    
   }
 }
 

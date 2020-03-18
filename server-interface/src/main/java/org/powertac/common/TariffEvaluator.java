@@ -101,6 +101,9 @@ public class TariffEvaluator
     if (null != config) {
       config.configureMe(helper);
     }
+    else {
+      log.error("null config");
+    }
     // TODO - remove after testing
     log.info("Reg discount coefficients {}, {}, {}, {}",
              helper.getUpregHalf(), helper.getUpregSlope(),

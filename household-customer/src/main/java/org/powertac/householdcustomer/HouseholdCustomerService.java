@@ -321,6 +321,13 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   public ServerConfiguration getServerConfiguration ()
   {
     // Auto-generated method stub
+    return serverPropertiesService;
+  }
+
+  @Override
+  public TariffMarket getTariffMarket ()
+  {
+    // TODO Auto-generated method stub
     return null;
   }
 }

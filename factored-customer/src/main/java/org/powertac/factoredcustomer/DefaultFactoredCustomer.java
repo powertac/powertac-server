@@ -133,7 +133,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
     Timeslot timeslot = getTimeslotRepo().currentTimeslot();
     log.info("Customer " + getName() + " activated for timeslot "
         + timeslot.getSerialNumber());
-    utilityOptimizer.handleNewTimeslot(timeslot);
+    utilityOptimizer.step();
   }
 
   String getName ()

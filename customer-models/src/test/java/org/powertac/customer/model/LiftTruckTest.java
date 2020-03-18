@@ -44,6 +44,7 @@ import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -762,6 +763,13 @@ public class LiftTruckTest
     public ServerConfiguration getServerConfiguration ()
     {
       // Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
       return null;
     }
   }

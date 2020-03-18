@@ -54,7 +54,8 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
   @Override
   public void initialize (FactoredCustomerService service)
   {
-    this.service = service;
+    super.initialize(service);
+    //this.service = service;
     inertiaSampler =
         getRandomSeedRepo()
             .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
@@ -63,8 +64,6 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
         getRandomSeedRepo()
             .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
                 SeedIdGenerator.getId(), "TariffSelector");
-
-    subscribeDefault();
   }
 
   @Override

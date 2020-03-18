@@ -48,6 +48,11 @@ public interface CustomerServiceAccessor
   public RandomSeedRepo getRandomSeedRepo ();
 
   /**
+   * Returns a reference to the TariffMarket
+   */
+  public TariffMarket getTariffMarket();
+
+  /**
    * Returns a reference to a TariffRepo
    */
   public TariffRepo getTariffRepo ();

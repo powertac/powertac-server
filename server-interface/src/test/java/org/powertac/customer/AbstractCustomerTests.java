@@ -563,6 +563,13 @@ public class AbstractCustomerTests
     {
       return null;
     }
+
+    @Override
+    public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
   }
 
   class DummyCustomer extends AbstractCustomer

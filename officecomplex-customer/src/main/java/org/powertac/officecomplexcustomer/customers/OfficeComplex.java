@@ -270,7 +270,7 @@ public class OfficeComplex extends AbstractCustomer
       TariffEvaluationWrapper wrapper =
         new TariffEvaluationWrapper(type, customer.get(0));
 
-      TariffEvaluator te = new TariffEvaluator(wrapper);
+      TariffEvaluator te = createTariffEvaluator(wrapper);
 
       te.initializeInconvenienceFactors(OfficeComplexConstants.TOU_FACTOR,
                                         OfficeComplexConstants.TIERED_RATE_FACTOR,
@@ -293,7 +293,7 @@ public class OfficeComplex extends AbstractCustomer
 
       wrapper = new TariffEvaluationWrapper(type, customer.get(0));
 
-      te = new TariffEvaluator(wrapper);
+      te = createTariffEvaluator(wrapper);
 
       te.initializeInconvenienceFactors(OfficeComplexConstants.TOU_FACTOR,
                                         OfficeComplexConstants.TIERED_RATE_FACTOR,

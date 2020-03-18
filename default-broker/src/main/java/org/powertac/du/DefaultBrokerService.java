@@ -103,7 +103,7 @@ public class DefaultBrokerService
   private double sellLimitPriceMin = 0.2;    // other broker pays
   private int usageRecordLength = 7 * 24; // one week
   private double storageTariffValue = 0.04; // per kWh
-  private double storageTariffMargin = 0.02; // buy-sell margin
+  private double storageTariffMargin = 0.2; // buy-sell margin
   
   // bootstrap-mode data - uninitialized for normal sim mode
   private boolean bootstrapMode = false;
@@ -190,9 +190,9 @@ public class DefaultBrokerService
         .addRate(new Rate().withValue(defaultConsumptionRate))
         .addRate(new RegulationRate()
            .withUpRegulationPayment(getStorageTariffValue() *
-                                    (1.0 + getStorageTariffMargin() / 2.0))
+                                    (1.0 + getStorageTariffMargin()))
            .withDownRegulationPayment(- getStorageTariffValue() *
-                                      (1.0 - getStorageTariffMargin() / 2.0)));
+                                      (1.0 - getStorageTariffMargin())));
     tariffMarketService.setDefaultTariff(defaultStorage);
     customerSubscriptions.put(defaultStorage, new LinkedHashMap<>());
 

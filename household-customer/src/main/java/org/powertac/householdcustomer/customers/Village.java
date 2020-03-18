@@ -191,6 +191,7 @@ public class Village extends AbstractCustomer
   double[] nonDominantLoadReS = new double[VillageConstants.HOURS_OF_DAY];
   double[] nonDominantLoadSS = new double[VillageConstants.HOURS_OF_DAY];
 
+  // presumably this is not used for actual tariff evaluation
   protected final TariffEvaluationHelper tariffEvalHelper =
     new TariffEvaluationHelper();
 
@@ -265,7 +266,7 @@ public class Village extends AbstractCustomer
   public void initialize (Properties conf, int seed,
                           Map<CustomerInfo, String> mapping)
   {
-    this.initialize();
+    super.initialize();
     // Initializing variables
     houseMapping = mapping;
 
@@ -338,7 +339,7 @@ public class Village extends AbstractCustomer
       TariffEvaluationWrapper wrapper =
         new TariffEvaluationWrapper(type, customer.get(0));
 
-      TariffEvaluator te = new TariffEvaluator(wrapper);
+      TariffEvaluator te = createTariffEvaluator(wrapper);
 
       te.initializeInconvenienceFactors(VillageConstants.TOU_FACTOR,
                                         VillageConstants.TIERED_RATE_FACTOR,
@@ -361,7 +362,7 @@ public class Village extends AbstractCustomer
 
       wrapper = new TariffEvaluationWrapper(type, customer.get(0));
 
-      te = new TariffEvaluator(wrapper);
+      te = createTariffEvaluator(wrapper);
 
       te.initializeInconvenienceFactors(VillageConstants.TOU_FACTOR,
                                         VillageConstants.TIERED_RATE_FACTOR,

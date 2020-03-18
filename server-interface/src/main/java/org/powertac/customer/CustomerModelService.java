@@ -218,4 +218,10 @@ implements InitializationService, BootstrapState, NewTariffListener,
   {
     return serverConfig;
   }
+
+  @Override
+  public TariffMarket getTariffMarket ()
+  {
+    return tariffMarketService;
+  }
 }

@@ -197,8 +197,8 @@ public class EvCustomer
   {
     TariffEvaluationWrapper wrapper =
         createTariffEvaluationWrapper();
-    TariffEvaluator te = ac.createTariffEvaluator(wrapper);
-    te.initializeInconvenienceFactors(config.getTouFactor(),
+    evaluator = ac.createTariffEvaluator(wrapper);
+    evaluator.initializeInconvenienceFactors(config.getTouFactor(),
         config.getTieredRateFactor(),
         config.getVariablePricingFactor(),
         config.getInterruptibilityFactor());
@@ -208,13 +208,13 @@ public class EvCustomer
         generator.nextInt(config.getMaxDefaultDuration() -
                           config.getMinDefaultDuration());
 
-    te.withInconvenienceWeight(weight)
+    evaluator.withInconvenienceWeight(weight)
         .withInertia(config.getNsInertia())
         .withPreferredContractDuration(expDuration)
         .withRationality(config.getRationalityFactor())
         .withTariffEvalDepth(config.getTariffCount())
         .withTariffSwitchFactor(config.getBrokerSwitchFactor());
-    te.initializeRegulationFactors(car.getHomeChargeKW() * car.getCurtailmentFactor(),
+    evaluator.initializeRegulationFactors(car.getHomeChargeKW() * car.getCurtailmentFactor(),
                                    car.getHomeChargeKW() * car.getDischargeFactor(),
                                    car.getHomeChargeKW() * car.getDownRegFactor());
   }

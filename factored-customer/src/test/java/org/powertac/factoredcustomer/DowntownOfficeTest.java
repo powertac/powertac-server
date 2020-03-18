@@ -207,7 +207,7 @@ public class DowntownOfficeTest
     when(timeService.getCurrentDateTime()).thenReturn(start);
     WeatherReport weather = new WeatherReport(300, 20.0, 20.0, 0.0, 0.0);
     when(weatherReportRepo.currentWeatherReport()).thenReturn(weather);
-    fs.getUtilityOptimizer().handleNewTimeslot(ts);
+    fs.getUtilityOptimizer().step();
     assertEquals(399.97, usePowerArgs.get(0), 1e-4, "correct power usage");
     //System.out.println("WindmillCoopTest usePower: " + usePowerArgs.toString());
   }

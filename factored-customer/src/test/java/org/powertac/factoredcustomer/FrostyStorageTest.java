@@ -207,7 +207,7 @@ public class FrostyStorageTest
     when(timeService.getCurrentDateTime()).thenReturn(start);
     WeatherReport weather = new WeatherReport(300, 20.0, 0.0, 0.0, 0.0);
     when(weatherReportRepo.currentWeatherReport()).thenReturn(weather);
-    fs.getUtilityOptimizer().handleNewTimeslot(ts);
+    fs.getUtilityOptimizer().step();
     assertEquals(3412.17, usePowerArgs.get(0), 1e-4, "correct power usage");
     //System.out.println("FrostyStorageTest usePower: " + usePowerArgs.toString());
   }

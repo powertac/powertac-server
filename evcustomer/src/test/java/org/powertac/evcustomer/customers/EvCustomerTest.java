@@ -30,6 +30,7 @@ import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TimeService;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -660,6 +661,13 @@ public class EvCustomerTest
     @Override
     public ServerConfiguration getServerConfiguration ()
     {
+      return null;
+    }
+
+    @Override
+    public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
       return null;
     }
   }
