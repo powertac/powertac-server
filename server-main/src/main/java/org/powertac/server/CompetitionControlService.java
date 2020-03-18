@@ -349,6 +349,7 @@ public class CompetitionControlService
       // instantiate weather reports. All are disabled.
       bootstrapOffset = competition.getBootstrapTimeslotCount()
                           + competition.getBootstrapDiscardedTimeslots();
+      //TODO - Is this needed? We do it again just a few lines below.
       createInitialTimeslots(competition.getSimulationBaseTime(),
                              (bootstrapOffset + 1),
                              0);

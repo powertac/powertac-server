@@ -37,6 +37,7 @@ import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.BalanceReport;
@@ -138,7 +139,13 @@ implements BalancingMarket, SettlementContext, InitializationService
     log.info("Configured BM: balancing cost = " + balancingCost
              + ", (pPlus',pMinus') = (" + pPlusPrime + "," + pMinusPrime + ")");
 
+    // publish configuration for market and for TariffEvaluationHelper
     serverProps.publishConfiguration(this);
+
+    TariffEvaluationHelper teh = new TariffEvaluationHelper();
+    serverProps.configureMe(teh);
+    serverProps.publishConfiguration(teh);
+    
     return "BalancingMarket";
   }
 
