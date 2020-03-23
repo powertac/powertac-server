@@ -346,13 +346,16 @@ public class WeatherService extends TimeslotPhaseProcessor implements
         return parseXML(input);
       }
       catch (FileNotFoundException fnfe) {
-        log.warn("FileNotFoundException on : " + urlString);
+        log.error("FileNotFoundException on {}", urlString);
       }
       catch (SocketTimeoutException ste) {
-        log.warn("SocketTimeoutException on : " + urlString);
+        log.error("SocketTimeoutException on {}", urlString);
+      }
+      catch (IOException ioe) {
+        log.error("IO Exception on URL {}", urlString);
       }
       catch (Exception e) {
-        log.error("Exception Raised during network call on : " + urlString);
+        log.error("Exception Raised during network call on {}", urlString);
         e.printStackTrace();
       }
 

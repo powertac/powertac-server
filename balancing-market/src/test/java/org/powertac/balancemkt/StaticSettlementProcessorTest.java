@@ -881,13 +881,13 @@ public class StaticSettlementProcessorTest
   class MockSettlementContext implements SettlementContext
   {
     @Override
-    public double getPPlus ()
+    public Double getPPlus ()
     {
       return pplus;
     }
 
     @Override
-    public double getPMinus ()
+    public Double getPMinus ()
     {
       return pminus;
     }
@@ -899,13 +899,13 @@ public class StaticSettlementProcessorTest
     }
 
     @Override
-    public double getPPlusPrime ()
+    public Double getPPlusPrime ()
     {
       return pplusPrime;
     }
 
     @Override
-    public double getPMinusPrime ()
+    public Double getPMinusPrime ()
     {
       return pminusPrime;
     }
@@ -923,7 +923,7 @@ public class StaticSettlementProcessorTest
     }
 
     @Override
-    public double getDefaultSpotPrice ()
+    public Double getDefaultSpotPrice ()
     {
       return 0.0;
     }    

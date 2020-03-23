@@ -242,7 +242,7 @@ public class TariffEvaluator
 
   /**
    * Sets the factor by which inertia is multiplied for the case where
-   * the current tariff had a positive signup bonus. Should be 0 <= sbf <= 1.
+   * the current tariff had a positive signup bonus. Should be 0 \le sbf \le 1.
    * Default value is zero.
    */
   public TariffEvaluator withSignupBonusFactor (double factor)

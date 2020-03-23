@@ -42,14 +42,14 @@ public interface BalancingMarket
    * up-regulation by x kwh is pPlus + x * pPlusPrime. Note that x is
    * positive for up-regulation.
    */
-  public double getPPlusPrime();
+  public Double getPPlusPrime();
 
   /**
    * Returns the slope of cost curve for down-regulation. Total cost for
    * down-regulation by x kwh is pMinus + x * pMinusPrime. Note that x is
    * negative for down-regulation.
    */
-  public double getPMinusPrime();
+  public Double getPMinusPrime();
 
   /**
    * Returns the per-timeslot charge for running the balancing market
@@ -60,5 +60,5 @@ public interface BalancingMarket
    * Returns the value used for spot price per MWh if unavailable from
    * wholesale market.
    */
-  public double getDefaultSpotPrice ();
+  public Double getDefaultSpotPrice ();
 }

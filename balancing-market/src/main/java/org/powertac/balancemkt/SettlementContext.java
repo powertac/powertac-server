@@ -32,7 +32,7 @@ public interface SettlementContext extends BalancingMarket
    * pay. Cost increases (becomes more negative) with quantity according 
    * to pPlusPrime.
    */
-  public double getPPlus ();
+  public Double getPPlus ();
 
   /**
    * Returns the current value of pMinus. This is the marginal cost for
@@ -40,5 +40,5 @@ public interface SettlementContext extends BalancingMarket
    * Cost increases with quantity (becomes less positive, eventually becoming
    * negative) with quantity accoring to the value of pMinusPrime.
    */
-  public double getPMinus ();
+  public Double getPMinus ();
 }

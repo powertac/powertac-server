@@ -85,27 +85,27 @@ implements BalancingMarket, SettlementContext, InitializationService
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Slope of up-regulation cost /kwh")
-  private double pPlusPrime = 0.0; // .00002/kwh
+  private Double pPlusPrime = 0.0; // .00002/kwh
 
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Slope of down-regulation cost /kwh")
-  private double pMinusPrime = 0.0; // -.00002/kwh
+  private Double pMinusPrime = 0.0; // -.00002/kwh
 
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Ratio of regulating-market price to spot price")
-  private double rmPremium = 1.1; // 10% premium
+  private Double rmPremium = 1.1; // 10% premium
 
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Fixed cost/kWh for regulation energy")
-  private double rmFee = 0.035;
+  private Double rmFee = 0.035;
 
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Spot price/mwh used if unavailable from wholesale market")
-  private double defaultSpotPrice = 30.0; // per mwh
+  private Double defaultSpotPrice = 30.0; // per mwh
 
   @ConfigurableValue(valueType = "String",
           publish = true,
@@ -281,7 +281,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * in the current timeslot. Value is positive per kWh
    */
   @Override
-  public double getPPlus ()
+  public Double getPPlus ()
   {
     double result = defaultSpotPrice;
     List<Orderbook> obs =
@@ -306,7 +306,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * in the current timeslot. Price is per kWh.
    */
   @Override
-  public double getPMinus ()
+  public Double getPMinus ()
   {
     double result = defaultSpotPrice;
     List<Orderbook> obs =
@@ -331,7 +331,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * wholesale ancillary services market.
    */
   @Override
-  public double getPPlusPrime ()
+  public Double getPPlusPrime ()
   {
     return pPlusPrime;
   }
@@ -341,7 +341,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * wholesale ancillary services market.
    */
   @Override
-  public double getPMinusPrime ()
+  public Double getPMinusPrime ()
   {
     return pMinusPrime;
   }
@@ -354,7 +354,7 @@ implements BalancingMarket, SettlementContext, InitializationService
   }
 
   @Override
-  public double getDefaultSpotPrice () {
+  public Double getDefaultSpotPrice () {
       return defaultSpotPrice;
   }
 
@@ -382,7 +382,7 @@ implements BalancingMarket, SettlementContext, InitializationService
   }
 
   // test support
-  double getRmPremium ()
+  Double getRmPremium ()
   {
     return rmPremium;
   }
@@ -392,7 +392,7 @@ implements BalancingMarket, SettlementContext, InitializationService
     rmPremium = value;
   }
 
-  double getRmFee ()
+  Double getRmFee ()
   {
     return rmFee;
   }
