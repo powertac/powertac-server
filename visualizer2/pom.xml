@@ -207,6 +207,14 @@
                     <artifactId>metrics-healthchecks</artifactId>
                     <groupId>com.codahale.metrics</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>metrics-core</artifactId>
+                    <groupId>io.dropwizard.metrics</groupId>
+                </exclusion>
+		<exclusion>
+                    <artifactId>metrics-annotation</artifactId>
+                    <groupId>io.dropwizard.metrics</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -248,7 +256,17 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-servlet</artifactId>
-            <version>${dropwizard-metrics.version}</version>
+	    <version>${dropwizard-metrics.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.dropwizard.metrics</groupId>
+                    <artifactId>metrics-json</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.dropwizard.metrics</groupId>
+                    <artifactId>metrics-jvm</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
@@ -368,7 +386,13 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-loader-tools</artifactId>
+	    <artifactId>spring-boot-loader-tools</artifactId>
+	    <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -417,7 +441,13 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+	    <artifactId>spring-boot-starter-web</artifactId>
+	    <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate.validator</groupId>
+                    <artifactId>hibernate-validator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <artifactId>spring-boot-starter-tomcat</artifactId>
