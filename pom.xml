@@ -116,10 +116,12 @@
 
   <distributionManagement>
     <!-- Even though we don't use mvn site:deploy to publish docs, the -->
-    <!-- site plugin complains unless this section is not present -->
+    <!-- site plugin complains if this section is not present -->
     <site>
-      <id>https://powertac.github.io/server/</id>
-      <url>https://powertac.github.io/server/</url>
+      <!-- <id>https://powertac.github.io/server/</id> -->
+      <!-- <url>https://powertac.github.io/server/</url> -->
+      <id>local-site</id>
+      <url>file:/local-site/</url>
     </site>
   </distributionManagement>
 
