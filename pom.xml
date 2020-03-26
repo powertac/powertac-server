@@ -121,7 +121,7 @@
       <!-- <id>https://powertac.github.io/server/</id> -->
       <!-- <url>https://powertac.github.io/server/</url> -->
       <id>local-site</id>
-      <url>file:/local-site/</url>
+      <url>file:/usr/local/share/powertac-site/</url>
     </site>
   </distributionManagement>
 
