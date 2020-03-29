@@ -8,7 +8,7 @@
   </Properties>
   
   <ThresholdFilter level="trace"/>
-  
+
   <Appenders>
     
     <Appender name="LogFile" type="File" fileName="${logfile}" append="false">

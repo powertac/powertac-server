@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 - 2014 by the original author or authors.
+ * Copyright (c) 2011 - 2020 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.powertac.auctioneer;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
@@ -73,6 +74,7 @@ public class AuctionService
   implements InitializationService
 {
   static private Logger log = LogManager.getLogger(AuctionService.class.getName());
+  final Level BFAULT = Level.forName("BFAULT", 250);
 
   //@Autowired
   //private TimeService timeService;
@@ -191,14 +193,14 @@ public class AuctionService
     if (order.getMWh().equals(Double.NaN) ||
         order.getMWh().equals(Double.POSITIVE_INFINITY) ||
         order.getMWh().equals(Double.NEGATIVE_INFINITY)) {
-      log.warn("Order from " + order.getBroker().getUsername()
+      log.log(BFAULT, "Order from " + order.getBroker().getUsername()
           + " with invalid quantity " + order.getMWh());
       return false;
     }
 
     double minQuantity = Competition.currentCompetition().getMinimumOrderQuantity();
     if (Math.abs(order.getMWh()) < minQuantity) {
-      log.warn("Order from " + order.getBroker().getUsername()
+      log.log(BFAULT, "Order from " + order.getBroker().getUsername()
                + " with quantity " + order.getMWh()
                + " < minimum quantity " + minQuantity);
       return false;
@@ -207,7 +209,7 @@ public class AuctionService
     if (!timeslotRepo.isTimeslotEnabled(order.getTimeslot())) {
       OrderStatus status = new OrderStatus(order.getBroker(), order.getId());
       brokerProxyService.sendMessage(order.getBroker(), status);
-      log.warn("Order from " + order.getBroker().getUsername()
+      log.log(BFAULT, "Order from " + order.getBroker().getUsername()
                +" for disabled timeslot " + order.getTimeslot());
       return false;
     }

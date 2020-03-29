@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -81,6 +82,7 @@ public class TariffMarketService
 {
   static private Logger log =
           LogManager.getLogger(TariffMarketService.class.getSimpleName());
+  final Level BFAULT = Level.forName("BFAULT", 250);
 
   @Autowired
   private TimeService timeService;
@@ -326,7 +328,7 @@ public class TariffMarketService
   {
     if (!(null == tariffRepo.findSpecificationById(spec.getId()) ||
             tariffRepo.isRemoved(spec.getId()))) {
-      log.warn("duplicate tariff spec from " + spec.getBroker().getUsername() +
+      log.log(BFAULT, "duplicate tariff spec from " + spec.getBroker().getUsername() +
                ", id = " + spec.getId());
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.invalidTariff)
@@ -334,14 +336,14 @@ public class TariffMarketService
       return;
     }
     if (null == spec.getRates()) {
-      log.warn("no rates given for spec " + spec.getId());
+      log.log(BFAULT, "no rates given for spec " + spec.getId());
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.invalidTariff)
           .withMessage("missing Rates"));
       return;
     }
     else if (!spec.isValid()) {
-      log.warn("invalid spec " + spec.getId());
+      log.log(BFAULT, "invalid spec " + spec.getId());
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.invalidTariff)
           .withMessage("spec fails validity test"));
@@ -351,14 +353,14 @@ public class TariffMarketService
       for (Long supersede : spec.getSupersedes()) {
         TariffSpecification other = tariffRepo.findSpecificationById(supersede);
         if (null == other) {
-          log.warn("attempt to supersede non-existent tariff " + supersede);
+          log.log(BFAULT, "attempt to supersede non-existent tariff " + supersede);
           send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                                 TariffStatus.Status.invalidTariff)
               .withMessage("non-existent supersede " + supersede));
           return;
         }
         else if (spec.getBroker() != other.getBroker()) {
-          log.warn("attempt by " + spec.getBroker().getUsername()
+          log.log(BFAULT, "attempt by " + spec.getBroker().getUsername()
                    + " to supersede tariff of "
                    + other.getBroker().getUsername());
           send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
@@ -373,7 +375,7 @@ public class TariffMarketService
       if (rate.getDailyBegin() >= 24 || rate.getDailyEnd() >= 24 ||
               rate.getWeeklyBegin() == 0 || rate.getWeeklyBegin() > 7 ||
               rate.getWeeklyEnd() == 0 || rate.getWeeklyEnd() > 7) {
-        log.warn("invalid rate for spec " + spec.getId());
+        log.log(BFAULT, "invalid rate for spec " + spec.getId());
         send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                               TariffStatus.Status.invalidTariff)
             .withMessage("spec has invalid Rate"));
@@ -383,7 +385,7 @@ public class TariffMarketService
     tariffRepo.addSpecification(spec);
     Tariff tariff = new Tariff(spec);
     if (!tariff.init()) {
-      log.warn("incomplete coverage in multi-rate tariff " + spec.getId());
+      log.log(BFAULT, "incomplete coverage in multi-rate tariff " + spec.getId());
       tariffRepo.removeTariff(tariff);
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.invalidTariff)
@@ -436,7 +438,7 @@ public class TariffMarketService
       Instant newExp = update.getNewExpiration();
       if (newExp != null && newExp.isBefore(timeService.getCurrentTime())) {
         // new expiration date in the past
-        log.warn("attempt to set expiration for tariff " +
+        log.log(BFAULT, "attempt to set expiration for tariff " +
                  result.tariff.getId() + " in the past:" +
                  newExp.toString());
         send(new TariffStatus(update.getBroker(),
@@ -521,7 +523,7 @@ public class TariffMarketService
     int currentTimeslot = timeslotRepo.currentTimeslot().getSerialNumber();
     if (currentTimeslot > msg.getTimeslotIndex()) {
       // this is in the past
-      log.warn("Curtailment requested in ts " + currentTimeslot +
+      log.log(BFAULT, "Curtailment requested in ts " + currentTimeslot +
                " for past timeslot " + msg.getTimeslotIndex());
       // send error?
       send(new TariffStatus(msg.getBroker(),
@@ -882,14 +884,14 @@ public class TariffMarketService
     Broker broker = update.getBroker();
     Tariff tariff = tariffRepo.findTariffById(update.getTariffId());
     if (tariff == null) {
-      log.error("update - no such tariff " + update.getTariffId() +
+      log.log(BFAULT, "update - no such tariff " + update.getTariffId() +
                 ", broker " + update.getBroker().getUsername());
       return new ValidationResult(null,
                                   new TariffStatus(broker, update.getTariffId(), update.getId(),
                                                    TariffStatus.Status.noSuchTariff));
     }
     if (broker != tariff.getBroker()) {
-      log.error("update - attempt by " + broker.getUsername()
+      log.log(BFAULT, "update - attempt by " + broker.getUsername()
                 + " to revoke " + tariff.getBroker() + "'s tariff");
       return new ValidationResult(null,
                                   new TariffStatus(broker, update.getTariffId(), update.getId(),
