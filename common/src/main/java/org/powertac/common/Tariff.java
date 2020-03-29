@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
@@ -58,6 +59,7 @@ import org.powertac.common.state.StateChange;
 public class Tariff
 {
   static private Logger log = LogManager.getLogger(Tariff.class.getName());
+  final Level BFAULT = Level.forName("BFAULT", 250);
 
   // ----------- State enumeration --------------
 
@@ -222,7 +224,7 @@ public class Tariff
   {
     Rate theRate = rateIdMap.get(rateId);
     if (theRate == null) {
-      log.error("addHourlyCharge - no rate " + rateId);
+      log.log(BFAULT, "addHourlyCharge - no rate " + rateId);
       return false;
     }
     return theRate.addHourlyCharge(newCharge);

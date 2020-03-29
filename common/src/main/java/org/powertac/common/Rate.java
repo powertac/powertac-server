@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 - 2017 by the original author or authors.
+ * Copyright (c) 2011 - 2020 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.powertac.common;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
@@ -110,6 +111,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 public class Rate extends RateCore
 {
   static private Logger log = LogManager.getLogger(Rate.class.getName());
+  final Level BFAULT = Level.forName("BFAULT", 250);
   public static final int NO_TIME = -1;
 
   @XStreamAsAttribute
@@ -399,7 +401,7 @@ public class Rate extends RateCore
     boolean result = false;
     if (fixed) {
       // cannot change this rate
-      log.error("Cannot change Rate " + this.toString());
+      log.log(BFAULT, "Cannot change Rate " + this.toString());
     }
     else {
       Instant now = getCurrentTime();
@@ -729,64 +731,64 @@ public class Rate extends RateCore
     // numeric sanity test
     if (Double.isNaN(minValue) || Double.isNaN(maxValue)
         || Double.isNaN(expectedMean)) {
-      log.error("numeric insanity: ("
+      log.log(BFAULT, "numeric insanity: ("
           + minValue + "," + maxValue + "," + expectedMean + ")");
       return false;
     }
     if (Double.isInfinite(minValue) || Double.isInfinite(maxValue)
         || Double.isInfinite(expectedMean)) {
-      log.error("Infinite value: ("
+      log.log(BFAULT, "Infinite value: ("
           + minValue + "," + maxValue + "," + expectedMean + ")");
       return false;
     }
     // curtailment test
     if (Double.isNaN(maxCurtailment)
         || maxCurtailment < 0.0 || maxCurtailment > 1.0) {
-      log.error("Curtailment ratio " + maxCurtailment + " out of range");
+      log.log(BFAULT, "Curtailment ratio " + maxCurtailment + " out of range");
       return false;
     }
     // tier tests
     if (Double.isNaN(tierThreshold)
         || (powerType.isConsumption() && tierThreshold < 0.0)) {
-      log.error("Negative tier threshold for consumption rate");
+      log.log(BFAULT, "Negative tier threshold for consumption rate");
       return false;
     }
     if (Double.isNaN(tierThreshold)
         || (powerType.isProduction() && tierThreshold > 0.0)) {
-      log.error("Positive tier threshold for production rate");
+      log.log(BFAULT, "Positive tier threshold for production rate");
       return false;
     }
     // range check on begin/end values
     if ((dailyBegin != NO_TIME && dailyBegin < MIN_HOUR) ||
         dailyBegin > MAX_HOUR) {
-      log.error("dailyBegin out of range: {}", dailyBegin);
+      log.log(BFAULT, "dailyBegin out of range: {}", dailyBegin);
       return false;
     }
     if ((dailyEnd != NO_TIME && dailyEnd < MIN_HOUR) ||
         dailyEnd > MAX_HOUR) {
-      log.error("dailyEnd out of range: {}", dailyEnd);
+      log.log(BFAULT, "dailyEnd out of range: {}", dailyEnd);
       return false;
     }
     if ((weeklyBegin != NO_TIME && weeklyBegin < MIN_DAY) ||
         weeklyBegin > MAX_DAY) {
-      log.error("weeklyBegin out of range: {}", weeklyBegin);
+      log.log(BFAULT, "weeklyBegin out of range: {}", weeklyBegin);
       return false;
     }
     if ((weeklyEnd!= NO_TIME && weeklyEnd< MIN_DAY) ||
         weeklyEnd> MAX_DAY) {
-      log.error("weeklyEnd out of range: {}", weeklyEnd);
+      log.log(BFAULT, "weeklyEnd out of range: {}", weeklyEnd);
       return false;
     }
     // begin/end values must be consistent
     if ((dailyBegin != NO_TIME && dailyEnd == NO_TIME) ||
         (dailyBegin == NO_TIME && dailyEnd != NO_TIME)) {
-        log.error("invalid daily begin/end values: {}, {}",
+        log.log(BFAULT, "invalid daily begin/end values: {}, {}",
                   dailyBegin, dailyEnd);
         return false;
     }
     if ((weeklyBegin != NO_TIME && weeklyEnd == NO_TIME) ||
         (weeklyBegin == NO_TIME && weeklyEnd != NO_TIME)) {
-        log.error("invalid weekly begin/end values: {}, {}",
+        log.log(BFAULT, "invalid weekly begin/end values: {}, {}",
                   weeklyBegin, weeklyEnd);
         return false;
     }
@@ -806,7 +808,7 @@ public class Rate extends RateCore
     }
     // noticeInterval
     if (noticeInterval < 0l) {
-      log.error("negative notice interval " + noticeInterval);
+      log.log(BFAULT, "negative notice interval " + noticeInterval);
       return false;
     }
     return true;
