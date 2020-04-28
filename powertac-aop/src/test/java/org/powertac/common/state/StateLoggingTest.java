@@ -15,11 +15,16 @@ public class StateLoggingTest
 {
   static private Logger log = LogManager.getLogger(StateLoggingTest.class.getName());
 
+  private String stripMillis (String raw)
+  {
+    return raw.substring(raw.indexOf(':') + 1);
+  }
+
   @Test
   void testLog ()
   {
     DummyDomain dd = new DummyDomain(1, "first");
-    dd = new DummyDomain(2, "second");
+    dd = new DummyDomain(31, 2, "second");
     dd.setNumber(42);
     //LogManager.shutdown();
 
@@ -31,10 +36,16 @@ public class StateLoggingTest
         lines.add(line);
       }
       assertTrue(lines.size() >= 3, "at least three lines");
+      String ln = lines.get(0);
+      String body = stripMillis(ln);
+      assertEquals("c.state.DummyDomain::0::new::1::first", body);
+      assertEquals("c.state.DummyDomain::31::new::31::2::second",
+                   stripMillis(lines.get(1)));
+      assertEquals("c.state.DummyDomain::31::setNumber::42",
+                   stripMillis(lines.get(2)));
     }
     catch (IOException ioe) {
       fail("IOException reading log file:" + ioe.toString());
     }
   }
-
 }

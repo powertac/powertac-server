@@ -20,6 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.logging.log4j.LogManager;
@@ -53,6 +55,9 @@ public class StateLogging
 {
   static private Logger log = LogManager.getLogger(StateLogging.class);
   private Logger stateLog = LogManager.getLogger("State");
+
+  // package-prefix abbreviation map
+  private LinkedHashMap<String, String> abbreviations = null;
 
   // state-change methods
   @Pointcut ("execution (@StateChange * * (..))")
@@ -125,11 +130,12 @@ public class StateLogging
     return properties.toArray();
   }
 
+  // writes out a single log entry
   private void writeLog (String className, Long id,
                          String methodName, Object[] args)
   {
     StringBuffer buf = new StringBuffer();
-    buf.append(className).append("::");
+    buf.append(abbreviate(className)).append("::");
     buf.append((id == null) ? "null" : id.toString()).append("::");
     buf.append(methodName);
     for (Object arg : args) {
@@ -137,6 +143,26 @@ public class StateLogging
       writeArg(buf, arg);
     }
     stateLog.info(buf.toString());
+  }
+
+  // abbreviates a classname 
+  private String abbreviate (String classname)
+  {
+    String result = classname;
+    if (null == abbreviations) {
+      abbreviations = new LinkedHashMap<>();
+      abbreviations.put("org.powertac.common.msg.", "cm.");
+      abbreviations.put("org.powertac.common.", "c.");
+      abbreviations.put("org.powertac.", "");
+    }
+    for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
+      if (classname.startsWith(abbr.getKey())) {
+        result = classname.substring(abbr.getKey().length());
+        result = abbr.getValue() + result;
+        break;
+      }
+    }
+    return result;
   }
 
   @SuppressWarnings("rawtypes")
