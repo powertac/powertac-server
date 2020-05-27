@@ -19,8 +19,6 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import org.joda.time.Instant;
-
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.MarketPosition;
@@ -36,6 +34,7 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

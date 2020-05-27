@@ -17,7 +17,6 @@ package org.powertac.server;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -36,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -589,7 +589,7 @@ public class CompetitionControlService
     if (!bootstrapMode) {
       slotCount = bootstrapOffset;
       log.info("first slot: " + slotCount);
-      //base = base.plus(slotCount * competition.getTimeslotDuration());
+      //base = base.plusMillis(slotCount * competition.getTimeslotDuration());
     }
     else {
       // compute rate from bootstrapTimeslotMillis
@@ -605,9 +605,9 @@ public class CompetitionControlService
                "; adjust to " + (mult + 1) * competition.getTimeslotLength());
       rate = (mult + 1) * competition.getTimeslotLength();
     }
-    timeService.setClockParameters(base.getMillis(), rate,
+    timeService.setClockParameters(base.toEpochMilli(), rate,
                                    competition.getTimeslotDuration());
-    timeService.setCurrentTime(base.plus(slotCount * competition.getTimeslotDuration()));
+    timeService.setCurrentTime(base.plusMillis(slotCount * competition.getTimeslotDuration()));
   }
 
   // Computes a random game length as outlined in the game specification
@@ -714,7 +714,7 @@ public class CompetitionControlService
     //  timeslotRepo.makeTimeslot(base);
     //}
     //for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
-    //  timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
+    //  timeslotRepo.makeTimeslot(base.plusMillis(i * timeslotMillis));
     //}
   }
   
@@ -868,9 +868,9 @@ public class CompetitionControlService
     Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
     if (newTs == null) {
       log.info("newTS null in activateNextTimeslot");
-      long start = (current.getStartInstant().getMillis() +
+      long start = (current.getStartInstant().toEpochMilli() +
               (newSerial - current.getSerialNumber()) * timeslotMillis);
-      newTs = timeslotRepo.makeTimeslot(new Instant(start));
+      newTs = timeslotRepo.makeTimeslot(Instant.ofEpochMilli(start));
     }
     log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
     // Communicate timeslot updates to brokers
@@ -899,7 +899,7 @@ public class CompetitionControlService
       stop();
 //      long newStart =
 //              new Date().getTime()
-//              - (currentTimeslot.getStartInstant().getMillis()
+//              - (currentTimeslot.getStartInstant().toEpochMilli()
 //                 - timeService.getBase()) / timeService.getRate();
 //      timeService.setStart(newStart);
 //      timeService.setCurrentTime();
@@ -1006,7 +1006,7 @@ public class CompetitionControlService
   {
     log.info("resume");
     // create and post the resume message
-    SimResume msg = new SimResume(new Instant(newStart));
+    SimResume msg = new SimResume(Instant.ofEpochMilli(newStart));
     brokerProxyService.broadcastMessage(msg);
   }
 
@@ -1114,7 +1114,7 @@ public class CompetitionControlService
       }
       long start = now - startOffset + TimeService.SECOND * 3; // start in three seconds
       // communicate start time to brokers
-      SimStart startMsg = new SimStart(new Instant(start));
+      SimStart startMsg = new SimStart(Instant.ofEpochMilli(start));
       brokerProxyService.broadcastMessage(startMsg);
 
       // Start up the clock at the correct time, so first tick gets us to

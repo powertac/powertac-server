@@ -21,10 +21,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TimeService;
@@ -44,6 +42,7 @@ import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +83,7 @@ public class EvCustomerTest
     .thenReturn(new TariffEvaluator(evCustomer.createTariffEvaluationWrapper()));
     mockTimeService = mock(TimeService.class);
     when (mockTimeService.getCurrentDateTime())
-    .thenReturn(new DateTime(DateTime.now()));
+    .thenReturn(ZonedDateTime.now(TimeService.UTC));
     mockSeedRepo = mock(RandomSeedRepo.class);
     mockSeed = new MockRandomSeed("Test", groupId, cName);
     when(mockSeedRepo.getRandomSeed(anyString(),

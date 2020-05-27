@@ -15,14 +15,17 @@
  */
 package org.powertac.customer;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.RandomSeed;
@@ -227,23 +230,24 @@ public abstract class AbstractCustomer
   protected Instant lastSunday ()
   {
     Instant start = service.getTimeslotRepo().currentTimeslot().getStartInstant();
-    return start.toDateTime(DateTimeZone.UTC)
-        .withDayOfWeek(1).withHourOfDay(0).toInstant();
+    ZonedDateTime zdt = ZonedDateTime.ofInstant(start, TimeService.UTC);
+    zdt =  zdt.truncatedTo(ChronoUnit.DAYS);
+    int dow = zdt.get(ChronoField.DAY_OF_WEEK);
+    return zdt.minusDays(dow).toInstant();
   }
 
   // Returns the start of the current day (previous midnight)
   protected Instant startOfDay ()
   {
     Instant start = service.getTimeslotRepo().currentTimeslot().getStartInstant();
-    return start.toDateTime(DateTimeZone.UTC).withHourOfDay(0).toInstant();
+    ZonedDateTime zdt = ZonedDateTime.ofInstant(start, TimeService.UTC); 
+    return zdt.truncatedTo(ChronoUnit.DAYS).toInstant();
   }
 
   // Returns tonight at midnight (next midnight)
   protected Instant nextStartOfDay ()
   {
-    Instant start = service.getTimeslotRepo().currentTimeslot().getStartInstant();
-    return start.toDateTime(DateTimeZone.UTC)
-        .withHourOfDay(0).toInstant().plus(TimeService.DAY);
+    return startOfDay().plusMillis(TimeService.DAY);
   }
 
   // --------------------------------------------

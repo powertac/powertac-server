@@ -15,11 +15,11 @@
  */
 package org.powertac.genco;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;

@@ -16,6 +16,7 @@
 
 package org.powertac.distributionutility;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,6 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BalancingMarket;
@@ -159,7 +159,7 @@ implements InitializationService
   private double[] netDemand;
   private HashMap<Broker, double[]> brokerNetDemand = null;
   private double runningMean = 0.0;
-  private double runningVar = 0.0;
+  private double runningSq = 0.0;
   private double runningSigma = 0.0;
   private int runningCount = 0;
   private int lastAssessmentTimeslot = 0;
@@ -185,7 +185,7 @@ implements InitializationService
     brokerNetDemand = null;
     timeslotOffset = null;
     runningMean = 0.0;
-    runningVar = 0.0;
+    runningSq = 0.0;
     runningSigma = 0.0;
     runningCount = 0;
     lastAssessmentTimeslot = 0;
@@ -441,7 +441,7 @@ implements InitializationService
     if (runningCount == 0) {
       // first time through, assume this is a boot session
       runningMean = netConsumption;
-      runningVar = 0.0;
+      runningSq = netConsumption * netConsumption;
       runningCount = 1;
     }
     else {
@@ -453,14 +453,15 @@ implements InitializationService
   }
 
   // Runs the recurrence formula for computing mean, sigma
+  // Note that runningMSq is just the sum of the squares
   private void updateStats (double netConsumption)
   {
     double lastM = runningMean;
     runningCount += 1;
     runningMean = lastM + (netConsumption - lastM) / runningCount;
-    runningVar = runningVar +
-        (netConsumption - lastM) * (netConsumption - runningMean);
-    runningSigma = Math.sqrt(runningVar / (runningCount - 1.0));
+    runningSq = runningSq + (netConsumption * netConsumption);
+    runningSigma = 
+            Math.sqrt(runningSq / runningCount - (runningMean * runningMean));
   }
 
   // ---------- parameter getters -- test support ---------
@@ -564,9 +565,9 @@ implements InitializationService
     return runningMean;
   }
 
-  double getRunningVar ()
+  double getRunningSq ()
   {
-    return runningVar;
+    return runningSq;
   }
 
   double getRunningSigma ()

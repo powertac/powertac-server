@@ -18,10 +18,6 @@ package org.powertac.evcustomer.customers;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
@@ -46,6 +42,11 @@ import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.SocialGroup;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -130,7 +131,7 @@ public class EvCustomer
   private TimeslotData[] tomorrowMap;
 
   // ability to print readable date/time
-  private DateTimeFormatter dtf = DateTimeFormat.forPattern("E.h");
+  private DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE_TIME;
 
   public EvCustomer (String name)
   {
@@ -230,8 +231,8 @@ public class EvCustomer
    */
   public void step (Timeslot timeslot)
   {
-    int day = timeslot.getStartTime().getDayOfWeek();
-    int hour = timeslot.getStartTime().getHourOfDay();
+    int day = timeslot.getStartTime().get(ChronoField.DAY_OF_WEEK);
+    int hour = timeslot.getStartTime().get(ChronoField.HOUR_OF_DAY);
 
     // find the current active subscription
     TariffSubscription sub = null;
@@ -540,7 +541,7 @@ public class EvCustomer
       discharge(neededCapacity);
       log.info("{} {} at {}, {} kms {} kWh from {} to {}",
           name, timeslotData.getActivity().get().getName(),
-          dtf.print(service.getTimeService().getCurrentDateTime()),
+          dtf.format(service.getTimeService().getCurrentDateTime()),
           intendedDistance, neededCapacity, before, currentCapacity);
       driving = true;
     }
@@ -954,10 +955,10 @@ public class EvCustomer
       // Assume profile starts at midnight
       Instant start =
           service.getTimeslotRepo().currentTimeslot().getStartInstant();
+      ZonedDateTime zdt = ZonedDateTime.ofInstant(start, TimeService.UTC);
+      zdt = zdt.truncatedTo(ChronoUnit.DAYS).plusDays(1);
       return new CapacityProfile(result,
-                                 start.toDateTime(DateTimeZone.UTC)
-                                 .withHourOfDay(0).toInstant()
-                                 .plus(TimeService.DAY));
+                                 zdt.toInstant());
     }
 
     @Override

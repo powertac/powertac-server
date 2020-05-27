@@ -18,6 +18,7 @@ package org.powertac.accounting;
 
 import static org.powertac.util.MessageDispatcher.dispatch;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,6 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.config.ConfigurableValue;

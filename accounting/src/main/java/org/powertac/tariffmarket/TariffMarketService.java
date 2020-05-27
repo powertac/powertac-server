@@ -17,6 +17,8 @@ package org.powertac.tariffmarket;
 
 import static org.powertac.util.ListTools.*;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,9 +29,6 @@ import java.util.Set;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Broker;
@@ -118,7 +117,7 @@ public class TariffMarketService
   private ArrayList<Tariff> pendingRevokedTariffs = new ArrayList<> ();
   // list of revoked but not yet deleted tariffs
   private List<Tariff> revokedTariffs = null;
-  private Instant lastRevokeProcess = new Instant(0l);
+  private Instant lastRevokeProcess = Instant.ofEpochMilli(0l);
 
   // configure tariff publication fees
   @ConfigurableValue(valueType = "Double",
@@ -204,7 +203,7 @@ public class TariffMarketService
     pendingVrus.clear();
     disabledBrokers.clear();
     revokedTariffs = null;
-    lastRevokeProcess = new Instant(0l);
+    lastRevokeProcess = Instant.ofEpochMilli(0l);
 
     serverProps.configureMe(this);
 
@@ -451,7 +450,7 @@ public class TariffMarketService
         // update expiration date
         result.tariff.setExpiration(newExp);
         log.info("Tariff " + update.getTariffId() + 
-                 "now expires at " + new DateTime(result.tariff.getExpiration(), DateTimeZone.UTC).toString());
+                 "now expires at " + ZonedDateTime.ofInstant(result.tariff.getExpiration(), TimeService.UTC).toString());
         success(update);
       }
     }
@@ -699,7 +698,7 @@ public class TariffMarketService
   {
     log.info("Activate");
     processPendingVrus();
-    long msec = timeService.getCurrentTime().getMillis();
+    long msec = timeService.getCurrentTime().toEpochMilli();
     if (!subsequentPublication ||
         (msec / TimeService.HOUR) % publicationInterval == publicationOffset) {
       // time to publish or never published

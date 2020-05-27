@@ -8,15 +8,13 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration2.AbstractConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -201,7 +199,7 @@ public class WindmillCoOpTest
     }).when(sub).setRegulationCapacity(any(RegulationCapacity.class));
 
     // Monday 1:00
-    DateTime start = new DateTime(2018, 2, 5, 1, 0, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime start = ZonedDateTime.of(2018, 2, 5, 1, 0, 0, 0, TimeService.UTC);
     Timeslot ts = new Timeslot(300, start.toInstant());
     when(timeslotRepo.currentSerialNumber()).thenReturn(300);
     when(timeService.getCurrentDateTime()).thenReturn(start);

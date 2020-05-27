@@ -19,12 +19,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -145,8 +145,8 @@ public class HouseholdCustomerServiceTests
     // DateTimeZone.UTC).toInstant();
     now = comp.getSimulationBaseTime();
     timeService.setCurrentTime(now);
-    timeService.setBase(now.getMillis());
-    exp = now.plus(TimeService.WEEK * 10);
+    timeService.setBase(now.toEpochMilli());
+    exp = now.plusMillis(TimeService.WEEK * 10);
 
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
@@ -315,7 +315,7 @@ public class HouseholdCustomerServiceTests
       }
     }
 
-    timeService.setCurrentTime(now.plus(18 * TimeService.HOUR));
+    timeService.setCurrentTime(now.plusMillis(18 * TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (Village customer: householdCustomerService.getVillageList())
@@ -351,15 +351,15 @@ public class HouseholdCustomerServiceTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc2 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc3 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withExpiration(now.plusMillis(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -418,7 +418,7 @@ public class HouseholdCustomerServiceTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withSignupPayment(-500).addRate(r2);
 
     TariffSpecification tsc2 =
@@ -480,7 +480,7 @@ public class HouseholdCustomerServiceTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2).addRate(r1);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -527,19 +527,19 @@ public class HouseholdCustomerServiceTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc2 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(2 * TimeService.DAY))
+              .withExpiration(now.plusMillis(2 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc3 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withExpiration(now.plusMillis(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc4 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withExpiration(now.plusMillis(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r3);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -574,13 +574,11 @@ public class HouseholdCustomerServiceTests
     // Test the function with different inputs, in order to get the same
     householdCustomerService.publishNewTariffs(tclist1);
 
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
-            .getMillis() + TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     tariff3.setState(Tariff.State.KILLED);
     assertTrue(tariff3.isRevoked(), "tariff revoked");
 
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
-            .getMillis() + TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
 
     tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
     tclist2 = tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
@@ -666,7 +664,7 @@ public class HouseholdCustomerServiceTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8);
     tsc1.addRate(r0);
     tsc1.addRate(r1);
@@ -711,9 +709,9 @@ public class HouseholdCustomerServiceTests
 
     householdCustomerService.publishNewTariffs(tclist1);
 
-    timeService.setBase(now.getMillis());
+    timeService.setBase(now.toEpochMilli());
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.HOUR * 23));
+            .plusMillis(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
   }
 
@@ -732,9 +730,9 @@ public class HouseholdCustomerServiceTests
     }
 
     // for (int i = 0; i < 10; i++) {
-    timeService.setBase(now.getMillis());
+    timeService.setBase(now.toEpochMilli());
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.HOUR * 5));
+            .plusMillis(TimeService.HOUR * 5));
 
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
@@ -744,9 +742,9 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (int i = 0; i < 30; i++) {
-      timeService.setBase(now.getMillis());
+      timeService.setBase(now.toEpochMilli());
       timeService.setCurrentTime(timeService.getCurrentTime()
-              .plus(TimeService.HOUR * 1));
+              .plusMillis(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
       temperature = 40 * Math.random();
@@ -769,13 +767,13 @@ public class HouseholdCustomerServiceTests
       }
     }
 
-    timeService.setBase(now.getMillis());
+    timeService.setBase(now.toEpochMilli());
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.DAY * 1020));
+            .plusMillis(TimeService.DAY * 1020));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.HOUR * 23));
+            .plusMillis(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
@@ -787,7 +785,7 @@ public class HouseholdCustomerServiceTests
 
     for (int i = 1700; i < 1730; i++) {
       timeService.setCurrentTime(timeService.getCurrentTime()
-              .plus(TimeService.HOUR * 1));
+              .plusMillis(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
 

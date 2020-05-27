@@ -15,7 +15,7 @@
  */
 package org.powertac.common;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 /**
  * Represents a customer usage or production profile over time. For population

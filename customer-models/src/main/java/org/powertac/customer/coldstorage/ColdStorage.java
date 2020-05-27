@@ -15,6 +15,9 @@
  */
 package org.powertac.customer.coldstorage;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +27,6 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -885,12 +886,15 @@ implements CustomerModelAccessor
       Instant start =
           service.getTimeslotRepo().currentTimeslot().getStartInstant();
       for (int i = 0; i < profileSize; i++) {
-        Instant when = start.plus(i * TimeService.HOUR);
-        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
+        ZonedDateTime when =
+                ZonedDateTime.ofInstant(start.plusMillis(i * TimeService.HOUR),
+                                        TimeService.UTC);
+        if (when.get(ChronoField.HOUR_OF_DAY) == 0) {
           cumulativeUsage = 0.0;
         }
-        prices[i] =
-            tariff.getUsageCharge(when, nhc, cumulativeUsage) / nhc;
+        prices[i] = tariff.getUsageCharge(when.toInstant(),
+                                          nhc,
+                                          cumulativeUsage) / nhc;
         cumulativeUsage += nhc;
       }
       return prices;

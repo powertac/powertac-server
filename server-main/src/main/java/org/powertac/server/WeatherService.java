@@ -31,9 +31,6 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.exceptions.PowerTacException;
@@ -62,6 +59,9 @@ import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -111,8 +111,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   private ServerConfiguration serverProps;
 
   // These dates need to be fetched when using not blocking
-  private List<DateTime> aheadDays;
-  private DateTime simulationBaseTime;
+  private List<ZonedDateTime> aheadDays;
+  private ZonedDateTime simulationBaseTime;
   private int daysAhead = 3;
 
 
@@ -136,44 +136,44 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     return forecastHorizon;
   }
 
-  private String dateString (DateTime dateTime)
+  private String dateString (ZonedDateTime dateTime)
   {
     // Parse out year, month, day, and hour out of DateTime
-    int y = dateTime.get(DateTimeFieldType.year());
-    int m = dateTime.get(DateTimeFieldType.monthOfYear());
-    int d = dateTime.get(DateTimeFieldType.dayOfMonth());
-    int h = dateTime.get(DateTimeFieldType.clockhourOfDay()) % 24;
+    int y = dateTime.get(ChronoField.YEAR);
+    int m = dateTime.get(ChronoField.MONTH_OF_YEAR);
+    int d = dateTime.get(ChronoField.DAY_OF_MONTH);
+    int h = dateTime.get(ChronoField.HOUR_OF_DAY) % 24;
 
     return String.format("%04d%02d%02d%02d", y, m, d, h);
   }
 
-  private String dateStringLong (DateTime dateTime)
+  private String dateStringLong (ZonedDateTime dateTime)
   {
     // Parse out year, month, day, and hour out of DateTime
-    int y = dateTime.get(DateTimeFieldType.year());
-    int m = dateTime.get(DateTimeFieldType.monthOfYear());
-    int d = dateTime.get(DateTimeFieldType.dayOfMonth());
-    int h = dateTime.get(DateTimeFieldType.clockhourOfDay()) % 24;
+    int y = dateTime.get(ChronoField.YEAR);
+    int m = dateTime.get(ChronoField.MONTH_OF_YEAR);
+    int d = dateTime.get(ChronoField.DAY_OF_MONTH);
+    int h = dateTime.get(ChronoField.HOUR_OF_DAY) % 24;
 
     return String.format("%04d-%02d-%02d %02d:00", y, m, d, h);
   }
 
-  private int getTimeIndex (DateTime dateTime)
+  private int getTimeIndex (ZonedDateTime dateTime)
   {
     // Used for testing
     if (simulationBaseTime == null) {
       simulationBaseTime = timeslotRepo.currentTimeslot().getStartTime();
     }
 
-    long diff = dateTime.getMillis() - simulationBaseTime.getMillis();
-    return (int) (diff / (1000 * 3600));
+    long diff = dateTime.toEpochSecond() - simulationBaseTime.toEpochSecond();
+    return (int) (diff / 3600);
   }
 
   // Make weather request if needed. Always broadcast reports and forecasts.
   @Override
   public void activate (Instant time, int phaseNumber)
   {
-    long msec = time.getMillis();
+    long msec = time.toEpochMilli();
     if (msec % (getWeatherReqInterval() * TimeService.HOUR) != 0) {
       log.info("WeatherService reports not time to grab weather data.");
     }
@@ -182,7 +182,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
           + timeslotRepo.currentTimeslot().getId()
           + " WeatherService reports time to make request for weather data");
 
-      DateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
+      ZonedDateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
       if (blocking) {
         WeatherRequester wr = new WeatherRequester(dateTime);
         wr.run();
@@ -250,13 +250,16 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   }
 
   @Override
-  public String initialize (Competition competition, List<String> completedInits)
+  public String initialize (Competition competition,
+                            List<String> completedInits)
   {
     super.init();
-    aheadDays = new CopyOnWriteArrayList<DateTime>();
+    aheadDays = new CopyOnWriteArrayList<ZonedDateTime>();
     serverProps.configureMe(this);
     weatherReqInterval = Math.min(24, weatherReqInterval);
-    simulationBaseTime = competition.getSimulationBaseTime().toDateTime();
+    simulationBaseTime =
+            ZonedDateTime.ofInstant(competition.getSimulationBaseTime(),
+                                    TimeService.UTC);
 
     if (weatherData != null
         && (weatherData.endsWith(".xml") || weatherData.endsWith(".state"))) {
@@ -265,7 +268,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
 
     if (!blocking) {
-      DateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
+      ZonedDateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
       // Get the first 3 days of weather, blocking!
       for (int i = 0; i < daysAhead; i++) {
         WeatherRequester weatherRequester = new WeatherRequester(dateTime);
@@ -279,9 +282,9 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
   private class WeatherRequester implements Runnable
   {
-    private DateTime requestDate;
+    private ZonedDateTime requestDate;
 
-    public WeatherRequester (DateTime requestDate)
+    public WeatherRequester (ZonedDateTime requestDate)
     {
       this.requestDate = requestDate;
     }
@@ -453,7 +456,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   {
     private int timeIndex;
 
-    public WeatherReportConverter (DateTime requestDate)
+    public WeatherReportConverter (ZonedDateTime requestDate)
     {
       super();
       this.timeIndex = getTimeIndex(requestDate);
@@ -588,7 +591,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       }
     }
 
-    private String extractPartialXml (DateTime requestDate)
+    private String extractPartialXml (ZonedDateTime requestDate)
     {
       if (nodeListRead == null) {
         return null;

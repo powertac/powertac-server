@@ -15,6 +15,8 @@
  */
 package org.powertac.householdcustomer.customers;
 
+import java.time.Instant;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -27,7 +29,6 @@ import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
@@ -1729,7 +1730,7 @@ public class Village extends AbstractCustomer
     Timeslot ts = service.getTimeslotRepo().currentTimeslot();
     // TODO - this code assumes that games start at midnight. Bad assumption.
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY);
-    int hour = ts.getStartTime().getHourOfDay();
+    int hour = ts.getStartTime().get(ChronoField.HOUR_OF_DAY);
     Instant now = ts.getStartInstant();
 
     weatherCheck(day, hour, now);

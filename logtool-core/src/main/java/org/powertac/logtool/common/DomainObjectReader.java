@@ -23,16 +23,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
@@ -66,6 +67,8 @@ public class DomainObjectReader
   HashMap<Long, Object> idMap;
   HashMap<Class<?>, Class<?>> ifImplementors;
   HashMap<String, Class<?>> substitutes;
+  HashMap<String, String> pkgAbbreviations;
+  String[] pkgPrefix = {"org.powertac.", ""};
   HashSet<String> ignores;
   HashSet<Class<?>> noIdTypes;
   PowerTypeConverter ptConverter = new PowerTypeConverter();
@@ -111,10 +114,14 @@ public class DomainObjectReader
     //ignores.add("org.powertac.common.WeatherForecastPrediction");
     ignores.add("org.powertac.factoredcustomer.DefaultUtilityOptimizer$DummyTariffSubscription");
 
+    // set up the package abbreviations
+    pkgAbbreviations = new HashMap<>();
+    pkgAbbreviations.put("c.", "common.");
+    pkgAbbreviations.put("cm.","common.msg.");
+    
     // set up the no-id list
     noIdTypes = new HashSet<>();
     noIdTypes.add(TimeService.class);
-    noIdTypes.add(BalanceReport.class);
     noIdTypes.add(SimStart.class);
     noIdTypes.add(SimEnd.class);
 
@@ -190,26 +197,43 @@ public class DomainObjectReader
   throws MissingDomainObject
   {
     log.debug("readObject(" + line + ")");
+    // strip off the msec field
     String body = line.substring(line.indexOf(':') + 1);
     String[] tokens = body.split("::");
-    Class<?> clazz;
-    if (ignores.contains(tokens[0])) {
-      //log.info("ignoring " + tokens[0]);
-      return null;
+    Class<?> clazz = null;
+    String classname = tokens[0];
+    // add the package prefix if needed
+    for (Map.Entry<String, String> entry : pkgAbbreviations.entrySet()) {
+      if (classname.startsWith(entry.getKey())) {
+        classname = classname.substring(entry.getKey().length());
+        classname = entry.getValue() + classname;
+      }
     }
-    try {
-      clazz = Class.forName(tokens[0]);
-    }
-    catch (ClassNotFoundException e) {
-      Class<?> subst = substitutes.get(tokens[0]);
-      if (null == subst) {
-        log.warn("class " + tokens[0] + " not found");
+    // look for classes starting with one of the top-level prefix values
+    for (String prefix : pkgPrefix) {
+      String clazzname = prefix + classname;
+      if (ignores.contains(clazzname)) {
+        //log.info("ignoring " + tokens[0]);
         return null;
       }
-      else {
-        clazz = subst;
-        //log.info("substituting " + clazz.getName() + " for " + tokens[0]);
+      try {
+        clazz = Class.forName(clazzname);
+        // found it
+        break;
       }
+      catch (ClassNotFoundException e) {
+        Class<?> subst = substitutes.get(clazzname);
+        if (null != subst) {
+          clazz = subst;
+          // found a substitute
+          break;
+        }
+      }
+    }
+    // if clazz is still null, then we've not matched the classname
+    if (null == clazz) {
+      log.warn("class {} not found", classname);
+      return null;
     }
 
     long id = -1;
@@ -722,22 +746,11 @@ public class DomainObjectReader
     }
     
     // check for time value
-    if (clazz.getName() == "org.joda.time.Instant") {
+    if (clazz.getName() == "java.time.Instant") {
+      // make Instant from Long
       try {
-        Instant value = Instant.parse(arg);
-        return value;
-       }
-      catch (IllegalArgumentException iae) {
-        // make Instant from Long
-        try {
-          Long msec = Long.parseLong(arg);
-          return new Instant(msec);
-        }
-        catch (Exception e) {
-          // Long parse failure
-          log.error("could not parse Long " + arg);
-          return null;
-        }
+        Long msec = Long.parseLong(arg);
+        return Instant.ofEpochMilli(msec);
       }
       catch (Exception e) {
         // Instant parse failure

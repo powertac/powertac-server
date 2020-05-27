@@ -18,6 +18,8 @@ import org.powertac.common.RegulationRate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.msg.BalancingOrder;
+import org.powertac.common.msg.BalanceReport;
+//import org.powertac.common.msg.SimStart;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -44,6 +46,8 @@ public class DomainObjectReaderTest
                "rateId,value,atTime".split(","));
     schema.put("org.powertac.common.msg.BalancingOrder",
                "exerciseRatio,price,tariffId,broker".split(","));
+    schema.put("org.powertac.common.msg.BalanceReport",
+               "timeslotIndex,newImbalance".split(","));
             
     dor = new DomainObjectReader();
     dor.setSchema(schema);
@@ -59,6 +63,62 @@ public class DomainObjectReaderTest
       assertEquals(result.getClass().getName(), "org.powertac.common.Broker", "correct class");
       assertEquals(603, ((Broker)result).getId(), "correct id");
       assertEquals(result, dor.getById(603), "object stored in map");
+    }
+    catch (MissingDomainObject mdo) {
+      fail("bad exception " + mdo.toString());
+    }
+  }
+
+  @Test
+  public void testReadSingleObject2 ()
+  {
+    String broker1 =
+            "144669:org.powertac.common.Broker::603::new::AstonTAC";
+    String broker2 =
+            "144688:c.Broker::604::new::MinneTAC";
+    String br1 = 
+            "20607:org.powertac.common.msg.BalanceReport::13106::new::362::26065.759204191847";
+    String br2 = 
+            "20609:cm.BalanceReport::13107::new::362::26065.759204191847";
+
+    try {
+      Object result = dor.readObject(broker1);
+      assertNotNull(result, "created an instance");
+      assertEquals(result.getClass().getName(), "org.powertac.common.Broker", "correct class");
+      assertEquals(603, ((Broker)result).getId(), "correct id");
+      assertEquals(result, dor.getById(603), "object stored in map");
+    }
+    catch (MissingDomainObject mdo) {
+      fail("bad exception " + mdo.toString());
+    }
+    try {
+      Object result = dor.readObject(broker2);
+      assertNotNull(result, "created an instance");
+      assertEquals(result.getClass().getName(), "org.powertac.common.Broker", "correct class");
+      assertEquals(604, ((Broker)result).getId(), "correct id");
+      assertEquals(result, dor.getById(604), "object stored in map");
+    }
+    catch (MissingDomainObject mdo) {
+      fail("bad exception " + mdo.toString());
+    }
+    try {
+      Object result = dor.readObject(br1);
+      assertNotNull(result, "created an instance");
+      assertEquals(result.getClass().getName(),
+                   "org.powertac.common.msg.BalanceReport", "correct class");
+      assertEquals(13106, ((BalanceReport)result).getId(), "correct id");
+      assertEquals(result, dor.getById(13106), "object stored in map");
+    }
+    catch (MissingDomainObject mdo) {
+      fail("bad exception " + mdo.toString());
+    }
+    try {
+      Object result = dor.readObject(br2);
+      assertNotNull(result, "created an instance");
+      assertEquals(result.getClass().getName(),
+                   "org.powertac.common.msg.BalanceReport", "correct class");
+      assertEquals(13107, ((BalanceReport)result).getId(), "correct id");
+      assertEquals(result, dor.getById(13107), "object stored in map");
     }
     catch (MissingDomainObject mdo) {
       fail("bad exception " + mdo.toString());
@@ -281,7 +341,7 @@ public class DomainObjectReaderTest
       Competition comp = (Competition)dor.readObject(nc);
       assertNotNull(comp, "valid Competition");
       dor.readObject(m1);
-      assertEquals(1229644800000l, comp.getSimulationBaseTime().getMillis(), "correct base time");
+      assertEquals(1229644800000l, comp.getSimulationBaseTime().toEpochMilli(), "correct base time");
       dor.readObject(m2);
       assertEquals(1380, comp.getMinimumTimeslotCount(), "correct min ts count");
       dor.readObject(m3);

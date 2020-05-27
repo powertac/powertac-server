@@ -18,7 +18,6 @@ package org.powertac.factoredcustomer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
@@ -41,6 +40,7 @@ import org.powertac.factoredcustomer.interfaces.StructureInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

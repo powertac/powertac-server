@@ -18,7 +18,6 @@ package org.powertac.factoredcustomer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
@@ -42,6 +41,7 @@ import org.powertac.factoredcustomer.interfaces.CapacityOriginator;
 import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -367,7 +367,7 @@ implements UtilityOptimizer
 
       double[] result = newForecast;
       Instant start =
-          service.getTimeService().getCurrentTime().plus(TimeService.HOUR);
+          service.getTimeService().getCurrentTime().plusMillis(TimeService.HOUR);
       return new org.powertac.common.CapacityProfile(result, start);
     }
 

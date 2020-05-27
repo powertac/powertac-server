@@ -19,15 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -84,7 +83,7 @@ public class LiftTruckTest
     Competition.setCurrent(competition);
     timeService = new TimeService();
     Instant now =
-        new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+        ZonedDateTime.of(2011, 1, 10, 0, 0, 0, 0, TimeService.UTC).toInstant();
     timeService.setCurrentTime(now);
 
     // tariff setup
@@ -478,8 +477,8 @@ public class LiftTruckTest
     LiftTruck truck = new LiftTruck("Test");
     truck.setServiceAccessor(serviceAccessor);
     truck.initialize();
-    DateTime now =
-        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs =
         truck.getFutureEnergyNeeds(now.toInstant(), 60, 0.0);
@@ -530,8 +529,8 @@ public class LiftTruckTest
 
     truck.setServiceAccessor(serviceAccessor);
     truck.initialize();
-    DateTime now =
-        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs =
         truck.getFutureEnergyNeeds(now.toInstant(), 60, 14.0);
@@ -579,8 +578,8 @@ public class LiftTruckTest
     assertNotNull(tk, "got configured");
     tk.setServiceAccessor(serviceAccessor);
     tk.initialize();
-    DateTime now =
-        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs = 
         tk.getFutureEnergyNeeds(now.toInstant(), 60, 4.0);
@@ -632,8 +631,8 @@ public class LiftTruckTest
     tk.setServiceAccessor(serviceAccessor);
     tk.initialize();
     // start on Sunday
-    DateTime now =
-        new DateTime(2014, 12, 7, 6, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2014, 12, 7, 6, 0, 0, 0, TimeService.UTC);
     new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs =
         tk.getFutureEnergyNeeds(now.toInstant(), 60, 75.0);
@@ -673,8 +672,8 @@ public class LiftTruckTest
     LiftTruck truck = new LiftTruck("Test");
     truck.setServiceAccessor(serviceAccessor);
     truck.initialize();
-    DateTime now =
-        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     Timeslot ts = new Timeslot(2, now.toInstant());
     when(tsRepo.currentTimeslot()).thenReturn(ts);
     Broker broker = new Broker("bob");

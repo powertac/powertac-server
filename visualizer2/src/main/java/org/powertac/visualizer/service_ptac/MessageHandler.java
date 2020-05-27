@@ -1,6 +1,5 @@
 package org.powertac.visualizer.service_ptac;
 
-import org.joda.time.Instant;
 import org.powertac.common.CashPosition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketTransaction;
@@ -34,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -304,7 +304,7 @@ public class MessageHandler {
     }
 
     private void perTimeslotUpdate() {
-        TickSnapshot ts = new TickSnapshot(currentInstant.getMillis(), currentTimeslot);
+        TickSnapshot ts = new TickSnapshot(currentInstant.toEpochMilli(), currentTimeslot);
         tickSnapshotRepo.save(ts);
 
         // reset per time slot KPI values:

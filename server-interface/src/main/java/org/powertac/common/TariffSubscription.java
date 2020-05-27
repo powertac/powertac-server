@@ -15,13 +15,13 @@
  */
 package org.powertac.common;
 
+import java.time.Instant;
 //import org.codehaus.groovy.grails.commons.ApplicationHolder
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -176,13 +176,13 @@ public class TariffSubscription
     // Compute the 00:00 Instant for the current time
     Instant start = getTimeService().getCurrentTime();
     if (expirations.size() > 0 &&
-        expirations.get(expirations.size() - 1).getHorizon() == start.getMillis() + minDuration) {
+        expirations.get(expirations.size() - 1).getHorizon() == start.toEpochMilli() + minDuration) {
       // update existing entry
       expirations.get(expirations.size() - 1).updateCount(customerCount);
     }
     else {
       // need a new entry
-      expirations.add(new ExpirationRecord(start.getMillis() + minDuration,
+      expirations.add(new ExpirationRecord(start.toEpochMilli() + minDuration,
                                            customerCount));
     }
     //}
@@ -660,7 +660,7 @@ public class TariffSubscription
     int cc = 0;
     Instant now = getTimeService().getCurrentTime();
     for (ExpirationRecord exp : expirations) {
-      if (exp.getHorizon() <= now.getMillis()) {
+      if (exp.getHorizon() <= now.toEpochMilli()) {
         cc += exp.getCount();
       }
     }

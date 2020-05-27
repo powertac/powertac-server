@@ -18,13 +18,13 @@ package org.powertac.common;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
+
 import org.mockito.ArgumentCaptor;
 
 import javax.annotation.Resource;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
@@ -83,14 +83,14 @@ public class TariffSubscriptionTests
     //timeService = new TimeService();
     reset(mockAccounting);
     reset(mockTariffMarket);
-    baseTime = new DateTime(1972, 9, 6, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    baseTime = ZonedDateTime.of(1972, 9, 6, 12, 0, 0, 0, TimeService.UTC).toInstant();
     timeService.setCurrentTime(baseTime);
     Competition.newInstance("tst").withSimulationBaseTime(baseTime);
     broker = new Broker("Jenny");
     customer = new CustomerInfo("Podunk", 23).withPowerType(PowerType.CONSUMPTION);
     //customer = new AbstractCustomer(info);
     spec = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .withExpiration(baseTime.plus(TimeService.DAY * 10))
+        .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
         .withMinDuration(TimeService.DAY * 5)
         .addRate(new Rate().withValue(-0.11));
     tariff = new Tariff(spec);
@@ -224,7 +224,7 @@ public class TariffSubscriptionTests
     //List<List<Object>>results = new ArrayList<List<Object>>();
     CustomerInfo ptcustomer = new CustomerInfo("Podunk", 21).withPowerType(PowerType.SOLAR_PRODUCTION);
     TariffSpecification ptspec = new TariffSpecification(broker, PowerType.SOLAR_PRODUCTION)
-      .withExpiration(baseTime.plus(TimeService.DAY * 10))
+      .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
       .withMinDuration(TimeService.DAY * 5)
       .addRate(new Rate().withValue(0.11));
     Tariff pttariff = new Tariff(ptspec);
@@ -301,14 +301,14 @@ public class TariffSubscriptionTests
     assertEquals(0, sub.getExpiredCustomerCount(), "no expired customers");
     // move forward 3 days and subscribe some more
     Instant now = timeService.getCurrentTime();
-    timeService.setCurrentTime(now.plus(TimeService.DAY * 3));
+    timeService.setCurrentTime(now.plusMillis(TimeService.DAY * 3));
     assertEquals(0, sub.getExpiredCustomerCount(), "still no expired customers");
     sub.subscribe(22);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer, 22, 0.0, -0.0);
     assertEquals(55, sub.getCustomersCommitted(), "55 subscriptions");
     // move forward another three days, there should now be 33 expired
-    timeService.setCurrentTime(now.plus(TimeService.DAY * 6));
+    timeService.setCurrentTime(now.plusMillis(TimeService.DAY * 6));
     assertEquals(33, sub.getExpiredCustomerCount(), "33 expired customers");
   }
 
@@ -317,7 +317,7 @@ public class TariffSubscriptionTests
   {
     TariffSpecification mySpec =
             new TariffSpecification(broker, PowerType.CONSUMPTION)
-              .withExpiration(baseTime.plus(TimeService.DAY * 10))
+              .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
               .addRate(new Rate().withValue(-0.11));
     Tariff myTariff = new Tariff(mySpec);
     myTariff.init();
@@ -348,7 +348,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
@@ -383,7 +383,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.ELECTRIC_VEHICLE)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5))
           .addRate(new RegulationRate()
@@ -421,7 +421,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
@@ -456,7 +456,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5))
           .addRate(new RegulationRate().withUpRegulationPayment(0.15)
@@ -500,7 +500,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
@@ -515,7 +515,7 @@ public class TariffSubscriptionTests
                               10, 0.0, -0.0);
     timeslotRepo.findOrCreateBySerialNumber(10);
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR));
+        .plusMillis(TimeService.HOUR));
     assertEquals(1, timeslotRepo.currentTimeslot().getSerialNumber(), "correct timeslot");
 
     sub.usePower(100.0); // per-member value
@@ -526,7 +526,7 @@ public class TariffSubscriptionTests
     assertEquals(9.0, chargeArg.getValue(), 1e-6, "correct charge");
     assertEquals(50.0, sub.getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6, "full regulation available");
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR));
+        .plusMillis(TimeService.HOUR));
     sub.postRatioControl(0.2);
     sub.usePower(100.0);
     verify(mockAccounting)
@@ -544,7 +544,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
@@ -555,7 +555,7 @@ public class TariffSubscriptionTests
     sub.subscribe(10);
     timeslotRepo.findOrCreateBySerialNumber(10);
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR));
+        .plusMillis(TimeService.HOUR));
 
     sub.usePower(100.0);
     assertEquals(50.0, sub.getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6, "correct remaining regulation");
@@ -566,7 +566,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
@@ -577,7 +577,7 @@ public class TariffSubscriptionTests
     sub.subscribe(10);
     timeslotRepo.findOrCreateBySerialNumber(10);
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR));
+        .plusMillis(TimeService.HOUR));
 
     sub.usePower(100.0);
     sub.unsubscribe(2);
@@ -589,7 +589,7 @@ public class TariffSubscriptionTests
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
@@ -600,7 +600,7 @@ public class TariffSubscriptionTests
     sub.subscribe(10);
     timeslotRepo.findOrCreateBySerialNumber(10);
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR));
+        .plusMillis(TimeService.HOUR));
 
     sub.usePower(100.0);
     sub.unsubscribe(2);

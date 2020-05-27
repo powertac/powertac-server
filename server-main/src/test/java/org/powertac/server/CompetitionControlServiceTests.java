@@ -5,6 +5,12 @@ import static org.mockito.Mockito.*;
 
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
@@ -15,14 +21,10 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.msg.CustomerBootstrapData;
@@ -117,12 +119,13 @@ public class CompetitionControlServiceTests
   @Test
   public void testConfig ()
   {
-    DateTimeZone.setDefault(DateTimeZone.UTC);
-    Instant val = new DateTime(2011, 1, 26, 0, 0, 0, 0).toInstant();
-    String dateString = "2011-1-26";
-    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-    DateTime dt = fmt.parseDateTime(dateString);
-    assertEquals(val, dt.toInstant(), "correct time translation");
+    Instant val = ZonedDateTime.of(2011, 1, 26, 0, 0, 0, 0, TimeService.UTC).toInstant();
+    String dateString = "2011-01-26";
+    DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
+    ZonedDateTime zdt = ZonedDateTime.of(LocalDate.parse(dateString, fmt),
+                                         LocalTime.of(0,  0),
+                                         TimeService.UTC);
+    assertEquals(val, zdt.toInstant(), "correct time translation");
   }
 
   @Test

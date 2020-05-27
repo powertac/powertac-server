@@ -11,8 +11,13 @@
 
 package org.powertac.householdcustomer.configurations;
 
-import org.joda.time.Instant;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+
 import org.powertac.common.Competition;
+import org.powertac.common.TimeService;
 
 /**
  * This class contains constant definitions used throughout the household
@@ -253,7 +258,9 @@ public class VillageConstants
   {
     Instant base = Competition.currentCompetition().getSimulationBaseTime();
 
-    int bias = Math.abs(base.toDate().getDay() - DAYS_OF_WEEK) % DAYS_OF_WEEK;
+    ZonedDateTime zdt =
+            ZonedDateTime.ofInstant(base, TimeService.UTC).truncatedTo(ChronoUnit.DAYS);
+    int bias = Math.abs(zdt.get(ChronoField.DAY_OF_WEEK) - DAYS_OF_WEEK) % DAYS_OF_WEEK;
 
     MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
     TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;

@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,9 +28,6 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -75,7 +74,7 @@ public class MisoBuyerTest
   public void setUp () throws Exception
   {
     // Start Thursday 9:00
-    Instant start = new DateTime(2017, 1, 12, 9, 0, DateTimeZone.UTC).toInstant();
+    Instant start = ZonedDateTime.of(2017, 1, 12, 9, 0, 0, 0, TimeService.UTC).toInstant();
     Competition comp =
         Competition.newInstance("MisoBuyer test").withTimeslotsOpen(24)
         .withSimulationBaseTime(start);
@@ -136,7 +135,7 @@ public class MisoBuyerTest
     Competition comp = Competition.currentCompetition();
     Instant start = comp.getSimulationBaseTime();
     timeService.setCurrentTime(comp.getSimulationBaseTime()
-                               .plus(24 * comp.getTimeslotDuration()));
+                               .plusMillis(24 * comp.getTimeslotDuration()));
     init();
     assertEquals(24, buyer.getTimeslotOffset(), "timeslotOffset non-zero");
   }
@@ -148,7 +147,7 @@ public class MisoBuyerTest
     Competition comp = Competition.currentCompetition();
     Instant start = comp.getSimulationBaseTime();
     timeService.setCurrentTime(comp.getSimulationBaseTime()
-                               .plus(360 * comp.getTimeslotDuration()));
+                               .plusMillis(360 * comp.getTimeslotDuration()));
     init();
     assertEquals(360, buyer.getTimeslotOffset(), "timeslotOffset non-zero");
   }
@@ -185,7 +184,7 @@ public class MisoBuyerTest
     Competition comp = Competition.currentCompetition();
     Instant start = comp.getSimulationBaseTime();
     timeService.setCurrentTime(comp.getSimulationBaseTime()
-                               .plus(360 * comp.getTimeslotDuration()));
+                               .plusMillis(360 * comp.getTimeslotDuration()));
     init();
     buyer.withScaleFactor(1.0);
     int len = 10;

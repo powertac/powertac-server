@@ -16,13 +16,13 @@
 
 package org.powertac.officecomplexcustomer.appliances;
 
+import java.time.Instant;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;

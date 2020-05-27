@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,9 +13,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +91,6 @@ public class DistributionUtilityServiceTests
   private Broker broker3;
   private CustomerInfo cust1;
   private CustomerInfo cust2;
-  private DateTime start;
 
   @BeforeEach
   public void setUp ()
@@ -111,10 +107,8 @@ public class DistributionUtilityServiceTests
 
     Instant base =
             Competition.currentCompetition().getSimulationBaseTime();
-    start = new DateTime(start, DateTimeZone.UTC);
-    timeService.setCurrentTime(base.plus(TimeService.HOUR * 4));
+    timeService.setCurrentTime(base.plusMillis(TimeService.HOUR * 4));
     timeslotRepo.makeTimeslot(base);
-    //timeslotRepo.currentTimeslot().disable();// enabled: false);
     reset(accountingService);
 
     // Create 3 test brokers
@@ -207,7 +201,7 @@ public class DistributionUtilityServiceTests
     cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "true");
     initializeService();
     assertEquals(9.5 * 1.02, distributionUtilityService.getRunningMean(), 1e-6, "correct mean");
-    assertEquals(3.95044, distributionUtilityService.getRunningSigma(), 1e-5, "correct sigma");
+    assertEquals(3.421184, distributionUtilityService.getRunningSigma(), 1e-5, "correct sigma");
     assertEquals(4, distributionUtilityService.getRunningCount(), "correct count");
   }
 
@@ -296,6 +290,12 @@ public class DistributionUtilityServiceTests
     setBootRecord();
     initializeService();
 
+    // check bootstrap statistics
+    assertEquals(9.5, distributionUtilityService.getRunningMean(), 1e-6,
+                 "correct bootstrap mean");
+    assertEquals(3.354102, distributionUtilityService.getRunningSigma(), 1e-6,
+                 "correct bootstrap stdev");
+
     // set up Accounting responses
     Map<Broker, Map<Type, Double>> response =
             new HashMap<Broker, Map<Type, Double>> ();
@@ -374,8 +374,10 @@ public class DistributionUtilityServiceTests
     assertEquals(1, ctxMap.get(broker2).size(), "one ctx broker2");
     assertEquals(1, ctxMap.get(broker3).size(), "one ctx broker3");
     CapacityTransaction ctx = ctxMap.get(broker1).get(0);
-    assertEquals(14.272903, ctx.getThreshold(), 1e-6, "threshold 1");
-    assertEquals(0.078309248, ctx.getKWh(), 1e-6, "kwh 1");
+    assertEquals(13.922391, ctx.getThreshold(), 1e-6, "threshold 1");
+    //assertEquals(14.272903, ctx.getThreshold(), 1e-6, "threshold 1");
+    assertEquals(0.1991754, ctx.getKWh(), 1e-6, "kwh 1");
+    //assertEquals(0.078309248, ctx.getKWh(), 1e-6, "kwh 1");
     ctxMap.put(broker1, new ArrayList<CapacityTransaction>());
     ctxMap.put(broker2, new ArrayList<CapacityTransaction>());
     ctxMap.put(broker3, new ArrayList<CapacityTransaction>());
@@ -515,12 +517,12 @@ public class DistributionUtilityServiceTests
 
     // ts 7: customers use and produce energy, create peak, DU gets activated, no tx.
     response.put(broker1, broker1Map);
-    broker1Map.put(Type.CONSUME, -9.01);
-    broker1Map.put(Type.PRODUCE, 2.0); //+7.1
+    broker1Map.put(Type.CONSUME, -14.01);
+    broker1Map.put(Type.PRODUCE, 2.0); //+12.01
     broker2Map.put(Type.CONSUME, -7.0);
-    broker2Map.put(Type.PRODUCE, 1.0); //+6
-    broker3Map.put(Type.CONSUME, -11.0);
-    broker3Map.put(Type.PRODUCE, 2.0); //+9 -> 22.1
+    broker2Map.put(Type.PRODUCE, 9.0); //-2
+    broker3Map.put(Type.CONSUME, -14.0);
+    broker3Map.put(Type.PRODUCE, 2.0); //+12 -> 22.01
     distributionUtilityService.activate(timeService.getCurrentTime(), 4);
     assertEquals(0, ctxMap.get(broker1).size(), "no ctx broker1");
     assertEquals(0, ctxMap.get(broker2).size(), "no ctx broker2");
@@ -553,50 +555,64 @@ public class DistributionUtilityServiceTests
     assertEquals(2, ctxMap.get(broker2).size(), "one ctx broker2");
     assertEquals(2, ctxMap.get(broker3).size(), "one ctx broker3");
     CapacityTransaction ctx = ctxMap.get(broker1).get(0);
-    assertEquals(21.4876, ctx.getThreshold(), 1e-4, "threshold 1");
+    assertEquals(20.91961, ctx.getThreshold(), 1e-4, "threshold 1");
     assertEquals(7, ctx.getPeakTimeslot(), "ts 1a");
-    assertEquals(0.16639, ctx.getKWh(), 1e-5, "kwh 1a");
-    assertEquals(1.66391, ctx.getCharge(), 1e-5, "fee 1a");
+    assertEquals(0.594985, ctx.getKWh(), 1e-5, "kwh 1a");
+    assertEquals(5.94985, ctx.getCharge(), 1e-5, "fee 1a");
+    //assertEquals(21.4876, ctx.getThreshold(), 1e-4, "threshold 1");
+    //assertEquals(7, ctx.getPeakTimeslot(), "ts 1a");
+    //assertEquals(0.16639, ctx.getKWh(), 1e-5, "kwh 1a");
+    //assertEquals(1.66391, ctx.getCharge(), 1e-5, "fee 1a");
     //System.out.println("ctx ts=" + ctx.getPeakTimeslot() +
     //                   ", threshold=" + ctx.getThreshold() +
     //                   ", kwh=" + ctx.getKWh() +
     //                   ", fee=" + ctx.getCharge());
     ctx = ctxMap.get(broker1).get(1);
     assertEquals(4, ctx.getPeakTimeslot(), "ts 1b");
-    assertEquals(0.11646, ctx.getKWh(), 1e-5, "kwh 1b");
-    assertEquals(1.16462, ctx.getCharge(), 1e-5, "fee 1b");
+    assertEquals(0.245544, ctx.getKWh(), 1e-5, "kwh 1b");
+    assertEquals(2.45544, ctx.getCharge(), 1e-5, "fee 1b");
+    //assertEquals(0.11646, ctx.getKWh(), 1e-5, "kwh 1b");
+    //assertEquals(1.16462, ctx.getCharge(), 1e-5, "fee 1b");
     //System.out.println("ctx ts=" + ctx.getPeakTimeslot() +
     //                   ", threshold=" + ctx.getThreshold() +
     //                   ", kwh=" + ctx.getKWh() +
     //                   ", fee=" + ctx.getCharge());
     ctx = ctxMap.get(broker2).get(0);
     assertEquals(7, ctx.getPeakTimeslot(), "ts 2a");
-    assertEquals(0.14242, ctx.getKWh(), 1e-5, "kwh 2a");
-    assertEquals(1.42418, ctx.getCharge(), 1e-5, "fee 2a");
+    assertEquals(-0.099082, ctx.getKWh(), 1e-5, "kwh 2a");
+    assertEquals(-0.99082, ctx.getCharge(), 1e-5, "fee 2a");
+    //assertEquals(0.14242, ctx.getKWh(), 1e-5, "kwh 2a");
+    //assertEquals(1.42418, ctx.getCharge(), 1e-5, "fee 2a");
     //System.out.println("ctx ts=" + ctx.getPeakTimeslot() +
     //                   ", threshold=" + ctx.getThreshold() +
     //                   ", kwh=" + ctx.getKWh() +
     //                   ", fee=" + ctx.getCharge());
     ctx = ctxMap.get(broker2).get(1);
     assertEquals(4, ctx.getPeakTimeslot(), "ts 2b");
-    assertEquals(0.23292, ctx.getKWh(), 1e-5, "kwh 2b");
-    assertEquals(2.32925, ctx.getCharge(), 1e-5, "fee 2b");
+    assertEquals(0.491087, ctx.getKWh(), 1e-5, "kwh 2b");
+    assertEquals(4.91087, ctx.getCharge(), 1e-5, "fee 2b");
+    //assertEquals(0.23292, ctx.getKWh(), 1e-5, "kwh 2b");
+    //assertEquals(2.32925, ctx.getCharge(), 1e-5, "fee 2b");
     //System.out.println("ctx ts=" + ctx.getPeakTimeslot() +
     //                   ", threshold=" + ctx.getThreshold() +
     //                   ", kwh=" + ctx.getKWh() +
     //                   ", fee=" + ctx.getCharge());
     ctx = ctxMap.get(broker3).get(0);
     assertEquals(7, ctx.getPeakTimeslot(), "ts 3a");
-    assertEquals(0.21363, ctx.getKWh(), 1e-5, "kwh 3a");
-    assertEquals(2.13626, ctx.getCharge(), 1e-5, "fee 3a");
+    assertEquals(0.594489, ctx.getKWh(), 1e-5, "kwh 3a");
+    assertEquals(5.94489, ctx.getCharge(), 1e-5, "fee 3a");
+    //assertEquals(0.21363, ctx.getKWh(), 1e-5, "kwh 3a");
+    //assertEquals(2.13626, ctx.getCharge(), 1e-5, "fee 3a");
     //System.out.println("ctx ts=" + ctx.getPeakTimeslot() +
     //                   ", threshold=" + ctx.getThreshold() +
     //                   ", kwh=" + ctx.getKWh() +
     //                   ", fee=" + ctx.getCharge());
     ctx = ctxMap.get(broker3).get(1);
     assertEquals(4, ctx.getPeakTimeslot(), "ts 2b");
-    assertEquals(0.16305, ctx.getKWh(), 1e-5, "kwh 2b");
-    assertEquals(1.63047, ctx.getCharge(), 1e-5, "fee 2b");
+    assertEquals(0.343761, ctx.getKWh(), 1e-5, "kwh 2b");
+    assertEquals(3.43761, ctx.getCharge(), 1e-5, "fee 2b");
+    //assertEquals(0.16305, ctx.getKWh(), 1e-5, "kwh 2b");
+    //assertEquals(1.63047, ctx.getCharge(), 1e-5, "fee 2b");
     //System.out.println("ctx ts=" + ctx.getPeakTimeslot() +
     //                   ", threshold=" + ctx.getThreshold() +
     //                   ", kwh=" + ctx.getKWh() +
@@ -606,7 +622,7 @@ public class DistributionUtilityServiceTests
 
   private void bumpTime (long incr)
   {
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(incr));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(incr));
   }
 
   @Test

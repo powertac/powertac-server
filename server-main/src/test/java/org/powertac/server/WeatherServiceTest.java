@@ -5,9 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -34,7 +31,10 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 
@@ -85,18 +85,18 @@ public class WeatherServiceTest
     reset(serverPropertiesService);
 
     // Set the current instant to a time when we are requesting data
-    start = new DateTime(2010, 4, 1, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    start = ZonedDateTime.of(2010, 4, 1, 0, 0, 0, 0, TimeService.UTC).toInstant();
     comp = Competition.newInstance("WeatherService test")
             .withSimulationBaseTime(start);
     Competition.setCurrent(comp);
-    next = start.plus(comp.getTimeslotDuration());
-    timeService.setClockParameters(start.getMillis(),
+    next = start.plusMillis(comp.getTimeslotDuration());
+    timeService.setClockParameters(start.toEpochMilli(),
                                    comp.getSimulationRate(),
                                    comp.getSimulationModulo());
     timeService.setCurrentTime(start);
     //if (timeslotRepo.currentTimeslot() == null) {
     //	for (int i = 0; i < 48; i++) {
-    //		timeslotRepo.makeTimeslot(start.plus(comp.getTimeslotDuration()
+    //		timeslotRepo.makeTimeslot(start.plusMillis(comp.getTimeslotDuration()
     //				* i));
     //	}
     //}
@@ -215,9 +215,14 @@ public class WeatherServiceTest
     assertEquals(2, weatherReportRepo.allWeatherReports().size());
 
     // Check that the 2 timeslots are different in the repo
-    assertNotEquals(weatherReportRepo.allWeatherReports().get(0).getTimeslotIndex(),
-                    weatherReportRepo.allWeatherReports().get(1).getTimeslotIndex());
-
+    List<WeatherReport> reports = weatherReportRepo.allWeatherReports();
+    assertEquals(reports.size(), 2, "correct size");
+    assertEquals(0, reports.get(0).getTimeslotIndex(), "index 0");
+    assertEquals(1, reports.get(1).getTimeslotIndex(), "index 1");
+    // TODO - Getting NoSuchMethod error in Eclipse with the following assertion
+    //assertNotEquals(reports.get(0).getTimeslotIndex(),
+    //                reports.get(1).getTimeslotIndex(),
+    //                "different index values");
   }
 
   @Test

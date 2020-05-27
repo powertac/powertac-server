@@ -18,12 +18,13 @@ package org.powertac.factoredcustomer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTime;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.factoredcustomer.interfaces.StructureInstance;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,9 +129,9 @@ public final class TimeseriesGenerator implements StructureInstance
      }
      **/
 
-    DateTime now = timeslotRepo.getDateTimeForIndex(timeslot);
-    int day = now.getDayOfWeek();   // 1=Monday, 7=Sunday
-    int hour = now.getHourOfDay();  // 0-23
+    ZonedDateTime now = timeslotRepo.getDateTimeForIndex(timeslot);
+    int day = now.get(ChronoField.DAY_OF_WEEK);   // 1=Monday, 7=Sunday
+    int hour = now.get(ChronoField.HOUR_OF_DAY);  // 0-23
 
     double yh_hour = Double.parseDouble(yh.get(hour));
     double yd_day = Double.parseDouble(yd.get(day - 1));
