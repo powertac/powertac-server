@@ -98,7 +98,13 @@ public class LogService
       System.setProperty("statefile", logDir + "/" + filename + ".state");
       
       ((LoggerContext) LogManager.getContext(false)).reconfigure();
-      stateLogService.init();
+
+      if (System.getProperty("abbreviateClassnames", "no").equals("yes")) {
+        stateLogService.init(true);
+      }
+      else {
+        stateLogService.init(false);
+      }
     }
     catch (Exception ioe) {
       ioe.printStackTrace();
