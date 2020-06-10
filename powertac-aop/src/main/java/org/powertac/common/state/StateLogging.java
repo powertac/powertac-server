@@ -57,7 +57,8 @@ public class StateLogging
   private Logger stateLog = LogManager.getLogger("State");
 
   // package-prefix abbreviation map
-  private LinkedHashMap<String, String> abbreviations = null;
+  private static LinkedHashMap<String, String> abbreviations = null;
+  private static boolean classnameAbbreviation = false;
 
   // state-change methods
   @Pointcut ("execution (@StateChange * * (..))")
@@ -145,26 +146,6 @@ public class StateLogging
     stateLog.info(buf.toString());
   }
 
-  // abbreviates a classname 
-  private String abbreviate (String classname)
-  {
-    String result = classname;
-    if (null == abbreviations) {
-      abbreviations = new LinkedHashMap<>();
-      abbreviations.put("org.powertac.common.msg.", "cm.");
-      abbreviations.put("org.powertac.common.", "c.");
-      abbreviations.put("org.powertac.", "");
-    }
-    for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
-      if (classname.startsWith(abbr.getKey())) {
-        result = classname.substring(abbr.getKey().length());
-        result = abbr.getValue() + result;
-        break;
-      }
-    }
-    return result;
-  }
-
   @SuppressWarnings("rawtypes")
   private void writeArg (StringBuffer buf, Object arg)
   {
@@ -209,5 +190,59 @@ public class StateLogging
     catch (Exception ex) {
     }
     return id;
+  }
+
+  // --------- static methods to handle classname abbreviation
+
+  /**
+   * Sets up the classname abbreviation feature. If the parameter is true,
+   * then classnames will be abbreviated. This should obviously be called
+   * before any logging happens.
+   */
+  public static void setClassnameAbbreviation (boolean abbreviation)
+  {
+    classnameAbbreviation = abbreviation;
+  }
+
+  // abbreviates a classname 
+  private static String abbreviate (String classname)
+  {
+    String result = classname;
+    ensureAbbreviations();
+    for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
+      if (classname.startsWith(abbr.getKey())) {
+        result = classname.substring(abbr.getKey().length());
+        result = abbr.getValue() + result;
+        break;
+      }
+    }
+    return result;
+  }
+
+  private static void ensureAbbreviations ()
+  {
+    if (null == abbreviations) {
+      abbreviations = new LinkedHashMap<>();
+      abbreviations.put("org.powertac.common.msg.", "cm.");
+      abbreviations.put("org.powertac.common.", "c.");
+      abbreviations.put("org.powertac.", "");
+    }
+  }
+
+  /**
+   * Given a possibly abbreviated classname, returns
+   * the unabbreviated version.
+   */
+  public static String unabbreviate (String origClassname)
+  {
+    String result = origClassname;
+    for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
+      if (origClassname.startsWith(abbr.getValue())) {
+        result = origClassname.substring(abbr.getValue().length());
+        result = abbr.getKey() + result;
+        break;
+      }
+    }
+    return result;
   }
 }

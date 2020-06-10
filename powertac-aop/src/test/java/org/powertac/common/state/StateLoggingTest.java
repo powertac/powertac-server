@@ -39,6 +39,9 @@ public class StateLoggingTest
       String ln = lines.get(0);
       String body = stripMillis(ln);
       assertEquals("c.state.DummyDomain::0::new::1::first", body);
+      String[] tokens = body.split("::");
+      assertEquals("org.powertac.common.state.DummyDomain",
+                   StateLogging.unabbreviate(tokens[0]));
       assertEquals("c.state.DummyDomain::31::new::31::2::second",
                    stripMillis(lines.get(1)));
       assertEquals("c.state.DummyDomain::31::setNumber::42",

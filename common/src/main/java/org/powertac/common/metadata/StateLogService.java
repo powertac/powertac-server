@@ -24,6 +24,7 @@ import java.io.Reader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.powertac.common.state.StateLogging;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,9 +50,19 @@ public class StateLogService
   }
 
   /**
-   * Initializes the state log by writing the log schema at the top
+   * Initializes the state log without abbreviating classnames.
    */
   public void init ()
+  {
+    init(false);
+  }
+  
+  /**
+   * Initializes the state log by writing the log schema at the top.
+   * If abbreviateClassnames is true, then the state log will have
+   * org.powertac classnames abbreviated.
+   */
+  public void init (boolean abbreviateClassnames)
   {
     InputStream schema =
             getClass().getClassLoader().getResourceAsStream("metadata/domain.schema");
@@ -67,6 +78,10 @@ public class StateLogService
     }
     catch (IOException ioe) {
       log.error("failed to read from schema");
+    }
+
+    if (abbreviateClassnames) {
+      StateLogging.setClassnameAbbreviation(true);
     }
   }
 }
