@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
+import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
@@ -428,6 +429,16 @@ public class DomainObjectReader
   private Object restoreInstance (Class<?> clazz, String[] args)
           throws MissingDomainObject
   {
+    // 1056 - special case for TariffSpecification
+    if (clazz == TariffSpecification.class) {
+      // if expiration is null, make it zero
+      if ("null".equals(args[2]))
+        args[2] = "0";
+      else {
+        Instant exp = Instant.parse(args[2]);
+        args[2] = Long.toString(exp.getMillis());
+      }
+    }
     String[] fieldNames = schema.get(clazz.getName());
     if (null != fieldNames) {
       // only do this for @Domain classes that are in the recorded schema
