@@ -321,7 +321,7 @@ public class DomainObjectReaderTest
     String hc1 = "177116:org.powertac.common.HourlyCharge::600000390::new::600000389::-0.0010::2009-01-03T02:00:00.000Z";
     String hc2 = "177116:org.powertac.common.HourlyCharge::600000392::new::600000389::-0.0010::2009-01-03T03:00:00.000Z";
     String r1 = "177118:org.powertac.common.Rate::600000389::new::600000388::-1::-1::-1::-1::0.0::false::0.0::0.0::1::0.0::0.0";
-    String ts1 = "177120:org.powertac.common.TariffSpecification::600000388::new::605::CONSUMPTION::0::0::0.0::0.0::0.0";
+    String ts1 = "177120:org.powertac.common.TariffSpecification::600000388::new::605::CONSUMPTION::0::0::0.0::0.0::0.0::null";
     Object result = null;
     try {
       result = dor.readObject(soton);
@@ -357,7 +357,7 @@ public class DomainObjectReaderTest
   {
     String ca = "125552:org.powertac.common.Broker::601::new::CrocodileAgent";
     String r = "177360:org.powertac.common.Rate::200076920::new::200076919::-1::-1::-1::-1::0.0::true::-0.045598969348039364::0.0::0::0.0::0.1";
-    String ts = "177360:org.powertac.common.TariffSpecification::200076919::new::601::INTERRUPTIBLE_CONSUMPTION::0::0::0::0.0::0.0::-0.6";
+    String ts = "177360:org.powertac.common.TariffSpecification::200076919::new::601::INTERRUPTIBLE_CONSUMPTION::0::0::0.0::0.0::-0.6::null";
     String bo1 = "237911:org.powertac.common.msg.BalancingOrder::200077175::new::0.5::-0.04103907241323543::200076919::601";
     try {
       Broker crocodile = (Broker)dor.readObject(ca);
@@ -405,7 +405,7 @@ public class DomainObjectReaderTest
     String cu = "812:org.powertac.common.CustomerInfo::1895::new::Village::10";
     String ca = "1255:org.powertac.common.Broker::601::new::CrocodileAgent";
     String r = "1773:org.powertac.common.Rate::200076920::new::1878::-1::-1::-1::-1::0.0::true::-0.045598969348039364::0.0::0::0.0::0.1";
-    String ts = "1774:org.powertac.common.TariffSpecification::1878::new::601::INTERRUPTIBLE_CONSUMPTION::0::0::0.0::0.0::-0.6";
+    String ts = "1774:org.powertac.common.TariffSpecification::1878::new::601::INTERRUPTIBLE_CONSUMPTION::0::0::0.0::0.0::-0.6::null";
     String sub = "9204:org.powertac.common.TariffSubscription::2588::new::1895::1878";
     String add = "9204:org.powertac.common.TariffSubscription::2588::subscribe::10";
     try {
@@ -431,7 +431,7 @@ public class DomainObjectReaderTest
   public void readTtxPublish () {
     String ca = "255:org.powertac.common.Broker::601::new::CrocodileAgent";
     String r = "773:org.powertac.common.Rate::300076920::new::300076919::-1::-1::-1::-1::0.0::true::-0.045598969348039364::0.0::0::0.0::0.1";
-    String ts = "774:org.powertac.common.TariffSpecification::300076919::new::601::INTERRUPTIBLE_CONSUMPTION::0::0::0.0::0.0::-0.6";
+    String ts = "774:org.powertac.common.TariffSpecification::300076919::new::601::INTERRUPTIBLE_CONSUMPTION::0::0::0.0::0.0::-0.6::null";
     String tx = "906:org.powertac.common.TariffTransaction::7471::new::601::360::PUBLISH::300076919::null::0::0.0::-2679.645482627618::false";
     try {
       Broker crocodile = (Broker) dor.readObject(ca);
@@ -439,6 +439,8 @@ public class DomainObjectReaderTest
       TariffSpecification ts1 =
               (TariffSpecification) dor.readObject(ts);
       assertNotNull(crocodile, "valid broker");
+      assertNotNull(ts1, "created a tariff spec");
+      assertNull(ts1.getExpiration(), "no expiration time");
       TariffTransaction ttx = (TariffTransaction) dor.readObject(tx);
       assertNotNull(ttx, "created a transaction");
       assertEquals(crocodile, ttx.getBroker());
