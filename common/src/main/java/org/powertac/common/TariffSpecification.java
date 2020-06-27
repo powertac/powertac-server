@@ -294,6 +294,22 @@ public class TariffSpecification extends TariffMessage
     supersedes.add(specId);
     return this;
   }
+
+  /**
+   * Modify read-resolve args when reading state log -- see Issue #1056
+   */
+  public static void modifyLogArgs (String[] args)
+  {
+    // if expiration is null, make it zero
+    if ("null".equals(args[2]))
+      args[2] = "0";
+    else // otherwise if it parses as an Instant, change to long
+    {
+      Instant exp = Instant.parse(args[2]);
+      args[2] = Long.toString(exp.getMillis());
+    }
+
+  }
   
   /**
    * A TariffSpecification is valid if
