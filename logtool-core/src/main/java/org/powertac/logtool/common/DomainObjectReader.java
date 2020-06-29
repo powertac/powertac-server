@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013 by the original author
+ * Copyright (c) 2012-2020 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
+import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
@@ -68,6 +69,7 @@ public class DomainObjectReader
   HashMap<String, Class<?>> substitutes;
   HashSet<String> ignores;
   HashSet<Class<?>> noIdTypes;
+  //HashSet<Class<?>> argModTypes;
   PowerTypeConverter ptConverter = new PowerTypeConverter();
 
   // listeners can be the old-style NewObjectListeners, or they can be
@@ -117,6 +119,9 @@ public class DomainObjectReader
     noIdTypes.add(BalanceReport.class);
     noIdTypes.add(SimStart.class);
     noIdTypes.add(SimEnd.class);
+
+    // set up the list of types that might need to modify their args
+    //argModTypes.add(TariffSpecification.class);
 
     // set up listener list
     newObjectListeners = new HashMap<Class<?>, ArrayList<NewObjectListener>>();
@@ -428,6 +433,18 @@ public class DomainObjectReader
   private Object restoreInstance (Class<?> clazz, String[] args)
           throws MissingDomainObject
   {
+    // 1056 - modify args if needed
+    //Class<?>[] params = {String[].class};
+    try {
+      Method mod = clazz.getDeclaredMethod("modifyLogArgs", String[].class);
+      mod.invoke(null, (Object) args);
+    } catch (NoSuchMethodException nsm) {
+      // class lacks the method, nothing to do here
+    } catch (Exception ex) {
+      log.error("Exception {} modifying log args ({}) for {}",
+                ex.toString(), args, clazz.getCanonicalName());
+    }
+
     String[] fieldNames = schema.get(clazz.getName());
     if (null != fieldNames) {
       // only do this for @Domain classes that are in the recorded schema

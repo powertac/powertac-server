@@ -284,21 +284,18 @@ public class LogtoolCore
     int offset = 1; // embedded schema has msec field first
     schema.mark(64);
     String line = schema.readLine();
-    if (line.indexOf("Domain-schema") == -1) {
+    String[] tokens = line.split(":");
+    if (!tokens[offset].startsWith("Domain-schema")) {
       // pull in default schema for older logs
+      System.out.println("No schema detected in state log, using default");
       schema.reset();
       InputStream defaultStream =
               Competition.class.getClassLoader().getResourceAsStream("metadata/domain-default.schema");
       schema = new BufferedReader(new InputStreamReader(defaultStream));
       offset = 0;
     }
-    line = schema.readLine();
-    if (!line.startsWith("Domain-schema")) {
-      log.error("Bad default schema: {}", line);
-      return result;
-    }
     while (null != (line = schema.readLine())) {
-      String[] tokens = line.split(":");
+      tokens = line.split(":");
       if (tokens[offset].startsWith("schema.end"))
         break;
       // first token is class, rest are fields
