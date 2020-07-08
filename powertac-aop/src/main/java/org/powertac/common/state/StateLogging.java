@@ -208,15 +208,19 @@ public class StateLogging
   private static String abbreviate (String classname)
   {
     String result = classname;
-    ensureAbbreviations();
-    for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
-      if (classname.startsWith(abbr.getKey())) {
-        result = classname.substring(abbr.getKey().length());
-        result = abbr.getValue() + result;
-        break;
+    if (!classnameAbbreviation)
+      return classname;
+    else {
+      ensureAbbreviations();
+      for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
+        if (classname.startsWith(abbr.getKey())) {
+          result = classname.substring(abbr.getKey().length());
+          result = abbr.getValue() + result;
+          break;
+        }
       }
+      return result;
     }
-    return result;
   }
 
   private static void ensureAbbreviations ()
@@ -235,12 +239,24 @@ public class StateLogging
    */
   public static String unabbreviate (String origClassname)
   {
+    ensureAbbreviations();
     String result = origClassname;
-    for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
-      if (origClassname.startsWith(abbr.getValue())) {
-        result = origClassname.substring(abbr.getValue().length());
-        result = abbr.getKey() + result;
-        break;
+    try {
+      Class clazz = Class.forName(origClassname);
+    } catch (ClassNotFoundException cnf) {
+      // If the class doesn't exist, assume the name is abbreviated
+      for (Map.Entry<String, String> abbr : abbreviations.entrySet()) {
+        if (abbr.getValue().length() > 0 &&
+                origClassname.startsWith(abbr.getValue())) {
+          // non-empty abbreviation, replace with expansion
+          result = origClassname.substring(abbr.getValue().length());
+          result = abbr.getKey() + result;
+          break;
+        }
+        else if (abbr.getValue().length() == 0) {
+          // last is org.powertac type, no abbreviation
+          result = abbr.getKey() + result;
+        }
       }
     }
     return result;
