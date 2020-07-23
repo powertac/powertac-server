@@ -57,8 +57,8 @@ public class StateLogging
   private Logger stateLog = LogManager.getLogger("State");
 
   // package-prefix abbreviation map
-  private static LinkedHashMap<String, String> abbreviations = null;
-  private static boolean classnameAbbreviation = false;
+  static private LinkedHashMap<String, String> abbreviations = null;
+  static boolean classnameAbbreviation = false;
 
   // state-change methods
   @Pointcut ("execution (@StateChange * * (..))")
