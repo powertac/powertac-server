@@ -28,12 +28,12 @@ https://powertac.github.io/master/apidocs/index.html  (replace `master` with a s
 
 This is a multi-module structure, using maven for dependency
 management and build automation. This module is the root. It contains
-the parent pom, and the core server module. Other modules are in
-subdirectories. A maven build at this level will also build the
+the parent pom, which specifies dependencies and builds all the modules. All the source code is in the individual modules in
+subdirectories. A maven build at this level will build the
 modules in all the subdirectories.
-To populate a development environment, simply clone this repo. Then
-you can import each of the submodules into your development
+To populate a development environment, simply clone this repo.
+To view/modify the code, you can import submodules into your development
 environment as separate maven modules.
 
-Note that this module depends on core modules in the powertac-core
-repo. The sample broker is also in a separate repo.
+Note that this module depends on core modules in the [powertac-core](https://github.com/powertac/powertac-core)
+repo. The [sample broker](https://github.com/powertac/sample-broker) is also in a separate repo.
