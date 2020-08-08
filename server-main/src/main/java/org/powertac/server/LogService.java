@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011 by the original author
+* Copyright (c) 2011, 2020 by John Collins
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.powertac.server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.metadata.StateLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,8 +55,15 @@ public class LogService
 {
   @Autowired
   private StateLogService stateLogService;
+  
+  @Autowired
+  private ServerPropertiesService configService;
 
   private String filenamePrefix = "powertac";
+
+  @ConfigurableValue(valueType = "Boolean",
+          description = "if true, then abbreviate package names in the state log")
+  private boolean abbreviateClassnames = false;
   
   public LogService ()
   {
@@ -87,6 +95,7 @@ public class LogService
 
   public void startLog (String id)
   {
+    configService.configureMe(this);
     try {
       String filename = filenamePrefix;
       if (id != null && id.length() > 0) {
@@ -99,7 +108,7 @@ public class LogService
       
       ((LoggerContext) LogManager.getContext(false)).reconfigure();
 
-      if (System.getProperty("abbreviateClassnames", "no").equals("yes")) {
+      if (abbreviateClassnames) {
         stateLogService.init(true);
       }
       else {
