@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.metadata.StateLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class LogService
   private StateLogService stateLogService;
   
   @Autowired
-  private ServerPropertiesService configService;
+  private ServerConfiguration configService;
 
   private String filenamePrefix = "powertac";
 

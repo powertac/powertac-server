@@ -215,8 +215,9 @@ public class WeatherServiceTest
     assertEquals(2, weatherReportRepo.allWeatherReports().size());
 
     // Check that the 2 timeslots are different in the repo
-    assertNotEquals(weatherReportRepo.allWeatherReports().get(0).getTimeslotIndex(),
-                    weatherReportRepo.allWeatherReports().get(1).getTimeslotIndex());
+    assertFalse((weatherReportRepo.allWeatherReports().get(0).getTimeslotIndex() ==
+            weatherReportRepo.allWeatherReports().get(1).getTimeslotIndex()),
+            "different timeslots");
 
   }
 
