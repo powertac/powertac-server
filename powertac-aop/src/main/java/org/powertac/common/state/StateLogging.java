@@ -241,6 +241,8 @@ public class StateLogging
   {
     ensureAbbreviations();
     String result = origClassname;
+    if (origClassname.startsWith("org.powertac."))
+      return result;
     try {
       Class clazz = Class.forName(origClassname);
     } catch (ClassNotFoundException cnf) {
