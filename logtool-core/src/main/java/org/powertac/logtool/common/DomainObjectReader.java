@@ -33,13 +33,13 @@ import java.util.List;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
-import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.state.StateLogging;
 import org.powertac.common.xml.PowerTypeConverter;
 import org.powertac.du.DefaultBroker;
 import org.powertac.logtool.LogtoolContext;
@@ -198,22 +198,23 @@ public class DomainObjectReader
     String body = line.substring(line.indexOf(':') + 1);
     String[] tokens = body.split("::");
     Class<?> clazz;
-    if (ignores.contains(tokens[0])) {
-      //log.info("ignoring " + tokens[0]);
+    String classname = StateLogging.unabbreviate(tokens[0]);
+    if (ignores.contains(classname)) {
+      //log.info("ignoring " + classname);
       return null;
     }
     try {
-      clazz = Class.forName(tokens[0]);
+      clazz = Class.forName(classname);
     }
     catch (ClassNotFoundException e) {
-      Class<?> subst = substitutes.get(tokens[0]);
+      Class<?> subst = substitutes.get(classname);
       if (null == subst) {
-        log.warn("class " + tokens[0] + " not found");
+        log.warn("class " + classname + " not found");
         return null;
       }
       else {
         clazz = subst;
-        //log.info("substituting " + clazz.getName() + " for " + tokens[0]);
+        //log.info("substituting " + clazz.getName() + " for " + classname);
       }
     }
 

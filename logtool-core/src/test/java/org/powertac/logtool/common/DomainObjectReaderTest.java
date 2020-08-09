@@ -68,6 +68,22 @@ public class DomainObjectReaderTest
   }
 
   @Test
+  public void testReadSingleObjectAbbr ()
+  {
+    String aston = "144669:c.Broker::603::new::AstonTAC";
+    try {
+      Object result = dor.readObject(aston);
+      assertNotNull(result, "created an instance");
+      assertEquals(result.getClass().getName(), "org.powertac.common.Broker", "correct class");
+      assertEquals(603, ((Broker)result).getId(), "correct id");
+      assertEquals(result, dor.getById(603), "object stored in map");
+    }
+    catch (MissingDomainObject mdo) {
+      fail("bad exception " + mdo.toString());
+    }
+  }
+
+  @Test
   public void read2Objects ()
   {
     String aston = "144669:org.powertac.common.Broker::603::new::AstonTAC";
