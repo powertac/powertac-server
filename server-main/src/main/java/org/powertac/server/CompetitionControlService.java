@@ -120,7 +120,8 @@ public class CompetitionControlService
 
   private boolean running = false;
 
-  private int timeslotPhaseCount = 4; // # of phases/timeslot
+  // timeslotPhaseCount is set as part of the Spring configuration
+  private int timeslotPhaseCount = 1;
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
 
   private int timeslotCount = 0;
