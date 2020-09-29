@@ -76,7 +76,7 @@
     "dot-prop": "4.2.1"
   },
   "engines": {
-    "node": "^10"
+    "node": "^12"
   },
   "scripts": {
     "test": "gulp test"
