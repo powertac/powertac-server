@@ -74,7 +74,8 @@
     "kind-of": "6.0.3",
     "bl": "2.2.1",
     "dot-prop": "4.2.1",
-    "http-proxy": "1.18.1"
+    "http-proxy": "1.18.1",
+    "yargs-parser": "13.1.2"
   },
   "engines": {
     "node": "^12"
