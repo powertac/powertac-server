@@ -91,7 +91,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  * It is possible for multiple rates to be applicable at any given combination
  * of time/usage. If this is the case, the most specific rate applies. So if
  * there is a fixed rate that applies all the time, it will be overridden by
- * a time-of-use rate during its period of applibility. Also, if the times for
+ * a time-of-use rate during its period of applicability. Also, if the times for
  * time-of-use rates overlap, they
  * are sorted by start-time, and the applicable rate with the latest start time
  * will apply. This logic is implemented in Tariff.
