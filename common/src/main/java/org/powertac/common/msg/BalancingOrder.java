@@ -98,7 +98,7 @@ public class BalancingOrder extends TariffUpdate
   }
   
   /**
-   * Valid if exerciseRatio between 0 and 2
+   * Valid if exerciseRatio between -1 and 2
    */
   @Override
   public boolean isValid()
