@@ -90,14 +90,14 @@ public class PowerTypeTest
   public void testGenericType ()
   {
     assertEquals(PowerType.CONSUMPTION, PowerType.INTERRUPTIBLE_CONSUMPTION.getGenericType());
-    assertEquals(PowerType.CONSUMPTION, PowerType.THERMAL_STORAGE_CONSUMPTION.getGenericType());
+    assertEquals(PowerType.STORAGE, PowerType.THERMAL_STORAGE_CONSUMPTION.getGenericType());
     assertEquals(PowerType.CONSUMPTION, PowerType.CONSUMPTION.getGenericType());
     assertEquals(PowerType.PRODUCTION, PowerType.CHP_PRODUCTION.getGenericType());
     assertEquals(PowerType.PRODUCTION, PowerType.FOSSIL_PRODUCTION.getGenericType());
     assertEquals(PowerType.PRODUCTION, PowerType.PRODUCTION.getGenericType());
-    //assertEquals(PowerType.STORAGE, PowerType.BATTERY_STORAGE.getGenericType());
+    assertEquals(PowerType.STORAGE, PowerType.BATTERY_STORAGE.getGenericType());
     //assertEquals(PowerType.STORAGE, PowerType.PUMPED_STORAGE_PRODUCTION.getGenericType());
-    //assertEquals(PowerType.STORAGE, PowerType.STORAGE.getGenericType());
+    assertEquals(PowerType.STORAGE, PowerType.STORAGE.getGenericType());
   }
 
   /**

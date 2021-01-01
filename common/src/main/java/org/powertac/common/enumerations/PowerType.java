@@ -128,8 +128,8 @@ public class PowerType
     return (this.equals(tariffType)
             || (isConsumption() && tariffType.label == TypeLabel.CONSUMPTION)
             || (isProduction() && tariffType.label == TypeLabel.PRODUCTION)
-            || (isInterruptible() && tariffType.label == TypeLabel.INTERRUPTIBLE_CONSUMPTION)
-            || (isStorage() && tariffType.label == TypeLabel.STORAGE));
+            || (isStorage() && tariffType.label == TypeLabel.STORAGE)
+            || (isInterruptible() && tariffType.label == TypeLabel.INTERRUPTIBLE_CONSUMPTION));
   }
   
   /**
@@ -156,16 +156,18 @@ public class PowerType
   }
   
   /**
-   * Returns the least-specific capacity type for a given PowerType.
+   * Returns the most-specific capacity type for a given PowerType.
+   * Note that this assumes the Default Broker only issues defaults
+   * for specific types.
    */
   public PowerType getGenericType ()
   {
-    if (isConsumption())
+    if (isStorage())
+      return STORAGE;
+    else if (isConsumption())
       return CONSUMPTION;
     else if (isProduction())
       return PRODUCTION;
-    else if (isStorage())
-      return STORAGE;
     else
       return null;
   }

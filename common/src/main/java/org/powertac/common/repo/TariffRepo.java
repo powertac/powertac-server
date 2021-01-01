@@ -94,7 +94,7 @@ public class TariffRepo implements DomainRepo
   public Tariff getDefaultTariff (PowerType type)
   {
     Tariff result = defaultTariffs.get(type);
-    if (null == result) {
+    while (null == result) {
       result = defaultTariffs.get(type.getGenericType());
     }
     if (null == result) {
