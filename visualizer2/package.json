@@ -8,7 +8,7 @@
     "src/main/webapp/bower_components"
   ],
   "devDependencies": {
-    "axios": "0.19.0",
+    "axios": "0.21.1",
     "bower": "1.8.8",
     "browser-sync": "2.26.12",
     "browserslist": "4.6.6",
