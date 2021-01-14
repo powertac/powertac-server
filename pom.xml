@@ -48,7 +48,7 @@
     <sonatype.release.args />
 
     <!-- Managed common dependency versions -->
-    <aspectj.version>1.9.4</aspectj.version>
+    <aspectj.version>1.9.6</aspectj.version>
 
     <active-mq.version>5.15.11</active-mq.version>
     <xstream.version>1.4.15</xstream.version>
@@ -74,7 +74,7 @@
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
 
-    <maven-aspectj.version>1.12.1</maven-aspectj.version>
+    <maven-aspectj.version>1.12.6</maven-aspectj.version>
     <maven-aspectj.compliance>${java.version}</maven-aspectj.compliance>
 
     <maven-antrun.version>1.8</maven-antrun.version>
@@ -481,8 +481,8 @@
               </aspectLibrary>
             </aspectLibraries>
             <!-- Tweak these if aspects/weaving are causing issues: -->
-            <verbose>false</verbose>
-            <showWeaveInfo>false</showWeaveInfo>
+            <verbose>true</verbose>
+            <showWeaveInfo>true</showWeaveInfo>
             <Xlint>adviceDidNotMatch=ignore</Xlint>
           </configuration>
           <executions>
