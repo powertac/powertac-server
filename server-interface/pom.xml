@@ -37,6 +37,7 @@
         <artifactId>aspectj-maven-plugin</artifactId>
         <configuration>
           <proc>none</proc>
+          <forceAjcCompile>true</forceAjcCompile>
         </configuration>
       </plugin>
     </plugins>
