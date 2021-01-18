@@ -66,33 +66,33 @@ public class RandomSeedRepoTests
     assertEquals(2, randomSeedRepo.size(), "still two entries");    
   }
 
-//  @Test
-//  public void checkLogfile ()
-//  {
-//    try (BufferedReader input = new BufferedReader(new FileReader("log/test.state"))) {
-//      randomSeedRepo.getRandomSeed("FooTest", 3, "test");
-//      randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
-//      randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
-//
-//      String seedClass = RandomSeed.class.getName();
-//      ArrayList<String> lines = new ArrayList<String>();
-//      String line;
-//      while ((line = input.readLine()) != null) {
-//        lines.add(line);
-//      }
-//      assertTrue(lines.size() >= 3, "at least three lines");
-//      int rsLines = 0;
-//      for (String entry : lines) {
-//        String[] fields = entry.split("::");
-//        if(seedClass.equals(fields[0].split(":")[1]) && fields[3].equals("FooTest"))
-//          rsLines += 1;
-//      }
-//      assertTrue(rsLines == 3, "exactly three RandomSeed lines");
-//    }
-//    catch (IOException ioe) {
-//      fail("IOException reading seedfile:" + ioe.toString());
-//    }
-//  }
+  @Test
+  public void checkLogfile ()
+  {
+    try (BufferedReader input = new BufferedReader(new FileReader("log/test.state"))) {
+      randomSeedRepo.getRandomSeed("FooTest", 3, "test");
+      randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
+      randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
+
+      String seedClass = RandomSeed.class.getName();
+      ArrayList<String> lines = new ArrayList<String>();
+      String line;
+      while ((line = input.readLine()) != null) {
+        lines.add(line);
+      }
+      assertTrue(lines.size() >= 3, "at least three lines");
+      int rsLines = 0;
+      for (String entry : lines) {
+        String[] fields = entry.split("::");
+        if(seedClass.equals(fields[0].split(":")[1]) && fields[3].equals("FooTest"))
+          rsLines += 1;
+      }
+      assertTrue(rsLines == 3, "exactly three RandomSeed lines");
+    }
+    catch (IOException ioe) {
+      fail("IOException reading seedfile:" + ioe.toString());
+    }
+  }
 
   @SuppressWarnings("unused")
   @Test

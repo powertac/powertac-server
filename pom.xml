@@ -22,16 +22,12 @@
     <relativePath />
   </parent>
 
-  <properties>
-    <powertac.version>1.8.0-SNAPSHOT</powertac.version>
-  </properties>
-
   <!-- Common dependencies across all server modules -->
   <dependencies>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
-      <version>${powertac.version}</version>
+      <version>1.8.0-SNAPSHOT</version>
     </dependency>
 
     <!-- Testing - not inherited from common due to test scope -->
