@@ -1,8 +1,5 @@
 package org.powertac.visualizer.domain;
 
-import org.powertac.visualizer.domain.RetailKPIHolder;
-import org.powertac.visualizer.domain.WholesaleKPIHolder;
-
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 

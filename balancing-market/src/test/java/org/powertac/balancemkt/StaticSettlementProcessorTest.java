@@ -23,9 +23,6 @@ import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.powertac.balancemkt.ChargeInfo;
-import org.powertac.balancemkt.SettlementContext;
-import org.powertac.balancemkt.StaticSettlementProcessor;
 import org.powertac.common.Broker;
 import org.powertac.common.Rate;
 import org.powertac.common.RegulationAccumulator;

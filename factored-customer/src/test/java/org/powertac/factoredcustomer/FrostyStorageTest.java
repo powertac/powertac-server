@@ -16,7 +16,6 @@ import java.util.Map;
 import org.apache.commons.configuration2.AbstractConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

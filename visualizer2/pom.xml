@@ -236,18 +236,15 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-annotation</artifactId>
-            <version>${dropwizard-metrics.version}</version>
-        </dependency>
+            </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
-            <version>${dropwizard-metrics.version}</version>
-        </dependency>
+            </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-json</artifactId>
-	    <version>${dropwizard-metrics.version}</version>
-            <exclusions>
+	    <exclusions>
                 <exclusion>
                     <artifactId>metrics-core</artifactId>
                     <groupId>io.dropwizard.metrics</groupId>
@@ -257,8 +254,7 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jvm</artifactId>
-	    <version>${dropwizard-metrics.version}</version>
-            <exclusions>
+	    <exclusions>
                 <exclusion>
                     <artifactId>metrics-core</artifactId>
                     <groupId>io.dropwizard.metrics</groupId>
@@ -268,7 +264,6 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-servlet</artifactId>
-	    <version>${dropwizard-metrics.version}</version>
 	    <exclusions>
                 <exclusion>
                     <artifactId>metrics-core</artifactId>
@@ -287,8 +282,7 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-servlets</artifactId>
-	    <version>${dropwizard-metrics.version}</version>
-            <exclusions>
+	    <exclusions>
                 <exclusion>
                     <artifactId>metrics-core</artifactId>
                     <groupId>io.dropwizard.metrics</groupId>
@@ -372,13 +366,11 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jcache</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
+            </dependency>
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate-validator.version}</version>
-        </dependency>
+            </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>

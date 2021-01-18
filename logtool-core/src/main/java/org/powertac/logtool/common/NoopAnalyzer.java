@@ -2,7 +2,6 @@ package org.powertac.logtool.common;
 
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.logtool.LogtoolContext;
-import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.ifc.Analyzer;
 
 import org.slf4j.Logger;

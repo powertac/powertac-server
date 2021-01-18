@@ -26,7 +26,6 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
