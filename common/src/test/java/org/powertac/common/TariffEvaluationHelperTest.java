@@ -22,7 +22,6 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.powertac.common.Competition;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.repo.TariffRepo;

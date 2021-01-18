@@ -59,7 +59,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler.version}</version>
         <configuration>
             <compilerArgs>-proc:none</compilerArgs>
         </configuration>

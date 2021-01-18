@@ -31,7 +31,6 @@ import org.apache.logging.log4j.Logger;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.samplebroker.interfaces.Initializable;
 import org.powertac.samplebroker.interfaces.IpcAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

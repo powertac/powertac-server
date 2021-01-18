@@ -29,7 +29,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
