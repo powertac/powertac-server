@@ -1,9 +1,10 @@
 package org.powertac.visualizer.service.mapper;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.powertac.visualizer.domain.Authority;
 import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.service.dto.UserDTO;
-import org.mapstruct.*;
 
 import java.util.List;
 import java.util.Set;
