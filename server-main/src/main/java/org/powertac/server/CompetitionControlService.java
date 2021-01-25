@@ -646,8 +646,8 @@ public class CompetitionControlService
     ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
     for (InitializationService initializer : initializers) {
       if (bootstrapMode) {
-        if (initializer.equals(visualizerProxyService) ||
-            initializer.equals(jmsManagementService)) {
+        if (initializer.equals(visualizerProxyService)) {
+        	//|| initializer.equals(jmsManagementService)) { // not an InitializationService
           log.info("Skipping initialization of " + initializer.toString());
           continue;
         }

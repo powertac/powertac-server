@@ -43,12 +43,11 @@ import org.springframework.stereotype.Service;
  * <pre>  static private Logger stateLog = Logger.getLogger("State");
  * </pre>
  * Entries in the state log are of the form
- * <pre>  type:class:id:op:arg1:...
+ * <pre>  msec:class::id::op::arg1::...
  * </pre>
- * where type is one of [c,u,d] for create, update, delete; id is the identifier of the
- * object, op (used only for update) is the operation, and the args are the arguments for
- * that operation. The logger format will prepend the current offset from the beginning 
- * of the simulation in milliseconds.</p>
+ * where id is the identifier of the
+ * object, op is the operation, and the args are the arguments for
+ * that operation.</p>
  * @author John Collins
  */
 @Service
