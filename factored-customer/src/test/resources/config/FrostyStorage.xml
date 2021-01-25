@@ -67,7 +67,7 @@
           1~16: 0.0,
           17~24: +0.005,
           25~35: +0.01,
-          36~50: +0.005          
+          36~50: +0.015          
         </temperatureMap>
         <windSpeedInfluence>NONE</windSpeedInfluence>
         <windDirectionInfluence>NONE</windDirectionInfluence>
@@ -81,7 +81,7 @@
         <elasticityModelType>STEPWISE</elasticityModelType>
         <elasticityMap>1.5: 0.8, 2.0: 0.7</elasticityMap>
 
-        <curtailmentShifts>0.5, 0.25</curtailmentShifts>
+        <curtailmentShifts>0.6, 0.4</curtailmentShifts>
       </FrostyStorage1>
 
       <FrostyStorage2>
@@ -118,7 +118,7 @@
         <elasticityModelType>STEPWISE</elasticityModelType>
         <elasticityMap>1.5: 0.8, 2.0: 0.7</elasticityMap>
 
-        <curtailmentShifts>0.5, 0.25</curtailmentShifts>
+        <curtailmentShifts>0.65, 0.35</curtailmentShifts>
       </FrostyStorage2>
 
       <FrostyStorage3>
@@ -155,7 +155,7 @@
         <elasticityModelType>STEPWISE</elasticityModelType>
         <elasticityMap>1.5: 0.8, 2.0: 0.7</elasticityMap>
 
-        <curtailmentShifts>0.5, 0.25</curtailmentShifts>
+        <curtailmentShifts>0.55, 0.45</curtailmentShifts>
       </FrostyStorage3>
     </capacityStructure>
 

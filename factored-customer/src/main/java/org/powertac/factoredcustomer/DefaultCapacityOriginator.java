@@ -308,7 +308,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     double upReg = 0.0;
     double downReg = 0.0;
     if (parentBundle.getPowerType().isInterruptible()) {
-      // compute regulation capacity before handling curtailment shifts
+      // compute regulation capacity before handling regulation shifts
       upReg = Math.max(0.0, (adjustedCapacity -
           capacityStructure.getUpRegulationLimit()));
       downReg = Math.min(0.0, (adjustedCapacity -
@@ -332,7 +332,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
         double shiftingFactor = Double.parseDouble(shifts.get(i));
         double shiftedCapacity = lastCurtailment * shiftingFactor;
         Double previousShifts = shiftedCurtailments.get(timeslot + i);
-        shiftedCapacity += (previousShifts != null) ? previousShifts : 0;
+        shiftedCapacity += (previousShifts != null) ? previousShifts : 0.0;
         shiftedCurtailments.put(timeslot + i, shiftedCapacity);
       }
     }
