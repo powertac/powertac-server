@@ -432,17 +432,16 @@ class DefaultCapacityOriginator implements CapacityOriginator
       double capacity, TariffSubscription subscription)
   {
     double popRatio =
-        getPopulationRatio(subscription.getCustomersCommitted(),
-            parentBundle.getPopulation());
+        (double) subscription.getCustomersCommitted() / (double) parentBundle.getPopulation();
     logCapacityDetails(logIdentifier + ": population ratio = " + popRatio);
     return capacity * popRatio;
   }
 
   // TODO -- seems gratuitous
-  private double getPopulationRatio (int customerCount, int population)
-  {
-    return ((double) customerCount) / ((double) population);
-  }
+  //private double getPopulationRatio (int customerCount, int population)
+  //{
+  //  return ((double) customerCount) / ((double) population);
+  //}
 
   private double adjustCapacityForTariffRates (
       int timeslot, double baseCapacity, TariffSubscription subscription)

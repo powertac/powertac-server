@@ -91,6 +91,7 @@ implements UtilityOptimizer
       TariffEvaluator evaluator =
           createTariffEvaluator(new TariffEvaluationWrapper(bundle))
               .withChunkSize(Math.max(1, bundle.getPopulation() / 1000))
+                // should be a configurable value
               .withTariffSwitchFactor(subStructure.getTariffSwitchFactor())
               .withPreferredContractDuration(subStructure.getExpectedDuration())
               .withInconvenienceWeight(subStructure.getInconvenienceWeight())
