@@ -15,7 +15,7 @@
         <count>3</count>
         <population>3</population>
         <type>THERMAL_STORAGE_CONSUMPTION</type>
-	<customerSize>LARGE</customerSize>
+		<customerSize>LARGE</customerSize>
         <multiContracting>true</multiContracting>
         <canNegotiate>false</canNegotiate>
         <controllableKW>-500</controllableKW>

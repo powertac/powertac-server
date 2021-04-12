@@ -70,7 +70,7 @@ public class TariffEvaluator
   private TariffEvaluationHelper helper;
 
   // per-customer parameter settings
-  private int chunkSize = 1; // max size of allocation chunks
+  private int chunkSize = 50; // min size of allocation chunks
   private int maxChunkCount = 200; // max number of chunks
   private int tariffEvalDepth = 5; // # of tariffs/powerType to eval
   private double inertia = 0.8;
@@ -186,8 +186,8 @@ public class TariffEvaluator
 
   // parameter settings
   /**
-   * Sets the target size of allocation chunks. Default is 1. Actual
-   * chunk size will be at least 0.5% of the population size.
+   * Sets the target size of allocation chunks. Default is 50. Actual
+   * chunk size will be at least population / maxChunkCount.
    */
   public TariffEvaluator withChunkSize (int size)
   {
@@ -195,6 +195,18 @@ public class TariffEvaluator
       chunkSize = size;
     else
       log.error("chunk size " + size + " < 0");
+    return this;
+  }
+
+  /**
+   * Sets the maximum number of allocation chunks for a given population.
+   */
+  public TariffEvaluator withMaxChunkCount (int count)
+  {
+    if (count > 0)
+      maxChunkCount = count;
+    else
+      log.error("max chunk count " + count + " < 0");
     return this;
   }
 
@@ -346,6 +358,8 @@ public class TariffEvaluator
 
     // adjust inertia for BOG, accounting for the extra
     // evaluation cycle at ts 0
+    // TODO - This should not be computed per evaluator, but rather at the class level.
+    // See Issue #1078
     double actualInertia =
             Math.max(0.0,
                      (1.0 - Math.pow(2, 1 - evaluationCounter)) * inertia);
@@ -457,8 +471,8 @@ public class TariffEvaluator
 
     // Compute the final cost number for each tariff
     HashMap<Tariff, EvalData> costs = new HashMap<Tariff, EvalData>();
-    double signupCost = 0.0;
     for (Tariff tariff: tariffs) {
+      double signupCost;
       EvalData eval = evaluatedTariffs.get(tariff);
       double inconvenience = eval.inconvenience;
       double cost = eval.costEstimate;
@@ -542,6 +556,8 @@ public class TariffEvaluator
       // For large populations, we do it in chunks.
       chunk = getChunkSize(population);
     }
+    double signupCost = currentTariff.getSignupPayment();
+    double adjustedInertia = inertia;
     while (remainingPopulation > 0) {
       int count = (int)Math.min(remainingPopulation, chunk);
       remainingPopulation -= count;
@@ -549,17 +565,24 @@ public class TariffEvaluator
       double inertiaSample = accessor.getInertiaSample();
       if (!revoked && withdraw0 <= 0.0 &&
           signupCost <= 0.0 && inertiaSample < inertia) {
-        // skip this one if not processing revoked tariff,
-        // or if there is no payment possible from withdrawing,
-        // or if the customer was not induced by a positive signup cost,
-        // or if the customer is not paying attention.
+        // skip this chunk if
+        //  the current tariff is not revoked,
+        //  and there is not a positive payment possible from withdrawing,
+        //  and the customer was not induced by a positive signup cost
+        //  and the customer is not paying attention
         continue;
       }
-      else if (signupCost > 0.0 &&
-          inertiaSample < inertia * signupBonusFactor) {
-        // Use lower inertia in case the current tariff had a signup bonus
-        continue;
+      if (signupCost > 0.0) {
+        // ff there was a positive signup cost, customers are suspicious
+        adjustedInertia *= signupBonusFactor;
       }
+      if (count > 1) {
+        // for a population, we apply inertia by subdividing the population
+        count = (int)Math.round((double)count * (1.0 - adjustedInertia));
+      }
+      else if (inertiaSample < adjustedInertia)
+        continue;
+
       double tariffSample = accessor.getTariffChoiceSample();
       // walk down the list until we run out of probability
       boolean allocated = false;
@@ -811,12 +834,18 @@ public class TariffEvaluator
   }
   
   // returns the correct chunk size for a given population
-  private int getChunkSize (int population)
+  int getChunkSize (int population)
   {
     if (population <= chunkSize)
       return population;
     else
       return Math.max(population / maxChunkCount, chunkSize);
+  }
+
+  // test support
+  HashMap<Tariff, Integer> getAllocations ()
+  {
+    return allocations;
   }
 
   // Spring component access ------------------------------------------

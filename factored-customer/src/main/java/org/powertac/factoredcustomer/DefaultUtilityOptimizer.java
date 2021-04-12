@@ -210,6 +210,7 @@ implements UtilityOptimizer
             .getInertiaDistribution().drawSample());
       }
       else {
+        // WARNING: magic number here
         log.warn("no inertia distro, using default value 0.7");
         evaluator.withInertia(0.7);
       }

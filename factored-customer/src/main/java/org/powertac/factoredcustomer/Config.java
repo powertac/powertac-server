@@ -146,6 +146,14 @@ public final class Config
   }
 
   /**
+   * Retrieves structures of the specified type
+   */
+  public Map<String, StructureInstance> getSpecifiedStructures (String type)
+  {
+    return getStructures().get(type);
+  }
+
+  /**
    * Singleton accessor
    */
   public synchronized static Config getInstance ()

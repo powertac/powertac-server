@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2018 the original author or authors.
+ * Copyright 2011-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,11 +133,11 @@ public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
 
     Config config = Config.getInstance();
     Map<String, StructureInstance> subscribers =
-        config.getStructures().get("TariffSubscriberStructure");
+        config.getSpecifiedStructures("TariffSubscriberStructure");
     Map<String, StructureInstance> optimizers =
-        config.getStructures().get("ProfileOptimizerStructure");
+        config.getSpecifiedStructures("ProfileOptimizerStructure");
     Map<String, StructureInstance> capacities =
-        config.getStructures().get("CapacityStructure");
+        config.getSpecifiedStructures("CapacityStructure");
 
     subscriberStructure =
         (TariffSubscriberStructure) subscribers.get(name);

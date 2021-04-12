@@ -161,6 +161,19 @@ public class TariffEvaluatorTest
   }
 
   // ------------------------- tests -----------------------------
+
+  /**
+   * Verify chunk size calculation
+   */
+  @Test
+  public void chunkSizeDefaults ()
+  {
+    assertEquals(50, evaluator.getChunkSize(10000));
+    assertEquals(50, evaluator.getChunkSize(8000));
+    assertEquals(60, evaluator.getChunkSize(12000));
+    assertEquals(30, evaluator.getChunkSize(30));
+  }
+
   /**
    * Test for no new tariffs case.
    */
@@ -178,14 +191,17 @@ public class TariffEvaluatorTest
 
     evaluator.withChunkSize(5000); // just two chunks
     evaluator.evaluateTariffs();
+    HashMap<Tariff, Integer> alloc = evaluator.getAllocations();
+    assertEquals(0, alloc.size(), "no allocations");
+    
   }
 
   @Test
   public void testScaleFactor ()
   {
-    assertEquals((7 * 24.0) / 48.0, evaluator.getScaleFactor(), 1e-6, "default scale factor");
+    assertEquals((7 * 24.0) / 48.0, evaluator.getScaleFactor(), 1e-6, "default scale factor 1");
     evaluator.setProfileLength(14 * 24);
-    assertEquals((14 * 24.0) / 48.0, evaluator.getScaleFactor(), 1e-6, "default scale factor");
+    assertEquals((14 * 24.0) / 48.0, evaluator.getScaleFactor(), 1e-6, "default scale factor 2");
   }
 
   @Test
@@ -905,9 +921,9 @@ public class TariffEvaluatorTest
     evaluator.withChunkSize(50); // 200 chunks
     evaluator.evaluateTariffs();
     assertEquals(3, calls.size(), "three tariffs");
-    assertEquals(-5000, calls.get(defaultConsumption).intValue(), "-5000 for default");
-    assertEquals(2500, calls.get(bobTariff).intValue(), "+2500 for bob");
-    assertEquals(2500, calls.get(jimTariff).intValue(), "+2500 for jim");
+    assertEquals(-3000, calls.get(defaultConsumption).intValue(), "-5000 for default");
+    assertEquals(1500, calls.get(bobTariff).intValue(), "+2500 for bob");
+    assertEquals(1500, calls.get(jimTariff).intValue(), "+2500 for jim");
   }
 
   // Test min contract duration. Two tariffs from Jim have equal signup
