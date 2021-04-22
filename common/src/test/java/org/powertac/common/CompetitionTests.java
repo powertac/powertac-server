@@ -157,9 +157,9 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals(720l, c1.getSimulationRate(), "default rate");
-    Competition cx = c1.withSimulationRate(300l);
+    Competition cx = c1.withSimulationTimeslotSeconds(7.5);
     assertEquals(c1, cx, "correct return");
-    assertEquals(300l, c1.getSimulationRate(), "new rate");
+    assertEquals(480l, c1.getSimulationRate(), "new rate");
   }
 
   @Test

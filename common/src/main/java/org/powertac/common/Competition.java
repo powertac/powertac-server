@@ -672,8 +672,6 @@ public class Competition //implements Serializable
    * Fluent setter for time compression ratio. Default value is 720, which
    * runs 1-hour timeslots in 5 real-time seconds.
    */
-  @ConfigurableValue(valueType = "Integer",
-    description = "Time compression ratio for simulation clock")
   @StateChange
   public Competition withSimulationRate (long simulationRate)
   {
@@ -685,9 +683,9 @@ public class Competition //implements Serializable
    * Returns the number of seconds in wall-clock time per timeslot, truncated
    * to an integer.
    */
-  public int getSimulationTimeslotSeconds ()
+  public double getSimulationTimeslotSeconds ()
   {
-    return timeslotLength * 60 / (int)simulationRate;
+    return timeslotLength * 60.0 / simulationRate;
   }
   
   /**
@@ -695,11 +693,11 @@ public class Competition //implements Serializable
    * wall-clock seconds per timeslot. Only integer values are allowed.
    * Results may be strange if timeslotLength is changed after this is set.
    */
-  @ConfigurableValue(valueType = "Integer",
+  @ConfigurableValue(valueType = "Double",
       description = "Time compression ratio for simulation clock")
-  public Competition withSimulationTimeslotSeconds (int seconds)
+  public Competition withSimulationTimeslotSeconds (double seconds)
   {
-    return withSimulationRate((long)(timeslotLength * 60 / seconds));
+    return withSimulationRate(Math.round(timeslotLength * 60.0 / seconds));
   }
 
   /**
