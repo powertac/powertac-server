@@ -41,7 +41,7 @@
         <liquibase-hibernate5.version>3.7</liquibase-hibernate5.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
         <m2e.apt.activation>jdt_apt</m2e.apt.activation>
-        <mapstruct.version>1.3.0.Final</mapstruct.version>
+        <mapstruct.version>1.4.0.Final</mapstruct.version>
         <maven-eclipse-plugin.version>2.10</maven-eclipse-plugin.version>
         <maven-tomcat-plugin.version>2.2</maven-tomcat-plugin.version>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
