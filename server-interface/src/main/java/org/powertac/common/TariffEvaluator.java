@@ -576,8 +576,8 @@ public class TariffEvaluator
         // ff there was a positive signup cost, customers are suspicious
         adjustedInertia *= signupBonusFactor;
       }
-      if (count > 1) {
-        // for a population, we apply inertia by subdividing the population
+      if (count > 1 && current.getCustomer().isMultiContracting()) {
+        // for a multi-contracting population, we apply inertia by subdividing the population
         count = (int)Math.round((double)count * (1.0 - adjustedInertia));
       }
       else if (inertiaSample < adjustedInertia)
