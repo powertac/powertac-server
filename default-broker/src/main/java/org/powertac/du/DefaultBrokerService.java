@@ -118,7 +118,7 @@ public class DefaultBrokerService
   private RandomSeed randomSeed;
   private HashMap<Timeslot, Order> lastOrder;
 
-  private double minMWh = 1E-06; // don't worry about 1 Wh or less
+  private double minMWh = 0.0; // Get this from the Competition when we first look at is
 
   /**
    * Default constructor, called once when the server starts, before
@@ -304,10 +304,18 @@ public class DefaultBrokerService
     return -result; // convert to needed energy account balance
   }
 
+  // lazy accessor for Competition.minMwh
+  private double getMinMWh ()
+  {
+    if (minMWh == 0.0)
+      minMWh = Competition.currentCompetition().getMinimumOrderQuantity();
+    return minMWh;
+  }
+
   private void submitOrder (double neededKWh, Timeslot timeslot)
   {
     double neededMWh = neededKWh / 1000.0;
-    if (Math.abs(neededMWh) < competition.getMinimumOrderQuantity()) {
+    if (Math.abs(neededMWh) < getMinMWh()) {
       // don't bother
       return;
     }
@@ -317,7 +325,7 @@ public class DefaultBrokerService
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
     log.debug("needed mWh=" + neededMWh);
-    if (Math.abs(neededMWh) < minMWh) {
+    if (Math.abs(neededMWh) < getMinMWh()) {
       log.info("no power required in timeslot " + timeslot.getSerialNumber());
       return;
     }
