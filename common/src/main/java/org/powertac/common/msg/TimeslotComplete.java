@@ -16,6 +16,8 @@
 
 package org.powertac.common.msg;
 
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
@@ -27,6 +29,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * in the state log. It is just a message.
  * @author John Collins
  */
+@Domain
 @XStreamAlias("ts-done")
 public class TimeslotComplete
 {
