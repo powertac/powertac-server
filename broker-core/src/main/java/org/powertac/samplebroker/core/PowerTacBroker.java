@@ -175,7 +175,7 @@ implements BrokerContext
                             File configFile, long end)
   {
     quittingTime = end;
-    propertiesService.addProperties(cli);
+    propertiesService.addProperties(cli);  // are these in the correct order?
     if (null != configFile && configFile.canRead())
       propertiesService.setUserConfig(configFile);
     propertiesService.configureMe(this);

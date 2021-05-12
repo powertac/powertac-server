@@ -136,7 +136,7 @@ public class Competition //implements Serializable
   @XStreamAsAttribute
   private long simulationRate = 720l;
 
-  /** controls the values of simulation time values reported. If
+  /** controls the granularity of simulation time. If
    *  we are running one-hour timeslots, then the modulo should be one hour, expressed
    *  in milliseconds. If we are running one-hour timeslots but want to update time every
    *  30 minutes of simulated time, then the modulo would be 30*60*1000. Note that
@@ -680,8 +680,7 @@ public class Competition //implements Serializable
   }
   
   /**
-   * Returns the number of seconds in wall-clock time per timeslot, truncated
-   * to an integer.
+   * Returns the number of seconds in wall-clock time per timeslot.
    */
   public double getSimulationTimeslotSeconds ()
   {
