@@ -45,6 +45,9 @@ public class BrokerRunner
   private static Logger log = LogManager.getLogger(BrokerRunner.class);
   private AbstractApplicationContext context;
   private PowerTacBroker broker;
+  private Integer repeatCount = 1;
+  private Integer repeatHours = 0;
+  private String logSuffix = "";
 
   public BrokerRunner ()
   {
@@ -66,6 +69,8 @@ public class BrokerRunner
             parser.accepts("queue-name").withRequiredArg().ofType(String.class);
     OptionSpec<String> serverQueueOption =
             parser.accepts("server-queue").withRequiredArg().ofType(String.class);
+    OptionSpec<String> logSuffixOption =
+            parser.accepts("log-suffix").withRequiredArg();
     parser.accepts("ipc-adapter");
     //parser.accepts("no-ntp");
     parser.accepts("interactive");
@@ -81,8 +86,6 @@ public class BrokerRunner
     //boolean interactive = false;
     //String queueName = null;
     //String serverQueue = null;
-    Integer repeatCount = 1;
-    Integer repeatHours = 0;
     long end = 0l;
     PropertiesConfiguration cliProps = new PropertiesConfiguration();
 
@@ -111,6 +114,10 @@ public class BrokerRunner
         System.out.print(" repeat-hours=\"" + repeatHours + "\"");
         long now = new Date().getTime();
         end = now + 1000 * 3600 * repeatHours;
+      }
+      if (options.has(logSuffixOption)) {
+        logSuffix = options.valueOf(logSuffixOption);
+        System.out.println(" log-suffix=\"" + logSuffix + "\"");
       }
       if (options.has(queueNameOption)) {
         cliProps.setProperty("samplebroker.core.powerTacBroker.brokerQueueName",
@@ -183,8 +190,11 @@ public class BrokerRunner
   // reopen the logfiles for each session
   private void reopenLogs(int counter)
   {
-    System.setProperty("logfile", "log/broker" + counter + ".trace");
-    System.setProperty("statefile", "log/broker" + counter + ".state");
+    String index = "";
+    if (repeatCount > 1 || repeatHours > 0)
+      index = Integer.valueOf(counter).toString();
+    System.setProperty("logfile", "log/broker" + logSuffix + index + ".trace");
+    System.setProperty("statefile", "log/broker" + logSuffix + index + ".state");
     
     ((LoggerContext) LogManager.getContext(false)).reconfigure();
   }
