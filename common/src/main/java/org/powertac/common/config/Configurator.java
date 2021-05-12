@@ -838,9 +838,9 @@ public class Configurator
                 Class<?> valueClass = findNamedClass(cv.valueType());
                 if (!getter.getReturnType().isPrimitive() &&
                     !valueClass.isAssignableFrom(getter.getReturnType())) {
-                  log.warn("Type mismatch: cannot use default value (" +  
-                           getter.getReturnType().getName() + ") for " +
-                           cv.name() + " (" + valueClass.getName() + ")");
+                  log.warn("Type mismatch, class {}: cannot use default value ({}) for {} ({})", 
+                           clazz.getName(), getter.getReturnType().getName(),
+                           cv.name(), valueClass.getName());
                   getter = null;
                 }
               }
