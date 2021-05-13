@@ -63,7 +63,9 @@ public class SimulationClockControl
 {
   static private Logger log = LogManager.getLogger(SimulationClockControl.class);
 
+  // Clock state values
   public enum Status { CLEAR, COMPLETE, DELAYED, PAUSED, STOPPED }
+  Status state = Status.CLEAR; // package visibility for testing
   
   private TimeService timeService;
   
@@ -84,7 +86,6 @@ public class SimulationClockControl
   private long tickInterval;
   private long scheduledTickTime;
 
-  private Status state = Status.CLEAR; // package visibility for testing
   private int nextTick = -1;
   private boolean pauseRequested = false;
   
