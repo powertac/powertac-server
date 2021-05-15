@@ -71,11 +71,16 @@ public class SimulationClockControl
   
   private CompetitionControlService competitionControl;
     
-  @ConfigurableValue(valueType = "Integer",
-      publish = true,
-      description = "Minimum agent time per timeslot in msec")
+  //@ConfigurableValue(valueType = "Integer",
+  //    publish = true,
+  //    description = "Minimum agent time per timeslot in msec")
+  @ConfigurableValue(valueType = "Double",
+          publish = true,
+          description = "portion of timeslot allocated to agents")
+  private double agentShare = 0.6;
+  
   private Integer minAgentWindow = 1000;
-  private int minWindow = 50;
+  private int minWindow = 10;
   private int minPauseInterval = 100; // min time before pause
   private double maxTickOffsetRatio = 0.2; // max offset as proportion of tickInterval
 
@@ -135,6 +140,28 @@ public class SimulationClockControl
   
   // --------------- external api ----------------
   /**
+   * Ensure that the minAgentWindow in msec is the correct portion
+   * of the total timeslot time in seconds.
+   * @param simulationTimeslotSeconds The actual complete timeslot window
+   */
+  public void adjustAgentWindow (double simulationTimeslotSeconds)
+  {
+    minAgentWindow = (int) Math.round(Math.floor(simulationTimeslotSeconds * 1000 * agentShare));
+    log.info("minAgentWindow = {}", minAgentWindow);
+  }
+
+  private int getMinAgentWindow ()
+  {
+    if (minAgentWindow == 0) {
+      log.error("minAgentWindow not yet initialized");
+      return 3000;
+    }
+    else {
+      return minAgentWindow;
+    }
+  }
+
+  /**
    * Sets the sim clock start time, which in turn gets propagated to the
    * timeService.
    */
@@ -143,7 +170,7 @@ public class SimulationClockControl
     this.start = start;
     timeService.setStart(start);
     if (!competitionControl.isBootstrapMode()) {
-      minWindow = minAgentWindow;
+      minWindow = getMinAgentWindow();
     }
   }
 

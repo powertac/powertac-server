@@ -350,7 +350,6 @@ public class CompetitionControlService
       // instantiate weather reports. All are disabled.
       bootstrapOffset = competition.getBootstrapTimeslotCount()
                           + competition.getBootstrapDiscardedTimeslots();
-      //TODO - Is this needed? We do it again just a few lines below.
       createInitialTimeslots(competition.getSimulationBaseTime(),
                              (bootstrapOffset + 1),
                              0);
@@ -600,11 +599,12 @@ public class CompetitionControlService
     }
     long rem = rate % competition.getTimeslotLength();
     if (rem > 0) {
-      long mult = competition.getSimulationRate() / competition.getTimeslotLength();
-      log.warn("Simulation rate " + rate + 
-               " not a multiple of " + competition.getTimeslotLength() + 
-               "; adjust to " + (mult + 1) * competition.getTimeslotLength());
-      rate = (mult + 1) * competition.getTimeslotLength();
+      //long mult = competition.getSimulationRate() / competition.getTimeslotLength();
+      long newRate = rate - rem;
+      log.warn("Simulation rate {} not a multiple of {}; adjust to {}",
+               rate, competition.getTimeslotLength(), newRate);
+      rate = newRate;
+      competition.withSimulationRate(newRate);
     }
     timeService.setClockParameters(base.getMillis(), rate,
                                    competition.getTimeslotDuration());
@@ -778,6 +778,7 @@ public class CompetitionControlService
   {
     // allow for controlled shutdown
     if (checkAbort()) {
+      log.info("Session aborted");
       stop();
       return;
     }
@@ -796,10 +797,10 @@ public class CompetitionControlService
     // check queue status before sending new messages
     detectAndKillHangingQueues();
 
-    for (int index = 0; index < phaseRegistrations.size(); index++) {
-      log.info("activate phase " + (index + 1));
-      for (TimeslotPhaseProcessor fn : phaseRegistrations.get(index)) {
-        fn.activate(time, index + 1);
+    for (int phase = 1; phase <= timeslotPhaseCount; phase++) {
+      log.info("activate phase " + phase);
+      for (TimeslotPhaseProcessor fn : phaseRegistrations.get(phase - 1)) {
+        fn.activate(time, phase);
       }
     }
     TimeslotComplete msg = new TimeslotComplete(ts);
@@ -896,7 +897,8 @@ public class CompetitionControlService
       // unfortunately, this does not work, so we need to abort the game
       // -- see issue #729
       int missingTicks = next.getSerialNumber() - expectedIndex;
-      log.error("Missed " + missingTicks + " ticks - adjusting");
+      log.error("Missed {} ticks, expected {} but see {}",
+                missingTicks, expectedIndex, next.getSerialNumber());
       stop();
 //      long newStart =
 //              new Date().getTime()
@@ -929,6 +931,7 @@ public class CompetitionControlService
    */
   public void stop ()
   {
+    log.info("sim stop");
     running = false;
   }
 
@@ -938,6 +941,7 @@ public class CompetitionControlService
   @Override
   public void shutDown ()
   {
+    log.info("shutdown");
     running = false;
 
     SimEnd endMsg = new SimEnd();
@@ -1102,6 +1106,8 @@ public class CompetitionControlService
 
       SimulationClockControl.initialize(parent, timeService);
       clock = SimulationClockControl.getInstance();
+      clock.adjustAgentWindow(competition.getSimulationTimeslotSeconds());
+      
       // wait for start time
       long now = new Date().getTime();
       // start is beginning of boot
@@ -1128,7 +1134,7 @@ public class CompetitionControlService
       running = true;
       clock.scheduleTick();
       while (running) {
-        log.info("Wait for tick " + currentSlot);
+        log.info("Wait for tick {}", currentSlot);
         clock.waitForTick(currentSlot);
         try {
           step();
