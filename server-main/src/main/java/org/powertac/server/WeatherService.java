@@ -166,6 +166,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
 
     long diff = dateTime.getMillis() - simulationBaseTime.getMillis();
+    // WARNING:This assumes one-hour timeslots, but matches weather data granularity
     return (int) (diff / (1000 * 3600));
   }
 

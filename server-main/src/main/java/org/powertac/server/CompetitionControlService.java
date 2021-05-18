@@ -358,7 +358,7 @@ public class CompetitionControlService
 
     // set up the simulation clock
     setTimeParameters();
-    //log.info("start at timeslot " + timeslotRepo.currentTimeslot().getSerialNumber());
+    log.info("start at timeslot " + timeslotRepo.currentTimeslot().getSerialNumber());
     
     // configure plugins, but don't allow them to broadcast to brokers
     brokerProxyService.setDeferredBroadcast(true);
