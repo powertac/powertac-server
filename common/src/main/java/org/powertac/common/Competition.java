@@ -64,7 +64,9 @@ public class Competition //implements Serializable
   @XStreamAsAttribute
   private String pomId = "unknown";
 
-  /** length of a timeslot in simulation minutes    */
+  /** length of a timeslot in simulation minutes. Note that if this is not one hour,
+   *  there will likely be problems with other elements of the simulation, such as
+   *  weather reporting. */
   @XStreamAsAttribute
   private int timeslotLength = 60;
   
@@ -132,7 +134,8 @@ public class Competition //implements Serializable
   @XStreamAsAttribute
   private int latitude = 45;
   
-  /** the time-compression ratio for the simulation. So if we are running one-hour timeslots every 5 seconds, the rate would be 720 (=default).    */
+  /** the time-compression ratio for the simulation. So if we are running
+   *  one-hour timeslots every 5 seconds, the rate would be 720 (=default). * */
   @XStreamAsAttribute
   private long simulationRate = 720l;
 
