@@ -1153,8 +1153,8 @@ implements CustomerModelAccessor
     {
       duration -= 1;
       if (duration < 0) {
-        log.error(getName() + "SE start at " + start.toString()
-                  + " ticked past duration " + duration);
+        log.error("{} SE start at {} ticked past duration {}",
+                  getName(), start.toString(), duration);
       }
       usageIndex += 1;
     }

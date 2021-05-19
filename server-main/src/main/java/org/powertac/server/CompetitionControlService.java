@@ -597,15 +597,6 @@ public class CompetitionControlService
       rate = competition.getTimeslotDuration() / bootstrapTimeslotMillis;
       log.info("bootstrap mode clock rate: " + rate);
     }
-    long rem = rate % competition.getTimeslotLength();
-    if (rem > 0) {
-      //long mult = competition.getSimulationRate() / competition.getTimeslotLength();
-      long newRate = rate - rem;
-      log.warn("Simulation rate {} not a multiple of {}; adjust to {}",
-               rate, competition.getTimeslotLength(), newRate);
-      rate = newRate;
-      competition.withSimulationRate(newRate);
-    }
     timeService.setClockParameters(base.getMillis(), rate,
                                    competition.getTimeslotDuration());
     timeService.setCurrentTime(base.plus(slotCount * competition.getTimeslotDuration()));
