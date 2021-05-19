@@ -163,6 +163,8 @@ public class CompetitionTests
     cx = cx.withSimulationTimeslotSeconds(2.5);
     assertEquals(c1, cx, "correct return 2");
     assertEquals(1440l, c1.getSimulationRate(), "2nd new rate");
+    cx = cx.withSimulationTimeslotSeconds(1.9);
+    assertEquals(1875l, cx.getSimulationRate(), "3rd new rate");
   }
 
   @Test
