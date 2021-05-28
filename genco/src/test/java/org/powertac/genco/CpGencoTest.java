@@ -335,10 +335,10 @@ public class CpGencoTest
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("genco.cpGenco.minQuantity", "300.0");
-    map.put("genco.cpGenco.ecThreshold", "40.0");
-    map.put("genco.cpGenco.ecSlope", "10.0");
-    map.put("genco.cpGenco.ehThreshold", "0.0");
-    map.put("genco.cpGenco.ehSlope", "5.0");
+    map.put("genco.cpGenco.coolingThreshold", "40.0");
+    map.put("genco.cpGenco.coolingSlope", "10.0");
+    map.put("genco.cpGenco.heatingThreshold", "0.0");
+    map.put("genco.cpGenco.heatingSlope", "5.0");
     MapConfiguration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(conf);
@@ -356,8 +356,8 @@ public class CpGencoTest
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("genco.cpGenco.minQuantity", "200.0");
-    map.put("genco.cpGenco.ecThreshold", "35.0");
-    map.put("genco.cpGenco.ecSlope", "10.0");
+    map.put("genco.cpGenco.coolingThreshold", "35.0");
+    map.put("genco.cpGenco.coolingSlope", "10.0");
     MapConfiguration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(conf);
@@ -386,8 +386,8 @@ public class CpGencoTest
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("genco.cpGenco.minQuantity", "400.0");
-    map.put("genco.cpGenco.ehThreshold", "0.0");
-    map.put("genco.cpGenco.ehSlope", "12.0");
+    map.put("genco.cpGenco.heatingThreshold", "0.0");
+    map.put("genco.cpGenco.heatingSlope", "12.0");
     MapConfiguration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(conf);

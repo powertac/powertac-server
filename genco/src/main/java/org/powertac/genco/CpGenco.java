@@ -103,10 +103,10 @@ public class CpGenco extends Broker
   private double rwcOffset = 0.002;
 
   /** extreme cooling and heating load thresholds and slopes */
-  private double ecThreshold = 35.0;
-  private double ecSlope = 1200.0;
-  private double ehThreshold = 0.0;
-  private double ehSlope = 400.0;
+  private double coolingThreshold = 35.0;
+  private double coolingSlope = 1200.0;
+  private double heatingThreshold = 0.0;
+  private double heatingSlope = 400.0;
 
   protected BrokerProxy brokerProxyService;
   protected RandomSeed seed;
@@ -231,13 +231,13 @@ public class CpGenco extends Broker
   double getEmergencyAdjustment (double temperature)
   {
     double result = 0.0;
-    if (temperature > getEcThreshold()) {
+    if (temperature > getCoolingThreshold()) {
       // cooling emergency
-      result = (temperature - getEcThreshold()) * getEcSlope();
+      result = (temperature - getCoolingThreshold()) * getCoolingSlope();
     }
-    else if (temperature < getEhThreshold()) {
+    else if (temperature < getHeatingThreshold()) {
       // heating emergency
-      result = (getEhThreshold() - temperature) * getEhSlope();
+      result = (getHeatingThreshold() - temperature) * getHeatingSlope();
     }
     return result;
   }
@@ -529,9 +529,9 @@ public class CpGenco extends Broker
   @ConfigurableValue(valueType = "Double",
           description = "emergency threshold for extreme cooling load")
   @StateChange
-  public CpGenco withEcThreshold (double temp)
+  public CpGenco withCoolingThreshold (double temp)
   {
-    this.ecThreshold = temp;
+    this.coolingThreshold = temp;
     return this;
   }
   
@@ -539,9 +539,9 @@ public class CpGenco extends Broker
    * Threshold temperature above which total capacity must be adjusted to deal
    * with extreme cooling load. 
    */
-  public double getEcThreshold ()
+  public double getCoolingThreshold ()
   {
-    return ecThreshold;
+    return coolingThreshold;
   }
 
   /**
@@ -550,9 +550,9 @@ public class CpGenco extends Broker
   @ConfigurableValue(valueType = "Double",
           description = "per-degree adjustment for extreme heat")
   @StateChange
-  public CpGenco withEcSlope (double slope)
+  public CpGenco withCoolingSlope (double slope)
   {
-    this.ecSlope = slope;
+    this.coolingSlope = slope;
     return this;
   }
   
@@ -560,9 +560,9 @@ public class CpGenco extends Broker
    * Per-degree increase in total capacity needed to deal
    * with extreme cooling load. 
    */
-  public double getEcSlope ()
+  public double getCoolingSlope ()
   {
-    return ecSlope;
+    return coolingSlope;
   }
 
   /**
@@ -571,9 +571,9 @@ public class CpGenco extends Broker
   @ConfigurableValue(valueType = "Double",
           description = "emergency threshold for extreme heating load")
   @StateChange
-  public CpGenco withEhThreshold (double temp)
+  public CpGenco withHeatingThreshold (double temp)
   {
-    this.ehThreshold = temp;
+    this.heatingThreshold = temp;
     return this;
   }
   
@@ -581,9 +581,9 @@ public class CpGenco extends Broker
    * Threshold temperature below which total capacity must be adjusted to deal
    * with extreme heating load. 
    */
-  public double getEhThreshold ()
+  public double getHeatingThreshold ()
   {
-    return ehThreshold;
+    return heatingThreshold;
   }
 
   /**
@@ -592,9 +592,9 @@ public class CpGenco extends Broker
   @ConfigurableValue(valueType = "Double",
           description = "per-degree adjustment for extreme cold")
   @StateChange
-  public CpGenco withEhSlope (double slope)
+  public CpGenco withHeatingSlope (double slope)
   {
-    this.ehSlope = slope;
+    this.heatingSlope = slope;
     return this;
   }
   
@@ -602,9 +602,9 @@ public class CpGenco extends Broker
    * Per-degree increase in total capacity needed to deal
    * with extreme cooling load. 
    */
-  public double getEhSlope ()
+  public double getHeatingSlope ()
   {
-    return ehSlope;
+    return heatingSlope;
   }
 
   /**
