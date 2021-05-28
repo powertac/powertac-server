@@ -252,6 +252,7 @@ public class MisoBuyer extends Broker
     WeatherReport weather = weatherReportRepo.currentWeatherReport();
     WeatherForecastPrediction[] forecasts = getForecastArray();
     // smooth the current heat and cool sequences
+    // Note that "heat" refers to energy needed for heating
     double thisHeat =
         Math.min(0.0, (weather.getTemperature() - heatThreshold));
     lastHeat = tempAlpha * thisHeat + (1.0 - tempAlpha) * lastHeat;
