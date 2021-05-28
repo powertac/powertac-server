@@ -124,7 +124,7 @@ public class SimpleGencoService
       // configure the lmp genco
       cpGenco = new CpGenco("lmp");
       serverConfig.configureMe(cpGenco);
-      cpGenco.init(brokerProxyService, seedId++, randomSeedRepo, timeslotRepo);
+      cpGenco.init(brokerProxyService, seedId++, this);
       brokerRepo.add(cpGenco);
     }
     if (useMisoBuyer) {
