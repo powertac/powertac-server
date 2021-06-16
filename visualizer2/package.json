@@ -72,6 +72,7 @@
     "glob-parent": "6.0.0",
     "is-svg": "4.3.1",
     "js-yaml": "3.14.1",
+    "lodash": "4.17.21",
     "lodash.template": "4.5.0",
     "kind-of": "6.0.3",
     "mem": "8.1.1",
