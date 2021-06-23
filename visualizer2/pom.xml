@@ -84,7 +84,7 @@
         <sonar.sources>${project.basedir}/src/main/</sonar.sources>
         <sonar.surefire.reportsPath>${project.testresult.directory}/surefire-reports</sonar.surefire.reportsPath>
         <sonar.tests>${project.basedir}/src/test/</sonar.tests>
-        <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
+        <spring-boot.version>2.1.18.RELEASE</spring-boot.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <yarn.version>v1.17.3</yarn.version>
         <visualizer.mode>research</visualizer.mode>
@@ -895,7 +895,7 @@
                                     <goal>gulp</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>install --no-notification</arguments>
+                                    <arguments>install</arguments>
                                 </configuration>
                             </execution>
                         </executions>
@@ -943,7 +943,7 @@
                                     <goal>gulp</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>build --no-notification</arguments>
+                                    <arguments>build</arguments>
                                 </configuration>
                             </execution>
                             <execution>
@@ -953,7 +953,7 @@
                                     <goal>gulp</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>test --no-notification</arguments>
+                                    <arguments>test</arguments>
                                 </configuration>
                             </execution>
                         </executions>

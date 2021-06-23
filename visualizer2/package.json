@@ -21,7 +21,7 @@
     "gulp": "4.0.2",
     "gulp-angular-filesort": "1.2.1",
     "gulp-angular-templatecache": "3.0.0",
-    "gulp-autoprefixer": "8.0.0",
+    "gulp-autoprefixer": "7.0.1",
     "gulp-changed": "4.0.3",
     "gulp-cli": "2.3.0",
     "gulp-cssnano": "2.1.3",
