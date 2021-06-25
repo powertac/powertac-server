@@ -103,6 +103,10 @@ public class CpGenco extends Broker
   private double rwcOffset = 0.002;
 
   /** extreme cooling and heating load thresholds and slopes */
+  @ConfigurableValue(valueType = "Double", dump=false,
+          description = "Scale factor from MisoBuyer")
+  private double misoScaleFactor = 0.049; // scale
+
   private double coolingThreshold = 35.0;
   private double coolingSlope = 1200.0;
   private double heatingThreshold = 0.0;
@@ -562,7 +566,7 @@ public class CpGenco extends Broker
    */
   public double getCoolingSlope ()
   {
-    return coolingSlope;
+    return coolingSlope * misoScaleFactor;
   }
 
   /**
@@ -604,7 +608,7 @@ public class CpGenco extends Broker
    */
   public double getHeatingSlope ()
   {
-    return heatingSlope;
+    return heatingSlope * misoScaleFactor;
   }
 
   /**

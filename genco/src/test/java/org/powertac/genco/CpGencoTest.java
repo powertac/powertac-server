@@ -339,15 +339,16 @@ public class CpGencoTest
     map.put("genco.cpGenco.coolingSlope", "10.0");
     map.put("genco.cpGenco.heatingThreshold", "0.0");
     map.put("genco.cpGenco.heatingSlope", "5.0");
+    map.put("genco.cpGenco.misoScaleFactor", "0.5");
     MapConfiguration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(conf);
     configurator.configureSingleton(genco);
     assertEquals(0.0, genco.getEmergencyAdjustment(20.0), 1e-6, "no adjustment");
     assertEquals(0.0, genco.getEmergencyAdjustment(40.0), 1e-6, "no adjustment");
-    assertEquals(10.0, genco.getEmergencyAdjustment(41.0), 1e-6, "cooling adjustment");
+    assertEquals(5.0, genco.getEmergencyAdjustment(41.0), 1e-6, "cooling adjustment");
     assertEquals(0.0, genco.getEmergencyAdjustment(0.0), 1e-6, "no adjustment");
-    assertEquals(5.0, genco.getEmergencyAdjustment(-1.0), 1e-6, "heating adjustment");
+    assertEquals(2.5, genco.getEmergencyAdjustment(-1.0), 1e-6, "heating adjustment");
   }
 
   // test extreme cooling adjustment
@@ -358,6 +359,7 @@ public class CpGencoTest
     map.put("genco.cpGenco.minQuantity", "200.0");
     map.put("genco.cpGenco.coolingThreshold", "35.0");
     map.put("genco.cpGenco.coolingSlope", "10.0");
+    map.put("genco.cpGenco.misoScaleFactor", "1.0");
     MapConfiguration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(conf);
@@ -388,6 +390,7 @@ public class CpGencoTest
     map.put("genco.cpGenco.minQuantity", "400.0");
     map.put("genco.cpGenco.heatingThreshold", "0.0");
     map.put("genco.cpGenco.heatingSlope", "12.0");
+    map.put("genco.cpGenco.misoScaleFactor", "1.0");
     MapConfiguration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(conf);
