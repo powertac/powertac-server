@@ -28,7 +28,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
-      <version>1.8.1-SNAPSHOT</version>
+      <version>1.8.0</version>
     </dependency>
 
     <!-- Testing - not inherited from common due to test scope -->
