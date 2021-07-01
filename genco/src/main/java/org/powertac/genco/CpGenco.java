@@ -79,11 +79,14 @@ public class CpGenco extends Broker
   private double pSigma = 0.1;
   private double qSigma = 0.1;
 
-  /** Price interval between bids */
+  /** Nominal price interval between bids */
   private double priceInterval = 4.0;
 
   /** Minimum total offered quantity in MWh */
   private double minQuantity = 120.0;
+
+  /** Minimum quantity in MWh for individual orders */
+  private double minBidQuantity = 15.0;
 
   /** curve generating coefficients as a comma-separated list */
   private List<String> coefficients = Arrays.asList(".007", ".1", "16.0");
@@ -168,7 +171,7 @@ public class CpGenco extends Broker
         double[] ran = normal01.sample(2);
         double price = function.getY(start);
         price += ran[0] * getPSigma();
-        double dx = function.getDeltaX(start);
+        double dx = Math.max(function.getDeltaX(start), getMinBidQuantity());
         double std = dx * getQSigma();
         dx = Math.max(0.0, ran[1] * std + dx); // don't go backward
         Order offer = new Order(this, slot.getSerialNumber(), -dx, price);
@@ -482,16 +485,37 @@ public class CpGenco extends Broker
    * Minimum total quantity to offer. The generation function will be run
    * until it hits this value.
    */
+  public double getMinBidQuantity ()
+  {
+    return minBidQuantity;
+  }
+
+  /**
+   * Fluent setter for minimum total offer quantity.
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "minimum quantity in MWh for individual Offers")
+  @StateChange
+  public CpGenco withMinBidQuantity (double qty)
+  {
+    this.minBidQuantity = qty;
+    return this;
+  }
+
+  /**
+   * Minimum total quantity to offer. The generation function will be run
+   * until it hits this value.
+   */
   public double getMinQuantity ()
   {
     return minQuantity;
   }
 
   /**
-   * Fluent setter for minimum total quantity.
+   * Fluent setter for minimum total offer quantity.
    */
   @ConfigurableValue(valueType = "Double",
-      description = "minimum leadtime for first commitment, in hours")
+      description = "minimum total quantity to be offered in each timeslot")
   @StateChange
   public CpGenco withMinQuantity (double qty)
   {

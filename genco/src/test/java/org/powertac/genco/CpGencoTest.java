@@ -270,6 +270,7 @@ public class CpGencoTest
     defaultWeather();
     genco.withMinQuantity(100.0);
     genco.withPriceInterval(10.0);
+    genco.withMinBidQuantity(4.0);
     // mock the normal distribution
     NormalDistribution mockNorm = mock(NormalDistribution.class);
     ReflectionTestUtils.setField(genco, "normal01", mockNorm);
@@ -296,7 +297,8 @@ public class CpGencoTest
     genco.addMarketPosition(posn2, ts2.getSerialNumber());
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals(72, orderList.size(), "72 orders");
+    //System.out.println(orderList);
+    assertEquals(64, orderList.size(), "64 orders");
   }
 
   @SuppressWarnings("unused")
@@ -307,6 +309,7 @@ public class CpGencoTest
     defaultWeather();
     genco.withMinQuantity(100.0);
     genco.withPriceInterval(10.0);
+    genco.withMinBidQuantity(1.0);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer<Object>() {
