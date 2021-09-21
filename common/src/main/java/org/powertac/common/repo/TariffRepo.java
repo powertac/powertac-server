@@ -307,7 +307,7 @@ public class TariffRepo implements DomainRepo
   }
   
   /**
-   * Retrieves the complete set of balancing orders
+   * Retrieves the map of tariff IDs to balancing orders for all tariffs 
    */
   public synchronized Collection<BalancingOrder> getBalancingOrders ()
   {

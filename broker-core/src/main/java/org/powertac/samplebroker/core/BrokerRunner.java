@@ -43,7 +43,19 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class BrokerRunner
 {
   private static Logger log = LogManager.getLogger(BrokerRunner.class);
-  private AbstractApplicationContext context;
+
+  // Static access to application context
+  private static AbstractApplicationContext context;
+
+  public static AbstractApplicationContext getApplicationContext ()
+  {
+    if (null == context) {
+      context = new ClassPathXmlApplicationContext("broker.xml");
+    }
+    return context;
+  }
+
+  //private AbstractApplicationContext context;
   private PowerTacBroker broker;
   private Integer repeatCount = 1;
   private Integer repeatHours = 0;
@@ -160,13 +172,14 @@ public class BrokerRunner
         counter += 1;
 
         // initialize and run
-        if (null == context) {
-          context = new ClassPathXmlApplicationContext("broker.xml");
-        }
-        else {
+        getApplicationContext();
+        //if (null == context) {
+        //  context = new ClassPathXmlApplicationContext("broker.xml");
+        //}
+        //else {
           context.close();
           context.refresh();
-        }
+        //}
 
         // Re-open the logfiles
         reopenLogs(counter);
