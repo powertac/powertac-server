@@ -732,10 +732,16 @@ public class Rate extends RateCore
   public boolean isValid(PowerType powerType)
   {
     // numeric sanity test
-    if (Double.isNaN(minValue) || Double.isNaN(maxValue)
-        || Double.isNaN(expectedMean)) {
-      log.log(BFAULT, "numeric insanity: ("
-          + minValue + "," + maxValue + "," + expectedMean + ")");
+    if (Double.isNaN(minValue)) {
+      log.log(BFAULT, "minValue NaN");
+      return false;
+    }
+    else if (Double.isNaN(maxValue)) {
+      log.log(BFAULT, "maxValue NaN");
+      return false;
+    }
+    else if (Double.isNaN(expectedMean)) {
+      log.log(BFAULT, "expectedMean NaN");
       return false;
     }
     if (Double.isInfinite(minValue) || Double.isInfinite(maxValue)
