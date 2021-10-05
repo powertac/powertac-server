@@ -106,7 +106,7 @@ public class TariffSubscription
 
   /**
    * Alternate constructor for logtool analyzers in which Tariffs cannot
-   * be reconstructed. Many features won't work if the Tafiff does not exist.
+   * be reconstructed. Many features won't work if the Tariff does not exist.
    */
   public TariffSubscription (CustomerInfo customer, long tariffId)
   {

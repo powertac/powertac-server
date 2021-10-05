@@ -158,7 +158,7 @@ public class LogtoolCore
   public String readStateLog (File inputFile, Analyzer... tools)
   {
     try{
-      return readStateLog(new FileInputStream(inputFile), tools);
+      return readStateLog(new BufferedInputStream (new FileInputStream(inputFile)), tools);
     } catch (FileNotFoundException e) {
       return "Cannot open file " + inputFile.getPath();
     }
@@ -191,37 +191,44 @@ public class LogtoolCore
 
     try {
       // Stack compression logic if appropriate
-      try {
-        if (!inputStream.markSupported()) {
-          inputStream = new BufferedInputStream(inputStream);
-        }
-        inputStream = compressFactory.createCompressorInputStream(inputStream);
-      } catch (CompressorException x) {
-        // Stream not compressed (or unknown compression scheme)
+      if (inputStream.markSupported()) {
+        // regular file
+        inputStream = new BufferedInputStream(inputStream);
       }
-
-      // Stack archive logic if appropriate
-      try {
-        if (!inputStream.markSupported()) {
-          inputStream = new BufferedInputStream(inputStream);
-        }
-        ArchiveInputStream archiveStream = archiveFactory.createArchiveInputStream(inputStream);
-        ArchiveEntry entry;
-        inputStream = null;
-        while ((entry = archiveStream.getNextEntry()) != null) {
-          String name = entry.getName();
-          if (entry.isDirectory() || !name.startsWith("log/")
-                  || !name.endsWith(".state") || name.endsWith("init.state")) {
-            continue;
+      else {
+        // some sort of compressed file
+        try {
+          if (!inputStream.markSupported()) {
+            inputStream = new BufferedInputStream(inputStream);
           }
-          inputStream = archiveStream;
-          break;
+          inputStream = compressFactory.createCompressorInputStream(inputStream);
+        } catch (CompressorException x) {
+          // Stream not compressed (or unknown compression scheme)
         }
-        if (inputStream == null) {
-          return "Cannot read archive, no valid state log entry";
+
+        // Stack archive logic if appropriate
+        try {
+          if (!inputStream.markSupported()) {
+            inputStream = new BufferedInputStream(inputStream);
+          }
+          ArchiveInputStream archiveStream = archiveFactory.createArchiveInputStream(inputStream);
+          ArchiveEntry entry;
+          inputStream = null;
+          while ((entry = archiveStream.getNextEntry()) != null) {
+            String name = entry.getName();
+            if (entry.isDirectory() || !name.startsWith("log/")
+                    || !name.endsWith(".state") || name.endsWith("init.state")) {
+              continue;
+            }
+            inputStream = archiveStream;
+            break;
+          }
+          if (inputStream == null) {
+            return "Cannot read archive, no valid state log entry";
+          }
+        } catch (ArchiveException x) {
+          // Stream not archived (or unknown archiving scheme)
         }
-      } catch (ArchiveException x) {
-        // Stream not archived (or unknown archiving scheme)
       }
 
       // Recycle repos from previous session
