@@ -37,6 +37,8 @@
   <properties>
     <!-- Frameworks -->
     <java.version>11</java.version>
+    <java.version_max>16</java.version_max>
+    <java.version_end>17</java.version_end>
     <maven.version>3.6.0</maven.version>
     <spring.version>5.1.9.RELEASE</spring.version>
 
@@ -48,7 +50,7 @@
     <sonatype.release.args />
 
     <!-- Managed common dependency versions -->
-    <aspectj.version>1.9.6</aspectj.version>
+    <aspectj.version>1.9.7</aspectj.version>
 
     <active-mq.version>5.15.11</active-mq.version>
     <xstream.version>1.4.18</xstream.version>
@@ -74,7 +76,7 @@
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
 
-    <maven-aspectj.version>1.12.6</maven-aspectj.version>
+    <maven-aspectj.version>1.14.0</maven-aspectj.version>
     <maven-aspectj.compliance>${java.version}</maven-aspectj.compliance>
 
     <maven-antrun.version>1.8</maven-antrun.version>
@@ -421,8 +423,8 @@
           <configuration>
             <rules>
               <requireJavaVersion>
-                <message>You must have Java ${java.version} or better</message>
-                <version>[${java.version},)</version>
+                <message>Java versions ${java.version} - ${java.version_max} are supported</message>
+                <version>[${java.version},${java.version_end})</version>
               </requireJavaVersion>
               <requireMavenVersion>
                 <message>You must have Maven ${maven.version} or better</message>
@@ -455,10 +457,7 @@
         <!-- AspectJ -->
 
         <plugin>
-          <!-- Temporary, see -->
-          <!-- https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
-          <!-- <groupId>org.codehaus.mojo</groupId> -->
-          <groupId>com.nickwongdev</groupId>
+          <groupId>org.codehaus.mojo</groupId>
           <artifactId>aspectj-maven-plugin</artifactId>
           <version>${maven-aspectj.version}</version>
           <!-- Need to override aspectjtools version, see -->
@@ -509,6 +508,7 @@
             </includes>
             <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>false</useSystemClassLoader>
+            <argLine>--illegal-access=warn</argLine>
           </configuration>
         </plugin>
 
@@ -704,7 +704,7 @@
                   <pluginExecutions>
                     <pluginExecution>
                       <pluginExecutionFilter>
-                        <groupId>com.nickwongdev</groupId>
+                        <groupId>org.codehaus.mojo</groupId>
                         <artifactId>aspectj-maven-plugin</artifactId>
                         <versionRange>[1.0,)</versionRange>
                         <goals>
