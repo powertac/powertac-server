@@ -79,7 +79,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
   @ConfigurableValue(valueType = "String", bootstrapState = true,
           description = "Location of weather server rest url")
-  private String serverUrl = "http://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
+  private String serverUrl = "https://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
 
   // If network requests should be made asynchronously or not.
   @ConfigurableValue(valueType = "Boolean", description = "If network calls to weather server should block until finished")

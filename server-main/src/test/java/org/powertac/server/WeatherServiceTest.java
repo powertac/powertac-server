@@ -134,7 +134,7 @@ public class WeatherServiceTest
   // initialization without a configuration
   @Test
   public void testNormalInitialization() {
-    String properUrl = "http://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
+    String properUrl = "https://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
     String result = weatherService
             .initialize(comp, new ArrayList<String>());
     assertEquals(result, "WeatherService", "correct return value");
