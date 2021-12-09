@@ -12,6 +12,7 @@ var gulp = require('gulp'),
     del = require('del'),
     browserSync = require('browser-sync'),
     KarmaServer = require('karma').Server,
+    parseConfig = require('karma').config.parseConfig,
     plumber = require('gulp-plumber'),
     changed = require('gulp-changed'),
     gulpIf = require('gulp-if');
@@ -155,10 +156,15 @@ gulp.task('eslint:fix', function () {
 });
 
 gulp.task('test', gulp.series('inject:test', 'ngconstant:dev', function karma(done) {
-    new KarmaServer({
-        configFile: __dirname + '/' + config.test + 'karma.conf.js',
-        singleRun: true
-    }, done).start();
+    parseConfig(
+        __dirname + '/' + config.test + 'karma.conf.js',
+        { singleRun: true },
+        { promiseConfig: true, throwErrors: true }
+    ).then(
+        (karmaConfig) => {
+            new KarmaServer(karmaConfig, done).start();
+        }
+    );
 }));
 
 
