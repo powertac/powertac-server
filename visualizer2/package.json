@@ -67,6 +67,7 @@
   },
   "resolutions": {
     "acorn": "7.4.0",
+    "ansi-regex": "5.0.1",
     "bl": "5.0.0",
     "cache-base": "4.0.0",
     "color-string": "1.6.0",
