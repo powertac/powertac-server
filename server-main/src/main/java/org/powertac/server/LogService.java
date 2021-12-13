@@ -108,12 +108,7 @@ public class LogService
       
       ((LoggerContext) LogManager.getContext(false)).reconfigure();
 
-      if (abbreviateClassnames) {
-        stateLogService.init(true);
-      }
-      else {
-        stateLogService.init(false);
-      }
+      stateLogService.init(abbreviateClassnames);
     }
     catch (Exception ioe) {
       ioe.printStackTrace();
