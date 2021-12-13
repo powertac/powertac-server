@@ -116,6 +116,7 @@ public class WeatherServiceTest
     ReflectionTestUtils.setField(weatherService, "competitionControlService",
                                  competitionControlService);
     ReflectionTestUtils.setField(weatherService, "blocking", true);
+    ReflectionTestUtils.setField(weatherService, "weatherData", "src/test/resources/config/weather.xml");
 
     //comp = Competition.newInstance("weather-test");
 
