@@ -10,5 +10,5 @@ Core modules needed for both broker and server:
 Travis CI automatically builds upon new commits. The JavaDocs, however, are compiled as integrated into the powertac-server
 build; please refer to the README of powertac-server for more details:
 
-https://github.org/powertac/powertac-server/
+https://github.com/powertac/powertac-server/
 
