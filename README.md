@@ -3,7 +3,7 @@
 Core modules needed for both broker and server:
 
 - [metadata](metadata/README.md)
-- [aop](aop/README.md)
+- [aop](powertac-aop#readme)
 - [common](common/README.md)
 - [broker-core](broker-core/README.md)
 
