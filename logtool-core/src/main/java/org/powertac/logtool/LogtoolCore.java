@@ -123,7 +123,21 @@ public class LogtoolCore
       }
     }
 
+    recycleRepos();
+
     return readStateLog(source, tools);
+  }
+
+  public void recycleRepos ()
+  {
+    // Only do this if started from the command line?
+    // Recycle repos from previous session
+    // TODO - make sure time is set first?
+    List<DomainRepo> repos =
+        SpringApplicationContext.listBeansOfType(DomainRepo.class);
+      for (DomainRepo repo : repos) {
+        repo.recycle();
+      }
   }
 
   /**
@@ -230,14 +244,6 @@ public class LogtoolCore
           // Stream not archived (or unknown archiving scheme)
         }
       }
-
-      // Recycle repos from previous session
-      // TODO - make sure time is set first? 
-      List<DomainRepo> repos =
-          SpringApplicationContext.listBeansOfType(DomainRepo.class);
-        for (DomainRepo repo : repos) {
-          repo.recycle();
-        }
 
       // Now go read the state-log
       inputReader = new InputStreamReader(inputStream);

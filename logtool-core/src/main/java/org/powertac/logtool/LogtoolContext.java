@@ -137,6 +137,7 @@ public abstract class LogtoolContext
   protected void cli (String inputFile, Analyzer analyzer)
   {
     LogtoolCore core = getCore();
+    core.recycleRepos();
     core.readStateLog(inputFile, analyzer);
   }
 

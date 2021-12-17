@@ -68,6 +68,7 @@ public class DomainObjectReader
   HashMap<Class<?>, Class<?>> ifImplementors;
   HashMap<String, Class<?>> substitutes;
   HashSet<String> ignores;
+  HashSet<String> includesOnly;
   HashSet<Class<?>> noIdTypes;
   //HashSet<Class<?>> argModTypes;
   PowerTypeConverter ptConverter = new PowerTypeConverter();
@@ -200,7 +201,11 @@ public class DomainObjectReader
     Class<?> clazz;
     String classname = StateLogging.unabbreviate(tokens[0]);
     if (ignores.contains(classname)) {
-      //log.info("ignoring " + classname);
+      log.debug("ignoring " + classname);
+      return null;
+    }
+    else if (null != includesOnly && ! includesOnly.contains(classname)) {
+      log.debug("not including " + classname);
       return null;
     }
     try {
