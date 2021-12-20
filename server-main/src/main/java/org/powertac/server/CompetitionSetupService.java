@@ -290,7 +290,7 @@ public class CompetitionSetupService
       setupConfig(config, configDump);
 
       // Use weather file instead of webservice, this sets baseTime also
-      useWeatherDataMaybe(weatherData, true);
+      //useWeatherDataMaybe(weatherData, true);
 
       // load random seeds if requested
       seedSource = seedData;
@@ -373,7 +373,7 @@ public class CompetitionSetupService
       setupConfig(config, configOutput);
 
       // Use weather file instead of webservice, this sets baseTime also
-      useWeatherDataMaybe(weatherData, false);
+      //useWeatherDataMaybe(weatherData, false);
       
       // load random seeds if requested
       seedSource = seedData;
@@ -508,6 +508,7 @@ public class CompetitionSetupService
     }
   }
 
+  // #1106 -- don't load base time from weather data
   /*
    * If weather data-file is used (instead of the URL-based weather server)
    * extract the first data, and set that as simulationBaseTime.
@@ -518,83 +519,81 @@ public class CompetitionSetupService
       return;
     }
 
-    log.info("Getting BaseTime from " + weatherData);
-    String baseTime = null;
-    if (weatherData.endsWith(".xml")) {
-      baseTime = getBaseTimeXML(weatherData);
-    } else if (weatherData.endsWith(".state")) {
-      baseTime = getBaseTimeState(weatherData);
-    } else {
-      log.warn("Only XML and state files are allowed for weather data");
-    }
+    //log.info("Getting BaseTime from " + weatherData);
+    //String baseTime = null;
+    //if (weatherData.endsWith(".xml")) {
+    //  baseTime = getBaseTimeXML(weatherData);
+    //} else if (weatherData.endsWith(".state")) {
+    //  baseTime = getBaseTimeState(weatherData);
+    //} else {
+    //  log.warn("Only XML and state files are allowed for weather data");
+    //}
 
-    if (baseTime != null) {
-      if (bootstrapMode) {
-        serverProps.setProperty("common.competition.simulationBaseTime",
-            baseTime);
-      }
-      serverProps.setProperty("server.weatherService.weatherData",
-          weatherData);
-    }
+    //if (baseTime != null) {
+    //  if (bootstrapMode) {
+    //    serverProps.setProperty("common.competition.simulationBaseTime",
+    //        baseTime);
+    //  }
+    serverProps.setProperty("server.weatherService.weatherData", weatherData);
   }
 
-  private String getBaseTimeXML(String weatherData)
-  {
-    try {
-      DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder builder = domFactory.newDocumentBuilder();
-      Document doc = builder.parse(weatherData);
-      XPathFactory factory = XPathFactory.newInstance();
-      XPath xPath = factory.newXPath();
-      XPathExpression expr =
-          xPath.compile("/data/weatherReports/weatherReport/@date");
-
-      String earliest = "ZZZZ-ZZ-ZZ";
-      NodeList nodes = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-      for (int i = 0; i < nodes.getLength(); i++) {
-        String date = nodes.item(i).toString().split(" ")[0].split("\"")[1];
-        earliest = date.compareTo(earliest) < 0 ? date : earliest;
-      }
-      return earliest;
-    } catch (Exception e) {
-      log.error("Error extracting BaseTime from : " + weatherData);
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  private String getBaseTimeState(String weatherData)
-  {
-    BufferedReader br = null;
-    try {
-      br = new BufferedReader(
-          new InputStreamReader(
-              makeUrl(weatherData).openStream()));
-      String line;
-      while ((line = br.readLine()) != null) {
-        if (line.contains("withSimulationBaseTime")) {
-          String millis = line.substring(line.lastIndexOf("::") + 2);
-          Date date = new Date(Long.parseLong(millis));
-          return new SimpleDateFormat("yyyy-MM-dd").format(date.getTime());
-        }
-      }
-    } catch (Exception e) {
-      log.error("Error extracting BaseTime from : " + weatherData);
-      e.printStackTrace();
-    } finally {
-      try {
-        if (br != null) {
-          br.close();
-        }
-      } catch (IOException ex) {
-        ex.printStackTrace();
-      }
-    }
-
-    log.error("Error extracting BaseTime from : " + weatherData);
-    log.error("No 'withSimulationBaseTime' found!");
-    return null;
-  }
+//  private String getBaseTimeXML(String weatherData)
+//  {
+//    try {
+//      DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+//      DocumentBuilder builder = domFactory.newDocumentBuilder();
+//      Document doc = builder.parse(weatherData);
+//      XPathFactory factory = XPathFactory.newInstance();
+//      XPath xPath = factory.newXPath();
+//      XPathExpression expr =
+//          xPath.compile("/data/weatherReports/weatherReport/@date");
+//
+//      String earliest = "ZZZZ-ZZ-ZZ";
+//      NodeList nodes = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+//      for (int i = 0; i < nodes.getLength(); i++) {
+//        String date = nodes.item(i).toString().split(" ")[0].split("\"")[1];
+//        earliest = date.compareTo(earliest) < 0 ? date : earliest;
+//      }
+//      return earliest;
+//    } catch (Exception e) {
+//      log.error("Error extracting BaseTime from : " + weatherData);
+//      e.printStackTrace();
+//    }
+//    return null;
+//  }
+//
+//  private String getBaseTimeState(String weatherData)
+//  {
+//    BufferedReader br = null;
+//    try {
+//      br = new BufferedReader(
+//          new InputStreamReader(
+//              makeUrl(weatherData).openStream()));
+//      String line;
+//      while ((line = br.readLine()) != null) {
+//        if (line.contains("withSimulationBaseTime")) {
+//          String millis = line.substring(line.lastIndexOf("::") + 2);
+//          Date date = new Date(Long.parseLong(millis));
+//          return new SimpleDateFormat("yyyy-MM-dd").format(date.getTime());
+//        }
+//      }
+//    } catch (Exception e) {
+//      log.error("Error extracting BaseTime from : " + weatherData);
+//      e.printStackTrace();
+//    } finally {
+//      try {
+//        if (br != null) {
+//          br.close();
+//        }
+//      } catch (IOException ex) {
+//        ex.printStackTrace();
+//      }
+//    }
+//
+//    log.error("Error extracting BaseTime from : " + weatherData);
+//    log.error("No 'withSimulationBaseTime' found!");
+//    return null;
+//  }
 
   private URL makeUrl (String name) throws MalformedURLException
   {
