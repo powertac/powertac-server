@@ -44,6 +44,8 @@ import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
+import org.powertac.logtool.LogtoolContext;
+import org.powertac.logtool.ifc.Analyzer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -305,8 +307,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
           StateFileExtractor sfe = new StateFileExtractor(weatherData);
           data = sfe.extractData();
         }
-
-        if (data == null) {
+        else {
           currentMethod = "web";
           data = webRequest();
         }
@@ -522,15 +523,15 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
   }
 
-  private class EnergyReport
-  {
-  }
+  //private class EnergyReport
+  //{
+  //}
 
   private class Data
   {
     private List<WeatherReport> weatherReports = new ArrayList<WeatherReport>();
     private List<WeatherForecastPrediction> weatherForecasts = new ArrayList<WeatherForecastPrediction>();
-    private List<EnergyReport> energyReports = new ArrayList<EnergyReport>();
+    //private List<EnergyReport> energyReports = new ArrayList<EnergyReport>();
 
     public List<WeatherReport> getWeatherReports ()
     {
@@ -542,11 +543,11 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       return weatherForecasts;
     }
 
-    @SuppressWarnings("unused")
-    public List<EnergyReport> getEnergyReports ()
-    {
-      return energyReports;
-    }
+    //@SuppressWarnings("unused")
+    //public List<EnergyReport> getEnergyReports ()
+    //{
+    //  return energyReports;
+    //}
   }
 
   private class WeatherXmlExtractor
@@ -694,6 +695,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
    * and $weatherReqInterval forecasts, each with $forecastHorizon predictions
    */
   private class StateFileExtractor
+  extends LogtoolContext
+  implements Analyzer
   {
     private URL weatherSource = null;
     private String report = "org.powertac.common.WeatherReport";
