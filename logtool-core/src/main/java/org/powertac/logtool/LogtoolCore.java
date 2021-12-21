@@ -133,49 +133,90 @@ public class LogtoolCore
    */
   public String readStateLog (String source, Analyzer... tools)
   {
+    return readStateLog(getLogStream(source), tools);
+  }
+
+  public InputStream getLogStream (String source)
+  {
+    InputStream stream = null;
+    
+    // First, we figure out what kind of input we are dealing with
     if (null == source || "-".equals(source)) {
       log.info("Reading from standard input");
-      return readStateLog(System.in, tools);
+      stream = System.in;
     }
-    try {
-      URL inputURL = new URL(source);
-      log.info("Reading url " + source);
-      return readStateLog(inputURL,tools);
-    } catch (MalformedURLException x) {
-      // Continue, assuming it is a regular file
+    else {
+      try {
+        URL inputURL = new URL(source);
+        log.info("Reading url " + source);
+        stream =  inputURL.openStream();
+      } catch (MalformedURLException x) {
+        // Continue, assuming it is a regular file
+      } catch (IOException ioe) {
+        // Continue
+      }
+      try {
+        if (null == stream) {
+          log.info("Reading file " + source);
+          File inputFile = new File(source);
+          if (!inputFile.canRead()) {
+            log.error("Cannot read file {}", source);
+            return null;
+          }
+          stream = new BufferedInputStream (new FileInputStream(inputFile));
+        }
+      } catch (IOException ioe) {
+        // Continue
+      }
     }
-    log.info("Reading file " + source);
-    File inputFile = new File(source);
-    if (!inputFile.canRead()) {
-      return "Cannot read file " + source;
+    
+    // Next, we deal with the fact that the stream may be compressed, and may be an archive file
+    //try {
+    // Stack compression logic if appropriate
+    if (stream.markSupported()) {
+      // regular file
+      stream = new BufferedInputStream(stream);
     }
-    return readStateLog(inputFile, tools);
-  }
+    else {
+      // some sort of compressed file
+      try {
+        if (!stream.markSupported()) {
+          stream = new BufferedInputStream(stream);
+        }
+        stream = compressFactory.createCompressorInputStream(stream);
+      } catch (CompressorException x) {
+        // Stream not compressed (or unknown compression scheme)
+        stream = null;
+      }
 
-  /**
-   * Reads state-log from given input file using the DomainObjectReader.
-   */
-  public String readStateLog (File inputFile, Analyzer... tools)
-  {
-    try{
-      return readStateLog(new BufferedInputStream (new FileInputStream(inputFile)), tools);
-    } catch (FileNotFoundException e) {
-      return "Cannot open file " + inputFile.getPath();
+      // Stack archive logic if appropriate
+      try {
+        if (!stream.markSupported()) {
+          stream = new BufferedInputStream(stream);
+        }
+        ArchiveInputStream archiveStream = archiveFactory.createArchiveInputStream(stream);
+        ArchiveEntry entry;
+        stream = null;
+        while ((entry = archiveStream.getNextEntry()) != null) {
+          String name = entry.getName();
+          if (entry.isDirectory() || !name.startsWith("log/")
+                  || !name.endsWith(".state") || name.endsWith("init.state")) {
+            continue;
+          }
+          stream = archiveStream;
+          break;
+        }
+        if (stream == null) {
+          log.error("Cannot read archive, no valid state log entry");
+        }
+      } catch (ArchiveException x) {
+        // Stream not archived (or unknown archiving scheme)
+      }
     }
+    //}
+    return stream;
   }
-
-  /**
-   * Reads state-log from given input url using the DomainObjectReader.
-   */
-  public String readStateLog (URL inputURL, Analyzer... tools)
-  {
-    try{
-      return readStateLog(inputURL.openStream(), tools);
-    } catch (IOException e) {
-      return "Cannot open url " + inputURL.toString();
-    }
-  }
-
+  
   /**
    * Reads state-log from given input stream using the DomainObjectReader.
    */
@@ -189,57 +230,16 @@ public class LogtoolCore
     simEnd = false;
     isInterrupted = false;
 
+    // Recycle repos from previous session
+    // TODO - make sure time is set first? 
+    List<DomainRepo> repos =
+            SpringApplicationContext.listBeansOfType(DomainRepo.class);
+    for (DomainRepo repo : repos) {
+      repo.recycle();
+    }
+
+    // Now go read the state-log
     try {
-      // Stack compression logic if appropriate
-      if (inputStream.markSupported()) {
-        // regular file
-        inputStream = new BufferedInputStream(inputStream);
-      }
-      else {
-        // some sort of compressed file
-        try {
-          if (!inputStream.markSupported()) {
-            inputStream = new BufferedInputStream(inputStream);
-          }
-          inputStream = compressFactory.createCompressorInputStream(inputStream);
-        } catch (CompressorException x) {
-          // Stream not compressed (or unknown compression scheme)
-        }
-
-        // Stack archive logic if appropriate
-        try {
-          if (!inputStream.markSupported()) {
-            inputStream = new BufferedInputStream(inputStream);
-          }
-          ArchiveInputStream archiveStream = archiveFactory.createArchiveInputStream(inputStream);
-          ArchiveEntry entry;
-          inputStream = null;
-          while ((entry = archiveStream.getNextEntry()) != null) {
-            String name = entry.getName();
-            if (entry.isDirectory() || !name.startsWith("log/")
-                    || !name.endsWith(".state") || name.endsWith("init.state")) {
-              continue;
-            }
-            inputStream = archiveStream;
-            break;
-          }
-          if (inputStream == null) {
-            return "Cannot read archive, no valid state log entry";
-          }
-        } catch (ArchiveException x) {
-          // Stream not archived (or unknown archiving scheme)
-        }
-      }
-
-      // Recycle repos from previous session
-      // TODO - make sure time is set first? 
-      List<DomainRepo> repos =
-          SpringApplicationContext.listBeansOfType(DomainRepo.class);
-        for (DomainRepo repo : repos) {
-          repo.recycle();
-        }
-
-      // Now go read the state-log
       inputReader = new InputStreamReader(inputStream);
       for (Analyzer tool: tools) {
         log.info("Setting up {}", tool.getClass().getName());
@@ -248,7 +248,7 @@ public class LogtoolCore
       BufferedReader in = new BufferedReader(inputReader);
       // extract schema, hand it off to the reader
       reader.setSchema(extractSchema(in));
-      
+
       int lineNumber = 0;
       while (!simEnd) {
         synchronized(this) {
