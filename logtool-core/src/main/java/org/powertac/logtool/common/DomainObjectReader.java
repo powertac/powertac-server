@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2020 by John Collins
+ * Copyright (c) 2012-2021 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,14 @@ public class DomainObjectReader
   public DomainObjectReader ()
   {
     super();
+    reset();
+  }
+
+  /**
+   * Restores the Reader to initial conditions
+   */
+  public void reset ()
+  {
     idMap = new HashMap<Long, Object>();
 
     // Set up the interface defaults
@@ -140,6 +148,17 @@ public class DomainObjectReader
   public int getTimeslotPause ()
   {
     return timeslotPause;
+  }
+  
+  /**
+   * Adds classname to list of classes to be included by this reader
+   */
+  public void addIncludesOnly (String classname)
+  {
+    if (null == includesOnly) {
+      includesOnly = new HashSet<>();
+    }
+    includesOnly.add(classname);
   }
 
   /**

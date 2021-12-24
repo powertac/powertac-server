@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012-2021 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,8 +54,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Reads a state log file, re-creates and updates objects, calls
- * listeners.
+ * Given command-line arguments, reads a state log, re-creates and updates objects, calls
+ * message handlers in specified Analyzers.
+ * 
+ * State log can be a .state file produced by a simulation session, with or without the initial
+ * metadata block, and classnames can be abbreviated or not. Also, the file can be embedded in an
+ * archive (a tar file) and can be compressed. So a typical use is to pass it the URL for a
+ * compressed log from a tournament.
+ * 
+ * A state log can also be a source of weather and/or random-seed data for controlling variability
+ * in an experiment design. To serve that purpose, it can be useful to just get the input stream
+ * using <code>getLogStream(String source)<code>.
+ * 
+ * When reading a state log, it can be useful to filter the classes that are processed. To restrict
+ * processing to specific classes, call <code>includeClassname(String classname)</code> for each
+ * class to be processed.
+ * 
  * @author John Collins
  */
 @Service
@@ -99,6 +113,15 @@ public class LogtoolCore
   }
 
   /**
+   * Adds the given classname to the list of IncludesOnly classes in the DomainObjectReader. If this
+   * list is non-empty, then only the specified classes will be included in the state log scan.
+   */
+  public void includeClassname (String classname)
+  {
+    reader.addIncludesOnly(classname);
+  }
+
+  /**
    * Processes a command line, providing a state-log file from the local
    * filesystem, or a remote URL.
    */
@@ -124,6 +147,7 @@ public class LogtoolCore
     }
 
     recycleRepos();
+    reader.reset();
 
     return readStateLog(source, tools);
   }
@@ -139,6 +163,17 @@ public class LogtoolCore
         repo.recycle();
       }
   }
+  
+  /**
+   * Resets the DomainObjectReader, removing filtering criteria. If scanning a state log twice
+   * in a single session, it is almost certainly necessary to call this before each scan. For example,
+   * an experiment may specify the same state log for both RandomSeeds and for Weather data, in which
+   * case two separate scans will be necessary.
+   */
+  public void resetDOR ()
+  {
+    reader.reset();
+  }
 
   /**
    * Reads the given state-log source using the DomainObjectReader. Specify the
@@ -150,7 +185,12 @@ public class LogtoolCore
     return readStateLog(getLogStream(source), tools);
   }
 
-  public InputStream getLogStream (String source)
+  /**
+   * Opens the state log file, uncompressing it and extracting it from an archive as needed.
+   * Before returning, the schema (if any) is read and applied to the DomainObjectReader and
+   * the stream is positioned just past the schema block
+   */
+  public BufferedReader getLogStream (String source)
   {
     InputStream stream = null;
     
@@ -229,15 +269,23 @@ public class LogtoolCore
         // Stream not archived (or unknown archiving scheme)
       }
     }
-    return stream;
+    Reader inputReader = new InputStreamReader(stream);
+    BufferedReader in = new BufferedReader(inputReader);
+    // extract schema, hand it off to the reader
+    try {
+      reader.setSchema(extractSchema(in));
+    } catch (IOException ioe) {
+      log.error("IOException reading schema {}", ioe.getCause());
+      return null;
+    }
+    return in;
   }
   
   /**
    * Reads state-log from given input stream using the DomainObjectReader.
    */
-  public String readStateLog (InputStream inputStream, Analyzer... tools)
+  public String readStateLog (BufferedReader in, Analyzer... tools)
   {
-    Reader inputReader;
     String line = null;
 
     log.info("Reading state log from stream for {}",
@@ -247,22 +295,18 @@ public class LogtoolCore
 
     // Recycle repos from previous session
     // TODO - make sure time is set first? 
-    List<DomainRepo> repos =
-            SpringApplicationContext.listBeansOfType(DomainRepo.class);
-    for (DomainRepo repo : repos) {
-      repo.recycle();
-    }
+    //List<DomainRepo> repos =
+    //        SpringApplicationContext.listBeansOfType(DomainRepo.class);
+    //for (DomainRepo repo : repos) {
+    //  repo.recycle();
+    //}
 
     // Now go read the state-log
     try {
-      inputReader = new InputStreamReader(inputStream);
       for (Analyzer tool: tools) {
         log.info("Setting up {}", tool.getClass().getName());
         tool.setup();
       }
-      BufferedReader in = new BufferedReader(inputReader);
-      // extract schema, hand it off to the reader
-      reader.setSchema(extractSchema(in));
 
       int lineNumber = 0;
       while (!simEnd) {

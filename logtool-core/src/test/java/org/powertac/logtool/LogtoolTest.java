@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author
+ * Copyright (c) 2021 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,16 @@
  */
 package org.powertac.logtool;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.powertac.logtool.common.DomainObjectReader;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * TODO this does nothing?
@@ -25,15 +33,46 @@ import org.junit.jupiter.api.Test;
  */
 public class LogtoolTest
 {
-  //private Instant baseTime;
+  private LogtoolCore uut = new LogtoolCore();
+  private DomainObjectReader dor;
+  private String relativeArtifactPath = "src/test/resources/artifacts/";
 
   @BeforeEach
   public void setUp () throws Exception
   {
+    dor = mock(DomainObjectReader.class);
+    ReflectionTestUtils.setField(uut, "reader", dor);
   }
   
-  @Test
-  public void testSomething ()
+  private String getAbsoluteArtifactPath ()
   {
+    Path currentRelativePath = Paths.get("");
+    return currentRelativePath.toAbsolutePath().toString() + relativeArtifactPath;    
+  }
+
+  @Test
+  public void findNMDfile ()
+  {
+    BufferedReader rdr = uut.getLogStream(relativeArtifactPath + "nmd.state");
+    assertNotNull(rdr, "found the file");
+    try {
+      String line = rdr.readLine();
+      assertTrue(line.startsWith("4415:"));
+    } catch (IOException ioe) {
+      fail("could not read nmd.state -- {}", ioe.getCause());
+    }
+  }
+
+  @Test
+  public void findMDfile ()
+  {
+    BufferedReader rdr = uut.getLogStream(relativeArtifactPath + "md.state");
+    assertNotNull(rdr, "found the file");
+    try {
+      String line = rdr.readLine();
+      assertTrue(line.endsWith("finals_2021_8"));
+    } catch (IOException ioe) {
+      fail("could not read md.state -- {}", ioe.getCause());
+    }
   }
 }
