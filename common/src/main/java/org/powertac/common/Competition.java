@@ -169,7 +169,12 @@ public class Competition //implements Serializable
   
   public static Competition newInstance (String name)
   {
-    Competition result = new Competition(name);
+    return newInstance(name, true);
+  }
+  
+  public static Competition newInstance (String name, boolean singleton)
+  {
+    Competition result = new Competition(name, singleton);
     //theCompetition = result;
     return result;
   }
@@ -194,16 +199,17 @@ public class Competition //implements Serializable
   }
   
   /**
-   * Constructor replaces current competition instance. It is up to the
+   * private constructor optionally replaces current competition instance. It is up to the
    * caller to ensure that this is done at the correct time.
    */
-  private Competition (String name)
+  private Competition (String name, boolean singleton)
   {
     super();
     this.name = name;
     brokers = new ArrayList<String>();
     customers = new ArrayList<CustomerInfo>();
-    theCompetition = this;
+    if (singleton)
+      theCompetition = this;
   }
 
   public long getId ()

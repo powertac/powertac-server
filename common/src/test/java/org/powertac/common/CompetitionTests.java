@@ -45,6 +45,18 @@ public class CompetitionTests
   }
 
   @Test
+  public void testNonSingletonInstance ()
+  {
+    Competition c1 = Competition.newInstance("c1");
+    assertNotNull(c1, "c1 created");
+    assertEquals(c1, Competition.currentCompetition(), "c1 retreival");
+    assertEquals("c1", c1.getName(), "name property");
+    Competition c2 = Competition.newInstance("c2", false);
+    assertEquals(c1, Competition.currentCompetition(), "c1 retreival");
+    assertEquals("c2", c2.getName(), "name property");
+  }
+
+  @Test
   public void testSetDescription ()
   {
     Competition c1 = Competition.newInstance("c1");
