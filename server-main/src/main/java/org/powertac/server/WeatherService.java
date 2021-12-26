@@ -696,7 +696,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
    */
   private class StateFileExtractor
   extends LogtoolContext
-  implements Analyzer
   {
     private URL weatherSource = null;
     private String report = "org.powertac.common.WeatherReport";

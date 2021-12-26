@@ -203,10 +203,12 @@ public class LogtoolCore
       try {
         URL inputURL = new URL(source);
         log.info("Reading url " + source);
-        stream =  inputURL.openStream();
+        stream = inputURL.openStream();
       } catch (MalformedURLException x) {
+        stream = null;
         // Continue, assuming it is a regular file
       } catch (IOException ioe) {
+        stream = null;
         // Continue
       }
       try {
@@ -217,7 +219,7 @@ public class LogtoolCore
             log.error("Cannot read file {}", source);
             return null;
           }
-          stream = new BufferedInputStream (new FileInputStream(inputFile));
+          stream = new FileInputStream(inputFile);
         }
       } catch (IOException ioe) {
         // Continue
@@ -227,12 +229,12 @@ public class LogtoolCore
     // Next, we deal with the fact that the stream may be compressed, and may be an archive file
     //try {
     // Stack compression logic if appropriate
-    if (stream.markSupported()) {
+    //if (stream.markSupported()) {
       // regular file
-      stream = new BufferedInputStream(stream);
-    }
-    else {
-      // some sort of compressed file
+      //stream = new BufferedInputStream(stream);
+    //}
+    //else {
+      // might be some sort of compressed file
       try {
         if (!stream.markSupported()) {
           stream = new BufferedInputStream(stream);
@@ -240,7 +242,7 @@ public class LogtoolCore
         stream = compressFactory.createCompressorInputStream(stream);
       } catch (CompressorException x) {
         // Stream not compressed (or unknown compression scheme)
-        stream = null;
+        //stream = null;
       }
 
       // Stack archive logic if appropriate
@@ -250,10 +252,10 @@ public class LogtoolCore
         }
         ArchiveInputStream archiveStream = archiveFactory.createArchiveInputStream(stream);
         ArchiveEntry entry;
-        stream = null;
+        //stream = null;
         while ((entry = archiveStream.getNextEntry()) != null) {
           String name = entry.getName();
-          if (entry.isDirectory() || !name.startsWith("log/")
+          if (entry.isDirectory() || !name.contains("log/")
                   || !name.endsWith(".state") || name.endsWith("init.state")) {
             continue;
           }
@@ -268,7 +270,7 @@ public class LogtoolCore
       } catch (ArchiveException x) {
         // Stream not archived (or unknown archiving scheme)
       }
-    }
+    //}
     Reader inputReader = new InputStreamReader(stream);
     BufferedReader in = new BufferedReader(inputReader);
     // extract schema, hand it off to the reader

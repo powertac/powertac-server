@@ -33,26 +33,32 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 public class LogtoolTest
 {
-  private LogtoolCore uut = new LogtoolCore();
+  private LogtoolCore uut;
   private DomainObjectReader dor;
   private String relativeArtifactPath = "src/test/resources/artifacts/";
 
   @BeforeEach
   public void setUp () throws Exception
   {
-    dor = mock(DomainObjectReader.class);
-    ReflectionTestUtils.setField(uut, "reader", dor);
   }
-  
+
   private String getAbsoluteArtifactPath ()
   {
     Path currentRelativePath = Paths.get("");
-    return currentRelativePath.toAbsolutePath().toString() + relativeArtifactPath;    
+    return currentRelativePath.toAbsolutePath().toString() + "/" + relativeArtifactPath;    
+  }
+
+  private void firstInit ()
+  {
+    dor = mock(DomainObjectReader.class);
+    uut = new LogtoolCore();
+    ReflectionTestUtils.setField(uut, "reader", dor);    
   }
 
   @Test
   public void findNMDfile ()
   {
+    firstInit();
     BufferedReader rdr = uut.getLogStream(relativeArtifactPath + "nmd.state");
     assertNotNull(rdr, "found the file");
     try {
@@ -66,13 +72,87 @@ public class LogtoolTest
   @Test
   public void findMDfile ()
   {
-    BufferedReader rdr = uut.getLogStream(relativeArtifactPath + "md.state");
-    assertNotNull(rdr, "found the file");
+    firstInit();
+    String path = getAbsoluteArtifactPath() + "md.state";
+    //System.out.println(path);
+    BufferedReader rdr = uut.getLogStream(path);
+    assertNotNull(rdr, "found the file with absolute path");
     try {
       String line = rdr.readLine();
       assertTrue(line.endsWith("finals_2021_8"));
     } catch (IOException ioe) {
       fail("could not read md.state -- {}", ioe.getCause());
     }
+  }
+
+  @Test
+  public void findMDAfile ()
+  {
+    firstInit();
+    BufferedReader rdr = uut.getLogStream("file://" + getAbsoluteArtifactPath() + "/" + "md-abbr.state");
+    assertNotNull(rdr, "found the file with URL");
+    try {
+      String line = rdr.readLine();
+      assertTrue(line.endsWith("i1110-b1"));
+    } catch (IOException ioe) {
+      fail("could not read md-abbr.state -- {}", ioe.getCause());
+    }
+  }
+
+  @Test
+  public void findCompressedfile ()
+  {
+    firstInit();
+    BufferedReader rdr = uut.getLogStream("file://" + getAbsoluteArtifactPath() + "/" + "md-abbr.state.gz");
+    assertNotNull(rdr, "found compressed file with URL");
+    try {
+      String line = rdr.readLine();
+      assertTrue(line.endsWith("i1110-b1"));
+    } catch (IOException ioe) {
+      fail("could not read md-abbr.state -- {}", ioe.getCause());
+    }
+  }
+
+  @Test
+  public void findFromArchive ()
+  {
+    firstInit();
+    BufferedReader rdr = uut.getLogStream(relativeArtifactPath + "i1110.tar");
+    assertNotNull(rdr, "found tar file");
+    try {
+      String line = rdr.readLine();
+      assertTrue(line.endsWith("i1110-b1"));
+    } catch (IOException ioe) {
+      fail("could not read md-abbr.state -- {}", ioe.getCause());
+    }    
+  }
+
+  @Test
+  public void findFromCompressedArchive ()
+  {
+    firstInit();
+    BufferedReader rdr = uut.getLogStream(relativeArtifactPath + "i1110.tgz");
+    assertNotNull(rdr, "found compressed tar file");
+    try {
+      String line = rdr.readLine();
+      assertTrue(line.endsWith("i1110-b1"));
+    } catch (IOException ioe) {
+      fail("could not read md-abbr.state -- {}", ioe.getCause());
+    }    
+  }
+  
+  // ---------------------------------------------------------
+
+  private void secondInit ()
+  {
+    dor = new DomainObjectReader();
+    uut = new LogtoolCore();
+    ReflectionTestUtils.setField(uut, "reader", dor);    
+  }
+  
+  @Test
+  public void xyz ()
+  {
+    secondInit();
   }
 }
