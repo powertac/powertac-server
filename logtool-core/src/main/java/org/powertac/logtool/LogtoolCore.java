@@ -225,8 +225,15 @@ public class LogtoolCore
         // Continue
       }
     }
-    
-    // Next, we deal with the fact that the stream may be compressed, and may be an archive file
+    return getLogStream(stream);
+  }
+
+  /**
+   * Pulls apart an input stream if needed.
+   */
+  public BufferedReader getLogStream (InputStream stream)
+  {
+    // Here we deal with the fact that the stream may be compressed, and may be an archive file
     //try {
     // Stack compression logic if appropriate
     //if (stream.markSupported()) {
@@ -281,6 +288,14 @@ public class LogtoolCore
       return null;
     }
     return in;
+  }
+
+  /**
+   * Reads a state log that may be compressed and/or archived
+   */
+  public String readStateLog (InputStream stream, Analyzer...tools)
+  {
+    return readStateLog(getLogStream(stream), tools);
   }
   
   /**
