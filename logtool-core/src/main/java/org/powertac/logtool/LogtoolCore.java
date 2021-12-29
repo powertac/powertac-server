@@ -81,7 +81,7 @@ public class LogtoolCore
   private DomainObjectReader reader;
   
   @Autowired
-  private DomainBuilder builder;
+  private DomainBuilder domainBuilder;
 
   private boolean simEnd = false;
   private boolean isInterrupted = false;
@@ -101,7 +101,7 @@ public class LogtoolCore
   public void postConstruct() {
     reader.registerNewObjectListener(new SimStartHandler(), SimStart.class);
     reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
-    builder.setup();
+    domainBuilder.setup();
   }
 
   /**
@@ -168,11 +168,17 @@ public class LogtoolCore
    * Resets the DomainObjectReader, removing filtering criteria. If scanning a state log twice
    * in a single session, it is almost certainly necessary to call this before each scan. For example,
    * an experiment may specify the same state log for both RandomSeeds and for Weather data, in which
-   * case two separate scans will be necessary.
+   * case two separate scans will be necessary. If <code>instantiate</code> is <code>false</code>, then
+   * the reader will not instantiate objects or set the time in the current running environment. This
+   * is needed if the purpose of reading a log is to extract weather or random-seed data in an
+   * experiment environment.
    */
-  public void resetDOR ()
+  public void resetDOR (boolean instantiate)
   {
     reader.reset();
+    if (!instantiate) {
+      reader.setInstantiate(instantiate);
+    }
   }
 
   /**
@@ -341,7 +347,7 @@ public class LogtoolCore
         lineNumber += 1;
         reader.readObject(line);
       }
-      builder.report();
+      domainBuilder.report();
       for (Analyzer tool: tools) {
         tool.report();
       }

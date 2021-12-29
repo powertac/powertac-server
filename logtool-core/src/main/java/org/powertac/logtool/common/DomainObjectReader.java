@@ -81,6 +81,9 @@ public class DomainObjectReader
   //per-timeslot pause in msec"
   private int timeslotPause = 0;
 
+  // If false, then don't instantiate objects in the current environment
+  private boolean instantiate = true;
+
   /**
    * Default constructor
    */
@@ -159,6 +162,20 @@ public class DomainObjectReader
       includesOnly = new HashSet<>();
     }
     includesOnly.add(classname);
+  }
+
+  /**
+   * Sets the instantiation flag. If true, then objects read from the log are instantiated in the
+   * current running environment. This is the normal case for re-running games.
+   */
+  public void setInstantiate (boolean flag)
+  {
+    instantiate = flag;
+  }
+
+  public boolean getInstantiate ()
+  {
+    return instantiate;
   }
 
   /**
@@ -264,7 +281,7 @@ public class DomainObjectReader
     log.debug("methodName=" + methodName);
     if (methodName.equals("new")) {
       // maybe pause before handling TimeslotUpdate msg
-      if (clazz == TimeslotUpdate.class && timeslotPause > 0) {
+      if (instantiate && clazz == TimeslotUpdate.class && timeslotPause > 0) {
         try {
           Thread.sleep(timeslotPause);
         }
@@ -299,7 +316,8 @@ public class DomainObjectReader
       }
       return newInst;      
     }
-    else {
+    else if (instantiate) {
+      // don't call methods if we are not instantiating objects in the current environment
       // other method calls -- object should already exist
       Object inst = idMap.get(id);
       if (null == inst) {
@@ -353,6 +371,8 @@ public class DomainObjectReader
   
   private void updateTime (String time)
   {
+    if (!instantiate)
+      return;
     Instant value = Instant.parse(time);
     timeService.setCurrentTime(value);
     log.debug("time set to " + time);
