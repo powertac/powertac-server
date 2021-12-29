@@ -110,21 +110,21 @@ public class RandomSeedRepoTests
     randomSeedRepo.recycle();
     assertEquals(0, randomSeedRepo.size(), "empty again");    
   }
-
-  @Test
-  public void testLoadRepo ()
-  {
-    try {
-      randomSeedRepo.loadSeeds(new File("src/test/resources/randomSeedTest.state"));
-    }
-    catch (Exception fnf) {
-      fail(fnf.toString());
-    }
-    assertEquals(0, randomSeedRepo.size(), "two entries");
-    RandomSeed rs1 = randomSeedRepo.getRandomSeed("Foo", 3, "test");
-    assertEquals(-7938709514410200953l, rs1.getValue(), "correct seed value 1");
-    RandomSeed rs2 = randomSeedRepo.getRandomSeed("Bar", 42, "more test");
-    assertEquals(2904941806851623619l, rs2.getValue(), "correct seed value 2");
-    assertEquals(2, randomSeedRepo.size(), "still two entries");
-  }
+//
+//  @Test
+//  public void testLoadRepo ()
+//  {
+//    try {
+//      randomSeedRepo.loadSeeds(new File("src/test/resources/randomSeedTest.state"));
+//    }
+//    catch (Exception fnf) {
+//      fail(fnf.toString());
+//    }
+//    assertEquals(0, randomSeedRepo.size(), "two entries");
+//    RandomSeed rs1 = randomSeedRepo.getRandomSeed("Foo", 3, "test");
+//    assertEquals(-7938709514410200953l, rs1.getValue(), "correct seed value 1");
+//    RandomSeed rs2 = randomSeedRepo.getRandomSeed("Bar", 42, "more test");
+//    assertEquals(2904941806851623619l, rs2.getValue(), "correct seed value 2");
+//    assertEquals(2, randomSeedRepo.size(), "still two entries");
+//  }
 }
