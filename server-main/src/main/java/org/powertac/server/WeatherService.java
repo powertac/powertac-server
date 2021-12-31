@@ -388,11 +388,15 @@ public class WeatherService extends TimeslotPhaseProcessor implements
         xstream.registerConverter(new WeatherForecastConverter());
 
         // Unmarshall the xml input and place it into data container object
+        try {
         if (input.getClass().equals(BufferedReader.class)) {
           data = (Data) xstream.fromXML((BufferedReader) input);
         }
         else if (input.getClass().equals(String.class)) {
           data = (Data) xstream.fromXML((String) input);
+        }
+        } catch (Exception ex) {
+          log.error("Exception {} converting input from {}", ex.toString(), serverUrl);
         }
 
         if (data != null && (data.weatherReports.size() != weatherReqInterval ||
@@ -523,15 +527,16 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
   }
 
-  //private class EnergyReport
-  //{
-  //}
+  
+  private class EnergyReport
+  {
+  }
 
   private class Data
   {
     private List<WeatherReport> weatherReports = new ArrayList<WeatherReport>();
     private List<WeatherForecastPrediction> weatherForecasts = new ArrayList<WeatherForecastPrediction>();
-    //private List<EnergyReport> energyReports = new ArrayList<EnergyReport>();
+    private List<EnergyReport> energyReports = new ArrayList<EnergyReport>();
 
     public List<WeatherReport> getWeatherReports ()
     {
@@ -543,11 +548,11 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       return weatherForecasts;
     }
 
-    //@SuppressWarnings("unused")
-    //public List<EnergyReport> getEnergyReports ()
-    //{
-    //  return energyReports;
-    //}
+    @SuppressWarnings("unused")
+    public List<EnergyReport> getEnergyReports ()
+    {
+      return energyReports;
+    }
   }
 
   private class WeatherXmlExtractor

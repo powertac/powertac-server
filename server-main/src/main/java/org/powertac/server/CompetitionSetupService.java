@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.IdGenerator;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
@@ -35,7 +36,12 @@ import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.logtool.LogtoolContext;
+import org.powertac.logtool.LogtoolCore;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -77,7 +83,7 @@ public class CompetitionSetupService
   implements CompetitionSetup//, ApplicationContextAware
 {
   static private Logger log = LogManager.getLogger(CompetitionSetupService.class);
-  //static private ApplicationContext context;
+  static private ApplicationContext context;
 
   @Autowired
   private CompetitionControlService cc;
@@ -90,6 +96,9 @@ public class CompetitionSetupService
 
   @Autowired
   private BootstrapDataRepo bootstrapDataRepo;
+
+  //@Autowired
+  private LogtoolCore logtoolCore;
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
@@ -111,6 +120,7 @@ public class CompetitionSetupService
 
   private Competition competition;
   //private String sessionPrefix = "game-";
+  private SeedLoader seedLoader;
   private int sessionCount = 0;
   private String gameId = null;
   private URL controllerURL;
@@ -294,9 +304,7 @@ public class CompetitionSetupService
 
       // load random seeds if requested
       seedSource = seedData;
-
-      // Set min- and expectedTsCount if seed-data is given
-      loadTimeslotCountsMaybe();
+      loadSeedsMaybe();
 
       // set the logfile suffix
       ensureGameId(game);
@@ -377,9 +385,7 @@ public class CompetitionSetupService
       
       // load random seeds if requested
       seedSource = seedData;
-
-      // Set min- and expectedTsCount if seed-data is given
-      loadTimeslotCountsMaybe();
+      loadSeedsMaybe();
 
       // set the logfile suffix
       ensureGameId(game);
@@ -450,47 +456,17 @@ public class CompetitionSetupService
     //log.info("Server version {}", System.getProperty("server.pomId"));
   }
 
-  private void loadTimeslotCountsMaybe ()
+  private void loadTimeslotCounts (Competition comp)
   {
     if (seedSource == null)
+      // should not happen
       return;
 
-    log.info("Getting minimumTimeslotCount and expectedTimeslotCount from "
-        + seedSource);
-
-    int minCount = -1;
-    int expCount = -1;
-    try {
-      BufferedReader br = new BufferedReader(new FileReader(seedSource));
-      String line;
-      while((line = br.readLine()) != null) {
-        if (line.contains("withMinimumTimeslotCount")) {
-          String[] s = line.split("::");
-          minCount = Integer.valueOf(s[s.length-1]);
-        }
-        if (line.contains("withExpectedTimeslotCount")) {
-          String[] s = line.split("::");
-          expCount = Integer.valueOf(s[s.length-1]);
-        }
-
-        if (minCount != -1 && expCount != -1) {
-          break;
-        }
-      }
-      br.close();
-      if (minCount != -1) {
-        serverProps.setProperty("common.competition.minimumTimeslotCount",
-            minCount);
-      }
-      if (expCount != -1) {
-        serverProps.setProperty("common.competition.expectedTimeslotCount",
-            expCount);
-      }
-    }
-    catch(IOException e) {
-      log.error("Cannot load minimumTimeslotCount and "
-          + "expectedTimeslotCount from " + seedSource);
-    }
+    log.info("Getting minimumTimeslotCount and expectedTimeslotCount from Competition");
+    serverProps.setProperty("common.competition.minimumTimeslotCount",
+                            comp.getMinimumTimeslotCount());
+    serverProps.setProperty("common.competition.expectedTimeslotCount",
+                            comp.getExpectedTimeslotCount()); 
   }
   
   private void loadSeedsMaybe ()
@@ -498,14 +474,8 @@ public class CompetitionSetupService
     if (seedSource == null)
       return;
     log.info("Reading random seeds from " + seedSource);
-    InputStreamReader stream;
-    try {
-      stream = new InputStreamReader(makeUrl(seedSource).openStream());
-      randomSeedRepo.loadSeeds(stream);
-    }
-    catch (Exception e) {
-      log.error("Cannot load seeds from " + seedSource);
-    }
+    seedLoader = new SeedLoader();
+    seedLoader.loadSeeds();
   }
 
   // #1106 -- don't load base time from weather data
@@ -901,6 +871,38 @@ public class CompetitionSetupService
       }
     } catch (Exception e) {
       log.error("Failed to load properties from manifest");
+    }
+  }
+  
+  class SeedLoader extends LogtoolContext
+  {
+    // Default constructor
+    SeedLoader()
+    {
+      super();
+    }
+    
+    void loadSeeds ()
+    {
+      logtoolCore.resetDOR(false);
+      logtoolCore.includeClassname("org.powertac.common.RandomSeed");
+      logtoolCore.includeClassname("org.powertac.common.Competition");
+      registerMessageHandlers();
+      logtoolCore.readStateLog(seedSource, null);
+    }
+    
+    //logtool message handlers
+    // This one handles the Competition instance in the log, but is not supposed to replace the
+    // Competition instance for the current session
+    public void handleMessage (Competition competition)
+    {
+      loadTimeslotCounts(competition);
+    }
+
+    // Handle a RandomSeed record
+    public void handleMessage (RandomSeed rs)
+    {
+      randomSeedRepo.restoreRandomSeed(rs);
     }
   }
 }

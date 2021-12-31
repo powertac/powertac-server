@@ -136,7 +136,7 @@ public class LogtoolCore
     for (int i = 1; i < args.length; i++) {
       try {
         Class<?> toolClass = Class.forName(args[i]);
-        tools[i - 1] = (Analyzer) toolClass.newInstance();
+        tools[i - 1] = (Analyzer) toolClass.getDeclaredConstructor().newInstance();
       }
       catch (ClassNotFoundException e1) {
         return "Cannot find analyzer class " + args[i];

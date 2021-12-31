@@ -74,7 +74,7 @@ public abstract class LogtoolContext
   /**
    * Finds all the handleMessage() methods and registers them.
    */
-  private void registerMessageHandlers ()
+  protected void registerMessageHandlers ()
   {
     Class<?> thingClass = this.getClass();
     log.info("Analyzing class {}", thingClass.getName());
