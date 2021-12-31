@@ -212,6 +212,12 @@ public class Competition //implements Serializable
       theCompetition = this;
   }
 
+  // Original constructor
+  private Competition (String name)
+  {
+    this(name, true);
+  }
+
   public long getId ()
   {
     return id;
