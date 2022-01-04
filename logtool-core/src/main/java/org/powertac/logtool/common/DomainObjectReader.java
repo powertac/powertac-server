@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
@@ -154,13 +155,16 @@ public class DomainObjectReader
   }
   
   /**
-   * Adds classname to list of classes to be included by this reader
+   * Adds classname to list of classes to be included by this reader, after first ensuring
+   * that it's not in the ignores list
    */
   public void addIncludesOnly (String classname)
   {
     if (null == includesOnly) {
       includesOnly = new HashSet<>();
     }
+    if (ignores.contains(classname))
+      ignores.remove(classname);
     includesOnly.add(classname);
   }
 
@@ -279,7 +283,9 @@ public class DomainObjectReader
     }
     String methodName = tokens[2];
     log.debug("methodName=" + methodName);
-    if (methodName.equals("new")) {
+    //hack to fix Issue #1106
+    if (methodName.equals("new")
+            || (clazz == RandomSeed.class && methodName.equals("init"))) {
       // maybe pause before handling TimeslotUpdate msg
       if (instantiate && clazz == TimeslotUpdate.class && timeslotPause > 0) {
         try {
@@ -316,7 +322,7 @@ public class DomainObjectReader
       }
       return newInst;      
     }
-    else if (instantiate) {
+    else {
       // don't call methods if we are not instantiating objects in the current environment
       // other method calls -- object should already exist
       Object inst = idMap.get(id);

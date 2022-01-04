@@ -527,7 +527,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
   }
 
-  
+  // Deprecated, but cannot be deleted until tests and test data are fixed.
   private class EnergyReport
   {
   }

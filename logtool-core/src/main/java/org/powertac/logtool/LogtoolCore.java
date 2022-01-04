@@ -152,16 +152,21 @@ public class LogtoolCore
     return readStateLog(source, tools);
   }
 
+  public DomainObjectReader getDOR ()
+  {
+    return reader;
+  }
+
   public void recycleRepos ()
   {
     // Only do this if started from the command line?
     // Recycle repos from previous session
     // TODO - make sure time is set first?
     List<DomainRepo> repos =
-        SpringApplicationContext.listBeansOfType(DomainRepo.class);
-      for (DomainRepo repo : repos) {
-        repo.recycle();
-      }
+            SpringApplicationContext.listBeansOfType(DomainRepo.class);
+    for (DomainRepo repo : repos) {
+      repo.recycle();
+    }
   }
   
   /**

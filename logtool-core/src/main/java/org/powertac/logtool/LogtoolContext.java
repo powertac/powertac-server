@@ -40,9 +40,9 @@ public abstract class LogtoolContext
 {
   static Logger log = LogManager.getLogger(LogtoolContext.class);
 
-  ApplicationContext context;
-  LogtoolCore core;
-  DomainObjectReader dor;
+  protected ApplicationContext context;
+  protected LogtoolCore core;
+  protected DomainObjectReader dor;
   
   // Common number formatting in subclasses
   protected DecimalFormat df;

@@ -38,6 +38,8 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.logtool.LogtoolContext;
 import org.powertac.logtool.LogtoolCore;
+import org.powertac.logtool.common.NewObjectListener;
+import org.powertac.logtool.ifc.Analyzer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -469,12 +471,13 @@ public class CompetitionSetupService
                             comp.getExpectedTimeslotCount()); 
   }
   
-  private void loadSeedsMaybe ()
+  // package visibility to support testing
+  void loadSeedsMaybe ()
   {
     if (seedSource == null)
       return;
     log.info("Reading random seeds from " + seedSource);
-    seedLoader = new SeedLoader();
+    seedLoader = new SeedLoader(seedSource);
     seedLoader.loadSeeds();
   }
 
@@ -644,7 +647,6 @@ public class CompetitionSetupService
     catch (Exception e) {
       e.printStackTrace();
     }
-
     return doc;
   }
 
@@ -873,13 +875,30 @@ public class CompetitionSetupService
       log.error("Failed to load properties from manifest");
     }
   }
-  
-  class SeedLoader extends LogtoolContext
+
+  // Test support
+  String getSeedSource ()
   {
-    // Default constructor
-    SeedLoader()
+    return seedSource;
+  }
+  
+  void setSeedSource (String source)
+  {
+    seedSource = source;
+  }
+
+  public class SeedLoader extends LogtoolContext implements Analyzer
+  {
+    private String source;
+    private Competition tempCompetition;
+
+    // Constructor gets the seedSource info
+    public SeedLoader(String seedSource)
     {
       super();
+      source = seedSource;
+      this.core = logtoolCore;
+      this.dor = logtoolCore.getDOR();
     }
     
     void loadSeeds ()
@@ -888,21 +907,34 @@ public class CompetitionSetupService
       logtoolCore.includeClassname("org.powertac.common.RandomSeed");
       logtoolCore.includeClassname("org.powertac.common.Competition");
       registerMessageHandlers();
-      logtoolCore.readStateLog(seedSource, null);
+      Analyzer[] tools = new Analyzer[1];
+      tools[0] = this;
+      logtoolCore.readStateLog(source, tools);
     }
     
     //logtool message handlers
     // This one handles the Competition instance in the log, but is not supposed to replace the
     // Competition instance for the current session
-    public void handleMessage (Competition competition)
+    public void handleMessage (Competition thing)
     {
-      loadTimeslotCounts(competition);
+      tempCompetition = thing;
     }
 
-    // Handle a RandomSeed record
-    public void handleMessage (RandomSeed rs)
+    public void handleMessage(RandomSeed thing)
     {
-      randomSeedRepo.restoreRandomSeed(rs);
+      randomSeedRepo.restoreRandomSeed(thing);
+    }
+
+    @Override
+    public void setup () throws FileNotFoundException
+    {
+      // Not needed      
+    }
+
+    @Override
+    public void report ()
+    {
+      loadTimeslotCounts(tempCompetition);
     }
   }
 }
