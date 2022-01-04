@@ -54,6 +54,14 @@ public class MessageDispatcher
       // see if we can find the method directly
       Method method = target.getClass().getMethod(methodName, classes);
       log.debug("found method " + method);
+      if (!method.canAccess(target))
+      {
+        log.debug("Making {} accessible", methodName);
+        if (!method.trySetAccessible())
+        {
+          log.error("Unable to make method {} accessible", methodName);
+        }
+      }
       result = method.invoke(target, args);
     }
     catch (NoSuchMethodException nsm) {
