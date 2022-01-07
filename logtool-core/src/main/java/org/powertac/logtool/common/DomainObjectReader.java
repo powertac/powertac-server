@@ -162,6 +162,7 @@ public class DomainObjectReader
   {
     if (null == includesOnly) {
       includesOnly = new HashSet<>();
+      includesOnly.add("org.powertac.common.msg.SimEnd");
     }
     if (ignores.contains(classname))
       ignores.remove(classname);

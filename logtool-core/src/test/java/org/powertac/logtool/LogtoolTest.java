@@ -17,13 +17,22 @@ package org.powertac.logtool;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.powertac.common.MarketPosition;
+import org.powertac.common.Order;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.TariffTransaction;
+import org.powertac.logtool.common.DomainBuilder;
 import org.powertac.logtool.common.DomainObjectReader;
+import org.powertac.logtool.ifc.Analyzer;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -50,9 +59,11 @@ public class LogtoolTest
 
   private void firstInit ()
   {
-    dor = mock(DomainObjectReader.class);
     uut = new LogtoolCore();
+    dor = mock(DomainObjectReader.class);
     ReflectionTestUtils.setField(uut, "reader", dor);    
+    DomainBuilder db = mock(DomainBuilder.class);
+    ReflectionTestUtils.setField(uut, "domainBuilder", db);
   }
 
   @Test
@@ -145,14 +156,85 @@ public class LogtoolTest
 
   private void secondInit ()
   {
-    dor = new DomainObjectReader();
     uut = new LogtoolCore();
-    ReflectionTestUtils.setField(uut, "reader", dor);    
+    dor = new DomainObjectReader();
+    ReflectionTestUtils.setField(uut, "reader", dor);
+    DomainBuilder db = mock(DomainBuilder.class);
+    ReflectionTestUtils.setField(uut, "domainBuilder", db);
+    uut.resetDOR(false);
   }
-  
+
+  // repository for log data
+  List<RandomSeed> randomSeedList;
+  List<MarketPosition> mpList;
+  List<Order> orderList;
+
   @Test
-  public void xyz ()
+  public void testReadLog ()
   {
     secondInit();
+    TestAnalyzer ta = new TestAnalyzer(getAbsoluteArtifactPath() + "md.state");
+    ta.loadData();
+    assertEquals(7, randomSeedList.size());
+    assertEquals(1874, randomSeedList.get(1).getId());
+    assertEquals(1, mpList.size());
+    assertEquals(1, orderList.size());
+  }
+
+  class TestAnalyzer extends LogtoolContext implements Analyzer
+  {
+    String filename;
+
+    TestAnalyzer (String log)
+    {
+      filename = log;
+      this.core = uut;
+      this.dor = uut.getDOR();
+    }
+
+    @Override
+    public void setup () throws FileNotFoundException
+    {
+      randomSeedList = new ArrayList<>();
+      //ttList = new ArrayList<>();
+      mpList = new ArrayList<>();
+      orderList = new ArrayList<>();
+    }
+
+    void loadData ()
+    {
+      uut.includeClassname("org.powertac.common.Broker");
+      uut.includeClassname("org.powertac.du.DefaultBroker");
+      uut.includeClassname("org.powertac.common.RandomSeed");      //uut.includeClassname("org.powertac.common.TariffTransaction");
+      uut.includeClassname("org.powertac.common.MarketPosition");
+      uut.includeClassname("org.powertac.common.Order");
+      registerMessageHandlers();
+      Analyzer[] tools = new Analyzer[1];
+      tools[0] = this;
+      uut.readStateLog(filename, tools);
+      System.out.println("Finished reading log");
+    }
+    
+    // message handlers
+    public void handleMessage (RandomSeed thing)
+    {
+      randomSeedList.add(thing);
+    }
+
+    public void handleMessage (MarketPosition thing)
+    {
+      mpList.add(thing);
+    }
+
+    public void handleMessage (Order thing)
+    {
+      orderList.add(thing);
+    }
+
+    @Override
+    public void report ()
+    {
+      // Nothing to do here      
+    }
   }
 }

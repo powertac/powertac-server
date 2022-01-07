@@ -77,6 +77,7 @@ public class LogtoolCore
 {
   static private Logger log = LogManager.getLogger(LogtoolCore.class.getName());
 
+  // This value must not be accessed directly other than by the getDOR() method.
   @Autowired
   private DomainObjectReader reader;
   
@@ -97,11 +98,23 @@ public class LogtoolCore
     super();
   }
 
-  @PostConstruct
-  public void postConstruct() {
+  // lazy initialization for the DOR ensures that the SimStart and SimEnd handlers get installed
+  // in all cases, including unit tests.
+  private boolean readerInitialized = false;
+  protected DomainObjectReader getDOR ()
+  {
+    if (!readerInitialized) {
+      initializeReader();
+    }
+    return reader;
+  }
+
+  private void initializeReader ()
+  {
+    domainBuilder.setup();
     reader.registerNewObjectListener(new SimStartHandler(), SimStart.class);
     reader.registerNewObjectListener(new SimEndHandler(), SimEnd.class);
-    domainBuilder.setup();
+    readerInitialized = true;    
   }
 
   /**
@@ -109,7 +122,7 @@ public class LogtoolCore
    */
   public void setPerTimeslotPause (int msec)
   {
-    reader.setTimeslotPause(msec);
+    getDOR().setTimeslotPause(msec);
   }
 
   /**
@@ -118,7 +131,7 @@ public class LogtoolCore
    */
   public void includeClassname (String classname)
   {
-    reader.addIncludesOnly(classname);
+    getDOR().addIncludesOnly(classname);
   }
 
   /**
@@ -147,14 +160,9 @@ public class LogtoolCore
     }
 
     recycleRepos();
-    reader.reset();
+    getDOR().reset();
 
     return readStateLog(source, tools);
-  }
-
-  public DomainObjectReader getDOR ()
-  {
-    return reader;
   }
 
   public void recycleRepos ()
@@ -180,9 +188,9 @@ public class LogtoolCore
    */
   public void resetDOR (boolean instantiate)
   {
-    reader.reset();
+    getDOR().reset();
     if (!instantiate) {
-      reader.setInstantiate(instantiate);
+      getDOR().setInstantiate(instantiate);
     }
   }
 
@@ -293,7 +301,7 @@ public class LogtoolCore
     BufferedReader in = new BufferedReader(inputReader);
     // extract schema, hand it off to the reader
     try {
-      reader.setSchema(extractSchema(in));
+      getDOR().setSchema(extractSchema(in));
     } catch (IOException ioe) {
       log.error("IOException reading schema {}", ioe.getCause());
       return null;
@@ -321,47 +329,40 @@ public class LogtoolCore
     simEnd = false;
     isInterrupted = false;
 
-    // Recycle repos from previous session
-    // TODO - make sure time is set first? 
-    //List<DomainRepo> repos =
-    //        SpringApplicationContext.listBeansOfType(DomainRepo.class);
-    //for (DomainRepo repo : repos) {
-    //  repo.recycle();
-    //}
-
     // Now go read the state-log
-    try {
-      for (Analyzer tool: tools) {
-        log.info("Setting up {}", tool.getClass().getName());
+    for (Analyzer tool: tools) {
+      log.info("Setting up {}", tool.getClass().getName());
+      try {
         tool.setup();
+      } catch (FileNotFoundException fnf) {
+        log.error("File not found setting up {}", tool.getClass().getName());
       }
+    }
 
-      int lineNumber = 0;
-      while (!simEnd) {
-        synchronized(this) {
-          if (isInterrupted) {
-            in.close();
-            break;
-          }
-        }
-        line = in.readLine();
-        if (null == line) {
-          log.info("Last line " + lineNumber);
+    LogReader logReader = new LogReader(in);
+    Object result;
+    while (!simEnd) {
+      synchronized(this) {
+        if (isInterrupted) {
           break;
         }
-        lineNumber += 1;
-        reader.readObject(line);
       }
-      domainBuilder.report();
-      for (Analyzer tool: tools) {
-        tool.report();
+      result = logReader.getNext();
+      if (null == result) {
+        // end of file, presumably
+        log.error("End of file without finding SimEnd");
+        break;
       }
     }
-    catch (IOException e) {
-      return "Error reading from stream";
+    domainBuilder.report();
+    for (Analyzer tool: tools) {
+      tool.report();
     }
-    catch (MissingDomainObject e) {
-      return "MDO on " + line;
+    try {
+      in.close();
+    }
+    catch (IOException ioe) {
+      log.error("Exception closing logfile {}", ioe.getCause());
     }
     return null;
   }
@@ -398,6 +399,43 @@ public class LogtoolCore
     return result;
   }
 
+  class LogReader
+  {
+    int lineNumber = 0;
+    BufferedReader in;
+
+    LogReader (BufferedReader input)
+    {
+      super();
+      in = input;
+    }
+    
+    Object getNext()
+    {
+      String line = "";
+      try {
+        line = in.readLine();
+        if (null == line) {
+          log.info("Last line " + lineNumber);
+          in.close();
+          return null;
+        }
+        lineNumber += 1;
+        Object result = getDOR().readObject(line);
+        if (null != result)
+          return result;
+        else
+          return line;
+      }
+      catch (IOException e) {
+        return "Error reading from stream";
+      }
+      catch (MissingDomainObject e) {
+        return "MDO on " + line;
+      }
+    }
+  }
+
   class SimStartHandler implements NewObjectListener
   {
     @Override
@@ -411,6 +449,7 @@ public class LogtoolCore
     @Override
     public void handleNewObject (Object thing)
     {
+      log.info("SimEnd");
       simEnd = true;
     }
     

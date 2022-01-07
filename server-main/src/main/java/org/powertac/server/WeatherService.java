@@ -68,7 +68,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-
 @Service
 public class WeatherService extends TimeslotPhaseProcessor implements
     InitializationService
@@ -84,17 +83,21 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   private String serverUrl = "https://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
 
   // If network requests should be made asynchronously or not.
-  @ConfigurableValue(valueType = "Boolean", description = "If network calls to weather server should block until finished")
+  @ConfigurableValue(valueType = "Boolean",
+          description = "If network calls to weather server should block until finished")
   private boolean blocking = true;
 
-  @ConfigurableValue(valueType = "String", description = "Location of weather file (XML or state) or URL (state)")
+  @ConfigurableValue(valueType = "String",
+          description = "Location of weather file (XML or state) or URL (state)")
   private String weatherData = "";
 
   // length of reports and forecasts. Can't really change this
-  @ConfigurableValue(valueType = "Integer", description = "Timeslot interval to make requests")
+  @ConfigurableValue(valueType = "Integer",
+          description = "Timeslot interval to make requests")
   private int weatherReqInterval = 24;
 
-  @ConfigurableValue(valueType = "Integer", description = "Length of forecasts (in hours)")
+  @ConfigurableValue(valueType = "Integer",
+          description = "Length of forecasts (in hours)")
   private int forecastHorizon = 24; // 24 hours
 
   @Autowired
@@ -169,7 +172,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
     long diff = dateTime.getMillis() - simulationBaseTime.getMillis();
     // WARNING:This assumes one-hour timeslots, but matches weather data granularity
-    return (int) (diff / (1000 * 3600));
+    return (int) (diff / TimeService.HOUR);
   }
 
   // Make weather request if needed. Always broadcast reports and forecasts.
@@ -699,8 +702,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
    * It returns $weatherReqInterval reports
    * and $weatherReqInterval forecasts, each with $forecastHorizon predictions
    */
-  private class StateFileExtractor
-  extends LogtoolContext
+  private class StateFileExtractor extends LogtoolContext
   {
     private URL weatherSource = null;
     private String report = "org.powertac.common.WeatherReport";
