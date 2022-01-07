@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2021 by John Collins
+ * Copyright (c) 2012-2022 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import org.powertac.logtool.common.MissingDomainObject;
 import org.powertac.logtool.common.DomainBuilder;
 import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.ifc.Analyzer;
+import org.powertac.logtool.ifc.ObjectReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -128,6 +129,7 @@ public class LogtoolCore
   /**
    * Adds the given classname to the list of IncludesOnly classes in the DomainObjectReader. If this
    * list is non-empty, then only the specified classes will be included in the state log scan.
+   * Note that the SimEnd type is always included.
    */
   public void includeClassname (String classname)
   {
@@ -370,6 +372,20 @@ public class LogtoolCore
   public synchronized void interrupt() {
     isInterrupted = true;
   }
+
+  /**
+   * Returns an incremental ObjectReader instances positioned at the start of content in
+   * a state log. Before getting it, reset the DOR by calling resetDOR(), and set the filter
+   * criteria by calling includeClassname() or excludeClassname().
+   */
+  public ObjectReader getObjectReader (String location)
+  {
+    BufferedReader logInput = getLogStream(location);
+    
+    ObjectReader result = new LogReader(logInput);
+    
+    return result;
+  }
   
   private HashMap<String, String[]> extractSchema (BufferedReader input)
   throws IOException
@@ -399,7 +415,7 @@ public class LogtoolCore
     return result;
   }
 
-  class LogReader
+  class LogReader implements ObjectReader
   {
     int lineNumber = 0;
     BufferedReader in;
@@ -410,6 +426,7 @@ public class LogtoolCore
       in = input;
     }
     
+    // result is null ONLY on EOF. Otherwise it's either a domain object or a String.
     Object getNext()
     {
       String line = "";
@@ -432,6 +449,29 @@ public class LogtoolCore
       }
       catch (MissingDomainObject e) {
         return "MDO on " + line;
+      }
+    }
+
+    @Override
+    public Object getNextObject ()
+    {
+      Object result = "start";
+      while (result != null) {
+        result = getNext();
+        if (result.getClass() != String.class) {
+          break;
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public void close ()
+    {
+      try {
+        in.close();
+      } catch (IOException ioe) {
+        // we'll ignore this, probably the stream is already closed.
       }
     }
   }

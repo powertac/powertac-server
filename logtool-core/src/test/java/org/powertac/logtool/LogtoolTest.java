@@ -30,9 +30,12 @@ import org.powertac.common.MarketPosition;
 import org.powertac.common.Order;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffTransaction;
+import org.powertac.common.msg.SimEnd;
+import org.powertac.du.DefaultBroker;
 import org.powertac.logtool.common.DomainBuilder;
 import org.powertac.logtool.common.DomainObjectReader;
 import org.powertac.logtool.ifc.Analyzer;
+import org.powertac.logtool.ifc.ObjectReader;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -181,6 +184,63 @@ public class LogtoolTest
     assertEquals(1, orderList.size());
   }
 
+  @Test
+  public void testIncrementalRead ()
+  {
+    secondInit();
+    uut.includeClassname("org.powertac.du.DefaultBroker");
+    uut.includeClassname("org.powertac.common.RandomSeed");
+    uut.includeClassname("org.powertac.common.MarketPosition");
+    uut.includeClassname("org.powertac.common.Order");
+    ObjectReader or = uut.getObjectReader(getAbsoluteArtifactPath() + "md.state");
+    Object next = or.getNextObject();
+    assertNotNull(next);
+    assertEquals(RandomSeed.class, next.getClass());
+    RandomSeed rs = (RandomSeed)next;
+    assertEquals(1, rs.getId());
+    next = or.getNextObject();
+    assertNotNull(next);
+    assertEquals(RandomSeed.class, next.getClass());
+    rs = (RandomSeed)next;
+    assertEquals(1874, rs.getId());
+    next = or.getNextObject();
+    assertNotNull(next);
+    rs = (RandomSeed)next;
+    assertEquals(1876, rs.getId());
+    next = or.getNextObject();
+    assertNotNull(next);
+    rs = (RandomSeed)next;
+    assertEquals(1878, rs.getId());
+    next = or.getNextObject();
+    assertNotNull(next);
+    rs = (RandomSeed)next;
+    assertEquals(1880, rs.getId());
+    next = or.getNextObject();
+    assertNotNull(next);
+    rs = (RandomSeed)next;
+    assertEquals(1881, rs.getId());
+    next = or.getNextObject();
+    assertNotNull(next);
+    assertEquals(DefaultBroker.class, next.getClass());
+    DefaultBroker db = (DefaultBroker) next;
+    assertEquals("default broker", db.getUsername());
+    next = or.getNextObject();
+    assertNotNull(next);
+    rs = (RandomSeed)next;
+    assertEquals(1883, rs.getId());
+    next = or.getNextObject();
+    assertNotNull(next);
+    assertEquals(MarketPosition.class, next.getClass());
+    assertEquals(db, ((MarketPosition)next).getBroker());
+    next = or.getNextObject();
+    assertNotNull(next);
+    assertEquals(Order.class, next.getClass());
+    next = or.getNextObject();
+    assertNotNull(next);
+    assertEquals(SimEnd.class, next.getClass());
+    or.close();
+  }
+
   class TestAnalyzer extends LogtoolContext implements Analyzer
   {
     String filename;
@@ -205,7 +265,7 @@ public class LogtoolTest
     {
       uut.includeClassname("org.powertac.common.Broker");
       uut.includeClassname("org.powertac.du.DefaultBroker");
-      uut.includeClassname("org.powertac.common.RandomSeed");      //uut.includeClassname("org.powertac.common.TariffTransaction");
+      uut.includeClassname("org.powertac.common.RandomSeed");
       uut.includeClassname("org.powertac.common.MarketPosition");
       uut.includeClassname("org.powertac.common.Order");
       registerMessageHandlers();
