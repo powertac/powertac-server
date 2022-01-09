@@ -275,8 +275,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     weatherReqInterval = Math.min(24, weatherReqInterval);
     simulationBaseTime = competition.getSimulationBaseTime().toDateTime();
 
-    if (weatherData != null
-        && (weatherData.endsWith(".xml") || weatherData.endsWith(".state"))) {
+    if (weatherData != null) {
       log.info("read from file in blocking mode");
       blocking = true;
     }
@@ -316,16 +315,15 @@ public class WeatherService extends TimeslotPhaseProcessor implements
           String weatherXml = wxe.extractPartialXml(requestDate);
           data = parseXML(weatherXml);
         }
-        else if (weatherData != null) { //&& weatherData.endsWith(".state")) {
+        else if (weatherData != null) {
           // could be URL, tar, tar.gz, .gz, or uncompressed state log
           // We cannot run multiple extractors in parallel on the same file;
           // this essentially negates the "blocking" feature
-          synchronized (serializer) {
-            currentMethod = "state file";
-            if (null == sfe)
-              sfe = new StateFileExtractor(weatherData);
-            data = sfe.extractData();
-          }
+          currentMethod = "state file";
+          log.info("Reading weather data from {}", weatherData);
+          if (null == sfe)
+            sfe = new StateFileExtractor(weatherData);
+          data = sfe.extractData();
         }
         else {
           currentMethod = "web";
@@ -724,6 +722,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     private String weatherSource = null;
     ObjectReader reader;
     WeatherReport saved = null;
+    boolean initialized = false;
 
     public StateFileExtractor (String weatherData)
     {
@@ -731,15 +730,23 @@ public class WeatherService extends TimeslotPhaseProcessor implements
         // can't do much here
         return;
       weatherSource = weatherData;
+    }
+
+    private void initMaybe ()
+    {
+      if (initialized)
+        return;
       logtool.resetDOR(false);
       logtool.includeClassname(WeatherReport.class.getName());
       logtool.includeClassname(WeatherForecastPrediction.class.getName());
       logtool.includeClassname(WeatherForecast.class.getName());
       reader = logtool.getObjectReader(weatherSource);
+      initialized = true;
     }
 
     public Data extractData ()
     {
+      initMaybe();
       // We read weather data in "blocks" because that's how it appears in a log.
       // We assume (and check) that the next weather report has a timeslot that matches
       // the startIndex.
@@ -751,7 +758,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       
       // If saved is non-null and not a WeatherReport, we've reached the end of the 
       // available weather data
-      if (saved.getClass() != WeatherReport.class)
+      if (null != saved && saved.getClass() != WeatherReport.class)
         return null;
       
       Data data = new Data();

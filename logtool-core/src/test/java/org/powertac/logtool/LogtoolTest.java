@@ -185,6 +185,16 @@ public class LogtoolTest
   }
 
   @Test
+  public void testReadFromCompressedArchive ()
+  {
+    secondInit();
+    TestAnalyzer ta = new TestAnalyzer(relativeArtifactPath + "i1110.tgz");
+    ta.loadData();
+    assertEquals(4, randomSeedList.size());
+    assertEquals(1874, randomSeedList.get(1).getId());
+  }
+
+  @Test
   public void testIncrementalRead ()
   {
     secondInit();

@@ -28,6 +28,8 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.logtool.LogtoolCore;
+import org.powertac.logtool.common.DomainBuilder;
+import org.powertac.logtool.common.DomainObjectReader;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
@@ -94,6 +96,10 @@ public class WeatherServiceTest
     ReflectionTestUtils.setField(weatherService, "competitionControlService", competitionControlService);
 
     logtoolCore = new LogtoolCore();
+    DomainObjectReader dor = new DomainObjectReader();
+    ReflectionTestUtils.setField(logtoolCore, "reader", dor);
+    DomainBuilder db = mock(DomainBuilder.class);
+    ReflectionTestUtils.setField(logtoolCore, "domainBuilder", db);
     ReflectionTestUtils.setField(weatherService, "logtool", logtoolCore);
 
     //reset(serverPropertiesService);
@@ -290,5 +296,25 @@ public class WeatherServiceTest
       assertEquals(i, p.getForecastTime());
       i++;
     }
+  }
+
+  @Test
+  public void testReadFromStatelog ()
+  {
+    String statelog = "src/test/resources/artifacts/weather-data.state";
+    ReflectionTestUtils.setField(weatherService, "weatherData", statelog);
+    weatherService.activate(start, 1);
+    // There should be 24 weather reports
+    assertEquals(24, weatherReportRepo.count());
+  }
+
+  @Test
+  public void testReadFromCompressedStatelog ()
+  {
+    String statelog = "src/test/resources/artifacts/weather-data.tgz";
+    ReflectionTestUtils.setField(weatherService, "weatherData", statelog);
+    weatherService.activate(start, 1);
+    // There should be 24 weather reports
+    assertEquals(24, weatherReportRepo.count());
   }
 }
