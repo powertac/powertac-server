@@ -89,8 +89,9 @@ public class WeatherServiceTest
     serverPropertiesService = mock(ServerConfiguration.class);
     ReflectionTestUtils.setField(weatherService, "serverProps", serverPropertiesService);
 
-    //CompetitionControl competitionControlService = mock(CompetitionControl.class);
-    //ReflectionTestUtils.setField(weatherService, "competitionControlService", competitionControlService);
+    // needed by TimeslotPhaseProcessor
+    CompetitionControl competitionControlService = mock(CompetitionControl.class);
+    ReflectionTestUtils.setField(weatherService, "competitionControlService", competitionControlService);
 
     logtoolCore = new LogtoolCore();
     ReflectionTestUtils.setField(weatherService, "logtool", logtoolCore);
