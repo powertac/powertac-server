@@ -22,53 +22,39 @@ import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.repo.OrderbookRepo;
+import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import org.powertac.logtool.LogtoolCore;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-
-@SpringJUnitConfig(locations = { "classpath:weather-test-config.xml" })
-@DirtiesContext
-@TestExecutionListeners(listeners = {
-  DependencyInjectionTestExecutionListener.class,
-  DirtiesContextTestExecutionListener.class
-})
 public class WeatherServiceTest
 {
-  @Autowired
+  //@Autowired
   private ServerConfiguration serverPropertiesService;
 
-  // @Autowired
+  //@Autowired
   private WeatherService weatherService;
 
-  @Autowired
+  //@Autowired
   private TimeslotRepo timeslotRepo;
 
-  @Autowired
+  //@Autowired
   private TimeService timeService;
 
-  @Autowired
+  //@Autowired
   private WeatherReportRepo weatherReportRepo;
 
-  @Autowired
+  //@Autowired
   private WeatherForecastRepo weatherForecastRepo;
 
-  @Autowired
-  private BrokerProxy brokerProxyService;
-
-  @Autowired
-  private CompetitionControl competitionControlService;
+  //@Autowired
+  private LogtoolCore logtoolCore;
 
   Instant start;
   Instant next;
@@ -77,12 +63,39 @@ public class WeatherServiceTest
   private Configurator config;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() throws Exception
+  {
     weatherService = new WeatherService();
-    timeslotRepo.recycle();
+
+    weatherReportRepo = new WeatherReportRepo();
+    ReflectionTestUtils.setField(weatherService, "weatherReportRepo", weatherReportRepo);
     weatherReportRepo.recycle();
+
+    weatherForecastRepo = new WeatherForecastRepo();
+    ReflectionTestUtils.setField(weatherService, "weatherForecastRepo", weatherForecastRepo);
     weatherForecastRepo.recycle();
-    reset(serverPropertiesService);
+    
+    timeService = new TimeService();
+    timeslotRepo = new TimeslotRepo();
+    ReflectionTestUtils.setField(timeslotRepo, "timeService", timeService);
+    ReflectionTestUtils.setField(weatherReportRepo, "timeslotRepo", timeslotRepo);
+    ReflectionTestUtils.setField(weatherForecastRepo, "timeslotRepo", timeslotRepo);
+    ReflectionTestUtils.setField(weatherService, "timeslotRepo", timeslotRepo);
+    timeslotRepo.recycle();
+
+    BrokerProxy brokerProxyService = mock(BrokerProxy.class);
+    ReflectionTestUtils.setField(weatherService, "brokerProxyService", brokerProxyService);
+
+    serverPropertiesService = mock(ServerConfiguration.class);
+    ReflectionTestUtils.setField(weatherService, "serverProps", serverPropertiesService);
+
+    //CompetitionControl competitionControlService = mock(CompetitionControl.class);
+    //ReflectionTestUtils.setField(weatherService, "competitionControlService", competitionControlService);
+
+    logtoolCore = new LogtoolCore();
+    ReflectionTestUtils.setField(weatherService, "logtool", logtoolCore);
+
+    //reset(serverPropertiesService);
 
     // Set the current instant to a time when we are requesting data
     start = new DateTime(2010, 4, 1, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -102,19 +115,7 @@ public class WeatherServiceTest
     //}
 
     // set up the weather service under test
-    weatherService = new WeatherService();
-    ReflectionTestUtils.setField(weatherService, "timeslotRepo",
-                                 timeslotRepo);
-    ReflectionTestUtils.setField(weatherService, "weatherReportRepo",
-                                 weatherReportRepo);
-    ReflectionTestUtils.setField(weatherService, "weatherForecastRepo",
-                                 weatherForecastRepo);
-    ReflectionTestUtils.setField(weatherService, "brokerProxyService",
-                                 brokerProxyService);
-    ReflectionTestUtils.setField(weatherService, "serverProps",
-                                 serverPropertiesService);
-    ReflectionTestUtils.setField(weatherService, "competitionControlService",
-                                 competitionControlService);
+    //weatherService = new WeatherService();
     ReflectionTestUtils.setField(weatherService, "blocking", true);
     ReflectionTestUtils.setField(weatherService, "weatherData", "src/test/resources/config/weather.xml");
 
@@ -134,7 +135,8 @@ public class WeatherServiceTest
 
   // initialization without a configuration
   @Test
-  public void testNormalInitialization() {
+  public void testNormalInitialization()
+  {
     String properUrl = "https://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
     String result = weatherService
             .initialize(comp, new ArrayList<String>());
@@ -147,7 +149,8 @@ public class WeatherServiceTest
 
   // config max/min
   @Test
-  public void testConfigInitialization() {
+  public void testConfigInitialization()
+  {
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("server.weatherService.serverUrl", "localhost");
     map.put("server.weatherService.weatherReqInterval", "6");
@@ -166,8 +169,8 @@ public class WeatherServiceTest
   }
 
   @Test
-  public void dataFetchTest() {
-
+  public void dataFetchTest()
+  {
     // Sanity check on autowire
     assertNotNull(timeslotRepo);
     assertNotNull(weatherReportRepo);
@@ -182,19 +185,18 @@ public class WeatherServiceTest
     // Check that 24 weather reports entered the repo
     assertEquals(24, weatherReportRepo.count());
 
-    // Check that 24 weather forecast enterd the repo
+    // Check that 24 weather forecast entered the repo
     assertEquals(24, weatherForecastRepo.count());
-
   }
 
   @Test
-  public void currentTimeDataTest() {
-
+  public void currentTimeDataTest()
+  {
     weatherService.activate(start, 1);
 
     assertEquals(24, weatherReportRepo.count());
 
-    timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    //timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
 
     // Check to see that the weatherReportRepo only gives the current
     // timeslot
@@ -219,12 +221,11 @@ public class WeatherServiceTest
     assertFalse((weatherReportRepo.allWeatherReports().get(0).getTimeslotIndex() ==
             weatherReportRepo.allWeatherReports().get(1).getTimeslotIndex()),
             "different timeslots");
-
   }
 
   @Test
-  public void currentForecastTest() {
-
+  public void currentForecastTest()
+  {
     weatherService.activate(start, 1);
     // Check that there is a forecast for the current timeslot
     timeService.setCurrentTime(next);
@@ -233,11 +234,11 @@ public class WeatherServiceTest
     // Check that we can read backwards only 2 timeslots (current +
     // previous)
     assertEquals(2, weatherForecastRepo.allWeatherForecasts().size());
-
   }
 
   @Test
-  public void testReportValues() {
+  public void testReportValues()
+  {
     weatherService.activate(start, 1);
 
     WeatherReport wr = weatherReportRepo.allWeatherReports().get(0);
@@ -273,14 +274,13 @@ public class WeatherServiceTest
   }
 
   @Test
-  public void testForecastValues() {
-
+  public void testForecastValues()
+  {
     weatherService.activate(start, 1);
 
     // There should be 24 predictions in the forecast
     assertEquals(24, weatherForecastRepo.currentWeatherForecast()
                  .getPredictions().size());
-
 
     // Predictions should increment by one each time
     int i = 1;
@@ -289,6 +289,5 @@ public class WeatherServiceTest
       assertEquals(i, p.getForecastTime());
       i++;
     }
-
   }
 }

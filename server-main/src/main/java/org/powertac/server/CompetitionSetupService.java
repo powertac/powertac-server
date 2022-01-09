@@ -301,8 +301,8 @@ public class CompetitionSetupService
       // parts of it
       setupConfig(config, configDump);
 
-      // Use weather file instead of webservice, this sets baseTime also
-      //useWeatherDataMaybe(weatherData, true);
+      // Use weather file instead of webservice
+      useWeatherDataMaybe(weatherData, true);
 
       // load random seeds if requested
       seedSource = seedData;
@@ -891,14 +891,13 @@ public class CompetitionSetupService
   {
     private String source;
     private Competition tempCompetition;
-
     // Constructor gets the seedSource info
     public SeedLoader(String seedSource)
     {
       super();
       source = seedSource;
       this.core = logtoolCore;
-      this.dor = logtoolCore.getDOR();
+      this.dor = logtoolCore.getDOR();      
     }
     
     void loadSeeds ()

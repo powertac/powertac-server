@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
@@ -97,15 +98,27 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     if (initialized)
       return;
     initialized = true;
-
     log.info("lazyInit");
 
     // Load custom (.xml and .properties) properties files
     // We need to do this before the default config and classpath props
+    ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    Enumeration<URL> resources = null;
+    try {
+      resources = classloader.getResources("config/");
+    } catch (IOException ioe) {
+      log.error("Cannot fetch config resource", ioe.getMessage());
+    }
+    if (null == resources)
+      return;
+    URL first = resources.nextElement();
     FileFilter filter =
         file -> (file.exists() && !file.isDirectory() &&
                  !file.getName().equals("server.properties"));
-    File[] files =  new File("config/").listFiles(filter);
+    String configDir = first.getFile();
+    File[] files =  new File(configDir).listFiles(filter);
+    if (null == files)
+      files = null;
     if (files != null) {
       for (File file : files) {
         try {
@@ -126,7 +139,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
 
     // find and load the default properties file
     try {
-      File defaultProps = new File("config/server.properties");
+      File defaultProps = new File(configDir + "/server.properties");
       if (defaultProps.canRead()) {
         log.debug("adding " + defaultProps.getName());
         config.addConfiguration(Configurator.readProperties(defaultProps));

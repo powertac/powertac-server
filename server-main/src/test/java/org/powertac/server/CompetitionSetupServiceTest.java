@@ -49,6 +49,8 @@ class CompetitionSetupServiceTest
   void setUp () throws Exception
   {
     css = new CompetitionSetupService();
+    serverProps = new ServerPropertiesService();
+    ReflectionTestUtils.setField(css, "serverProps", serverProps);
   }
 
   void setupLogtool ()

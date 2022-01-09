@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class TimeslotPhaseProcessor
 {
   @Autowired
-  private CompetitionControl competitionControlService;
+  protected CompetitionControl competitionControlService;
   
   private int timeslotPhase = 0;
   

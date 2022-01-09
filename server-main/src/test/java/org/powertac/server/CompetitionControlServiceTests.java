@@ -35,19 +35,17 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-@SpringJUnitConfig(locations = {"classpath:cc-config.xml"})
-@DirtiesContext
-@TestExecutionListeners(listeners = {
-  DependencyInjectionTestExecutionListener.class,
-  DirtiesContextTestExecutionListener.class
-})
+//@SpringJUnitConfig(locations = {"classpath:cc-config.xml"})
+//@DirtiesContext
+//@TestExecutionListeners(listeners = {
+//  DependencyInjectionTestExecutionListener.class,
+//  DirtiesContextTestExecutionListener.class
+//})
 public class CompetitionControlServiceTests
 {
 
-  @Autowired
   private CompetitionSetupService css;
   
-  @Autowired
   private BootstrapDataCollector collector;
   
   private CustomerInfo customer1;
@@ -57,7 +55,9 @@ public class CompetitionControlServiceTests
   @BeforeEach
   public void setUp () throws Exception
   {
+    collector = mock(BootstrapDataCollector.class);
     reset(collector);
+    css = new CompetitionSetupService();
     customer1 = new CustomerInfo("Jack", 3);
     customer2 = new CustomerInfo("Jill", 7);
   }

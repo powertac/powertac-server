@@ -102,7 +102,7 @@ public class LogtoolCore
   // lazy initialization for the DOR ensures that the SimStart and SimEnd handlers get installed
   // in all cases, including unit tests.
   private boolean readerInitialized = false;
-  protected DomainObjectReader getDOR ()
+  public DomainObjectReader getDOR ()
   {
     if (!readerInitialized) {
       initializeReader();
