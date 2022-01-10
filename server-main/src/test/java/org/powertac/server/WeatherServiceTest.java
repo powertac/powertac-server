@@ -316,5 +316,15 @@ public class WeatherServiceTest
     weatherService.activate(start, 1);
     // There should be 24 weather reports
     assertEquals(24, weatherReportRepo.count());
+    // move time forward by 24h and check
+    for (int i = 0; i < 23; i++) {
+      timeService.setCurrentTime(next);
+      weatherService.activate(next, 1);
+      next = next.plus(comp.getTimeslotDuration());
+      assertEquals(24, weatherReportRepo.count());
+    }
+    timeService.setCurrentTime(next);
+    weatherService.activate(next, 1);
+    assertEquals(48, weatherReportRepo.count());
   }
 }

@@ -46,12 +46,6 @@
     <constructor-arg value="org.powertac.server.ServerMessageReceiver"/>
   </bean>
 
-  <bean id="weatherService"
-  	class="org.mockito.Mockito"
-        factory-method="mock">
-    <constructor-arg value="org.powertac.server.WeatherService"/>
-  </bean>
-
   <context:annotation-config />
 
   <bean id="taskExecutor"

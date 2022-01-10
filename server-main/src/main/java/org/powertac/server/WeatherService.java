@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 by the original author
+ * Copyright (c) 2011-2022 by the original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
-public class WeatherService extends TimeslotPhaseProcessor implements
-    InitializationService
+public class WeatherService extends TimeslotPhaseProcessor
+implements InitializationService
 {
   static private Logger log = LogManager.getLogger(WeatherService.class);
 
