@@ -91,7 +91,7 @@ implements InitializationService
 
   @ConfigurableValue(valueType = "String",
           description = "Location of weather file (XML or state) or URL (state)")
-  private String weatherData = "";
+  private String weatherData = null;
 
   // length of reports and forecasts. Can't really change this
   @ConfigurableValue(valueType = "Integer",
@@ -782,6 +782,15 @@ implements InitializationService
       {
         if (next.getClass() == SimEnd.class) {
           // end of file reached
+          try {
+            log.info("SimEnd on weather data, aborting");
+            File abortFile = new File("abort");
+            PrintWriter writer = new PrintWriter(abortFile);
+            writer.println("Out of weather data -- abort");
+            writer.close();
+          } catch (FileNotFoundException fnf) {
+            log.error("Cannot open abort file");
+          }
         }
         else {
           log.error("Bad weather data {}", next);

@@ -143,6 +143,12 @@ public class CompetitionSetupService
    */
   public void processCmdLine (String[] args)
   {
+    // if there's an "abort" file sitting around, delete it
+    File abortFile = new File("abort");
+    if (abortFile.exists()) {
+      abortFile.delete();
+    }
+
     // pick up and process the command-line arg if it's there
     if (args.length > 1) {
       // cli setup
