@@ -125,9 +125,6 @@ implements InitializationService
   private DateTime simulationBaseTime;
   private int daysAhead = 3;
 
-  // Monitor object to serialize state log access when in non-blocking mode
-  private Object serializer = new Object();
-
   // if we're extracting from a state log, we cannot create multiple instances
   // of the StateFileExtractor. So this one is either null or not.
   private StateFileExtractor sfe = null;
@@ -281,6 +278,7 @@ implements InitializationService
     }
 
     if (!blocking) {
+      log.info("Not blocking");
       DateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
       // Get the first 3 days of weather, blocking!
       for (int i = 0; i < daysAhead; i++) {
@@ -443,8 +441,7 @@ implements InitializationService
         weatherReportRepo.add(report);
       }
 
-      log.info(data.getWeatherReports().size()
-          + " WeatherReports fetched from xml response.");
+      log.info(data.getWeatherReports().size() + " WeatherReports fetched");
     }
 
     private void processForecastData (Data data) throws Exception

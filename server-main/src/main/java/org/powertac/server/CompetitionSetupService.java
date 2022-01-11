@@ -389,7 +389,7 @@ public class CompetitionSetupService
       setupConfig(config, configOutput);
 
       // Use weather file instead of webservice, this sets baseTime also
-      //useWeatherDataMaybe(weatherData, false);
+      useWeatherDataMaybe(weatherData, false);
       
       // load random seeds if requested
       seedSource = seedData;
@@ -497,22 +497,7 @@ public class CompetitionSetupService
     if (weatherData == null || weatherData.isEmpty()) {
       return;
     }
-
-    //log.info("Getting BaseTime from " + weatherData);
-    //String baseTime = null;
-    //if (weatherData.endsWith(".xml")) {
-    //  baseTime = getBaseTimeXML(weatherData);
-    //} else if (weatherData.endsWith(".state")) {
-    //  baseTime = getBaseTimeState(weatherData);
-    //} else {
-    //  log.warn("Only XML and state files are allowed for weather data");
-    //}
-
-    //if (baseTime != null) {
-    //  if (bootstrapMode) {
-    //    serverProps.setProperty("common.competition.simulationBaseTime",
-    //        baseTime);
-    //  }
+    log.info("Using weather data from {}", weatherData);
     serverProps.setProperty("server.weatherService.weatherData", weatherData);
   }
 
