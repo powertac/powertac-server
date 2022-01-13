@@ -52,16 +52,12 @@ public interface CompetitionSetup
   public String bootSession (String bootFilename,
                              String configFilename,
                              String gameId,
-                             String logfileSuffix,
-                             String seedData,
-                             String weatherData);
+                             String logfileSuffix);
 
   public String bootSession (String bootFilename,
                              String configFilename,
                              String gameId,
                              String logfileSuffix,
-                             String seedData,
-                             String weatherData,
                              String configOutput);
 
   /**

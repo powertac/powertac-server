@@ -40,6 +40,7 @@ import org.powertac.logtool.LogtoolContext;
 import org.powertac.logtool.LogtoolCore;
 import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.ifc.Analyzer;
+import org.powertac.logtool.ifc.ObjectReader;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -121,12 +122,10 @@ public class CompetitionSetupService
   private TimeService timeService;
 
   private Competition competition;
-  //private String sessionPrefix = "game-";
   private SeedLoader seedLoader;
   private int sessionCount = 0;
   private String gameId = null;
   private URL controllerURL;
-  private String seedSource = null;
   private Thread session = null;
 
   /**
@@ -210,7 +209,6 @@ public class CompetitionSetupService
       controllerURL = options.valueOf(controllerOption);
       String game = options.valueOf(gameOpt);
       String serverConfig = options.valueOf(serverConfigUrl);
-      seedSource = options.valueOf(seedData);
 
       if (null == game) {
         log.error("gameId not given");
@@ -231,8 +229,6 @@ public class CompetitionSetupService
                     serverConfig,
                     game,
                     logSuffix,
-                    options.valueOf(seedData),
-                    options.valueOf(weatherData),
                     options.valueOf(configDump));
       }
       else if (options.has("sim")) {
@@ -251,7 +247,7 @@ public class CompetitionSetupService
       else if (options.has("config-dump")) {
         // just set up and dump config using a truncated boot session
         bootSession(null, serverConfig, game,
-                    logSuffix, null, null,
+                    logSuffix,
                     options.valueOf(configDump));
       }
       else {
@@ -280,11 +276,10 @@ public class CompetitionSetupService
    * null, then runs just far enough to dump the configuration and quits.
    */
   @Override
-  public String bootSession (String bootFilename, String config,
+  public String bootSession (String bootFilename,
+                             String config,
                              String game,
                              String logSuffix,
-                             String seedData,
-                             String weatherData,
                              String configDump)
   {
     String error = null;
@@ -306,13 +301,6 @@ public class CompetitionSetupService
       // process serverConfig now, because other options may override
       // parts of it
       setupConfig(config, configDump);
-
-      // Use weather file instead of webservice
-      useWeatherDataMaybe(weatherData, true);
-
-      // load random seeds if requested
-      seedSource = seedData;
-      loadSeedsMaybe();
 
       // set the logfile suffix
       ensureGameId(game);
@@ -355,11 +343,10 @@ public class CompetitionSetupService
 
   @Override
   public String bootSession (String bootFilename, String configFilename,
-                             String gameId, String logfileSuffix,
-                             String seedData, String weatherData)
+                             String gameId, String logfileSuffix)
   {
     return bootSession(bootFilename, configFilename, gameId,
-                       logfileSuffix, seedData, weatherData, null);
+                       logfileSuffix, null);
   }
 
   @Override
@@ -388,12 +375,17 @@ public class CompetitionSetupService
       // parts of it
       setupConfig(config, configOutput);
 
-      // Use weather file instead of webservice, this sets baseTime also
-      useWeatherDataMaybe(weatherData, false);
+      // extract sim time info from Competition instance in seed or weather data
+      // if either is in use
+      System.out.println("Seeds " + seedData + ", weather " + weatherData);
+      loadCompetitionMaybe(seedData, weatherData);
       
-      // load random seeds if requested
-      seedSource = seedData;
-      loadSeedsMaybe();
+      // create the seed loader here where we have the filename, but run it later
+      // after repos have been cleared.
+      createSeedLoader(seedData);
+
+      // Use weather file instead of webservice
+      useWeatherDataMaybe(weatherData);
 
       // set the logfile suffix
       ensureGameId(game);
@@ -449,6 +441,27 @@ public class CompetitionSetupService
                       weatherData, inputQueueName, null);
   }
 
+  // Digs out the Competition instance from old logs and sets time data as needed
+  // for the current session
+  private void loadCompetitionMaybe (String seedData, String weatherData)
+  {
+    CompetitionLoader loader = null;
+    Competition tempCompetition = null;
+    if (null != seedData) {
+      System.out.println("Loading seeds from " + seedData);
+      log.info("Loading seeds from {}", seedData);
+      loader = new CompetitionLoader(seedData);
+      tempCompetition = loader.extractCompetition();
+      loadTimeslotCounts(tempCompetition);
+    }
+    if (null != weatherData)
+      System.out.println("Loading weather from " + weatherData);
+      log.info("Loading weather data from {}", weatherData);
+      loader = new CompetitionLoader(weatherData);
+      tempCompetition = loader.extractCompetition();
+      loadStartTime(tempCompetition);
+  }
+
   private void setupConfig (String config, String configDump)
           throws ConfigurationException, IOException
   {
@@ -461,15 +474,20 @@ public class CompetitionSetupService
       return;
     log.info("Reading configuration from " + config);
     serverProps.setUserConfig(makeUrl(config));
-    //log.info("Server version {}", System.getProperty("server.pomId"));
+    log.info("Server version {}", System.getProperty("server.pomId"));
   }
 
+  // Loads the sim start time from an old state log that we are also using for seeds
+  // and/or weather data
+  private void loadStartTime (Competition comp)
+  {
+    serverProps.setProperty("common.competition.simulationBaseTime",
+                            comp.getSimulationBaseTime().getMillis());
+  }
+
+  // Sets game-length parameters from seed data
   private void loadTimeslotCounts (Competition comp)
   {
-    if (seedSource == null)
-      // should not happen
-      return;
-
     log.info("Getting minimumTimeslotCount and expectedTimeslotCount from Competition");
     serverProps.setProperty("common.competition.minimumTimeslotCount",
                             comp.getMinimumTimeslotCount());
@@ -478,21 +496,24 @@ public class CompetitionSetupService
   }
   
   // package visibility to support testing
+  void createSeedLoader (String seedSource)
+  {
+    seedLoader = new SeedLoader(seedSource);
+  }
+
   void loadSeedsMaybe ()
   {
-    if (seedSource == null)
+    if (seedLoader == null)
       return;
-    log.info("Reading random seeds from " + seedSource);
-    seedLoader = new SeedLoader(seedSource);
+    log.info("Reading random seeds");
     seedLoader.loadSeeds();
   }
 
-  // #1106 -- don't load base time from weather data
   /*
    * If weather data-file is used (instead of the URL-based weather server)
    * extract the first data, and set that as simulationBaseTime.
    */
-  private void useWeatherDataMaybe(String weatherData, boolean bootstrapMode)
+  private void useWeatherDataMaybe(String weatherData)
   {
     if (weatherData == null || weatherData.isEmpty()) {
       return;
@@ -663,7 +684,7 @@ public class CompetitionSetupService
    */
   @Override
   public void preGame ()
-  {    
+  {
     String suffix = serverProps.getProperty("server.logfileSuffix", "x");
     logService.startLog(suffix);
     extractPomId();
@@ -867,21 +888,51 @@ public class CompetitionSetupService
     }
   }
 
-  // Test support
-  String getSeedSource ()
+  public class CompetitionLoader extends LogtoolContext
   {
-    return seedSource;
+    private String source;
+    private Competition tempCompetition;
+    
+    public CompetitionLoader (String source)
+    {
+      super();
+      this.source = source;
+      this.core = logtoolCore;
+      this.dor = logtoolCore.getDOR();
+    }
+    
+    Competition extractCompetition ()
+    {
+      logtoolCore.resetDOR(false);
+      logtoolCore.includeClassname("org.powertac.common.RandomSeed");
+      logtoolCore.includeClassname("org.powertac.common.Competition");
+      ObjectReader reader = logtoolCore.getObjectReader(source);
+      boolean flag = false; // completion flag
+      while (!flag) {
+        // now we read the file. Note that we cannot use the Competition instance
+        // at the front of the file until all the fields have been set through
+        // a series of method calls. Once we see an object that's not a Competition,
+        // we can assume the fields are all set. Usually the next object in the file
+        // is the first RandomSeed.
+        Object thing = reader.getNextObject();
+        if (thing.getClass() == RandomSeed.class) {
+          // we've done enough
+          flag = false;
+        }
+        else if (thing.getClass() == Competition.class) {
+          tempCompetition = (Competition) thing;
+        }
+      }
+      // At this point, the tempCompetition object has the time info we need
+      return tempCompetition;
+    }
   }
   
-  void setSeedSource (String source)
-  {
-    seedSource = source;
-  }
-
   public class SeedLoader extends LogtoolContext implements Analyzer
   {
     private String source;
     private Competition tempCompetition;
+
     // Constructor gets the seedSource info
     public SeedLoader(String seedSource)
     {

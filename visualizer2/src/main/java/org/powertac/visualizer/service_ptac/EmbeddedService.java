@@ -113,9 +113,7 @@ public class EmbeddedService {
                 game.getBootFilePath(),
                 game.getConfigFilePath(),
                 id,
-                suffix,
-                game.getSeedFilePath(),
-                game.getWeatherFilePath()
+                suffix
         );
         if (error != null) {
             visualizerService.setState(VisualizerState.FAILED);

@@ -70,27 +70,12 @@ class CompetitionSetupServiceTest
   /**
    * Test method for {@link org.powertac.server.CompetitionSetupService#bootSession(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)}.
    */
-  @Test
-  void testSeedSource ()
-  {
-    String dummy = "dummy.seeds";
-    css.setSeedSource(dummy);
-    assertEquals(dummy, css.getSeedSource(), "seed source stored and retrieved");
-  }
-
-  @Test
-  void testFileAccess ()
-  {
-    css.setSeedSource(seedPath);
-    File source = new File(css.getSeedSource());
-    assertTrue(source.canRead(), "seed source is readable");
-  }
 
   @Test
   void testLoadSeeds ()
   {
     setupLogtool();
-    css.setSeedSource(seedPath);
+    css.createSeedLoader(seedPath);
     css.loadSeedsMaybe();
     assertEquals("1330",
                  serverProps.getProperty("common.competition.minimumTimeslotCount"));
