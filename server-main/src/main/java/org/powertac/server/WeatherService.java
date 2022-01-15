@@ -350,6 +350,7 @@ implements InitializationService
 
       String urlString = String.format("%s?weatherDate=%s&weatherLocation=%s",
           getServerUrl(), queryDate, weatherLocation);
+      log.info("Weather request URL {}", urlString);
 
       try {
         // Create a URLConnection object for a URL and send request

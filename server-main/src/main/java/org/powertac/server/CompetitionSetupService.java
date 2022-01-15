@@ -100,7 +100,7 @@ public class CompetitionSetupService
   @Autowired
   private BootstrapDataRepo bootstrapDataRepo;
 
-  //@Autowired
+  @Autowired
   private LogtoolCore logtoolCore;
 
   @Autowired
@@ -377,12 +377,7 @@ public class CompetitionSetupService
 
       // extract sim time info from Competition instance in seed or weather data
       // if either is in use
-      System.out.println("Seeds " + seedData + ", weather " + weatherData);
       loadCompetitionMaybe(seedData, weatherData);
-      
-      // create the seed loader here where we have the filename, but run it later
-      // after repos have been cleared.
-      createSeedLoader(seedData);
 
       // Use weather file instead of webservice
       useWeatherDataMaybe(weatherData);
@@ -442,24 +437,29 @@ public class CompetitionSetupService
   }
 
   // Digs out the Competition instance from old logs and sets time data as needed
-  // for the current session
+  // for the current session. If we cannot retrieve the data, the server will exit.
   private void loadCompetitionMaybe (String seedData, String weatherData)
   {
     CompetitionLoader loader = null;
     Competition tempCompetition = null;
     if (null != seedData) {
-      System.out.println("Loading seeds from " + seedData);
       log.info("Loading seeds from {}", seedData);
       loader = new CompetitionLoader(seedData);
       tempCompetition = loader.extractCompetition();
+      if (null == tempCompetition) {
+        System.exit(1);
+      }
       loadTimeslotCounts(tempCompetition);
     }
-    if (null != weatherData)
-      System.out.println("Loading weather from " + weatherData);
+    if (null != weatherData) {
       log.info("Loading weather data from {}", weatherData);
       loader = new CompetitionLoader(weatherData);
       tempCompetition = loader.extractCompetition();
+      if (null == tempCompetition) {
+        System.exit(1);
+      }
       loadStartTime(tempCompetition);
+    }
   }
 
   private void setupConfig (String config, String configDump)
@@ -521,64 +521,6 @@ public class CompetitionSetupService
     log.info("Using weather data from {}", weatherData);
     serverProps.setProperty("server.weatherService.weatherData", weatherData);
   }
-
-//  private String getBaseTimeXML(String weatherData)
-//  {
-//    try {
-//      DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-//      DocumentBuilder builder = domFactory.newDocumentBuilder();
-//      Document doc = builder.parse(weatherData);
-//      XPathFactory factory = XPathFactory.newInstance();
-//      XPath xPath = factory.newXPath();
-//      XPathExpression expr =
-//          xPath.compile("/data/weatherReports/weatherReport/@date");
-//
-//      String earliest = "ZZZZ-ZZ-ZZ";
-//      NodeList nodes = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-//      for (int i = 0; i < nodes.getLength(); i++) {
-//        String date = nodes.item(i).toString().split(" ")[0].split("\"")[1];
-//        earliest = date.compareTo(earliest) < 0 ? date : earliest;
-//      }
-//      return earliest;
-//    } catch (Exception e) {
-//      log.error("Error extracting BaseTime from : " + weatherData);
-//      e.printStackTrace();
-//    }
-//    return null;
-//  }
-//
-//  private String getBaseTimeState(String weatherData)
-//  {
-//    BufferedReader br = null;
-//    try {
-//      br = new BufferedReader(
-//          new InputStreamReader(
-//              makeUrl(weatherData).openStream()));
-//      String line;
-//      while ((line = br.readLine()) != null) {
-//        if (line.contains("withSimulationBaseTime")) {
-//          String millis = line.substring(line.lastIndexOf("::") + 2);
-//          Date date = new Date(Long.parseLong(millis));
-//          return new SimpleDateFormat("yyyy-MM-dd").format(date.getTime());
-//        }
-//      }
-//    } catch (Exception e) {
-//      log.error("Error extracting BaseTime from : " + weatherData);
-//      e.printStackTrace();
-//    } finally {
-//      try {
-//        if (br != null) {
-//          br.close();
-//        }
-//      } catch (IOException ex) {
-//        ex.printStackTrace();
-//      }
-//    }
-//
-//    log.error("Error extracting BaseTime from : " + weatherData);
-//    log.error("No 'withSimulationBaseTime' found!");
-//    return null;
-//  }
 
   private URL makeUrl (String name) throws MalformedURLException
   {
@@ -893,6 +835,7 @@ public class CompetitionSetupService
     private String source;
     private Competition tempCompetition;
     
+    // This should be called before other calls that might want logtoolCore to be non-null
     public CompetitionLoader (String source)
     {
       super();
@@ -903,10 +846,14 @@ public class CompetitionSetupService
     
     Competition extractCompetition ()
     {
-      logtoolCore.resetDOR(false);
+      logtoolCore.resetDOR(true);
       logtoolCore.includeClassname("org.powertac.common.RandomSeed");
       logtoolCore.includeClassname("org.powertac.common.Competition");
       ObjectReader reader = logtoolCore.getObjectReader(source);
+      if (null == reader) {
+        log.error("Cannot read from {}", source);
+        return null;
+      }
       boolean flag = false; // completion flag
       while (!flag) {
         // now we read the file. Note that we cannot use the Competition instance
@@ -916,14 +863,18 @@ public class CompetitionSetupService
         // is the first RandomSeed.
         Object thing = reader.getNextObject();
         if (thing.getClass() == RandomSeed.class) {
+          log.debug("extractCompetition found RandomSeed");
           // we've done enough
-          flag = false;
+          flag = true;
         }
         else if (thing.getClass() == Competition.class) {
           tempCompetition = (Competition) thing;
+          log.info("extractCompetition found Competition {}", tempCompetition.getName());
         }
       }
       // At this point, the tempCompetition object has the time info we need
+      // Before returning, we also need to reset the DOR
+      logtoolCore.resetDOR(false);
       return tempCompetition;
     }
   }
@@ -931,7 +882,6 @@ public class CompetitionSetupService
   public class SeedLoader extends LogtoolContext implements Analyzer
   {
     private String source;
-    private Competition tempCompetition;
 
     // Constructor gets the seedSource info
     public SeedLoader(String seedSource)
@@ -946,7 +896,6 @@ public class CompetitionSetupService
     {
       logtoolCore.resetDOR(false);
       logtoolCore.includeClassname("org.powertac.common.RandomSeed");
-      logtoolCore.includeClassname("org.powertac.common.Competition");
       registerMessageHandlers();
       Analyzer[] tools = new Analyzer[1];
       tools[0] = this;
@@ -954,12 +903,6 @@ public class CompetitionSetupService
     }
     
     //logtool message handlers
-    // This one handles the Competition instance in the log, but is not supposed to replace the
-    // Competition instance for the current session
-    public void handleMessage (Competition thing)
-    {
-      tempCompetition = thing;
-    }
 
     public void handleMessage(RandomSeed thing)
     {
@@ -975,7 +918,7 @@ public class CompetitionSetupService
     @Override
     public void report ()
     {
-      loadTimeslotCounts(tempCompetition);
+      // nothing to do here
     }
   }
 }

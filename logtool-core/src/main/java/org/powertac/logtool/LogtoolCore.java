@@ -191,9 +191,7 @@ public class LogtoolCore
   public void resetDOR (boolean instantiate)
   {
     getDOR().reset();
-    if (!instantiate) {
-      getDOR().setInstantiate(instantiate);
-    }
+    getDOR().setInstantiate(instantiate);
   }
 
   /**
@@ -203,7 +201,12 @@ public class LogtoolCore
    */
   public String readStateLog (String source, Analyzer... tools)
   {
-    return readStateLog(getLogStream(source), tools);
+    BufferedReader reader = getLogStream(source);
+    if (null == reader) {
+      log.error("Cannot open {}", source);
+      return null;
+    }
+    return readStateLog(reader, tools);
   }
 
   /**
@@ -287,6 +290,7 @@ public class LogtoolCore
                   || !name.endsWith(".state") || name.endsWith("init.state")) {
             continue;
           }
+          log.debug("Reading state log {}", name);
           stream = archiveStream;
           break;
         }
@@ -326,7 +330,7 @@ public class LogtoolCore
   {
     String line = null;
 
-    log.info("Reading state log from stream for {}",
+    log.debug("Reading state log from stream for {}",
              tools[0].getClass().getName());
     simEnd = false;
     isInterrupted = false;
@@ -381,9 +385,11 @@ public class LogtoolCore
   public ObjectReader getObjectReader (String location)
   {
     BufferedReader logInput = getLogStream(location);
-    
+    if (null == logInput) {
+      log.error("Cannot open log reader at {}", location);
+      return null;
+    }
     ObjectReader result = new LogReader(logInput);
-    
     return result;
   }
   
@@ -395,6 +401,7 @@ public class LogtoolCore
     int offset = 1; // embedded schema has msec field first
     schema.mark(64);
     String line = schema.readLine();
+    log.debug("First line of log: {}", line);
     String[] tokens = line.split(":");
     if (!tokens[offset].startsWith("Domain-schema")) {
       // pull in default schema for older logs
@@ -407,8 +414,10 @@ public class LogtoolCore
     }
     while (null != (line = schema.readLine())) {
       tokens = line.split(":");
-      if (tokens[offset].startsWith("schema.end"))
+      if (tokens[offset].startsWith("schema.end")) {
+        log.debug("Schema end: {}", line);
         break;
+      }
       // first token is class, rest are fields
       result.put(tokens[offset], tokens[offset + 1].split(","));
     }
@@ -430,19 +439,24 @@ public class LogtoolCore
     Object getNext()
     {
       String line = "";
+      Object result = null;
       try {
-        line = in.readLine();
-        if (null == line) {
-          log.info("Last line " + lineNumber);
-          in.close();
-          return null;
+        while (null == result) {
+          line = in.readLine();
+          if (null == line) {
+            log.debug("Last line " + lineNumber);
+            in.close();
+            return null;
+          }
+          lineNumber += 1;
+          log.debug("getNext reading {}", line);
+          result = getDOR().readObject(line);
+          log.debug("DOR result {}", result);
+          //        if (null != dorResult)
+          //          return dorResult;
+          //        else
+          //          return line;
         }
-        lineNumber += 1;
-        Object result = getDOR().readObject(line);
-        if (null != result)
-          return result;
-        else
-          return line;
       }
       catch (IOException e) {
         return "Error reading from stream";
@@ -450,6 +464,7 @@ public class LogtoolCore
       catch (MissingDomainObject e) {
         return "MDO on " + line;
       }
+      return result;
     }
 
     @Override
@@ -457,10 +472,10 @@ public class LogtoolCore
     {
       Object result = "start";
       while (result != null) {
-        result = getNext();
         if (result.getClass() != String.class) {
           break;
         }
+        result = getNext();
       }
       return result;
     }

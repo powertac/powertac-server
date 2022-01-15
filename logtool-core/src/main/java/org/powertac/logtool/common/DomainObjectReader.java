@@ -126,6 +126,9 @@ public class DomainObjectReader
     //ignores.add("org.powertac.common.WeatherForecastPrediction");
     ignores.add("org.powertac.factoredcustomer.DefaultUtilityOptimizer$DummyTariffSubscription");
 
+    // clear the includesOnly set
+    includesOnly = null;
+
     // set up the no-id list
     noIdTypes = new HashSet<>();
     noIdTypes.add(TimeService.class);
@@ -235,6 +238,7 @@ public class DomainObjectReader
    */
   public Object readObject (String line)
   throws MissingDomainObject
+  // It's not clear that this DOES through MissingDomainObject
   {
     log.debug("readObject(" + line + ")");
     String body = line.substring(line.indexOf(':') + 1);
@@ -305,7 +309,7 @@ public class DomainObjectReader
           setId(newInst, id);
           idMap.put(id, newInst);
         }
-        log.debug("Created new instance " + id + " of class " + tokens[0]);
+        log.info("Created new instance " + id + " of class " + tokens[0]);
         fireNewObjectEvent(newInst);
       }
       return newInst;
@@ -423,6 +427,7 @@ public class DomainObjectReader
     }
   }
 
+  // This does not appear to throw MissingDomainObject
   private Object constructInstance (Class<?> clazz, String[] args)
           throws MissingDomainObject
   {

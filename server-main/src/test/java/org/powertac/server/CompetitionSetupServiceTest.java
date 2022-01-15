@@ -77,10 +77,6 @@ class CompetitionSetupServiceTest
     setupLogtool();
     css.createSeedLoader(seedPath);
     css.loadSeedsMaybe();
-    assertEquals("1330",
-                 serverProps.getProperty("common.competition.minimumTimeslotCount"));
-    assertEquals("1330",
-                 serverProps.getProperty("common.competition.expectedTimeslotCount"));
     RandomSeed rs = rsRepo.getRandomSeed("CompetitionControlService", 0, "game-setup");
     assertEquals("CompetitionControlService", rs.getRequesterClass());
     assertEquals(3768546988373259332l, rs.getValue());
