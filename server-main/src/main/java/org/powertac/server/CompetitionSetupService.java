@@ -382,6 +382,9 @@ public class CompetitionSetupService
       // Use weather file instead of webservice
       useWeatherDataMaybe(weatherData);
 
+      // load random seed data if asked
+      createSeedLoader(seedData);
+
       // set the logfile suffix
       ensureGameId(game);
       setLogSuffix(logSuffix, "sim-" + gameId);
@@ -906,6 +909,7 @@ public class CompetitionSetupService
 
     public void handleMessage(RandomSeed thing)
     {
+      log.info("Restoring RandomSeed {}", thing.getRequesterClass());
       randomSeedRepo.restoreRandomSeed(thing);
     }
 
