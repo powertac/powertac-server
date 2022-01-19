@@ -123,7 +123,7 @@ public class CompetitionSetupService
 
   private Competition competition;
   private SeedLoader seedLoader;
-  private int sessionCount = 0;
+  //private int sessionCount = 0;
   private String gameId = null;
   private URL controllerURL;
   private Thread session = null;
@@ -205,16 +205,20 @@ public class CompetitionSetupService
 
     try {
       // process common options
-      String logSuffix = options.valueOf(logSuffixOption);
       controllerURL = options.valueOf(controllerOption);
+      
+      String logSuffix = options.valueOf(logSuffixOption);
       String game = options.valueOf(gameOpt);
-      String serverConfig = options.valueOf(serverConfigUrl);
-
+      // compose a name for the logs
       if (null == game) {
-        log.error("gameId not given");
-        game = Integer.toString(sessionCount);
+        game = "";
+        if (null == logSuffix) {
+          // both null, just use "0"
+          game = "0";
+        }
       }
       gameId = game;
+      String serverConfig = options.valueOf(serverConfigUrl);
 
       // process tournament scheduler based info
       if (controllerURL != null) {
@@ -262,13 +266,13 @@ public class CompetitionSetupService
   }
 
   // sets up the logfile name suffix
-  private void setLogSuffix (String logSuffix, String defaultSuffix)
-                                 throws IOException
-  {
-    if (logSuffix == null)
-      logSuffix = defaultSuffix;
-    serverProps.setProperty("server.logfileSuffix", logSuffix);
-  }
+//  private void setLogSuffix (String logSuffix, String defaultSuffix)
+//                                 throws IOException
+//  {
+//    if (logSuffix == null)
+//      logSuffix = defaultSuffix;
+//    serverProps.setProperty("server.logfileSuffix", logSuffix);
+//  }
 
   // ---------- top-level boot and sim session control ----------
   /**
@@ -284,6 +288,7 @@ public class CompetitionSetupService
   {
     String error = null;
     String logPrefix = "boot-";
+    logService.startLog(logSuffix);
     try {
       if (null != bootFilename) {
         log.info("bootSession: bootFilename={}, config={}, game={}, logSuffix={}",
@@ -303,8 +308,7 @@ public class CompetitionSetupService
       setupConfig(config, configDump);
 
       // set the logfile suffix
-      ensureGameId(game);
-      setLogSuffix(logSuffix, logPrefix + gameId);
+      //setLogSuffix(logSuffix, logPrefix + gameId);
 
       if (null != bootFilename) {
         File bootFile = new File(bootFilename);
@@ -386,8 +390,7 @@ public class CompetitionSetupService
       createSeedLoader(seedData);
 
       // set the logfile suffix
-      ensureGameId(game);
-      setLogSuffix(logSuffix, "sim-" + gameId);
+      //setLogSuffix(logSuffix, "sim-" + gameId);
 
       // jms setup overrides config
       if (jmsUrl != null) {
@@ -582,7 +585,6 @@ public class CompetitionSetupService
             Competition.currentCompetition()
                 .setMarketBootstrapData((MarketBootstrapData)mbd.get(0));
             cc.runOnce(false);
-            nextGameId();
           }
         }
       }
@@ -608,17 +610,17 @@ public class CompetitionSetupService
   }
 
   // Create a gameId if it's not already set (mainly for Viz-driven games)
-  private void ensureGameId (String game)
-  {
-    gameId = null == game ? Integer.toString(sessionCount) : game;
-  }
-
-  // Names of multi-session games use the default session prefix
-  private void nextGameId ()
-  {
-    sessionCount += 1;
-    gameId = Integer.toString(sessionCount);
-  }
+//  private void ensureGameId (String game)
+//  {
+//    gameId = null == game ? Integer.toString(sessionCount) : game;
+//  }
+//
+//  // Names of multi-session games use the default session prefix
+//  private void nextGameId ()
+//  {
+//    sessionCount += 1;
+//    gameId = Integer.toString(sessionCount);
+//  }
 
   /**
    * Pre-game server setup - creates the basic configuration elements
@@ -630,8 +632,8 @@ public class CompetitionSetupService
   @Override
   public void preGame ()
   {
-    String suffix = serverProps.getProperty("server.logfileSuffix", "x");
-    logService.startLog(suffix);
+    //String suffix = serverProps.getProperty("server.logfileSuffix", "x");
+    //logService.startLog(suffix);
     extractPomId();
     log.info("preGame() - start game " + gameId);
     log.info("POM version ID: {}",

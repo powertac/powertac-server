@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 /**
  * Support for per-game logging. Two logs are generated: a trace log, and a state log.
  * The trace log is called "hhhxxx.trace" where hhh is the prefix provided as the argument
- * to setPrefix(), and xxx is the id if the Competition instance. Ideally, hhh is the
+ * to setPrefix(), and xxx is the id of the Competition instance. Ideally, hhh is the
  * hostname of the machine running the sim.
  * <p>
  * The contents of the trace are intended to be error, warn, info, or debug messages that
@@ -73,7 +73,9 @@ public class LogService
   /**
    * Sets the filename prefix. This should be set to the hostname
    * or some other distinguishing value.
+   * Note that this method does not appear to be used anywhere other than in unit tests.
    */
+  @Deprecated
   public void setPrefix (String prefix)
   {
     filenamePrefix = prefix;
