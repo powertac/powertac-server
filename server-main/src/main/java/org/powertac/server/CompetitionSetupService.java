@@ -183,8 +183,6 @@ public class CompetitionSetupService
     	parser.accepts("game-id").withRequiredArg().ofType(String.class);
     OptionSpec<String> serverConfigUrl =
         parser.accepts("config").withRequiredArg().ofType(String.class);
-    OptionSpec<String> logSuffixOption =
-        parser.accepts("log-suffix").withRequiredArg();
     OptionSpec<String> bootData =
         parser.accepts("boot-data").withRequiredArg().ofType(String.class);
     OptionSpec<String> seedData =
@@ -207,17 +205,11 @@ public class CompetitionSetupService
       // process common options
       controllerURL = options.valueOf(controllerOption);
       
-      String logSuffix = options.valueOf(logSuffixOption);
       String game = options.valueOf(gameOpt);
-      // compose a name for the logs
+      // It's game 0 by default
       if (null == game) {
-        game = "";
-        if (null == logSuffix) {
-          // both null, just use "0"
-          game = "0";
-        }
+        game = "0";
       }
-      gameId = game;
       String serverConfig = options.valueOf(serverConfigUrl);
 
       // process tournament scheduler based info
@@ -232,7 +224,6 @@ public class CompetitionSetupService
         bootSession(options.valueOf(bootOutput),
                     serverConfig,
                     game,
-                    logSuffix,
                     options.valueOf(configDump));
       }
       else if (options.has("sim")) {
@@ -241,7 +232,6 @@ public class CompetitionSetupService
                    serverConfig,
                    options.valueOf(jmsUrl),
                    game,
-                   logSuffix,
                    options.valuesOf(brokerList),
                    options.valueOf(seedData),
                    options.valueOf(weatherData),
@@ -250,9 +240,7 @@ public class CompetitionSetupService
       }
       else if (options.has("config-dump")) {
         // just set up and dump config using a truncated boot session
-        bootSession(null, serverConfig, game,
-                    logSuffix,
-                    options.valueOf(configDump));
+        bootSession(null, serverConfig, game, options.valueOf(configDump));
       }
       else {
         // Must be one of boot, sim, or config-dump
@@ -265,15 +253,6 @@ public class CompetitionSetupService
     }
   }
 
-  // sets up the logfile name suffix
-//  private void setLogSuffix (String logSuffix, String defaultSuffix)
-//                                 throws IOException
-//  {
-//    if (logSuffix == null)
-//      logSuffix = defaultSuffix;
-//    serverProps.setProperty("server.logfileSuffix", logSuffix);
-//  }
-
   // ---------- top-level boot and sim session control ----------
   /**
    * Starts a boot session with the given arguments. If the bootFilename is
@@ -283,16 +262,18 @@ public class CompetitionSetupService
   public String bootSession (String bootFilename,
                              String config,
                              String game,
-                             String logSuffix,
                              String configDump)
   {
+    // start the logs
     String error = null;
-    String logPrefix = "boot-";
-    logService.startLog(logSuffix);
+    gameId = game;
+    String sessionType = (null != config) ? "config-" : "boot-";
+    logService.startLog(sessionType + game);
+
     try {
       if (null != bootFilename) {
-        log.info("bootSession: bootFilename={}, config={}, game={}, logSuffix={}",
-                 bootFilename, config, game, logSuffix);
+        log.info("bootSession: bootFilename={}, config={}, game={}",
+                 bootFilename, config, game);
       }
       else if (null == configDump) {
         log.error("Nothing to do here, both bootFilename and configDump are null");
@@ -301,7 +282,6 @@ public class CompetitionSetupService
       else {
         log.info("config dump: config={}, configDump={}",
                  config, configDump);
-        logPrefix = "config-";
       }
       // process serverConfig now, because other options may override
       // parts of it
@@ -346,11 +326,9 @@ public class CompetitionSetupService
   }
 
   @Override
-  public String bootSession (String bootFilename, String configFilename,
-                             String gameId, String logfileSuffix)
+  public String bootSession (String bootFilename, String configFilename, String gameId)
   {
-    return bootSession(bootFilename, configFilename, gameId,
-                       logfileSuffix, null);
+    return bootSession(bootFilename, configFilename, gameId, null);
   }
 
   @Override
@@ -358,20 +336,22 @@ public class CompetitionSetupService
                             String config,
                             String jmsUrl,
                             String game,
-                            String logSuffix,
                             List<String> brokerUsernames,
                             String seedData,
                             String weatherData,
                             String inputQueueName,
                             String configOutput)
   {
+    // start the logs
     String error = null;
+    gameId = game;
+    logService.startLog("sim-" + game);
+
     try {
       log.info("simSession: bootData=" + bootData
                + ", config=" + config
                + ", jmsUrl=" + jmsUrl
                + ", game=" + game
-               + ", logSuffix=" + logSuffix
                + ", seedData=" + seedData
                + ", weatherData=" + weatherData
                + ", inputQueue=" + inputQueueName);
@@ -388,9 +368,6 @@ public class CompetitionSetupService
 
       // load random seed data if asked
       createSeedLoader(seedData);
-
-      // set the logfile suffix
-      //setLogSuffix(logSuffix, "sim-" + gameId);
 
       // jms setup overrides config
       if (jmsUrl != null) {
@@ -432,13 +409,12 @@ public class CompetitionSetupService
   }
 
   @Override
-  public String simSession (String bootData, String config, String jmsUrl,
-                            String gameId, String logfileSuffix,
+  public String simSession (String bootData, String config, String jmsUrl, String gameId,
                             List<String> brokerUsernames, String seedData,
                             String weatherData, String inputQueueName)
   {
     return simSession(bootData, config, jmsUrl, gameId,
-                      logfileSuffix, brokerUsernames, seedData,
+                      brokerUsernames, seedData,
                       weatherData, inputQueueName, null);
   }
 
@@ -504,13 +480,17 @@ public class CompetitionSetupService
   // package visibility to support testing
   void createSeedLoader (String seedSource)
   {
+    if (null == seedSource || 0 == seedSource.length()) {
+      return;
+    }
     seedLoader = new SeedLoader(seedSource);
   }
 
   void loadSeedsMaybe ()
   {
-    if (seedLoader == null)
+    if (null == seedLoader) {
       return;
+    }
     log.info("Reading random seeds");
     seedLoader.loadSeeds();
   }
@@ -632,8 +612,6 @@ public class CompetitionSetupService
   @Override
   public void preGame ()
   {
-    //String suffix = serverProps.getProperty("server.logfileSuffix", "x");
-    //logService.startLog(suffix);
     extractPomId();
     log.info("preGame() - start game " + gameId);
     log.info("POM version ID: {}",

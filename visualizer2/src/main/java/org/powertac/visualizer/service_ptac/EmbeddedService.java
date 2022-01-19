@@ -101,8 +101,8 @@ public class EmbeddedService {
 
         // attach state/trace files to boot game
         String id = game.getName();
-        String suffix = "boot-" + id;
-        String base = File.getSafeName(logService.getPrefix() + "-" + suffix);
+        //String suffix = "boot-" + id;
+        String base = File.getSafeName(logService.getPrefix() + "-boot-" + id);
         game.setTraceFile(fileService.createFile(FileType.TRACE, base + ".trace", user));
         game.setStateFile(fileService.createFile(FileType.STATE, base + ".state", user));
 
@@ -112,9 +112,7 @@ public class EmbeddedService {
         error = competitionSetupService.bootSession(
                 game.getBootFilePath(),
                 game.getConfigFilePath(),
-                id,
-                suffix
-        );
+                id);
         if (error != null) {
             visualizerService.setState(VisualizerState.FAILED);
         }
@@ -141,8 +139,8 @@ public class EmbeddedService {
 
         // attach state/trace files to sim game
         String id = game.getName();
-        String suffix = "sim-" + id;
-        String base = File.getSafeName(logService.getPrefix() + "-" + suffix);
+        //String suffix = "sim-" + id;
+        String base = File.getSafeName(logService.getPrefix() + "-sim-" + id);
         game.setTraceFile(fileService.createFile(FileType.TRACE, base + ".trace", user));
         game.setStateFile(fileService.createFile(FileType.STATE, base + ".state", user));
 
@@ -152,9 +150,7 @@ public class EmbeddedService {
         error = competitionSetupService.simSession(
                 game.getBootFilePath(),
                 game.getConfigFilePath(),
-                null,
-                id,
-                suffix,
+                null, id,
                 game.getBrokerList(),
                 game.getSeedFilePath(),
                 game.getWeatherFilePath(),
