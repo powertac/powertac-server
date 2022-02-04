@@ -945,4 +945,11 @@ implements CustomerModelAccessor
     // TODO Auto-generated method stub
     return 0;
   }
+
+  @Override
+  public void notifyCustomer (TariffSubscription oldsub,
+                              TariffSubscription newsub, int population)
+  {
+    // method stub
+  }
 }

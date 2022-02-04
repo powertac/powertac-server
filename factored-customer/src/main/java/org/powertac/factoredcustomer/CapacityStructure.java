@@ -58,15 +58,29 @@ public final class CapacityStructure implements StructureInstance
   private List<String> hourlySkew;
 
   // Regulation capability
-  @ConfigurableValue(description="Lower limit on expected consumption",
-      valueType="Double", dump = false)
-  private double upRegulationLimit = Double.MAX_VALUE;
-  @ConfigurableValue(description="Upper limit on expected consumption",
-      valueType="Double", dump = false)
-  private double downRegulationLimit = -Double.MAX_VALUE;
-  @ConfigurableValue(description = "Storage capacity in kWh",
+  // deprecated?
+//  @ConfigurableValue(description="Lower limit on expected consumption",
+//      valueType="Double", dump = false)
+//  private double upRegulationLimit = Double.MAX_VALUE;
+  // deprecated?
+//  @ConfigurableValue(description="Upper limit on expected consumption",
+//      valueType="Double", dump = false)
+//  private double downRegulationLimit = -Double.MAX_VALUE;
+  @ConfigurableValue(description = "State of charge goal as percentage of storageCapacity",
           valueType = "Double", dump = false)
   private double storageCapacity = 0.0;
+  @ConfigurableValue(description = "State of charge goal as portion of storageCapacityStorage capacity in kWh",
+          valueType = "Double", dump = false)
+  private double stateOfChargeGoal = 1.0;
+  @ConfigurableValue(description = "Maximum rate at which storage can be charged",
+          valueType = "Double", dump = false)
+  private double maxChargeRate = 0.0;
+  @ConfigurableValue(description = "Maximum rate at which storage can be discharged into the grid",
+          valueType = "Double", dump = false)
+  private double maxDischargeRate = 0.0;
+  @ConfigurableValue(description = "How long ",
+          valueType = "Double", dump = false)
+  private double defaultRecoveryPreference = 0.0;
 
   // Weather factors
   @ConfigurableValue(valueType = "String", dump = false)
@@ -102,6 +116,9 @@ public final class CapacityStructure implements StructureInstance
 
   @ConfigurableValue(valueType = "List", dump = false)
   private List<String> curtailmentShifts;
+  
+  // label for subscription decorator that tracks per-subscription state of charge
+  private static String stateOfChargeLabel = "SoC";
 
   public CapacityStructure (String name)
   {
@@ -148,6 +165,11 @@ public final class CapacityStructure implements StructureInstance
     return BaseCapacityType.valueOf(baseCapacityType);
   }
 
+  public static String getStateOfChargeLabel ()
+  {
+    return stateOfChargeLabel;
+  }
+
   /**
    * True just in case the baseCapacityType is INDIVIDUAL
    */
@@ -166,22 +188,34 @@ public final class CapacityStructure implements StructureInstance
     return baseIndividualCapacity;
   }
 
-  public double getUpRegulationLimit ()
-  {
-    return upRegulationLimit;
-  }
-
-  public double getDownRegulationLimit ()
-  {
-    return downRegulationLimit;
-  }
-
   public double getPeriodicSkew (int day, int hour)
   {
     return Double.parseDouble(dailySkew.get(day - 1)) *
            Double.parseDouble(hourlySkew.get(hour));
   }
 
+  // flexibility properties
+  public double getStorageCapacity ()
+  {
+    return storageCapacity;
+  }
+
+  public double getStateOfChargeGoal ()
+  {
+    return stateOfChargeGoal;
+  }
+
+  public double getMaxChargeRate ()
+  {
+    return maxChargeRate;
+  }
+
+  public double getMaxDischargeRate ()
+  {
+    return maxDischargeRate;
+  }
+
+  // weather effects
   public InfluenceKind getTemperatureInfluence ()
   {
     return InfluenceKind.valueOf(temperatureInfluence);

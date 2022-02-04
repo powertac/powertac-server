@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 by John Collins
+ * Copyright (c) 2013, 2022 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.powertac.common.interfaces;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffSubscription;
 
 /**
  * Defines an interface for access to customer model details
@@ -59,17 +60,22 @@ public interface CustomerModelAccessor
    * Returns a [0,1] random value used to make choices using the logit choice
    * model.
    */
-  public double getTariffChoiceSample();
+  public double getTariffChoiceSample ();
 
   /**
    * Returns a [0,1] random value used to choose whether individual customers
    * evaluate tariffs or not.
    */
-  public double getInertiaSample();
+  public double getInertiaSample ();
 
   /**
    * Returns a [0,1] value representing the inconvenience of dealing with
    * curtailment in exchange for a lower price.
    */
-  public double getShiftingInconvenienceFactor(Tariff tariff);
+  public double getShiftingInconvenienceFactor (Tariff tariff);
+
+  /**
+   * Notifies the customer about subscription changes. See Issues #733 and #1065
+   */
+  public void notifyCustomer (TariffSubscription oldsub, TariffSubscription newsub, int population);
 }

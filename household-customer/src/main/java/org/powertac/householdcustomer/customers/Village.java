@@ -1977,6 +1977,11 @@ public class Village extends AbstractCustomer
       return VillageConstants.TOU_FACTOR;
     }
 
+    @Override
+    public void notifyCustomer (TariffSubscription oldsub,
+                                TariffSubscription newsub, int population)
+    {
+      // method stub
+    }
   }
-
 }

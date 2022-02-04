@@ -1,5 +1,5 @@
 /*
-* Copyright 2011-2013 the original author or authors.
+* Copyright 2011-2013, 2022 by Prashant Reddy and John Collins.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -152,8 +152,6 @@ implements UtilityOptimizer
   }
 
   // /////////////// TARIFF SUBSCRIPTION //////////////////////
-
-  //@StateChange
   private void subscribe (Tariff tariff, CapacityBundle bundle,
                           int customerCount, boolean verbose)
   {
@@ -214,6 +212,7 @@ implements UtilityOptimizer
         evaluator.withInertia(0.7);
       }
       evaluator.evaluateTariffs();
+      // handle change notifications
     }
   }
 
@@ -295,6 +294,25 @@ implements UtilityOptimizer
                      (double)originators.size());
     }
     return capacity;
+  }
+
+  // When a portion of population switches between tariffs, we need to update the SoC
+  // on the new subscription to be the population-weighted mean of the old and now SoC
+  // values.
+  protected void updateSubscriptionSoC (TariffSubscription oldsub,
+                                        TariffSubscription newsub,
+                                        int population)
+  {
+    // Note that the subscription population values have already been updated at this point
+    String socLabel = CapacityStructure.getStateOfChargeLabel();
+    double oldSoC = (Double) oldsub.getCustomerDecorator(socLabel)
+            * (oldsub.getCustomersCommitted() + population);
+    double newSoC = (Double) newsub.getCustomerDecorator(socLabel)
+            * (newsub.getCustomersCommitted() - population);
+    newsub.addCustomerDecorator(socLabel,
+                                (oldSoC + newSoC)
+                                / (oldsub.getCustomersCommitted()
+                                        + newsub.getCustomersCommitted()));
   }
 
   private String getCustomerName ()
@@ -409,6 +427,13 @@ implements UtilityOptimizer
         inconv += capacityOriginator.getShiftingInconvenienceFactor(tariff);
       }
       return inconv;
+    }
+
+    @Override
+    public void notifyCustomer (TariffSubscription oldsub,
+                                TariffSubscription newsub, int population)
+    {
+      updateSubscriptionSoC(oldsub, newsub, population); 
     }
   }
 

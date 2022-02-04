@@ -1234,5 +1234,12 @@ public class TariffEvaluatorTest
       // TODO Auto-generated method stub
       return 0;
     }
+
+    @Override
+    public void notifyCustomer (TariffSubscription oldsub,
+                                TariffSubscription newsub, int population)
+    {
+      // TODO Auto-generated method stub
+    }
   }
 }

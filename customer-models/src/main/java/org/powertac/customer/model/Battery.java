@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 by John E. Collins
+ * Copyright (c) 2016, 2022 by John E. Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -359,4 +359,8 @@ implements CustomerModelAccessor
     return new CapacityProfile (profile,
                                 start);
   }
+
+  @Override
+  public void notifyCustomer (TariffSubscription olds, TariffSubscription news, int pop)
+  {}
 }

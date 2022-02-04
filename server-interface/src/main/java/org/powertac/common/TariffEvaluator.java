@@ -695,7 +695,8 @@ public class TariffEvaluator
     return (profileCost + inconv) * scale;
   }
 
-  // tracks additions and deletions for tariff subscriptions
+  // Tracks additions and deletions for tariff subscriptions
+  // This is where we have the old/new pairs for customer notification 
   private void addAllocation (Tariff current, Tariff newTariff, int count)
   {
     if (current == newTariff)
@@ -716,6 +717,11 @@ public class TariffEvaluator
     else
       ac += count;
     allocations.put(newTariff, ac);
+    
+    // Notify customer of the transfer
+    accessor.notifyCustomer(tariffSubscriptionRepo.getSubscription(customerInfo, current),
+                            tariffSubscriptionRepo.getSubscription(customerInfo, newTariff),
+                            count);
   }
   
   // updates subscriptions based on computed allocations

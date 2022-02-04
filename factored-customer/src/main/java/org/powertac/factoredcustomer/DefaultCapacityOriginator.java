@@ -307,8 +307,11 @@ class DefaultCapacityOriginator implements CapacityOriginator
     // Deal with regulation
     double upReg = 0.0;
     double downReg = 0.0;
-    if (parentBundle.getPowerType().isInterruptible()) {
+    if (parentBundle.getPowerType().isInterruptible()
+            || parentBundle.getPowerType().isStorage()) {
       // compute regulation capacity before handling regulation shifts
+      // TODO - use current SoC values rather than static values from the capacityStructure
+      double soc = (Double) subscription.getCustomerDecorator(CapacityStructure.getStateOfChargeLabel());
       upReg = Math.max(0.0, (adjustedCapacity -
           capacityStructure.getUpRegulationLimit()));
       downReg = Math.min(0.0, (adjustedCapacity -
@@ -320,7 +323,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return new CapacityAccumulator(truncateTo2Decimals(adjustedCapacity),
                                    upReg, downReg);
   }
-
+xx
   private double adjustCapacityForCurtailments (int timeslot, double capacity,
                                                 TariffSubscription subscription)
   {
