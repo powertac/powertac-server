@@ -30,7 +30,7 @@
         <docker-maven-plugin.version>1.2.0</docker-maven-plugin.version>
         <dropwizard-metrics.version>4.1.0</dropwizard-metrics.version>
         <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version>
-        <hibernate.version>5.4.4.Final</hibernate.version>
+        <hibernate.version>5.4.24.Final</hibernate.version>
         <hibernate-validator.version>6.1.0.Final</hibernate-validator.version>
         <hikaricp.version>3.3.1</hikaricp.version>
         <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
