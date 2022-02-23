@@ -74,11 +74,15 @@ public class MessageDispatcher
                    + thr.getStackTrace()[0] + "\n  ..at "
                    + thr.getStackTrace()[1] + "\n  ..at "
                    + thr.getStackTrace()[2] + "\n  ..at "
-                   + thr.getStackTrace()[3] + "\n  ..at "
+                   + thr.getStackTrace()[3] + "\n  ..at ..."
                    );      
     }
     catch (Exception ex) {
-      log.error("Exception calling message processor: " + ex.toString());
+      log.error("Exception calling " + methodName + " " + ex.toString() + "\n  ..at "
+                + ex.getStackTrace()[0] + "\n  ..at "
+                + ex.getStackTrace()[1] + "\n  ..at "
+                + ex.getStackTrace()[2] + "\n  ..at "
+                + ex.getStackTrace()[3] + "\n  ..at ...");
     }
     return result;
   }

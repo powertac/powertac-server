@@ -32,19 +32,31 @@ class MessageDispatchTest
     Dummy obj = new Dummy();
     double dbl = 3.0;
     int num = 2;
+    
+    // one arg
     dispatch(obj, "testfn", Integer.valueOf(6));
     assertTrue(result instanceof Integer);
     assertEquals(7, result);
 
+    // two args
     dispatch(obj, "testfn", Double.valueOf(dbl), Integer.valueOf(num));
     assertTrue(result instanceof String);
-    System.out.println("result = " + result);
     assertEquals("8.0", result);
 
+    // two args, different order
     dispatch(obj, "testfn", Integer.valueOf(num), Double.valueOf(dbl));
     assertTrue(result instanceof String);
     assertEquals("9.0", result);
 
+    // throw an exception
+    try {
+      dispatch(obj, "testfn", "Dubious string");
+    }
+    catch (Exception ex) {
+      System.out.println("exception returned by dispatch()");
+    }
+
+    // no args
     dispatch(obj, "testfn");
     assertTrue(result instanceof String);
     assertEquals("No arg", result);
@@ -66,6 +78,10 @@ class MessageDispatchTest
 
     public void testfn () {
       result = "No arg";
+    }
+
+    public void testfn (String badarg) throws Exception {
+      throw new Exception("bad argument" + badarg);
     }
   }
 }
