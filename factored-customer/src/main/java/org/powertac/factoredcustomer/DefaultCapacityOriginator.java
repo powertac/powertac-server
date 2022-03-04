@@ -51,19 +51,19 @@ import java.util.Map;
 //@Domain
 class DefaultCapacityOriginator implements CapacityOriginator
 {
-  private static Logger log = LogManager.getLogger(DefaultCapacityOriginator.class);
+  protected static Logger log = LogManager.getLogger(DefaultCapacityOriginator.class);
 
-  private TimeService timeService;
-  private TimeslotRepo timeslotRepo;
-  private WeatherReportRepo weatherReportRepo;
-  private WeatherForecastRepo weatherForecastRepo;
+  protected TimeService timeService;
+  protected TimeslotRepo timeslotRepo;
+  protected WeatherReportRepo weatherReportRepo;
+  protected WeatherForecastRepo weatherForecastRepo;
 
-  private final double SMOOTHING_WEIGHT = 0.4; // 0.0 => ignore previous value
+  protected final double SMOOTHING_WEIGHT = 0.4; // 0.0 => ignore previous value
 
-  private final TimeseriesGenerator tsGenerator;
+  protected final TimeseriesGenerator tsGenerator;
 
-  private final CapacityStructure capacityStructure;
-  private final CapacityBundle parentBundle;
+  protected final CapacityStructure capacityStructure;
+  protected final CapacityBundle parentBundle;
 
   protected final String logIdentifier;
   protected final Map<Integer, Double> baseCapacities = new HashMap<>();
@@ -116,7 +116,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return getForecastForTimeslot(timeslot + 1);
   }
 
-  private CapacityProfile getForecastForTimeslot (int timeslot)
+  protected CapacityProfile getForecastForTimeslot (int timeslot)
   {
     List<Double> values = new ArrayList<>();
     for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
@@ -155,7 +155,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return ret;
   }
 
-  private double computeForecastCapacity (int future)
+  protected double computeForecastCapacity (int future)
   {
     int now = timeslotRepo.currentSerialNumber();
     int timeToFuture = future - now;
@@ -202,7 +202,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return forecastCapacity;
   }
 
-  private double getBaseCapacity (int future)
+  protected double getBaseCapacity (int future)
   {
     Double ret = baseCapacities.get(future);
     if (ret == null) {
@@ -211,7 +211,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return ret;
   }
 
-  private double drawBaseCapacitySample (int timeslot)
+  protected double drawBaseCapacitySample (int timeslot)
   {
     double baseCapacity = 0.0;
     switch (capacityStructure.getBaseCapacityType()) {
@@ -243,7 +243,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return baseCapacity;
   }
 
-  private double getBaseCapacityFromTimeseries (int timeslot)
+  protected double getBaseCapacityFromTimeseries (int timeslot)
   {
     try {
       return tsGenerator.generateNext(timeslot);
@@ -307,11 +307,9 @@ class DefaultCapacityOriginator implements CapacityOriginator
     // Deal with regulation
     double upReg = 0.0;
     double downReg = 0.0;
-    if (parentBundle.getPowerType().isInterruptible()
-            || parentBundle.getPowerType().isStorage()) {
+    // Assume storage types are handled in a subclass
+    if (parentBundle.getPowerType().isInterruptible()) {
       // compute regulation capacity before handling regulation shifts
-      // TODO - use current SoC values rather than static values from the capacityStructure
-      double soc = (Double) subscription.getCustomerDecorator(CapacityStructure.getStateOfChargeLabel());
       upReg = Math.max(0.0, (adjustedCapacity -
           capacityStructure.getUpRegulationLimit()));
       downReg = Math.min(0.0, (adjustedCapacity -
@@ -323,7 +321,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return new CapacityAccumulator(truncateTo2Decimals(adjustedCapacity),
                                    upReg, downReg);
   }
-xx
+
   private double adjustCapacityForCurtailments (int timeslot, double capacity,
                                                 TariffSubscription subscription)
   {
@@ -343,7 +341,7 @@ xx
     return (currentShift == null) ? capacity : capacity + currentShift;
   }
 
-  private double adjustCapacityForPeriodicSkew (double capacity, DateTime when,
+  protected double adjustCapacityForPeriodicSkew (double capacity, DateTime when,
                                                 boolean verbose)
   {
     int day = when.getDayOfWeek(); // 1=Monday, 7=Sunday
@@ -356,7 +354,7 @@ xx
     return capacity * periodicSkew;
   }
 
-  private double adjustCapacityForCurrentWeather (double capacity,
+  protected double adjustCapacityForCurrentWeather (double capacity,
                                                   boolean verbose)
   {
     WeatherReport weatherReport = weatherReportRepo.currentWeatherReport();
@@ -364,7 +362,7 @@ xx
         verbose);
   }
 
-  private double adjustCapacityForWeather (double capacity, Weather weather,
+  protected double adjustCapacityForWeather (double capacity, Weather weather,
                                            boolean verbose)
   {
     if (verbose) {
@@ -431,7 +429,7 @@ xx
     return adjustCapacityForTariffRates(timeslot, subCapacity, subscription);
   }
 
-  private double adjustCapacityForPopulationRatio (
+  protected double adjustCapacityForPopulationRatio (
       double capacity, TariffSubscription subscription)
   {
     double popRatio =
@@ -446,7 +444,7 @@ xx
   //  return ((double) customerCount) / ((double) population);
   //}
 
-  private double adjustCapacityForTariffRates (
+  protected double adjustCapacityForTariffRates (
       int timeslot, double baseCapacity, TariffSubscription subscription)
   {
     if ((baseCapacity - 0.0) < 0.01) {
@@ -543,7 +541,7 @@ xx
     return whole + fract;
   }
 
-  private void logCapacityDetails (String msg)
+  protected void logCapacityDetails (String msg)
   {
     if (Config.getInstance().isCapacityDetailsLogging()) {
       log.info(msg);

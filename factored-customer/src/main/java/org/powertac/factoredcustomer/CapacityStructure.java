@@ -58,14 +58,15 @@ public final class CapacityStructure implements StructureInstance
   private List<String> hourlySkew;
 
   // Regulation capability
+
   // deprecated?
-//  @ConfigurableValue(description="Lower limit on expected consumption",
-//      valueType="Double", dump = false)
-//  private double upRegulationLimit = Double.MAX_VALUE;
+  @ConfigurableValue(description="Lower limit on expected consumption",
+      valueType="Double", dump = false)
+  private double upRegulationLimit = Double.MAX_VALUE;
   // deprecated?
-//  @ConfigurableValue(description="Upper limit on expected consumption",
-//      valueType="Double", dump = false)
-//  private double downRegulationLimit = -Double.MAX_VALUE;
+  @ConfigurableValue(description="Upper limit on expected consumption",
+      valueType="Double", dump = false)
+  private double downRegulationLimit = -Double.MAX_VALUE;
   @ConfigurableValue(description = "State of charge goal as percentage of storageCapacity",
           valueType = "Double", dump = false)
   private double storageCapacity = 0.0;
@@ -186,6 +187,16 @@ public final class CapacityStructure implements StructureInstance
   public ProbabilityDistribution getBaseIndividualCapacity ()
   {
     return baseIndividualCapacity;
+  }
+
+  public double getUpRegulationLimit ()
+  {
+    return upRegulationLimit;
+  }
+
+  public double getDownRegulationLimit ()
+  {
+    return downRegulationLimit;
   }
 
   public double getPeriodicSkew (int day, int hour)

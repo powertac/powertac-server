@@ -296,23 +296,30 @@ implements UtilityOptimizer
     return capacity;
   }
 
-  // When a portion of population switches between tariffs, we need to update the SoC
+  // When a portion of a storage-capable population switches between tariffs, we need to update the SoC
   // on the new subscription to be the population-weighted mean of the old and now SoC
-  // values.
+  // values. Note that the SoC value is the average across the subscribed population
   protected void updateSubscriptionSoC (TariffSubscription oldsub,
                                         TariffSubscription newsub,
                                         int population)
   {
     // Note that the subscription population values have already been updated at this point
     String socLabel = CapacityStructure.getStateOfChargeLabel();
-    double oldSoC = (Double) oldsub.getCustomerDecorator(socLabel)
-            * (oldsub.getCustomersCommitted() + population);
-    double newSoC = (Double) newsub.getCustomerDecorator(socLabel)
-            * (newsub.getCustomersCommitted() - population);
-    newsub.addCustomerDecorator(socLabel,
-                                (oldSoC + newSoC)
-                                / (oldsub.getCustomersCommitted()
-                                        + newsub.getCustomersCommitted()));
+    // nothing to do if this isn't configured as a STORAGE type
+    if (null != socLabel) {
+      StorageState oldState = (StorageState) oldsub.getCustomerDecorator(socLabel);
+      if (null == oldState) {
+        // non-storage tariff, set up default values
+        oldState = new StorageState();
+      }
+      StorageState newState = (StorageState) newsub.getCustomerDecorator(socLabel);
+      // it's a storage customer -- make sure this subscription is decorated
+      if (null == newState) {
+        newState = new StorageState(newsub);
+        newsub.addCustomerDecorator(socLabel, newState);
+      }
+      newState.addSubscribers(population, oldState);
+    }
   }
 
   private String getCustomerName ()
