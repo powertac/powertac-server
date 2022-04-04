@@ -988,6 +988,13 @@ implements CustomerModelAccessor
   }
 
   @Override
+  public void notifyCustomer (TariffSubscription oldsub,
+                              TariffSubscription newsub, int population)
+  {
+    // method stub
+  }
+
+  @Override
   public void evaluateTariffs (List<Tariff> tariffs)
   {
     log.info(getName() + ": evaluate tariffs");

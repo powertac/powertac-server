@@ -99,6 +99,14 @@ public abstract class AbstractCustomer
   }
 
   /**
+   * Informs model of its initial subscription. This must be implemented by any model that
+   * needs to decorate its subscriptions.
+   */
+  public void handleInitialSubscription (List<TariffSubscription> subscriptions)
+  {
+  }
+
+  /**
    * Saves model data to the bootstrap record. Default implementation does
    * nothing; models may override if they aggregate objects that must save
    * state.
@@ -276,8 +284,8 @@ public abstract class AbstractCustomer
 
   /** Subscribing a certain population amount to a certain subscription */
   void subscribe (Tariff tariff,
-                         int customerCount,
-                         CustomerInfo customer)
+                  int customerCount,
+                  CustomerInfo customer)
   {
     tariffMarketService.subscribeToTariff(tariff, customer, customerCount);
     log.info(this.toString() + " " + tariff.getPowerType().toString() + ": "

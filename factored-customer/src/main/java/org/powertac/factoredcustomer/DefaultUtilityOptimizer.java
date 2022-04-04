@@ -410,6 +410,13 @@ implements UtilityOptimizer
       }
       return inconv;
     }
+
+    @Override
+    public void notifyCustomer (TariffSubscription oldsub,
+                                TariffSubscription newsub, int population)
+    {
+      //updateSubscriptionSoC(oldsub, newsub, population); 
+    }
   }
 
   /**

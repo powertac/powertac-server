@@ -124,6 +124,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
           tariffMarketService.subscribeToTariff(tariffMarketService
                                                 .getDefaultTariff(cust.getPowerType()), cust, cust.getPopulation());
           customerRepo.add(cust);
+          model.handleInitialSubscription(tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(cust));
         }
       }
     }
