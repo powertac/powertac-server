@@ -93,30 +93,43 @@ public class StorageState
     if (0 == getPopulation()) {
       capacityVector.clear();
       copyScaled(timeslotIndex, oldState, fraction);
-      scaleState(timeslotIndex, oldState, 1.0 - fraction);
     }
 
     // Do we need to do anything with the subscription that's losing customers?
     else if (count > 0) {
-      // Since we are taking weighted means, and since all the chargers have the same maximum
+      // Since we are using weighted means, and since all the chargers have the same maximum
       // capacity, it's not possible here to violate capacity constraints.
-      // First, we get the number of in-service customers for both populations
-      double xfrActive = oldState.getInServiceRatio() * count;
-      double originalActive = getInServicePopulation();
+      addScaled(timeslotIndex, oldState, fraction);
 
-      
-      
-      double xfrIsr = oldState.getInServiceRatio() * xfrActive;
-      double originalIsr = getInServiceRatio() * originalActive;
-      inServiceRatio = (xfrIsr + originalIsr) / (xfrActive + originalActive);
+      // First, we get the number of in-service customers for both populations
+      //double xfrActive = oldState.getInServiceRatio() * count;
+      //double originalActive = getInServicePopulation();
+
+      //double xfrIsr = oldState.getInServiceRatio() * xfrActive;
+      //double originalIsr = getInServiceRatio() * originalActive;
+      //inServiceRatio = (xfrIsr + originalIsr) / (xfrActive + originalActive);
       //nominalChargeRate = (minimumCapacity + maximumCapacity) / 2;
+    }
+    // in either case, we have to scale back the old state
+    scaleState(timeslotIndex, oldState, 1.0 - fraction);
+  }
+
+  // Copies over a portion of the state from another subscription.
+  // Since we assume the current state is empty, we start by clearing it.
+  private void copyScaled (int timeslot, StorageState from, double fraction)
+  {
+    capacityVector.clear();
+    for (int i = timeslot; i < timeslot + from.getHorizon(timeslot); i++) {
+      capacityVector.set(i, from.getElement(i).copyScaled(fraction));
     }
   }
 
-  // called to copy over a portion of the state from another subscription
-  private void copyScaled (int timeslot, StorageState old, double fraction)
+  // Add a portion of the state from another subscription to this state.
+  private void addScaled (int timeslot, StorageState from, double fraction)
   {
-    
+    for (int i = timeslot; i < timeslot + from.getHorizon(timeslot); i++) {
+      capacityVector.set(i, from.getElement(i).copyScaled(fraction));
+    }
   }
 
   // called to scale back values in a state that's losing customers
@@ -131,14 +144,12 @@ public class StorageState
       log.error("updateState called with negative fraction");
       return;
     }
-
-    // All we need to do is scale back the capacityVector
-    Consumer<StorageElement> operator = new Consumer<>() {
-      public void accept (StorageElement item) {
-        item.scale(fraction);
-      }
-    };
-    capacityVector.operate(operator, timeslot);
+    
+    // walk through the active array and scale it
+    for (int i = 0; i < old.getHorizon(timeslot); i++) {
+      StorageElement element = old.getElement(i + timeslot);
+      element.scale(fraction);
+    }
   }
 
   /**
@@ -147,7 +158,7 @@ public class StorageState
   public void distributeDemand (int timeslot, List<DemandElement> newDemand,
                                 Double ratio, Double regulation)
   {
-    
+    //TODO
   }
 
   /**
@@ -155,37 +166,63 @@ public class StorageState
    */
   public double getNominalDemand (int timeslot)
   {
-    return 0.0;
+    StorageElement current = capacityVector.get(timeslot);
+    return (current.getMinDemand() + current.getMaxDemand()) / 2.0;
   }
 
   /**
    * Retrieves the available regulation capacity for the current timeslot
+   * Note that we connect the RC to its subscription, because that's the functionality
+   * offered by RegulationCapacity. But we don't modify the subscription. That needs
+   * to be done by the caller.
    */
   public RegulationCapacity getRegulationCapacity (int timeslot)
   {
-    return null;
+    StorageElement current = getElement(timeslot);
+    double nominal = (current.getMinDemand() + current.getMaxDemand()) / 2.0;
+    RegulationCapacity result = new RegulationCapacity(mySub,
+                                                       nominal - current.getMinDemand(),
+                                                       current.getMaxDemand() - nominal);
+    return result;
   }
 
-  // Proportion of total population that are active at the moment (plugged in for EVs)
-  public void setInServiceRatio (double ratio)
+  /**
+   * Returns the proportion of total subscriber population that are active (plugged in)
+   * in the given timeslot. Presumably this number is identical for all subscriptions.
+   * Note that 
+   */
+  public double getInServiceRatio (int timeslot)
   {
-    inServiceRatio = ratio;
+    return getElement(timeslot).getActiveChargers() / getPopulation();
   }
 
-  public double getInServiceRatio ()
-  {
-    return inServiceRatio;
-  }
-
-  // This is the population from the subscription, before the transfer actually takes place
+  /**
+   * Returns the population from the subscription, before any transfer actually takes place
+   */
   public int getPopulation ()
   {
     return mySub.getCustomersCommitted();
   }
 
-  public double getInServicePopulation ()
+  public double getInServicePopulation (int timeslot)
   {
-    return getPopulation() * getInServiceRatio();
+    return capacityVector.get(timeslot).getActiveChargers();
+  }
+
+  /**
+   * Returns the time horizon for this state past the given timeslot.
+   * This is the number of timeslots in the future for which we have active
+   * charging commitments.
+   */
+  public int getHorizon (int timeslot)
+  {
+    return capacityVector.getActiveLength(timeslot);
+  }
+
+  // Retrieves a specific StorageElement
+  private StorageElement getElement (int index)
+  {
+    return capacityVector.get(index);
   }
 
   /** ---------------------------------------------------------------------------------------
@@ -217,9 +254,68 @@ public class StorageState
     // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
     private double remainingCommitment = 0.0;
 
+    // default constructor
     StorageElement ()
     {
       super();
+    }
+
+    // populated constructor
+    StorageElement (double activeChargers, double maxDemand,
+                    double minDemand, double remainingCommitment)
+    {
+      super();
+      this.activeChargers = activeChargers;
+      this.maxDemand = maxDemand;
+      this.minDemand = minDemand;
+      this.remainingCommitment = remainingCommitment;
+    }
+
+    double getActiveChargers ()
+    {
+      return activeChargers;
+    }
+
+    double getMaxDemand ()
+    {
+      return maxDemand;
+    }
+
+    double getMinDemand ()
+    {
+      return minDemand;
+    }
+
+    double getRemainingCommitment ()
+    {
+      return remainingCommitment;
+    }
+
+    // returns a new StorageElement with the same contents as an old one
+    StorageElement copy ()
+    {
+      return new StorageElement(getActiveChargers(),
+                                getMaxDemand(),
+                                getMinDemand(),
+                                getRemainingCommitment());
+    }
+
+    // returns a new StorageElement containing a portion of an old element
+    StorageElement copyScaled (double scale)
+    {
+      return new StorageElement(getActiveChargers() * scale,
+                                getMaxDemand() * scale,
+                                getMinDemand() * scale,
+                                getRemainingCommitment() * scale);
+    }
+
+    // adds a portion of an existing element to the contents of this one
+    void addScaled (StorageElement element, double scale)
+    {
+      activeChargers += element.getActiveChargers() * scale;
+      maxDemand += element.getMaxDemand() * scale;
+      minDemand += element.getMinDemand() * scale;
+      remainingCommitment += element.getRemainingCommitment() * scale;
     }
 
     // Scale this element by a constant fraction
@@ -230,5 +326,7 @@ public class StorageState
       minDemand *= fraction;
       remainingCommitment *= fraction;
     }
+
+    
   }
 }

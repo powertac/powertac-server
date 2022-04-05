@@ -193,15 +193,16 @@ implements CustomerModelAccessor, BootstrapDataCollector
    */
   @Override
   public void notifyCustomer (TariffSubscription oldsub,
-                              TariffSubscription newsub, int population)
+                              TariffSubscription newsub,
+                              int count)
   {
-    // We assume population is positive
-    if (population < 0) {
+    // We assume count is positive
+    if (count < 0) {
       log.error("Negative population in notifyCustomer({}, {} {})",
-                oldsub.getId(), newsub.getId(), population);
+                oldsub.getId(), newsub.getId(), count);
       return;
     }
-    else if (population == 0) {
+    else if (count == 0) {
       // unexpected, but not exactly an error
       log.warn("Zero population in notifyCustomer({}, {}, 0)",
                oldsub.getId(), newsub.getId());
@@ -217,7 +218,7 @@ implements CustomerModelAccessor, BootstrapDataCollector
       return;
     }
     StorageState newss = ensureDecoration(newsub);
-    newss.moveSubscribers(timeslotIndex, population, oldss);
+    newss.moveSubscribers(timeslotIndex, count, oldss);
   }
 
   @Override
