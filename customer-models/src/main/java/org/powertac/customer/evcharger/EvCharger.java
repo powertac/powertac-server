@@ -27,6 +27,7 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.Timeslot;
 import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
@@ -234,8 +235,7 @@ implements CustomerModelAccessor, BootstrapDataCollector
 
     // iterate over subscriptions
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
-    for (TariffSubscription sub :
-      service.getTariffSubscriptionRepo()
+    for (TariffSubscription sub : service.getTariffSubscriptionRepo()
       .findActiveSubscriptionsForCustomer(getCustomerInfo())) {
       // should ss compute these values?
       double ratio = (double) sub.getCustomersCommitted() / population;
@@ -246,7 +246,6 @@ implements CustomerModelAccessor, BootstrapDataCollector
       sub.setRegulationCapacity(ss.getRegulationCapacity(timeslotIndex));
     }
     
-
   }
 
   @Override
@@ -269,4 +268,32 @@ implements CustomerModelAccessor, BootstrapDataCollector
     // TODO Auto-generated method stub
     return null;
   }
+
+  /**
+   * Generates demand data from a set of statistical distributions. 
+   * In each timeslot, we need to know how many vehicles are plugged in, how much energy
+   * they need, and by when. Demand will presumably vary by time-of-day and day-of-week,
+   * and will also increase when weather is (predicted to be) hot or cold. Heat requires
+   * some energy to be devoted to the AC, while cold reduces battery capacity and requires
+   * heating both the cabin and the batteries, presumably with resistance heaters.
+   */
+  class DemandGenerator
+  {
+    
+    public DemandGenerator ()
+    {
+      super();
+    }
+
+    /**
+     * Returns a vector of pairs, indexed by time horizon (or the number of timeslots in the
+     * future), each representing the number of vehicles that will unplug and stop actively
+     * charging in that timeslot and how much energy is needed by those unplugging vehicles. 
+     */
+    public List<DemandElement> getDemandInfo (Instant time)
+    {
+      return null; // stub
+    }
+  }
+
 }

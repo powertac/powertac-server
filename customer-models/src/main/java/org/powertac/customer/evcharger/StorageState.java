@@ -16,9 +16,6 @@
 package org.powertac.customer.evcharger;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.RegulationCapacity;
@@ -26,14 +23,20 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.util.RingArray;
 
 /**
- * Records the current state of a storage-capable customer population subscribed to a particular tariff.
- * Intended to be used as a <code>customerDecorator</code> on a <code>TariffSubscription</code>. The
- * code here depends strongly on being called before the subscriptions themselves are updated. In other
- * words, it needs to be called in the <code>notifyCustomer()</code> method, which in
- * <code>TariffEvaluator</code> happens before <code>updateSubscriptions()</code> is
- * called. Specifically, this means that the population numbers in the subscriptions themselves have
- * NOT yet been updated when <code>addSubscribers()</code> is called.
+ * Records the current state of a population of EV chargers subscribed to a
+ * particular tariff. Intended to be used as a <code>customerDecorator</code> on a
+ * <code>TariffSubscription</code>. The code here depends strongly on being called
+ * before the subscriptions themselves are updated.
  * 
+ * In each timeslot over some arbitrary horizon (limited by <code>ringArraySize</code>),
+ * we keep track of the number of vehicles plugged in (the number of "active" chargers)
+ * the current aggregate state-of-charge of the attached vehicles, and the energy committed
+ * and not yet delivered by that time. We assume that vehicles arrive and leave at the
+ * beginning of the arrival/departure timeslots. That means they consume energy in the
+ * arrival timeslot, but not in the departure timeslot.
+ * 
+ * Energy values are population values, not individual values. Individual values (if
+ * needed) are given by the ratio of energy to the subscribed population.
  * 
  * @author John Collins
  */
@@ -80,9 +83,13 @@ public class StorageState
 
   /**
    * Transfers subscribers from another subscription having the specified StorageState.
-   * Updates capacity and inServiceRatio values accordingly. Note that when this is called, the
-   * subscriptions themselves have not yet been updated. For now we assume the "old" subscription does
-   * not need to be updated because all the values are per-inservice-customer. 
+   * Updates the capacityVector accordingly.
+   * 
+   * NOTE that when this is called, the subscriptions themselves have not yet been updated.
+   * In other words, it needs to be called in the <code>notifyCustomer()</code> method,
+   * which in <code>TariffEvaluator</code> happens before <code>updateSubscriptions()</code>
+   * is called. Specifically, this means that the population numbers in the subscriptions
+   * themselves have NOT yet been updated when <code>moveSubscribers()</code> is called.
    */
   public void moveSubscribers (int timeslotIndex, int count, StorageState oldState)
   {
@@ -153,12 +160,19 @@ public class StorageState
   }
 
   /**
+   * Distributes exercised regulation over the horizon starting at timeslot
+   */
+  public void distributeRegulation (int timeslot, double regulation)
+  {
+    
+  }
+
+  /**
    * Distributes new demand over time
    */
-  public void distributeDemand (int timeslot, List<DemandElement> newDemand,
-                                Double ratio, Double regulation)
+  public void distributeDemand (int timeslot, List<DemandElement> newDemand, Double ratio)
   {
-    //TODO
+    
   }
 
   /**
