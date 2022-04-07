@@ -15,6 +15,7 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.util.Iterator;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,7 +37,8 @@ import org.powertac.util.RingArray;
  * arrival timeslot, but not in the departure timeslot.
  * 
  * Energy values are population values, not individual values. Individual values (if
- * needed) are given by the ratio of energy to the subscribed population.
+ * needed) are given by the ratio of energy to the number of active chargers at any
+ * given time.
  * 
  * @author John Collins
  */
@@ -48,35 +50,31 @@ public class StorageState
   // The TariffSubscription decorated by this instance
   private TariffSubscription mySub;
 
-  // Current minimum and maximum capacity for the population subscribed to the associated tariff.
-  //private double minimumCapacity = 0.0;
-  //private double maximumCapacity = 0.0;
-
-  // Ratio of the number of units currently in service (for EVs, this is the number of
-  // vehicles plugged in and not fully charged) to the total population (for EVs, this
-  // is the number of chargers). Note that this value will always be 1.0 for models that
-  // don't allow capacity to be added and removed.
-  private double inServiceRatio = 1.0;
-
-  // Mean usage per member in kW to achieve charging goal with maximum flexibility
-  //private double nominalChargeRate = 0.0;
-
   // Capacity vector for the next week
   // This is a hard limit for the capacity lookahead
   private int ringArraySize = 168;
   private RingArray<StorageElement> capacityVector;
+
+  // Capacity in kW of individual population units
+  private double unitCapacity = 0.0;
+
+  // Cached values for current timeslot
+  private int cacheTimeslot = -1;
+  private double minDemand = 0.0;
+  private double maxDemand = 0.0;
+  private double nominalDemand = 0.0;
   
   // default constructor, used to create a dummy instance
-  public StorageState ()
+  public StorageState (double unitCapacity)
   {
     super();
-    capacityVector = new RingArray<>(ringArraySize);
+    this.unitCapacity = unitCapacity;
   }
 
   // normal constructor records the subscription it decorates
-  public StorageState (TariffSubscription sub)
+  public StorageState (TariffSubscription sub, double unitCapacity)
   {
-    super();
+    this(unitCapacity);
     mySub = sub;
     capacityVector = new RingArray<> (ringArraySize);
   }
@@ -90,6 +88,16 @@ public class StorageState
    * which in <code>TariffEvaluator</code> happens before <code>updateSubscriptions()</code>
    * is called. Specifically, this means that the population numbers in the subscriptions
    * themselves have NOT yet been updated when <code>moveSubscribers()</code> is called.
+   * 
+   * Maximum demand in each timeslot is the most that can be used. Unless the total
+   * remaining commitments are less than what the population of chargers can use in a
+   * single timeslot, then it's just the rated demand of the current active chargers.
+   * We don't care about maximum demand in future timeslots, just the current one.
+   * 
+   * Minimum demand is the least that can be used in the current timeslot without
+   * Jeopardizing future commitments.
+   * 
+   * Minim
    */
   public void moveSubscribers (int timeslotIndex, int count, StorageState oldState)
   {
@@ -107,15 +115,6 @@ public class StorageState
       // Since we are using weighted means, and since all the chargers have the same maximum
       // capacity, it's not possible here to violate capacity constraints.
       addScaled(timeslotIndex, oldState, fraction);
-
-      // First, we get the number of in-service customers for both populations
-      //double xfrActive = oldState.getInServiceRatio() * count;
-      //double originalActive = getInServicePopulation();
-
-      //double xfrIsr = oldState.getInServiceRatio() * xfrActive;
-      //double originalIsr = getInServiceRatio() * originalActive;
-      //inServiceRatio = (xfrIsr + originalIsr) / (xfrActive + originalActive);
-      //nominalChargeRate = (minimumCapacity + maximumCapacity) / 2;
     }
     // in either case, we have to scale back the old state
     scaleState(timeslotIndex, oldState, 1.0 - fraction);
@@ -160,19 +159,112 @@ public class StorageState
   }
 
   /**
-   * Distributes exercised regulation over the horizon starting at timeslot
+   * Distributes exercised regulation over the horizon starting at timeslot.
+   * Note that a positive number means up-regulation, in which case we need to replace
+   * that much energy.
+   * 
+   * NOTE: We must do this before distributing demand because the regulation only applies
+   * to the vehicles that were plugged in when we reported regulation capacity in the
+   * previous timeslot. 
    */
   public void distributeRegulation (int timeslot, double regulation)
   {
-    
+    // TODO -- this approach may be overly conservative
+    if (regulation > 0.0) {
+      // up-regulation, need to add this much to commitments
+      double availableCapacity = 0.0;
+      double remaining = regulation;
+      int index = timeslot;
+      while (remaining > 0.0) {
+        StorageElement se = getElement(index);
+        availableCapacity += se.getActiveChargers() * unitCapacity
+                - se.getRemainingCommitment();
+        if (availableCapacity >= remaining) {
+          // we can put the rest here
+          se.addCommitment(remaining);
+          remaining = 0.0;
+        }
+        else {
+          // use what we can here and continue
+          se.addCommitment(availableCapacity);
+          remaining -= availableCapacity;
+        }
+        index += 1;
+      }
+    }
+    else if (regulation < 0.0) {
+      // down-regulation, we got some extra energy to reduce commitments
+      int index = timeslot;
+      double remaining = -regulation;
+      while (remaining > 0.0) {
+        StorageElement se = getElement(index);
+        if (remaining <= se.remainingCommitment) {
+          // dump it here and we're done
+          se.reduceCommitment(remaining);
+          remaining = 0.0;
+        }
+        else {
+          remaining -= se.getRemainingCommitment();
+          se.reduceCommitment(se.getRemainingCommitment());
+        }
+        index += 1;
+      }
+    }
   }
 
   /**
-   * Distributes new demand over time
+   * Distributes new demand over time. Demand for this subscription is the new demand
+   * times the ratio of subscribers to the total population, as given by <code>ratio</code>.
+   * NOTE that this code assumes the newDemand list is sorted by increasing timeslot.
    */
   public void distributeDemand (int timeslot, List<DemandElement> newDemand, Double ratio)
   {
-    
+    // what if the newDemand list is empty?
+    if (null == newDemand || 0 == newDemand.size()) {
+      return;
+    }
+
+    // We first must clear out the portion of the ring beyond the current max index
+    // that we might want to use.
+    capacityVector.clean(timeslot);
+
+    // All the vehicles in newDemand start charging now, so we first have to find the total
+    // activations for the current timeslot
+    double activations = 0.0;
+    int maxTimeslot = timeslot + getHorizon(timeslot);
+    for (DemandElement de : newDemand) {
+      activations += de.getNVehicles() * ratio;
+      maxTimeslot = (int) Math.max(maxTimeslot, de.getHorizon() + timeslot);
+    }
+
+    // Now we walk through the timeslots between now and maxHorizon filling in the
+    // activation counts and demand requirements
+    Iterator<DemandElement> elements = newDemand.iterator();
+    DemandElement nextDe = elements.next();
+    for (int i = timeslot; i <= maxTimeslot && null != nextDe; i++) {
+      StorageElement se = getElement(i);
+      if (null == se) {
+        // empty spot
+        se = new StorageElement(0.0, 0.0);
+        putElement(i, se);
+      }
+      se.addChargers(activations); // add remaining activations
+      if (i == nextDe.getHorizon() + timeslot - 1) {
+        // EVs unplug at the start of a timeslot
+        activations -= nextDe.getNVehicles() * ratio;        
+      }
+      if (i == nextDe.getHorizon() + timeslot) {
+        // reduce remaining activations, fill in commitment
+        se.addCommitment(nextDe.getRequiredEnergy() * ratio);
+        if (elements.hasNext()) {
+          // go again if we haven't finished the list
+          nextDe = elements.next();
+        }
+        else {
+          nextDe = null;
+        }
+      }
+    }
   }
 
   /**
@@ -180,8 +272,8 @@ public class StorageState
    */
   public double getNominalDemand (int timeslot)
   {
-    StorageElement current = capacityVector.get(timeslot);
-    return (current.getMinDemand() + current.getMaxDemand()) / 2.0;
+    computeFlexibility(timeslot);
+    return (minDemand + maxDemand) / 2.0;
   }
 
   /**
@@ -192,35 +284,59 @@ public class StorageState
    */
   public RegulationCapacity getRegulationCapacity (int timeslot)
   {
-    StorageElement current = getElement(timeslot);
-    double nominal = (current.getMinDemand() + current.getMaxDemand()) / 2.0;
+    double nominal = getNominalDemand(timeslot);
     RegulationCapacity result = new RegulationCapacity(mySub,
-                                                       nominal - current.getMinDemand(),
-                                                       current.getMaxDemand() - nominal);
+                                                       nominal - minDemand,
+                                                       maxDemand - nominal);
     return result;
   }
 
-  /**
-   * Returns the proportion of total subscriber population that are active (plugged in)
-   * in the given timeslot. Presumably this number is identical for all subscriptions.
-   * Note that 
-   */
-  public double getInServiceRatio (int timeslot)
+  // Flexibility needs to be re-computed in each timeslot. 
+  private void computeFlexibility (int timeslot)
   {
-    return getElement(timeslot).getActiveChargers() / getPopulation();
+    if (cacheTimeslot != timeslot) {
+      // first, find the minimum demand in the current timeslot that leaves enough
+      // to satisfy all future unfilled commitments
+      double available = 0.0;
+      // Walk through the capacityVector from the front and find the minDemand, which
+      // is the 
+      double totalCapacity = 0.0;
+      double totalDemand = 0.0;
+      maxDemand = unitCapacity * getElement(timeslot).getActiveChargers();
+      for (int i = timeslot; i <= getHorizon(timeslot); i++) {
+        StorageElement se = getElement(i);
+        totalCapacity += se.getActiveChargers() * unitCapacity - se.getRemainingCommitment();
+        // this is supposed to capture the biggest shortage
+        minDemand = Math.max(minDemand, -totalCapacity);
+        totalDemand += se.getRemainingCommitment();
+      }
+      // maximum demand is less than current capacity only if there's not enough future
+      // demand to absorb it all.
+      maxDemand = Math.min(maxDemand, totalDemand);
+      cacheTimeslot = timeslot;
+    }
+  }
+
+  // Returns the subscription attached to this SS
+  TariffSubscription getSubscription ()
+  {
+    return mySub;
   }
 
   /**
    * Returns the population from the subscription, before any transfer actually takes place
    */
-  public int getPopulation ()
+  int getPopulation ()
   {
     return mySub.getCustomersCommitted();
   }
 
-  public double getInServicePopulation (int timeslot)
+  /**
+   * Returns the capacity of individual chargers
+   */
+  double getUnitCapacity ()
   {
-    return capacityVector.get(timeslot).getActiveChargers();
+    return unitCapacity;
   }
 
   /**
@@ -228,15 +344,21 @@ public class StorageState
    * This is the number of timeslots in the future for which we have active
    * charging commitments.
    */
-  public int getHorizon (int timeslot)
+  int getHorizon (int timeslot)
   {
     return capacityVector.getActiveLength(timeslot);
   }
 
   // Retrieves a specific StorageElement
-  private StorageElement getElement (int index)
+  StorageElement getElement (int index)
   {
     return capacityVector.get(index);
+  }
+
+  // Stores an element at the specified location
+  private void putElement (int index, StorageElement se)
+  {
+    capacityVector.set(index, se);
   }
 
   /** ---------------------------------------------------------------------------------------
@@ -257,14 +379,6 @@ public class StorageState
     // Number of active chargers
     private double activeChargers = 0.0;
 
-    // Maximum total demand in a given timeslot, constrained by number of active chargers and
-    // remaining unfilled capacity in attached vehicles
-    private double maxDemand = 0.0;
-
-    // Minimum demand is the lowest amount that can be consumed in a given timeslot, constrained by
-    // unsatisfied charging demand in the current and future timeslots
-    private double minDemand = 0.0;
-
     // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
     private double remainingCommitment = 0.0;
 
@@ -275,13 +389,10 @@ public class StorageState
     }
 
     // populated constructor
-    StorageElement (double activeChargers, double maxDemand,
-                    double minDemand, double remainingCommitment)
+    StorageElement (double activeChargers, double remainingCommitment)
     {
       super();
       this.activeChargers = activeChargers;
-      this.maxDemand = maxDemand;
-      this.minDemand = minDemand;
       this.remainingCommitment = remainingCommitment;
     }
 
@@ -290,14 +401,9 @@ public class StorageState
       return activeChargers;
     }
 
-    double getMaxDemand ()
+    void addChargers (double n)
     {
-      return maxDemand;
-    }
-
-    double getMinDemand ()
-    {
-      return minDemand;
+      activeChargers += n;
     }
 
     double getRemainingCommitment ()
@@ -305,21 +411,26 @@ public class StorageState
       return remainingCommitment;
     }
 
+    void addCommitment (double newCommitment)
+    {
+      remainingCommitment += newCommitment;
+    }
+
+    void reduceCommitment (double reduction)
+    {
+      remainingCommitment -= reduction;
+    }
+
     // returns a new StorageElement with the same contents as an old one
     StorageElement copy ()
     {
-      return new StorageElement(getActiveChargers(),
-                                getMaxDemand(),
-                                getMinDemand(),
-                                getRemainingCommitment());
+      return new StorageElement(getActiveChargers(), getRemainingCommitment());
     }
 
     // returns a new StorageElement containing a portion of an old element
     StorageElement copyScaled (double scale)
     {
       return new StorageElement(getActiveChargers() * scale,
-                                getMaxDemand() * scale,
-                                getMinDemand() * scale,
                                 getRemainingCommitment() * scale);
     }
 
@@ -327,8 +438,6 @@ public class StorageState
     void addScaled (StorageElement element, double scale)
     {
       activeChargers += element.getActiveChargers() * scale;
-      maxDemand += element.getMaxDemand() * scale;
-      minDemand += element.getMinDemand() * scale;
       remainingCommitment += element.getRemainingCommitment() * scale;
     }
 
@@ -336,8 +445,6 @@ public class StorageState
     void scale (double fraction)
     {
       activeChargers *= fraction;
-      maxDemand *= fraction;
-      minDemand *= fraction;
       remainingCommitment *= fraction;
     }
 

@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
@@ -53,9 +54,15 @@ implements CustomerModelAccessor, BootstrapDataCollector
   
   @ConfigurableValue(valueType = "Double",
           publish = true,
-          bootstrapState = true, dump = false,
-          description = "Configurable population")
+          bootstrapState = true, dump = true,
+          description = "Population of chargers")
   private double population = 1000.0;
+  
+  @ConfigurableValue(valueType = "Double",
+          publish = true,
+          bootstrapState = true, dump = true,
+          description = "Individual Charger capacity in kW")
+  private double chargerCapacity = 8.0;
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -137,10 +144,15 @@ implements CustomerModelAccessor, BootstrapDataCollector
   {
     StorageState result = (StorageState) sub.getCustomerDecorator(storageStateName);
     if (null == result) {
-      result = new StorageState(sub);
+      result = new StorageState(sub, getChargerCapacity());
       sub.addCustomerDecorator(storageStateName, result);
     }
     return result;
+  }
+
+  private double getChargerCapacity ()
+  {
+    return chargerCapacity;
   }
 
   @Override
@@ -227,7 +239,7 @@ implements CustomerModelAccessor, BootstrapDataCollector
   {
     // sample distribution for the current date/time
     // assume sample is list of (activationCount, horizon, kWh) structs
-    Instant currentTime = service.getTimeService().getCurrentTime();
+    DateTime currentTime = service.getTimeService().getCurrentDateTime();
     // get current demand
     List<DemandElement>newDemand = demandGenerator.getDemandInfo(currentTime);
     
@@ -239,13 +251,13 @@ implements CustomerModelAccessor, BootstrapDataCollector
       .findActiveSubscriptionsForCustomer(getCustomerInfo())) {
       // should ss compute these values?
       double ratio = (double) sub.getCustomersCommitted() / population;
-      double regulation = sub.getRegulation();
       StorageState ss = (StorageState) sub.getCustomerDecorator(storageStateName);
-      ss.distributeDemand(timeslotIndex, newDemand, ratio, regulation);
+      // regulation must distributed before distributing future demand
+      ss.distributeRegulation(timeslotIndex, sub.getRegulation());
+      ss.distributeDemand(timeslotIndex, newDemand, ratio);
       sub.usePower(ss.getNominalDemand(timeslotIndex));
       sub.setRegulationCapacity(ss.getRegulationCapacity(timeslotIndex));
     }
-    
   }
 
   @Override
@@ -254,13 +266,6 @@ implements CustomerModelAccessor, BootstrapDataCollector
     // TODO Auto-generated method stub
 
   }
-
-  // Saves the current StorageState to the bootstrap record
-  //@Override
-  //public void saveBootstrapState ()
-  //{
-    // TODO - fill this out
-  //}
 
   @Override
   public List<Object> collectBootstrapData (int maxTimeslots)
@@ -290,10 +295,9 @@ implements CustomerModelAccessor, BootstrapDataCollector
      * future), each representing the number of vehicles that will unplug and stop actively
      * charging in that timeslot and how much energy is needed by those unplugging vehicles. 
      */
-    public List<DemandElement> getDemandInfo (Instant time)
+    public List<DemandElement> getDemandInfo (DateTime time)
     {
       return null; // stub
     }
   }
-
 }

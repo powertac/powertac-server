@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +45,7 @@ class StorageStateTest
   // brokers and initial tariffs
   private Broker defaultBroker;
   private Tariff defaultConsumption;
-  private Tariff defaultProduction;
+  private Tariff evTariff;
   private Broker bob;
   private Broker sally;
 
@@ -92,17 +95,15 @@ class StorageStateTest
     sally = new Broker("Sally");
     bob = new Broker("Bob");
 
-    //TariffSpecification dpSpec =
-    //        new TariffSpecification(defaultBroker,
-    //                                PowerType.PRODUCTION).
-    //                                addRate(new Rate().withValue(0.1));
-    //defaultProduction = new Tariff(dpSpec);
-    //initTariff(defaultProduction);
-    //when(tariffMarket.getDefaultTariff(PowerType.PRODUCTION))
-    //    .thenReturn(defaultProduction);
+    TariffSpecification evSpec =
+            new TariffSpecification(defaultBroker,
+                                    PowerType.ELECTRIC_VEHICLE).
+                                    addRate(new Rate().withValue(0.1));
+    evTariff = new Tariff(evSpec);
+    initTariff(evTariff);
 
-    customer = new CustomerInfo("PodunkChargers", 1000).withPowerType(PowerType.ELECTRIC_VEHICLE);
-    uut = new StorageState();
+    customer = new CustomerInfo("PodunkChargers", 1000)
+            .withPowerType(PowerType.ELECTRIC_VEHICLE);
   }
 
   private TariffSubscription subscribeTo (CustomerInfo customer, Tariff tariff, int count)
@@ -131,19 +132,64 @@ class StorageStateTest
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
   }
 
+  @Test
+  public void testInitial ()
+  {
+    double chargerCapacity = 5.0; //kW
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         customer.getPopulation());
+    StorageState s1 = new StorageState(dc, chargerCapacity);
+    assertEquals(dc, s1.getSubscription());
+    assertEquals(customer.getPopulation(), s1.getPopulation());
+    assertEquals(5.0, s1.getUnitCapacity(), 1e-6);
+  }
+
+  @Test
+  public void testDemand1 ()
+  {
+    double chargerCapacity = 6.0; //kW
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         customer.getPopulation() / 2);
+    StorageState s1 = new StorageState(dc, chargerCapacity);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(1, 4.0, 12.0));
+    demand.add(new DemandElement(3, 6.0, 60.0));
+    s1.distributeDemand(42, demand, 0.5);
+    assertEquals(500, s1.getPopulation());
+    assertNull(s1.getElement(41));
+    assertNotNull(s1.getElement(42));
+    // start charging here
+    assertEquals(5.0, s1.getElement(42).getActiveChargers(), 1e-6);
+    assertEquals(0.0, s1.getElement(42).getRemainingCommitment(), 1e-6);
+    // 2 vehicles unplug at start of 43
+    assertNotNull(s1.getElement(43));
+    assertEquals(3.0, s1.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(6.0, s1.getElement(43).getRemainingCommitment(), 1e-6);
+    // keep charging in 44
+    assertNotNull(s1.getElement(44));
+    assertEquals(3.0, s1.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(0.0, s1.getElement(44).getRemainingCommitment(), 1e-6);
+    // done in 45
+    assertNotNull(s1.getElement(45));
+    assertEquals(0.0, s1.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(30.0, s1.getElement(45).getRemainingCommitment(), 1e-6);
+  }
+
   /**
-   * To test this, we need two subscriptions to two different tariffs and two different subscriptions.
+   * Here we need two subscriptions to two different tariffs and two different subscriptions.
    * The "old" subscription is needed because its StorageState needs to retrieve the population.
-   * The "new" subscriptin may have 0 or non-zero population.
+   * The "new" subscription may have 0 or non-zero population.
    * Start with all of PodunkChargers subscribed to the default consumption tariff, and create a
    * StorageState for that subscription.
    * Then move half of them to a new EV tariff by calling the CMA. This will test the ability to 
    */
-  @Test
+  //@Test
   void testNewSubscription ()
   {
+    double chargerCapacity = 5.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
-    oldSS = new StorageState(oldSub);
+    oldSS = new StorageState(oldSub, chargerCapacity);
     TariffSpecification ts1 =
             new TariffSpecification(bob,
                                     PowerType.ELECTRIC_VEHICLE).
@@ -152,6 +198,18 @@ class StorageStateTest
         Tariff tariff1 = new Tariff(ts1);
         initTariff(tariff1);
     //fail("Not yet implemented");
+  }
+
+  @Test
+  void testClear ()
+  {
+    
+  }
+
+  @Test
+  void testClean ()
+  {
+    
   }
 
   class DummyCMA implements CustomerModelAccessor
