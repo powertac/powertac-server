@@ -78,7 +78,7 @@ public class CustomerInfo //implements Serializable
   private boolean multiContracting = false;
 
   /** True just in case this customer negotiates over contracts.
-   * Defaults to false. */
+   * Defaults to false, currently ignored. */
   @XStreamAsAttribute
   private boolean canNegotiate = false;
   
