@@ -7,9 +7,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +31,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author John Collins
  *
  */
-class StorageStateTest
+class EvChargerTest
 {
   private Competition competition;
   private TimeService timeService;
@@ -130,121 +127,18 @@ class StorageStateTest
     ReflectionTestUtils.setField(sub, "timeService", timeService);
     ReflectionTestUtils.setField(sub, "tariffMarketService", tariffMarket);
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
-  }
-
-  @Test
-  public void testInitial ()
-  {
-    double chargerCapacity = 5.0; //kW
-    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-                                         customer.getPopulation());
-    StorageState s1 = new StorageState(dc, chargerCapacity);
-    assertEquals(dc, s1.getSubscription());
-    assertEquals(customer.getPopulation(), s1.getPopulation());
-    assertEquals(5.0, s1.getUnitCapacity(), 1e-6);
-  }
-
-  // check out a single demand distribution
-  @Test
-  public void testDemand1 ()
-  {
-    double chargerCapacity = 6.0; //kW
-    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-                                         customer.getPopulation() / 2);
-    StorageState s1 = new StorageState(dc, chargerCapacity);
-
-    ArrayList<DemandElement> demand = new ArrayList<>();
-    demand.add(new DemandElement(1, 4.0, 12.0));
-    demand.add(new DemandElement(3, 6.0, 60.0));
-    s1.distributeDemand(42, demand, 0.5);
-    // StorageState should now be ts:(active, commitment)
-    //   (42:(10*.5, 0), 43:(6*.5, 6), 44:(6*.5, 0), 45:(0, 60*.5))
-    assertEquals(500, s1.getPopulation());
-    assertNull(s1.getElement(41));
-    assertNotNull(s1.getElement(42));
-    // start charging here
-    assertEquals(5.0, s1.getElement(42).getActiveChargers(), 1e-6);
-    assertEquals(0.0, s1.getElement(42).getRemainingCommitment(), 1e-6);
-    // 2 vehicles unplug at start of 43
-    assertNotNull(s1.getElement(43));
-    assertEquals(3.0, s1.getElement(43).getActiveChargers(), 1e-6);
-    assertEquals(6.0, s1.getElement(43).getRemainingCommitment(), 1e-6);
-    // keep charging in 44
-    assertNotNull(s1.getElement(44));
-    assertEquals(3.0, s1.getElement(44).getActiveChargers(), 1e-6);
-    assertEquals(0.0, s1.getElement(44).getRemainingCommitment(), 1e-6);
-    // done in 45
-    assertNotNull(s1.getElement(45));
-    assertEquals(0.0, s1.getElement(45).getActiveChargers(), 1e-6);
-    assertEquals(30.0, s1.getElement(45).getRemainingCommitment(), 1e-6);
-  }
-
-  // two demand distributions in subsequent timeslots
-  @Test
-  public void testDemand2 ()
-  {
-    double chargerCapacity = 6.0; //kW
-    TariffSubscription dc =
-            subscribeTo (customer, defaultConsumption,
-                         (int) Math.round(customer.getPopulation() * 0.6));
-    StorageState ss = new StorageState(dc, chargerCapacity);
-
-    ArrayList<DemandElement> demand = new ArrayList<>();
-    demand.add(new DemandElement(1, 4.0, 12.0));
-    demand.add(new DemandElement(3, 6.0, 60.0));
-    ss.distributeDemand(42, demand, 0.6);
-    // StorageState should now be ts:(active, commitment)
-    //   (42:(10*.5, 0), 43:(6*.5, 6), 44:(6*.5, 0), 45:(0, 60*.5))
-    demand.clear();
-    demand.add(new DemandElement(2, 4.0, 12.0));
-    demand.add(new DemandElement(4, 6.0, 60.0));
-    
-    ss.distributeDemand(43, demand, 0.6);
-    // StorageState should now be ts:(active, commitment)
-    //   (43:(16*.6, 12*.6), 44:(16*.6, 0), 45:(10*.6, 72*.6), 46:(6*.6, 0), 47:(0, 60*.6))
-    assertEquals(600, ss.getPopulation());
-    assertNull(ss.getElement(41));
-    assertNull(ss.getElement(42)); // #42 is now gone
-    assertNotNull(ss.getElement(43));
-    // start charging here
-    // 2 vehicles unplug at start of 43
-    assertEquals(16.0*.6, ss.getElement(43).getActiveChargers(), 1e-6);
-    assertEquals(12*.6, ss.getElement(43).getRemainingCommitment(), 1e-6);
-    assertNotNull(ss.getElement(44));
-    assertEquals(16*.6, ss.getElement(44).getActiveChargers(), 1e-6);
-    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    // keep charging in 44
-    assertNotNull(ss.getElement(45));
-    assertEquals(6*.6, ss.getElement(45).getActiveChargers(), 1e-6);
-    assertEquals(72*.6, ss.getElement(45).getRemainingCommitment(), 1e-6);
-    // no demand in 46
-    assertNotNull(ss.getElement(46));
-    assertEquals(6*.6, ss.getElement(46).getActiveChargers(), 1e-6);
-    assertEquals(0.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
-    // last element is 47
-    assertNotNull(ss.getElement(47));
-    assertEquals(0.0, ss.getElement(47).getActiveChargers(), 1e-6);
-    assertEquals(60*.6, ss.getElement(47).getRemainingCommitment(), 1e-6);
-    // this is the end
-    assertNull(ss.getElement(48));
-  }
-
-  @Test
-  void testDistributeRegulation ()
-  {
-    
-  }
+  }  
 
   /**
-   * Here we need two subscriptions to two different tariffs and two different subscriptions.
+   * To test this, we need two subscriptions to two different tariffs and two different subscriptions.
    * The "old" subscription is needed because its StorageState needs to retrieve the population.
-   * The "new" subscription may have 0 or non-zero population.
+   * The "new" subscriptin may have 0 or non-zero population.
    * Start with all of PodunkChargers subscribed to the default consumption tariff, and create a
    * StorageState for that subscription.
    * Then move half of them to a new EV tariff by calling the CMA. This will test the ability to 
    */
-  //@Test
-  void testNewSubscription ()
+  @Test
+  public void test ()
   {
     double chargerCapacity = 5.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
@@ -257,25 +151,6 @@ class StorageStateTest
         Tariff tariff1 = new Tariff(ts1);
         initTariff(tariff1);
     //fail("Not yet implemented");
-  }
-
-  // Test both nominal demand and regulation capacity
-  @Test
-  void testNominalDemand ()
-  {
-    
-  }
-
-  @Test
-  void testClear ()
-  {
-    
-  }
-
-  @Test
-  void testClean ()
-  {
-    
   }
 
   class DummyCMA implements CustomerModelAccessor

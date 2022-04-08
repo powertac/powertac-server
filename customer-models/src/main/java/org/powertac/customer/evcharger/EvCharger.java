@@ -67,7 +67,6 @@ implements CustomerModelAccessor, BootstrapDataCollector
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
   private TariffEvaluator tariffEvaluator;
-  private DemandGenerator demandGenerator;
 
   private String storageStateName = "storage-state";
 
@@ -241,7 +240,7 @@ implements CustomerModelAccessor, BootstrapDataCollector
     // assume sample is list of (activationCount, horizon, kWh) structs
     DateTime currentTime = service.getTimeService().getCurrentDateTime();
     // get current demand
-    List<DemandElement>newDemand = demandGenerator.getDemandInfo(currentTime);
+    List<DemandElement>newDemand = getDemandInfo(currentTime);
     
     // adjust for current weather
 
@@ -275,29 +274,12 @@ implements CustomerModelAccessor, BootstrapDataCollector
   }
 
   /**
-   * Generates demand data from a set of statistical distributions. 
-   * In each timeslot, we need to know how many vehicles are plugged in, how much energy
-   * they need, and by when. Demand will presumably vary by time-of-day and day-of-week,
-   * and will also increase when weather is (predicted to be) hot or cold. Heat requires
-   * some energy to be devoted to the AC, while cold reduces battery capacity and requires
-   * heating both the cabin and the batteries, presumably with resistance heaters.
+   * Returns a vector of pairs, indexed by time horizon (or the number of timeslots in the
+   * future), each representing the number of vehicles that will unplug and stop actively
+   * charging in that timeslot and how much energy is needed by those unplugging vehicles. 
    */
-  class DemandGenerator
+  public List<DemandElement> getDemandInfo (DateTime time)
   {
-    
-    public DemandGenerator ()
-    {
-      super();
-    }
-
-    /**
-     * Returns a vector of pairs, indexed by time horizon (or the number of timeslots in the
-     * future), each representing the number of vehicles that will unplug and stop actively
-     * charging in that timeslot and how much energy is needed by those unplugging vehicles. 
-     */
-    public List<DemandElement> getDemandInfo (DateTime time)
-    {
-      return null; // stub
-    }
+    return null; // stub
   }
 }
