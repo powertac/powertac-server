@@ -15,6 +15,7 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,8 +67,10 @@ implements CustomerModelAccessor, BootstrapDataCollector
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
+  private HashMap<TariffSubscription, StorageState> subState;
   private TariffEvaluator tariffEvaluator;
 
+  // TODO - convert this to a HashMap
   private String storageStateName = "storage-state";
 
   /**
@@ -98,6 +101,9 @@ implements CustomerModelAccessor, BootstrapDataCollector
     addCustomerInfo(info);
     ensureSeeds();
 
+    // set up the subscription-state mapping
+    subState = new HashMap<>();
+
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
     tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
@@ -116,14 +122,8 @@ implements CustomerModelAccessor, BootstrapDataCollector
     }
     // decorate the initial subscription
     TariffSubscription sub = subscriptions.get(0);
-    ensureDecoration(sub);
+    subState.put(sub, new StorageState(sub, getChargerCapacity()));
     // initialize the decorator
-    StorageState initial = (StorageState) sub.getCustomerDecorator(storageStateName);
-    if (null == initial) {
-      // DEFINITELY should not happen
-      log.error("null storage state on initial subscription");
-      return;
-    }
     // we assume the new StorageState will be initialized on the first step. No subscription
     // changes should occur before than.
   }
@@ -137,16 +137,6 @@ implements CustomerModelAccessor, BootstrapDataCollector
       evalSeed = repo.getRandomSeed(
                          EvCharger.class.getName() + "-" + name, 0, "eval");
     }
-  }
-
-  private StorageState ensureDecoration (TariffSubscription sub)
-  {
-    StorageState result = (StorageState) sub.getCustomerDecorator(storageStateName);
-    if (null == result) {
-      result = new StorageState(sub, getChargerCapacity());
-      sub.addCustomerDecorator(storageStateName, result);
-    }
-    return result;
   }
 
   private double getChargerCapacity ()
@@ -223,13 +213,14 @@ implements CustomerModelAccessor, BootstrapDataCollector
 
     // Now we do the transfer
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
-    StorageState oldss = (StorageState) oldsub.getCustomerDecorator(storageStateName);
+    StorageState oldss = subState.get(oldsub);
     // Should not be null
     if (null == oldss) {
       log.error("Null StorageState on subscription {}", oldsub.getId());
       return;
     }
-    StorageState newss = ensureDecoration(newsub);
+    StorageState newss = new StorageState(getChargerCapacity());
+    subState.put(newsub, newss);
     newss.moveSubscribers(timeslotIndex, count, oldss);
   }
 
@@ -266,11 +257,24 @@ implements CustomerModelAccessor, BootstrapDataCollector
 
   }
 
+  /**
+   * Bootstrap data is just the content of the StorageState.
+   * For this we need to know the timeslot index of the first timeslot in the
+   * sim session.
+   */
   @Override
   public List<Object> collectBootstrapData (int maxTimeslots)
   {
-    // TODO Auto-generated method stub
-    return null;
+    int timeslot = service.getTimeslotRepo().currentSerialNumber();
+    List<TariffSubscription> subs = service.getTariffSubscriptionRepo().
+            findActiveSubscriptionsForCustomer(getCustomerInfo());
+    if (subs.size() > 1) {
+      // should only be one
+      log.error("{} subscriptions, should be just one", subs.size());
+    }
+    TariffSubscription sub = subs.get(0);
+    StorageState finalState = subState.get(sub);
+    return finalState.gatherState(timeslot);
   }
 
   /**

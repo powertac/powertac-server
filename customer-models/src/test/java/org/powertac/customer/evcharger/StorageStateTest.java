@@ -177,6 +177,8 @@ class StorageStateTest
     assertNotNull(s1.getElement(45));
     assertEquals(0.0, s1.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(30.0, s1.getElement(45).getRemainingCommitment(), 1e-6);
+    // check horizon
+    assertEquals(4, s1.getHorizon(42));
   }
 
   // two demand distributions in subsequent timeslots
@@ -192,22 +194,29 @@ class StorageStateTest
     ArrayList<DemandElement> demand = new ArrayList<>();
     demand.add(new DemandElement(1, 4.0, 12.0));
     demand.add(new DemandElement(3, 6.0, 60.0));
+
     ss.distributeDemand(42, demand, 0.6);
     // StorageState should now be ts:(active, commitment)
-    //   (42:(10*.5, 0), 43:(6*.5, 6), 44:(6*.5, 0), 45:(0, 60*.5))
+    //   (42:(6, 0), 43:(3.6, 7.2), 44:(3.6, 0), 45:(0, 36))
+    assertEquals(3.6, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
+    assertEquals(3.6, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(36.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    assertEquals(4, ss.getHorizon(42));
+
     demand.clear();
     demand.add(new DemandElement(2, 4.0, 12.0));
     demand.add(new DemandElement(4, 6.0, 60.0));
     
     ss.distributeDemand(43, demand, 0.6);
     // StorageState should now be ts:(active, commitment)
-    //   (43:(16*.6, 12*.6), 44:(16*.6, 0), 45:(10*.6, 72*.6), 46:(6*.6, 0), 47:(0, 60*.6))
+    //   (43:(9.6, 12*.6), 44:(16*.6, 0), 45:(10*.6, 72*.6), 46:(6*.6, 0), 47:(0, 60*.6))
     assertEquals(600, ss.getPopulation());
     assertNull(ss.getElement(41));
     assertNull(ss.getElement(42)); // #42 is now gone
     assertNotNull(ss.getElement(43));
-    // start charging here
-    // 2 vehicles unplug at start of 43
     assertEquals(16.0*.6, ss.getElement(43).getActiveChargers(), 1e-6);
     assertEquals(12*.6, ss.getElement(43).getRemainingCommitment(), 1e-6);
     assertNotNull(ss.getElement(44));
@@ -227,6 +236,7 @@ class StorageStateTest
     assertEquals(60*.6, ss.getElement(47).getRemainingCommitment(), 1e-6);
     // this is the end
     assertNull(ss.getElement(48));
+    assertEquals(5, ss.getHorizon(43));
   }
 
   @Test
@@ -276,6 +286,40 @@ class StorageStateTest
   void testClean ()
   {
     
+  }
+
+  @Test
+  void testGatherState ()
+  {
+    double chargerCapacity = 6.0; //kW
+    TariffSubscription dc =
+            subscribeTo (customer, defaultConsumption,
+                         (int) Math.round(customer.getPopulation() * 0.6));
+    StorageState ss = new StorageState(dc, chargerCapacity);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(1, 4.0, 12.0)); //43:24.6,7.2
+    demand.add(new DemandElement(3, 6.0, 60.0)); //45:21,36
+    demand.add(new DemandElement(4, 20.0, 200.0)); //46:9,120
+    demand.add(new DemandElement(5, 15.0, 180.0)); //47:0,108
+    ss.distributeDemand(42, demand, 0.6);
+    // StorageState should now be ts:(active, commitment)
+    //   (42:(27, 0), 43:(24.6, 7.2), 44:(24.6, 0), 45:(21, 36), 46:(9, 120), 47:(0, 108))
+    assertEquals(27.0, ss.getElement(42).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
+    assertEquals(24.6, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
+    assertEquals(24.6, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(21.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(36.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    assertEquals(9.0, ss.getElement(46).getActiveChargers(), 1e-6);
+    assertEquals(120.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(47).getActiveChargers(), 1e-6);
+    assertEquals(108.0, ss.getElement(47).getRemainingCommitment(), 1e-6);
+
+    List<Object> result = ss.gatherState(42);
+    assertEquals(6, result.size());
   }
 
   class DummyCMA implements CustomerModelAccessor

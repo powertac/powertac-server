@@ -15,6 +15,7 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -248,14 +249,11 @@ public class StorageState
         se = new StorageElement(0.0, 0.0);
         putElement(i, se);
       }
-      se.addChargers(activations); // add remaining activations
-      if (i == nextDe.getHorizon() + timeslot - 1) {
-        // EVs unplug at the start of a timeslot
-        activations -= nextDe.getNVehicles() * ratio;        
-      }
       if (i == nextDe.getHorizon() + timeslot) {
-        // reduce remaining activations, fill in commitment
+        activations -= nextDe.getNVehicles() * ratio;
+        // fill in commitment
         se.addCommitment(nextDe.getRequiredEnergy() * ratio);
+        StorageElement prev = getElement(i - 1);
         if (elements.hasNext()) {
           // go again if we haven't finished the list
           nextDe = elements.next();
@@ -264,6 +262,7 @@ public class StorageState
           nextDe = null;
         }
       }
+      se.addChargers(activations); // add remaining activations
     }
   }
 
@@ -291,6 +290,24 @@ public class StorageState
     return result;
   }
 
+  /**
+   * Gathers and returns a list that represents the current state
+   */
+  public List<Object> gatherState (int timeslot)
+  {
+    ArrayList<Object> result = new ArrayList<>();
+    System.out.println("horizon=" + getHorizon(timeslot));
+    for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
+      StorageElement se = getElement(i);
+      List<Object> row = new ArrayList<>();
+      row.add(i);
+      row.add(se.activeChargers);
+      row.add(se.remainingCommitment);
+      result.add((Object) row);
+    }
+    return result;
+  }
+
   // Flexibility needs to be re-computed in each timeslot. 
   private void computeFlexibility (int timeslot)
   {
@@ -303,7 +320,7 @@ public class StorageState
       double totalCapacity = 0.0;
       double totalDemand = 0.0;
       maxDemand = unitCapacity * getElement(timeslot).getActiveChargers();
-      for (int i = timeslot; i <= getHorizon(timeslot); i++) {
+      for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
         StorageElement se = getElement(i);
         totalCapacity += se.getActiveChargers() * unitCapacity - se.getRemainingCommitment();
         // this is supposed to capture the biggest shortage
