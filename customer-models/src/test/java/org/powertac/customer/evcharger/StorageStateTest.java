@@ -240,9 +240,76 @@ class StorageStateTest
   }
 
   @Test
-  void testDistributeRegulation ()
+  void testDistributeRegulationUp1 ()
   {
-    
+    double chargerCapacity = 8.0; //kW
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * 0.2));
+    StorageState ss = new StorageState(dc, chargerCapacity);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(1, 11.0, 42.0));
+    demand.add(new DemandElement(3, 15.0, 80.0));
+    demand.add(new DemandElement(4, 12.0, 70.0));
+    ss.distributeDemand(42, demand, 0.2);
+    // StorageState should now be ts:(active, commitment)
+    //   (42:(7.6, 0), 43:(5.4, 8.4), 44:(5.4, 0), 45:(2.4, 16), 46:(0, 14))
+    assertEquals(7.6, ss.getElement(42).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
+    assertEquals(5.4, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
+    assertEquals(5.4, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(2.4, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(46).getActiveChargers(), 1e-6);
+    assertEquals(14.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
+
+    // Now assume we are now in ts 43, after we provided regulation that can 
+    // be fully absorbed in ts 43. We have 16 kWh available in ts 45
+    ss.distributeRegulation(43, 7.0);
+    assertEquals(5.4, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
+    assertEquals(5.4, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(7.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(2.4, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(46).getActiveChargers(), 1e-6);
+    assertEquals(14.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
+  }
+
+  @Test
+  void testDistributeRegulationUp2 ()
+  {
+    double chargerCapacity = 8.0; //kW
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * 0.2));
+    StorageState ss = new StorageState(dc, chargerCapacity);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(1, 11.0, 42.0));
+    demand.add(new DemandElement(3, 15.0, 80.0));
+    ss.distributeDemand(42, demand, 0.2);
+    // StorageState should now be ts:(active, commitment)
+    //   (42:(5.2, 0), 43:(3, 8.4), 44:(3, 0), 45:(0, 16))
+    assertEquals(5.2, ss.getElement(42).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
+    assertEquals(3.0, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
+    assertEquals(3.0, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+
+    // Now assume we are now in ts 43, after we provided regulation that can 
+    // be fully absorbed in ts 43. We have 8.4 kW available in the first ts
+    ss.distributeRegulation(43, 7.0);
+    assertEquals(3.0, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(15.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
+    assertEquals(3.0, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
   }
 
   /**
@@ -320,6 +387,7 @@ class StorageStateTest
 
     List<Object> result = ss.gatherState(42);
     assertEquals(6, result.size());
+    assertEquals(42, ((List)result.get(0)).get(0));
   }
 
   class DummyCMA implements CustomerModelAccessor

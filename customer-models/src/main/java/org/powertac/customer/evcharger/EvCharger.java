@@ -35,6 +35,7 @@ import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BootstrapDataCollector;
+import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
@@ -48,22 +49,30 @@ import org.powertac.customer.AbstractCustomer;
 @ConfigurableInstance
 public class EvCharger
 extends AbstractCustomer
-implements CustomerModelAccessor, BootstrapDataCollector
+implements CustomerModelAccessor
 {
   static private Logger log =
           LogManager.getLogger(EvCharger.class.getSimpleName());
   
   @ConfigurableValue(valueType = "Double",
-          publish = true,
-          bootstrapState = true, dump = true,
+          publish = true, bootstrapState = true, dump = true,
           description = "Population of chargers")
   private double population = 1000.0;
   
   @ConfigurableValue(valueType = "Double",
-          publish = true,
-          bootstrapState = true, dump = true,
+          publish = true, bootstrapState = true, dump = true,
           description = "Individual Charger capacity in kW")
   private double chargerCapacity = 8.0;
+
+  @ConfigurableValue(valueType = "Double",
+          publish = false, bootstrapState = true, dump = true,
+          description = "Where in the min-max range we compute nominal demand")
+  private double nominalDemandBias = 0.5;
+
+  @ConfigurableValue(valueType = "List",
+          publish = false, dump = false, bootstrapState = true,
+          description = "State of active chargers at end of boot session")
+  private List<Object> storageRecord;
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -137,11 +146,6 @@ implements CustomerModelAccessor, BootstrapDataCollector
       evalSeed = repo.getRandomSeed(
                          EvCharger.class.getName() + "-" + name, 0, "eval");
     }
-  }
-
-  private double getChargerCapacity ()
-  {
-    return chargerCapacity;
   }
 
   @Override
@@ -263,18 +267,18 @@ implements CustomerModelAccessor, BootstrapDataCollector
    * sim session.
    */
   @Override
-  public List<Object> collectBootstrapData (int maxTimeslots)
+  public void saveBootstrapState ()
   {
     int timeslot = service.getTimeslotRepo().currentSerialNumber();
     List<TariffSubscription> subs = service.getTariffSubscriptionRepo().
             findActiveSubscriptionsForCustomer(getCustomerInfo());
     if (subs.size() > 1) {
-      // should only be one
+      // should only be one in a bootstrap session
       log.error("{} subscriptions, should be just one", subs.size());
     }
     TariffSubscription sub = subs.get(0);
     StorageState finalState = subState.get(sub);
-    return finalState.gatherState(timeslot);
+    storageRecord = finalState.gatherState(timeslot);
   }
 
   /**
@@ -285,5 +289,39 @@ implements CustomerModelAccessor, BootstrapDataCollector
   public List<DemandElement> getDemandInfo (DateTime time)
   {
     return null; // stub
+  }
+
+  //getters and setters, package visibility
+  double getPopulation ()
+  {
+    return population;
+  }
+
+  EvCharger withPopulation (double population)
+  {
+    this.population = population;
+    return this;
+  }
+
+  double getChargerCapacity ()
+  {
+    return chargerCapacity;
+  }
+
+  EvCharger withChargerCapacity (double capacity)
+  {
+    chargerCapacity = capacity;
+    return this;
+  }
+
+  double getNominalDemandBias ()
+  {
+    return nominalDemandBias;
+  }
+
+  EvCharger withNominalDemandBias (double bias)
+  {
+    nominalDemandBias = bias;
+    return this;
   }
 }

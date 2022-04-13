@@ -26,16 +26,15 @@ import org.powertac.util.RingArray;
 
 /**
  * Records the current state of a population of EV chargers subscribed to a
- * particular tariff. Intended to be used as a <code>customerDecorator</code> on a
- * <code>TariffSubscription</code>. The code here depends strongly on being called
- * before the subscriptions themselves are updated.
+ * particular tariff. The code here depends strongly on being called
+ * before subscriptions are updated in a given timeslot.
  * 
  * In each timeslot over some arbitrary horizon (limited by <code>ringArraySize</code>),
  * we keep track of the number of vehicles plugged in (the number of "active" chargers)
- * the current aggregate state-of-charge of the attached vehicles, and the energy committed
- * and not yet delivered by that time. We assume that vehicles arrive and leave at the
- * beginning of the arrival/departure timeslots. That means they consume energy in the
- * arrival timeslot, but not in the departure timeslot.
+ * and the energy committed and not yet delivered in each future timeslot. We assume
+ * that vehicles arrive and leave at the beginning of the arrival/departure timeslots.
+ * That means they consume energy in the arrival timeslot, but not in the departure
+ * timeslot.
  * 
  * Energy values are population values, not individual values. Individual values (if
  * needed) are given by the ratio of energy to the number of active chargers at any
@@ -48,12 +47,12 @@ public class StorageState
   private static Logger log =
           LogManager.getLogger(StorageState.class.getName());
 
-  // The TariffSubscription decorated by this instance
+  // The TariffSubscription associated with this instance
   private TariffSubscription mySub;
 
-  // Capacity vector for the next week
+  // Capacity vector for the four days
   // This is a hard limit for the capacity lookahead
-  private int ringArraySize = 168;
+  private int ringArraySize = 96;
   private RingArray<StorageElement> capacityVector;
 
   // Capacity in kW of individual population units
@@ -160,13 +159,14 @@ public class StorageState
   }
 
   /**
-   * Distributes exercised regulation over the horizon starting at timeslot.
+   * Distributes exercised regulation over the horizon starting at timeslot - 1.
    * Note that a positive number means up-regulation, in which case we need to replace
    * that much energy.
    * 
    * NOTE: We must do this before distributing demand because the regulation only applies
-   * to the vehicles that were plugged in when we reported regulation capacity in the
-   * previous timeslot. 
+   * to the vehicles that were plugged in during the last timeslot when we reported the
+   * regulation capacity. We can ignore any commitment in the current timeslot because
+   * we assume that's already been met and those vehicles will already be unplugged. 
    */
   public void distributeRegulation (int timeslot, double regulation)
   {
@@ -175,20 +175,24 @@ public class StorageState
       // up-regulation, need to add this much to commitments
       double availableCapacity = 0.0;
       double remaining = regulation;
-      int index = timeslot;
+      int index = timeslot + 1; // current timeslot should have been cleared already
       while (remaining > 0.0) {
         StorageElement se = getElement(index);
-        availableCapacity += se.getActiveChargers() * unitCapacity
-                - se.getRemainingCommitment();
-        if (availableCapacity >= remaining) {
-          // we can put the rest here
-          se.addCommitment(remaining);
-          remaining = 0.0;
-        }
-        else {
-          // use what we can here and continue
-          se.addCommitment(availableCapacity);
-          remaining -= availableCapacity;
+        if (se.remainingCommitment == 0.0) {
+          // can't do much here if there is no remaining commitment in this timeslot,
+          // as long as this population does not support V2G 
+          availableCapacity += se.getActiveChargers() * unitCapacity
+                  - se.getRemainingCommitment();
+          if (availableCapacity >= remaining) {
+            // we can put the rest here
+            se.addCommitment(remaining);
+            remaining = 0.0;
+          }
+          else {
+            // use what we can here and continue
+            se.addCommitment(availableCapacity);
+            remaining -= availableCapacity;
+          }
         }
         index += 1;
       }
@@ -199,6 +203,7 @@ public class StorageState
       double remaining = -regulation;
       while (remaining > 0.0) {
         StorageElement se = getElement(index);
+        // no need to worry here about non-zero remainingCommitment
         if (remaining <= se.remainingCommitment) {
           // dump it here and we're done
           se.reduceCommitment(remaining);
