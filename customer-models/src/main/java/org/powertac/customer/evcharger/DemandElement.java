@@ -55,4 +55,9 @@ class DemandElement // package visibility
   {
     return requiredEnergy;
   }
+
+  void adjustRequiredEnergy (double increment)
+  {
+    requiredEnergy += increment;
+  }
 }

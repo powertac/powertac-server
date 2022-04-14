@@ -26,6 +26,7 @@ import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
@@ -40,6 +41,7 @@ import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
+import org.powertac.util.Pair;
 
 /**
  * 
@@ -234,23 +236,80 @@ implements CustomerModelAccessor
     // sample distribution for the current date/time
     // assume sample is list of (activationCount, horizon, kWh) structs
     DateTime currentTime = service.getTimeService().getCurrentDateTime();
+    int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
     // get current demand
     List<DemandElement>newDemand = getDemandInfo(currentTime);
+    // do we want to log this info?
     
     // adjust for current weather
 
+    // check capacity constraint - Each DemandElement must provide enough
+    // charger capacity to meet the associated demand
+    for (DemandElement de : newDemand) {
+      double margin = de.getNVehicles() * de.getHorizon() * getChargerCapacity()
+              - de.getRequiredEnergy();
+      if (margin < 0.0) {
+        // constraint violation
+        log.warn("Capacity constraint violation: ts {}, horizon {}, excess demand {}",
+                 timeslotIndex, de.getHorizon(), -margin);
+        de.adjustRequiredEnergy(margin);
+      }
+    }
+
     // iterate over subscriptions
-    int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
     for (TariffSubscription sub : service.getTariffSubscriptionRepo()
       .findActiveSubscriptionsForCustomer(getCustomerInfo())) {
-      // should ss compute these values?
+      // should ss compute these values? No.
       double ratio = (double) sub.getCustomersCommitted() / population;
       StorageState ss = (StorageState) sub.getCustomerDecorator(storageStateName);
       // regulation must distributed before distributing future demand
       ss.distributeRegulation(timeslotIndex, sub.getRegulation());
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
-      sub.usePower(ss.getNominalDemand(timeslotIndex));
-      sub.setRegulationCapacity(ss.getRegulationCapacity(timeslotIndex));
+      Pair<Double, Double> limits = ss.getMinMax(timeslotIndex);
+      double nominalDemand = computeNominalDemand(sub, limits);
+      sub.usePower(nominalDemand);
+//      new RegulationCapacity(mySub,
+//                           nominalDemand - minDemand,
+//                           maxDemand - nominalDemand);
+      RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand, limits);
+      if (null != rc) {
+        // if this subscription will compensate us for regulation, we'll report our
+        // available capacity
+        sub.setRegulationCapacity(rc);
+      }
+    }
+  }
+
+  // Computes nominal demand for the current timeslot based on tariff terms
+  private double computeNominalDemand (TariffSubscription sub, Pair<Double, Double> minMax)
+  {
+    double result = 0.0;
+    Tariff tariff = sub.getTariff();
+    if (!tariff.isTimeOfUse()
+            && !tariff.isVariableRate()
+            && !tariff.hasRegulationRate()) {
+      // for flat-rate consumption tariffs, we just take the mean
+      result = (minMax.car() - minMax.cdr()) / 2.0;
+    }
+    // handle other types here
+    else {
+      // default case
+      result = (minMax.car() - minMax.cdr()) / 2.0;
+    }
+    return result;
+  }
+
+  // Computes the regulation capacity to be reported on a subscription
+  private RegulationCapacity computeRegulationCapacity (TariffSubscription sub,
+                                                        Double nominalDemand,
+                                                        Pair<Double, Double>limits)
+  {
+    if (sub.getTariff().hasRegulationRate()) {
+      // nothing to do here unless we'll get compensated for regulation
+      return new RegulationCapacity();      
+    }
+    else {
+      return null;
     }
   }
 

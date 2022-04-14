@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.TariffSubscription;
+import org.powertac.util.Pair;
 import org.powertac.util.RingArray;
 
 /**
@@ -62,7 +63,7 @@ public class StorageState
   private int cacheTimeslot = -1;
   private double minDemand = 0.0;
   private double maxDemand = 0.0;
-  private double nominalDemand = 0.0;
+  //private double nominalDemand = 0.0;
   
   // default constructor, used to create a dummy instance
   public StorageState (double unitCapacity)
@@ -274,10 +275,10 @@ public class StorageState
   /**
    * Computes the nominal demand for the current timeslot
    */
-  public double getNominalDemand (int timeslot)
+  public Pair<Double, Double> getMinMax (int timeslot)
   {
     computeFlexibility(timeslot);
-    return (minDemand + maxDemand) / 2.0;
+    return new Pair<Double, Double>(minDemand, maxDemand);
   }
 
   /**
@@ -286,14 +287,13 @@ public class StorageState
    * offered by RegulationCapacity. But we don't modify the subscription. That needs
    * to be done by the caller.
    */
-  public RegulationCapacity getRegulationCapacity (int timeslot)
-  {
-    double nominal = getNominalDemand(timeslot);
-    RegulationCapacity result = new RegulationCapacity(mySub,
-                                                       nominal - minDemand,
-                                                       maxDemand - nominal);
-    return result;
-  }
+//  public RegulationCapacity getRegulationCapacity (int timeslot, double nominalDemand)
+//  {
+//    RegulationCapacity result = new RegulationCapacity(mySub,
+//                                                       nominalDemand - minDemand,
+//                                                       maxDemand - nominalDemand);
+//    return result;
+//  }
 
   /**
    * Gathers and returns a list that represents the current state
