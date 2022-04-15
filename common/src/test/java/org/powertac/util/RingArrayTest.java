@@ -89,7 +89,7 @@ class RingArrayTest
     assertEquals(51, uut.get(51));
     assertEquals(12, uut.getActiveLength(40));
 
-    List<Integer> list = uut.getActiveList(40);
+    List<Integer> list = uut.asList(40);
     assertNotNull(list);
     assertEquals(12, list.size());
     assertEquals(41, list.get(1));

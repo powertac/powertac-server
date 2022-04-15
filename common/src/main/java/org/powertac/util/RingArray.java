@@ -118,7 +118,7 @@ public class RingArray <T>
    *  Returns the current active elements as an AbstractList. Note that this list is a
    *  snapshot and will no longer be valid after elements are added or removed from the ring.
    */
-  public List<T> getActiveList (int start)
+  public List<T> asList (int start)
   {
     return new RaList<T>(start);
   }
