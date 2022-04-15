@@ -17,6 +17,7 @@ package org.powertac.util;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -74,5 +75,23 @@ class RingArrayTest
     assertNotNull(uut.get(4));
     assertNotNull(uut.get(11));
     assertNull(uut.get(12));
+  }
+
+  @Test
+  void testAbstractList ()
+  {
+    RingArray<Integer> uut = new RingArray<>(22);
+    // add 12 entries
+    for (int i = 40; i < 52; i++) {
+      uut.set(i, Integer.valueOf(i));
+    }
+    assertEquals(40, uut.get(40));
+    assertEquals(51, uut.get(51));
+    assertEquals(12, uut.getActiveLength(40));
+
+    List<Integer> list = uut.getActiveList(40);
+    assertNotNull(list);
+    assertEquals(12, list.size());
+    assertEquals(41, list.get(1));
   }
 }
