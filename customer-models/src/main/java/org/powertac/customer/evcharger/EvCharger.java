@@ -41,6 +41,7 @@ import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
+import org.powertac.customer.evcharger.StorageState.StorageElement;
 import org.powertac.util.Pair;
 
 /**
@@ -75,6 +76,9 @@ implements CustomerModelAccessor
           publish = false, dump = false, bootstrapState = true,
           description = "State of active chargers at end of boot session")
   private List<Object> storageRecord;
+
+  // Local definition of negligible energy quantity = 1 Wh
+  private double epsilon = 0.001;
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -267,10 +271,15 @@ implements CustomerModelAccessor
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       Pair<Double, Double> limits = ss.getMinMax(timeslotIndex);
       double nominalDemand = computeNominalDemand(sub, limits);
+      nominalDemand = topUpNext(timeslotIndex, ss, nominalDemand);
+      double shortage = ss.distributeUsage(timeslotIndex, nominalDemand);
+      if (shortage > 0.0) {
+        // minimum should have covered it
+        log.error("Demand distribution short by {}", shortage);
+      }
+      nominalDemand += shortage;
       sub.usePower(nominalDemand);
-//      new RegulationCapacity(mySub,
-//                           nominalDemand - minDemand,
-//                           maxDemand - nominalDemand);
+      
       RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand, limits);
       if (null != rc) {
         // if this subscription will compensate us for regulation, we'll report our
@@ -295,6 +304,37 @@ implements CustomerModelAccessor
     else {
       // default case
       result = (minMax.car() - minMax.cdr()) / 2.0;
+    }
+    return result;
+  }
+
+  // Checks next-timeslot constraint, removes its demand from usage.
+  // Returns remaining usage to be distributed over future timeslots
+  private double topUpNext (int timeslot, StorageState ss, double usage)
+  {
+    double shortage = 0.0;
+    // First, peel off the commitment for the next timeslot
+    // Note that we can only use the chargers that are came with this tranche
+    StorageElement next = ss.getElement(timeslot + 1);
+    double commitment = next.getRemainingCommitment();
+    double result = usage - commitment;
+    double dedicatedChargers =
+            ss.getElement(timeslot).getActiveChargers() - next.getActiveChargers();
+    if (commitment > usage) {
+      // big problem
+      log.error("usage {} insufficient for next-timeslot commitment {}",
+                usage, commitment);
+      next.reduceCommitment(usage);
+      result = 0.0;
+    }
+    else if (commitment > dedicatedChargers * getChargerCapacity()) {
+      // charger capacity problem
+      log.error("{} {} chargers insufficient to supply {} in one timeslot",
+                dedicatedChargers, getChargerCapacity(), commitment);
+      next.reduceCommitment(commitment);
+    }
+    else {
+      next.reduceCommitment(commitment);
     }
     return result;
   }
