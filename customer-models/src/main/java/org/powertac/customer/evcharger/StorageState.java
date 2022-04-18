@@ -18,6 +18,8 @@ package org.powertac.customer.evcharger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.RegulationCapacity;
@@ -228,61 +230,72 @@ public class StorageState
    * be distributed evenly as long as we don't thereby violate capacity constraints
    * on chargers connected to the populations exiting in each timeslot.
    * Returns the shortage resulting from constraint violations; this should be zero.
+   * Note that capacity is the amount for the current subscription, not the total
+   * usage for the customer.
    */
-  public double distributeUsage(int timeslot, double capacity)
+  public void distributeUsage(int timeslot, double capacity)
   {
     double shortage = 0.0;
-    // Then assume all chargers in subsequent timeslots will be run at the same rate
-    // That means dividing the capacity among all the active charger-hours
-    double chargeHr = 0.0;
-    for (StorageElement element : capacityVector.asList(timeslot)) {
-      chargeHr += element.activeChargers * getUnitCapacity();
-    }
-    double pwr = capacity / chargeHr;
+    double remainingCapacity = capacity;
+    // To start, assume all chargers in this timeslot will be run at the same rate
+    // That means dividing the capacity among all the active chargers
+    double nChargers = getElement(timeslot + 1).getActiveChargers();
+    double pwr = capacity / nChargers;
     log.info("ts {}, per-charger power = {} kW", timeslot, pwr);
 
-    // Determine whether this charge rate leads to constraint violations
-    double remainingCapacity = capacity;
-    double available = 0.0;
-    double maxAvailable = 0.0;
-    StorageElement next = getElement(timeslot);
-    for (int i = 0; i < getHorizon(timeslot); i++) {
-      StorageElement first = next;
-      next = getElement(i + 1);
-      // chargers available to cover next commitment
-      available += first.getActiveChargers() * pwr;
-      maxAvailable += first.getActiveChargers() * getUnitCapacity();
+    // Now find out whether any future timeslots need more than pwr
+    // We process these in order of need
+    TreeMap<Double, Integer> minRequirements = getMinEnergyRequirements(timeslot);
+    ArrayList<Integer> handled = new ArrayList<>();
+    for (double req : minRequirements.descendingKeySet()) {
+      int ts = minRequirements.get(req);
+      // we now know that timeslot ts needs req now to meet its commitment
+      StorageElement target = getElement(ts);
+      if (req > remainingCapacity) {
+        // major constraint violation
+        log.error("Insufficient charger capacity to meet commitment {}, ts {}",
+                  target.getRemainingCommitment(), ts);
+        req = remainingCapacity;
+        target.adjustCommitment(remainingCapacity - req); // don't let this happen again
+      }
+      double tranche = getTranche(ts);
+      if (tranche * pwr < req) {
+        // this one needs more than its share
+        handled.add(ts);  // remember that we've handled this one
+        target.reduceCommitment(req);
+        remainingCapacity -= req;
+        nChargers -= tranche;
+        pwr = remainingCapacity / nChargers;
+      }
+    }
+
+    // The rest are easy
+    for (int i = 1; i < getHorizon(timeslot); i++) {
+      if (handled.contains(i)) {
+        // we've already handled this one
+        continue;
+      }
+      StorageElement next = getElement(timeslot + i);
       if (next.getRemainingCommitment() < epsilon) {
         // we are done here
         continue;
       }
       // otherwise we look at how much we need and how much is available
-      double tranche = first.getActiveChargers() - next.getActiveChargers();
-      double trancheMax = tranche * getUnitCapacity() * i;
-      if (next.getRemainingCommitment() > trancheMax) {
-        // major constraint violation
-        log.error("Insufficient charger capacity to meet commitment {}, ts {}",
-                  next.getRemainingCommitment(), i + 1);
-        shortage += next.getRemainingCommitment() - trancheMax;
-        next.reduceCommitment(tranche * getUnitCapacity());
-        capacity -= tranche * getUnitCapacity();
-        continue;
-      }
-      double surplus = tranche * pwr - next.getRemainingCommitment();
-      if (surplus > 0.0) {
-        // this tranche is now fully charged
+      double tranche = getTranche(timeslot + i);
+      nChargers -= tranche; // remaining chargers 
+      // Will this one get filled up with less than its share?
+      if (next.getRemainingCommitment() < tranche * pwr) {
+        // This one will fill up immediately
+        remainingCapacity -= next.getRemainingCommitment();
         next.reduceCommitment(next.getRemainingCommitment());
-        capacity -= next.getRemainingCommitment();
-        // more power available for the rest
-        pwr += surplus / next.activeChargers;
+        pwr = remainingCapacity / nChargers;
       }
+      // or normal case
       else {
-        // no surplus, reduce commitment by pwr * tranche
-        next.reduceCommitment(pwr * tranche);
-        capacity -= pwr * tranche;
+        remainingCapacity -= tranche * pwr;
+        next.reduceCommitment(tranche * pwr);
       }
     }
-    return shortage;
   }
 
   /**
@@ -297,58 +310,104 @@ public class StorageState
    */
   public void distributeRegulation (int timeslot, double regulation)
   {
-    // TODO -- this approach may be overly conservative
+    // The first timeslot is not involved because it's finished.
+    double nChargers = getElement(timeslot + 1).getActiveChargers();
+    double pwr = regulation / nChargers;
+    // Some tranches may not have contributed their full share --
+    // - for up-regulation, there may not be enough charger capacity to make up the deficit
+    // - for down-regulation, some may not have used enough to participate fully
+
     if (regulation > 0.0) {
-      // up-regulation, need to add this much to commitments
-      double availableCapacity = 0.0;
-      double remaining = regulation;
-      int index = timeslot + 1; // current timeslot should have been cleared already
-      while (remaining > 0.0) {
-        StorageElement se = getElement(index);
-        if (se.remainingCommitment == 0.0) {
-          // can't do much here if there is no remaining commitment in this timeslot,
-          // as long as this population does not support V2G 
-          availableCapacity += se.getActiveChargers() * unitCapacity
-                  - se.getRemainingCommitment();
-          if (availableCapacity >= remaining) {
-            // we can put the rest here
-            se.adjustCommitment(remaining);
-            remaining = 0.0;
-          }
-          else {
-            // use what we can here and continue
-            se.adjustCommitment(availableCapacity);
-            remaining -= availableCapacity;
-          }
+      // up-regulation, need to add this much to commitments, except for the ones that
+      // cannot absorb it
+      ArrayList<Integer> handled = new ArrayList<>();
+      TreeMap<Double, Integer> minRequirements = getMinEnergyRequirements(timeslot, pwr);
+      for (double req : minRequirements.descendingKeySet()) {
+        // cannot include this one, need to add its contribution to the rest
+        int ts = minRequirements.get(req);
+        // we now know that timeslot ts cannot participate
+        handled.add(ts);
+        nChargers -= getTranche(ts);
+        pwr = regulation / nChargers;
+      }
+
+      //int index = timeslot + 1; // current timeslot should have been cleared already
+      for (int i = 1; i < getHorizon(timeslot); i++) {
+        if (handled.contains(timeslot + i)) {
+          // we won't try to drain the last drop from these
+          continue;
         }
-        index += 1;
+        StorageElement next = getElement(timeslot + i);
+        double tranche = getTranche(timeslot + i);
+        // Cannot add commitments to ts with zero tranche,
+        // but this won't do anything in that case
+        next.adjustCommitment(tranche * pwr);
       }
     }
     else if (regulation < 0.0) {
-      // down-regulation, we got some extra energy to reduce commitments
-      int index = timeslot;
-      double remaining = regulation;
-      while (remaining < 0.0) {
-        StorageElement se = getElement(index);
-        // no need to worry here about non-zero remainingCommitment
-        if (remaining <= se.remainingCommitment) {
-          // dump it here and we're done
-          se.adjustCommitment(remaining);
-          remaining = 0.0;
+      // down-regulation reduces commitments, but not all sets can absorb their shares
+      double remainingRegulation = regulation;
+      for (int i = 1; i < getHorizon(timeslot); i++) {
+        StorageElement next = getElement(timeslot + i);
+        double tranche = getTranche(timeslot + i);
+        if (tranche == 0.0) {
+          // Can't do anything with this one
+          continue;
+        }
+        if (next.getRemainingCommitment() < pwr * tranche) {
+          // Can't take all of the allocation
+          remainingRegulation -= next.getRemainingCommitment();
+          next.adjustCommitment(-next.getRemainingCommitment());
+          nChargers -= tranche;
+          pwr = remainingRegulation / nChargers;
         }
         else {
-          remaining -= se.getRemainingCommitment();
-          se.reduceCommitment(se.getRemainingCommitment());
+          // just reduce the remaining commitment
+          remainingRegulation -= pwr * tranche;
+          next.adjustCommitment(pwr * tranche);
+          nChargers -= tranche;
         }
-        index += 1;
       }
     }
   }
 
   /**
+   * Returns a TreeMap of the sets of chargers that must consume non-zero energy in the
+   * current timeslot in order to complete their remaining commitments
+   * in future timeslots. The keys are the minimum energy per charger that must be provided
+   * in the current timeslot to avoid constraint violation in the future. The values are the
+   * number of timeslots between now and when the commitment must be fulfilled.
+   * 
+   * If regulation > 0.0, then we are looking for cases that lack the capacity to contribute
+   * regulation * tranche.
+   */
+  TreeMap<Double, Integer> getMinEnergyRequirements (int timeslot)
+  {
+    return getMinEnergyRequirements(timeslot, 0.0);
+  }
+  
+  TreeMap<Double, Integer> getMinEnergyRequirements (int timeslot, double regulationPwr)
+  {
+    TreeMap<Double, Integer> result = new TreeMap<>();
+    for (int i = 1; i < getHorizon(timeslot); i++) {
+      // i is the number of timeslots over which the commitment must be satisfied
+      StorageElement target = getElement(timeslot + i);
+      // now we need to know how many chargers are involved and average power required
+      double tranche = 
+              getElement(timeslot + i - 1).getActiveChargers() - target.getActiveChargers();
+      double futureCapacity = tranche * getUnitCapacity() * (i - 1);
+      if (target.getRemainingCommitment() > futureCapacity - tranche * regulationPwr) {
+        result.put(target.getRemainingCommitment()
+                   - futureCapacity - tranche * regulationPwr, i);
+      }
+    }
+    return result;
+  }
+
+  /**
    * Computes the minimun and maximum demand for the current timeslot
    */
-  public Pair<Double, Double> getMinMax (int timeslot)
+  Pair<Double, Double> getMinMax (int timeslot)
   {
     double minDemand = 0.0;
     double maxDemand = 0.0;
@@ -392,6 +451,12 @@ public class StorageState
       result.add((Object) row);
     }
     return result;
+  }
+
+  private double getTranche (int timeslot)
+  {
+    return getElement(timeslot - 1).getActiveChargers()
+            - getElement(timeslot).getActiveChargers();
   }
 
   // Returns the subscription attached to this SS

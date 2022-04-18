@@ -272,12 +272,7 @@ implements CustomerModelAccessor
       Pair<Double, Double> limits = ss.getMinMax(timeslotIndex);
       double nominalDemand = computeNominalDemand(sub, limits);
       nominalDemand = topUpNext(timeslotIndex, ss, nominalDemand);
-      double shortage = ss.distributeUsage(timeslotIndex, nominalDemand);
-      if (shortage > 0.0) {
-        // minimum should have covered it
-        log.error("Demand distribution short by {}", shortage);
-      }
-      nominalDemand += shortage;
+      ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
       
       RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand, limits);
@@ -340,6 +335,7 @@ implements CustomerModelAccessor
   }
 
   // Computes the regulation capacity to be reported on a subscription
+  // Note that we don't assume the next timeslot will absorb regulation
   private RegulationCapacity computeRegulationCapacity (TariffSubscription sub,
                                                         Double nominalDemand,
                                                         Pair<Double, Double>limits)

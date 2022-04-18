@@ -240,7 +240,6 @@ class StorageStateTest
     assertEquals(5, ss.getHorizon(43));
   }
 
-  // TODO - needs to be rewritten after we fix the model to track commitment changes
   @Test
   void testDistributeRegulationUp1 ()
   {
@@ -267,17 +266,16 @@ class StorageStateTest
     assertEquals(0.0, ss.getElement(46).getActiveChargers(), 1e-6);
     assertEquals(14.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
 
-    // Now assume we are in ts 43, after we provided regulation that can 
-    // be fully absorbed in ts 43. We have 16 kWh available in ts 45
+    // Now assume we are in ts 43, and up-regulate by 7 kWh
+    // We don't take anything from the current ts
+    // Power/charger is 7 kWh / 5.4 chargers
     ss.distributeRegulation(43, 7.0);
-    assertEquals(5.4, ss.getElement(43).getActiveChargers(), 1e-6);
     assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
-    assertEquals(5.4, ss.getElement(44).getActiveChargers(), 1e-6);
-    assertEquals(7.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    assertEquals(2.4, ss.getElement(45).getActiveChargers(), 1e-6);
-    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-    assertEquals(0.0, ss.getElement(46).getActiveChargers(), 1e-6);
-    assertEquals(14.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    // ts 45 has 3 chargers, gets 3.8889 kWh
+    assertEquals(16.0 + 3.8888889, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    // ts 46 has 2.4 chargers, gets 3.1111 kWn
+    assertEquals(14.0 + 3.111111, ss.getElement(46).getRemainingCommitment(), 1e-6);
   }
 
   @Test
@@ -303,15 +301,50 @@ class StorageStateTest
     assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
 
-    // Now assume we are in ts 43, after we provided regulation that can 
-    // be fully absorbed in ts 43. We have 8.4 kW available in the first ts
-//    ss.distributeRegulation(43, 7.0);
-//    assertEquals(3.0, ss.getElement(43).getActiveChargers(), 1e-6);
-//    assertEquals(15.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertEquals(3.0, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    // Now assume we are in ts 43, get up-regulation of 7 kWh
+    // ts 43 is not affected, 44 has no commitment, so it's all on 45
+    ss.distributeRegulation(43, 7.0);
+    
+    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(23.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+  }
+
+  @Test
+  void testDistributeUsage ()
+  {
+    double chargerCapacity = 6.0; //kW
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * 0.4));
+    StorageState ss = new StorageState(dc, chargerCapacity);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    
+    demand.add(new DemandElement(2, 11.0, 42.0));
+    demand.add(new DemandElement(3, 15.0, 80.0));
+    demand.add(new DemandElement(5, 12.0, 60.0));
+    demand.add(new DemandElement(7, 25.0, 130.0));
+    ss.distributeDemand(42, demand, 0.4);
+    // StorageState should now be ts:(active, commitment)
+    //   (42:(25.2, 0), 43:(25.2, 0), 44:(20.8, 16.8), 45:(14.8, 32),
+    //    46:(14.8, 0), 47:(10, 24), 48:(10, 0), 49:(0, 52))
+    assertEquals(20.8, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(16.8, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    assertEquals(14.8, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(32.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    assertEquals(0.0, ss.getElement(49).getActiveChargers(), 1e-6);
+    assertEquals(52.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
+
+    // no timeslots need more than their share
+    assertEquals(0, ss.getMinEnergyRequirements(42).size());
+
+    ss.distributeUsage(42, 100.0);
+    // charge rate should be 100/25.2 = 3.97 kW
+    assertEquals(0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+    // charge rate is now 4 kW
+    assertEquals(8.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    assertEquals(4.8, ss.getElement(47).getRemainingCommitment(), 1e-6);
+    assertEquals(12.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
   }
 
   /**
