@@ -54,7 +54,7 @@ class EvChargerTest
   private TariffSpecification mySpec;
   private Tariff myTariff;
   private TariffSubscription mySub;
-  private StorageState uut;
+  private EvCharger uut;
 
   private TariffSubscription oldSub;
   private StorageState oldSS;
@@ -140,9 +140,10 @@ class EvChargerTest
   @Test
   public void test ()
   {
+    EvCharger uut = new EvCharger("test");
     double chargerCapacity = 5.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
-    oldSS = new StorageState(oldSub, chargerCapacity);
+    oldSS = new StorageState(oldSub, chargerCapacity, uut.getMaxDemandHorizon());
     TariffSpecification ts1 =
             new TariffSpecification(bob,
                                     PowerType.ELECTRIC_VEHICLE).

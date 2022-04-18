@@ -72,6 +72,11 @@ implements CustomerModelAccessor
           description = "Where in the min-max range we compute nominal demand")
   private double nominalDemandBias = 0.5;
 
+  @ConfigurableValue(valueType = "Integer",
+          publish = false, bootstrapState = true, dump = true,
+          description = "Maximum horizon for individual charging demand elements")
+  private int maxDemandHorizon = 96;
+
   @ConfigurableValue(valueType = "List",
           publish = false, dump = false, bootstrapState = true,
           description = "State of active chargers at end of boot session")
@@ -84,9 +89,6 @@ implements CustomerModelAccessor
   private RandomSeed evalSeed;
   private HashMap<TariffSubscription, StorageState> subState;
   private TariffEvaluator tariffEvaluator;
-
-  // TODO - convert this to a HashMap
-  private String storageStateName = "storage-state";
 
   /**
    * Default constructor, requires manual setting of name
@@ -137,8 +139,7 @@ implements CustomerModelAccessor
     }
     // decorate the initial subscription
     TariffSubscription sub = subscriptions.get(0);
-    subState.put(sub, new StorageState(sub, getChargerCapacity()));
-    // initialize the decorator
+    subState.put(sub, new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon()));
     // we assume the new StorageState will be initialized on the first step. No subscription
     // changes should occur before than.
   }
@@ -229,7 +230,7 @@ implements CustomerModelAccessor
       log.error("Null StorageState on subscription {}", oldsub.getId());
       return;
     }
-    StorageState newss = new StorageState(getChargerCapacity());
+    StorageState newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon());
     subState.put(newsub, newss);
     newss.moveSubscribers(timeslotIndex, count, oldss);
   }
@@ -243,13 +244,16 @@ implements CustomerModelAccessor
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
     // get current demand
     List<DemandElement>newDemand = getDemandInfo(currentTime);
-    // do we want to log this info?
+    log.info("New demand {}", newDemand);
     
     // adjust for current weather
 
-    // check capacity constraint - Each DemandElement must provide enough
+    // check horizon and capacity constraints - Each DemandElement must specify enough
     // charger capacity to meet the associated demand
     for (DemandElement de : newDemand) {
+      if (de.getHorizon() >= getMaxDemandHorizon()) {
+        log.info("Reducing demand horizon from {} to {}", de.getHorizon(), getMaxDemandHorizon());
+      }
       double margin = de.getNVehicles() * de.getHorizon() * getChargerCapacity()
               - de.getRequiredEnergy();
       if (margin < 0.0) {
@@ -265,7 +269,7 @@ implements CustomerModelAccessor
       .findActiveSubscriptionsForCustomer(getCustomerInfo())) {
       // should ss compute these values? No.
       double ratio = (double) sub.getCustomersCommitted() / population;
-      StorageState ss = (StorageState) sub.getCustomerDecorator(storageStateName);
+      StorageState ss = subState.get(sub);
       // regulation must distributed before distributing future demand
       ss.distributeRegulation(timeslotIndex, sub.getRegulation());
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
@@ -401,6 +405,11 @@ implements CustomerModelAccessor
   double getChargerCapacity ()
   {
     return chargerCapacity;
+  }
+
+  int getMaxDemandHorizon ()
+  {
+    return maxDemandHorizon;
   }
 
   EvCharger withChargerCapacity (double capacity)

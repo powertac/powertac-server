@@ -60,4 +60,9 @@ class DemandElement // package visibility
   {
     requiredEnergy += increment;
   }
+
+  public String toString ()
+  {
+    return String.format("(h%d,n%.3f,e%3f)", horizon, nVehicles, requiredEnergy);
+  }
 }

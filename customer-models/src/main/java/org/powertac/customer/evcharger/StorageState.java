@@ -62,7 +62,7 @@ public class StorageState
   private double unitCapacity = 0.0;
 
   // Cached values for current timeslot
-  private int cacheTimeslot = -1;
+  //private int cacheTimeslot = -1;
   private double epsilon = 0.001;
   //private double minDemand = 0.0;
   //private double maxDemand = 0.0;
@@ -76,10 +76,11 @@ public class StorageState
   }
 
   // normal constructor records the subscription it decorates
-  public StorageState (TariffSubscription sub, double unitCapacity)
+  public StorageState (TariffSubscription sub, double unitCapacity, int maxHorizon)
   {
     this(unitCapacity);
     mySub = sub;
+    ringArraySize = maxHorizon;
     capacityVector = new RingArray<> (ringArraySize);
   }
 
@@ -405,32 +406,37 @@ public class StorageState
   }
 
   /**
-   * Computes the minimun and maximum demand for the current timeslot
+   * Computes the minimum and maximum demand for the current timeslot
    */
   Pair<Double, Double> getMinMax (int timeslot)
   {
     double minDemand = 0.0;
     double maxDemand = 0.0;
-    if (cacheTimeslot != timeslot) {
-      // first, find the minimum demand in the current timeslot that leaves enough
-      // to satisfy all future unfilled commitments
-      //double available = 0.0;
-      double totalCapacity = 0.0;
-      double totalDemand = 0.0;
-      maxDemand = unitCapacity * getElement(timeslot).getActiveChargers();
-      // Walk through the capacityVector from the front and find the minDemand, which
-      // is the 
-      for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
-        StorageElement se = getElement(i);
-        totalCapacity += se.getActiveChargers() * unitCapacity - se.getRemainingCommitment();
-        // this is supposed to capture the biggest shortage
-        minDemand = Math.max(minDemand, -totalCapacity);
-        totalDemand += se.getRemainingCommitment();
+
+    // Minimum demand includes at least as much as needed in the next timeslot
+    minDemand = getElement(timeslot).getRemainingCommitment();
+    minDemand += getElement(timeslot + 1).getRemainingCommitment();
+    maxDemand = getElement(timeslot).getRemainingCommitment();
+    maxDemand += getElement(timeslot + 1).getRemainingCommitment();
+
+    // Now iterate through the remaining timeslots and add up min and max values
+    for (int i = 2; i < getHorizon(timeslot); i++) {
+      StorageElement current = getElement(timeslot + i);
+      double tranche = getTranche(timeslot + i);
+      
+      double futureCapacity = tranche * getUnitCapacity() * (i - 1);
+      if (futureCapacity < current.getRemainingCommitment()) {
+        // we need some now to meet this one
+        minDemand += current.getRemainingCommitment() - futureCapacity;
       }
-      // maximum demand is less than current capacity only if there's not enough future
-      // demand to absorb it all.
-      maxDemand = Math.min(maxDemand, totalDemand);
-      cacheTimeslot = timeslot;
+      if (current.getRemainingCommitment() < tranche * getUnitCapacity()) {
+        // cannot use full capacity now
+        maxDemand += current.getRemainingCommitment();
+      }
+      else {
+        // we can run this tranche at full capacity
+        maxDemand += tranche * getUnitCapacity();
+      }
     }
     return new Pair<Double, Double>(minDemand, maxDemand);
   }

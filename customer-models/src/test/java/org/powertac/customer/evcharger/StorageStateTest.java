@@ -41,6 +41,7 @@ class StorageStateTest
   private Instant start;
   private TariffRepo tariffRepo;
   private TariffSubscriptionRepo tariffSubscriptionRepo;
+  private int maxHorizon = 48;
 
   // brokers and initial tariffs
   private Broker defaultBroker;
@@ -138,7 +139,7 @@ class StorageStateTest
     double chargerCapacity = 5.0; //kW
     TariffSubscription dc = subscribeTo (customer, defaultConsumption,
                                          customer.getPopulation());
-    StorageState s1 = new StorageState(dc, chargerCapacity);
+    StorageState s1 = new StorageState(dc, chargerCapacity, maxHorizon);
     assertEquals(dc, s1.getSubscription());
     assertEquals(customer.getPopulation(), s1.getPopulation());
     assertEquals(5.0, s1.getUnitCapacity(), 1e-6);
@@ -151,7 +152,7 @@ class StorageStateTest
     double chargerCapacity = 6.0; //kW
     TariffSubscription dc = subscribeTo (customer, defaultConsumption,
                                          customer.getPopulation() / 2);
-    StorageState ss = new StorageState(dc, chargerCapacity);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
     demand.add(new DemandElement(1, 4.0, 12.0));
@@ -189,7 +190,7 @@ class StorageStateTest
     TariffSubscription dc =
             subscribeTo (customer, defaultConsumption,
                          (int) Math.round(customer.getPopulation() * 0.6));
-    StorageState ss = new StorageState(dc, chargerCapacity);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
     demand.add(new DemandElement(1, 4.0, 12.0));
@@ -246,7 +247,7 @@ class StorageStateTest
     double chargerCapacity = 8.0; //kW
     TariffSubscription dc = subscribeTo (customer, defaultConsumption,
                                          (int) Math.round(customer.getPopulation() * 0.2));
-    StorageState ss = new StorageState(dc, chargerCapacity);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
     demand.add(new DemandElement(1, 11.0, 42.0));
@@ -284,7 +285,7 @@ class StorageStateTest
     double chargerCapacity = 8.0; //kW
     TariffSubscription dc = subscribeTo (customer, defaultConsumption,
                                          (int) Math.round(customer.getPopulation() * 0.2));
-    StorageState ss = new StorageState(dc, chargerCapacity);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
     demand.add(new DemandElement(1, 11.0, 42.0));
@@ -316,7 +317,7 @@ class StorageStateTest
     double chargerCapacity = 6.0; //kW
     TariffSubscription dc = subscribeTo (customer, defaultConsumption,
                                          (int) Math.round(customer.getPopulation() * 0.4));
-    StorageState ss = new StorageState(dc, chargerCapacity);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
     
@@ -360,7 +361,7 @@ class StorageStateTest
   {
     double chargerCapacity = 5.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
-    oldSS = new StorageState(oldSub, chargerCapacity);
+    oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
     TariffSpecification ts1 =
             new TariffSpecification(bob,
                                     PowerType.ELECTRIC_VEHICLE).
@@ -397,7 +398,7 @@ class StorageStateTest
     TariffSubscription dc =
             subscribeTo (customer, defaultConsumption,
                          (int) Math.round(customer.getPopulation() * 0.6));
-    StorageState ss = new StorageState(dc, chargerCapacity);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
     demand.add(new DemandElement(1, 4.0, 12.0)); //43:24.6,7.2
