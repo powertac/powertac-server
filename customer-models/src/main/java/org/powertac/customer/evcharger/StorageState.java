@@ -179,14 +179,6 @@ public class StorageState
     // that we might want to use.
     capacityVector.clean(timeslot);
 
-    // Ensure that the commitment for the first timeslot is zero. That should have been 
-    // taken care of previously.
-    StorageElement first = getElement(timeslot);
-    if (null != first && first.remainingCommitment > 0.0) {
-      log.error("Non-zero commitment {} in current timeslot", first.getRemainingCommitment());
-      first.reduceCommitment(first.getRemainingCommitment());
-    }
-
     // All the vehicles in newDemand start charging now, so we first have to find the total
     // activations for the current timeslot
     double activations = 0.0;
@@ -204,14 +196,15 @@ public class StorageState
       StorageElement se = getElement(i);
       if (null == se) {
         // empty spot
-        se = new StorageElement(0.0, 0.0);
+        se = new StorageElement(0.0, 0.0, 0.0);
         putElement(i, se);
       }
+      se.addChargers(activations); // add remaining activations
       if (i == nextDe.getHorizon() + timeslot) {
-        activations -= nextDe.getNVehicles() * ratio;
-        // fill in commitment
+        // fill in tranche and commitment
+        se.addTranche(nextDe.getNVehicles() * ratio);
         se.adjustCommitment(nextDe.getRequiredEnergy() * ratio);
-        StorageElement prev = getElement(i - 1);
+        activations -= nextDe.getNVehicles() * ratio;
         if (elements.hasNext()) {
           // go again if we haven't finished the list
           nextDe = elements.next();
@@ -220,27 +213,23 @@ public class StorageState
           nextDe = null;
         }
       }
-      se.addChargers(activations); // add remaining activations
     }
   }
 
   /**
    * Distributes energy usage in the current timeslot across the connected EVs, returns
-   * shortage, if any, caused by constraint violation. Note that we assume
-   * the full commitment for the following timeslot is already satisfied. The rest can
+   * shortage, if any, caused by constraint violation. Usage can
    * be distributed evenly as long as we don't thereby violate capacity constraints
    * on chargers connected to the populations exiting in each timeslot.
-   * Returns the shortage resulting from constraint violations; this should be zero.
    * Note that capacity is the amount for the current subscription, not the total
    * usage for the customer.
    */
   public void distributeUsage(int timeslot, double capacity)
   {
-    double shortage = 0.0;
     double remainingCapacity = capacity;
     // To start, assume all chargers in this timeslot will be run at the same rate
     // That means dividing the capacity among all the active chargers
-    double nChargers = getElement(timeslot + 1).getActiveChargers();
+    double nChargers = getElement(timeslot).getActiveChargers();
     double pwr = capacity / nChargers;
     log.info("ts {}, per-charger power = {} kW", timeslot, pwr);
 
@@ -271,7 +260,7 @@ public class StorageState
     }
 
     // The rest are easy
-    for (int i = 1; i < getHorizon(timeslot); i++) {
+    for (int i = 0; i < getHorizon(timeslot); i++) {
       if (handled.contains(i)) {
         // we've already handled this one
         continue;
@@ -390,13 +379,12 @@ public class StorageState
   TreeMap<Double, Integer> getMinEnergyRequirements (int timeslot, double regulationPwr)
   {
     TreeMap<Double, Integer> result = new TreeMap<>();
-    for (int i = 1; i < getHorizon(timeslot); i++) {
-      // i is the number of timeslots over which the commitment must be satisfied
+    for (int i = 0; i < getHorizon(timeslot); i++) {
+      // i + 1 is the number of timeslots over which the commitment must be satisfied
       StorageElement target = getElement(timeslot + i);
       // now we need to know how many chargers are involved and average power required
-      double tranche = 
-              getElement(timeslot + i - 1).getActiveChargers() - target.getActiveChargers();
-      double futureCapacity = tranche * getUnitCapacity() * (i - 1);
+      double tranche = getTranche(timeslot + i);
+      double futureCapacity = tranche * getUnitCapacity() * (i + 1);
       if (target.getRemainingCommitment() > futureCapacity - tranche * regulationPwr) {
         result.put(target.getRemainingCommitment()
                    - futureCapacity - tranche * regulationPwr, i);
@@ -452,6 +440,7 @@ public class StorageState
       StorageElement se = getElement(i);
       List<Object> row = new ArrayList<>();
       row.add(i);
+      row.add(se.tranche);
       row.add(se.activeChargers);
       row.add(se.remainingCommitment);
       result.add((Object) row);
@@ -459,10 +448,9 @@ public class StorageState
     return result;
   }
 
-  private double getTranche (int timeslot)
+  double getTranche (int timeslot)
   {
-    return getElement(timeslot - 1).getActiveChargers()
-            - getElement(timeslot).getActiveChargers();
+    return getElement(timeslot).getTranche();
   }
 
   // Returns the subscription attached to this SS
@@ -533,6 +521,9 @@ public class StorageState
     // Number of active chargers
     private double activeChargers = 0.0;
 
+    // Number of plugged-in chargers
+    private double tranche = 0;
+
     // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
     private double remainingCommitment = 0.0;
 
@@ -546,9 +537,10 @@ public class StorageState
     }
 
     // populated constructor
-    StorageElement (double activeChargers, double remainingCommitment)
+    StorageElement (double tranche, double activeChargers, double remainingCommitment)
     {
       super();
+      this.tranche = tranche;
       this.activeChargers = activeChargers;
       this.remainingCommitment = remainingCommitment;
     }
@@ -561,6 +553,16 @@ public class StorageState
     void addChargers (double n)
     {
       activeChargers += n;
+    }
+
+    double getTranche ()
+    {
+      return tranche;
+    }
+
+    void addTranche (double addition)
+    {
+      tranche += addition;
     }
 
     double getRemainingCommitment ()
@@ -584,19 +586,21 @@ public class StorageState
     // returns a new StorageElement with the same contents as an old one
     StorageElement copy ()
     {
-      return new StorageElement(getActiveChargers(), getRemainingCommitment());
+      return new StorageElement(getTranche(), getActiveChargers(), getRemainingCommitment());
     }
 
     // returns a new StorageElement containing a portion of an old element
     StorageElement copyScaled (double scale)
     {
-      return new StorageElement(getActiveChargers() * scale,
+      return new StorageElement(getTranche() * scale,
+                                getActiveChargers() * scale,
                                 getRemainingCommitment() * scale);
     }
 
     // adds a portion of an existing element to the contents of this one
     void addScaled (StorageElement element, double scale)
     {
+      tranche += element.getTranche() * scale;
       activeChargers += element.getActiveChargers() * scale;
       remainingCommitment += element.getRemainingCommitment() * scale;
     }
@@ -604,6 +608,7 @@ public class StorageState
     // Scale this element by a constant fraction
     void scale (double fraction)
     {
+      tranche *= fraction;
       activeChargers *= fraction;
       remainingCommitment *= fraction;
     }

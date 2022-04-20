@@ -8,7 +8,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,6 +154,7 @@ class StorageStateTest
     double chargerCapacity = 6.0; //kW
     TariffSubscription dc = subscribeTo (customer, defaultConsumption,
                                          customer.getPopulation() / 2);
+    // so the ratio is 0.5
     StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
@@ -159,25 +162,26 @@ class StorageStateTest
     demand.add(new DemandElement(3, 6.0, 60.0));
     ss.distributeDemand(42, demand, 0.5);
     // StorageState should now be ts:(active, commitment)
-    //   (42:(10*.5, 0), 43:(6*.5, 6), 44:(6*.5, 0), 45:(0, 60*.5))
+    //   (42:(5, 0), 43:(10*.5, 6), 44:(6*.5, 0), 45:(6*.5, 60*.5))
     assertEquals(500, ss.getPopulation());
     assertNull(ss.getElement(41));
     assertNotNull(ss.getElement(42));
     // start charging here
     assertEquals(5.0, ss.getElement(42).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
-    // 2 vehicles unplug at start of 43
+    // 2 vehicles unplug at end of 43
     assertNotNull(ss.getElement(43));
-    assertEquals(3.0, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(5.0, ss.getElement(43).getActiveChargers(), 1e-6);
     assertEquals(6.0, ss.getElement(43).getRemainingCommitment(), 1e-6);
     // keep charging in 44
     assertNotNull(ss.getElement(44));
     assertEquals(3.0, ss.getElement(44).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    // done in 45
     assertNotNull(ss.getElement(45));
-    assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(3.0, ss.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(30.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    // done in 46
+    assertNull(ss.getElement(46));
     // check horizon
     assertEquals(4, ss.getHorizon(42));
   }
@@ -198,47 +202,91 @@ class StorageStateTest
 
     ss.distributeDemand(42, demand, 0.6);
     // StorageState should now be ts:(active, commitment)
-    //   (42:(6, 0), 43:(3.6, 7.2), 44:(3.6, 0), 45:(0, 36))
-    assertEquals(3.6, ss.getElement(43).getActiveChargers(), 1e-6);
+    //   (42:(6, 0), 43:(6, 7.2), 44:(3.6, 0.0), 45:(3.6, 36))
+    assertEquals(6.0, ss.getElement(43).getActiveChargers(), 1e-6);
     assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
     assertEquals(3.6, ss.getElement(44).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(3.6, ss.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(36.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
     assertEquals(4, ss.getHorizon(42));
 
     demand.clear();
-    demand.add(new DemandElement(2, 4.0, 12.0));
-    demand.add(new DemandElement(4, 6.0, 60.0));
+    demand.add(new DemandElement(2, 4.0, 12.0)); //45
+    demand.add(new DemandElement(4, 6.0, 60.0)); //47
     
     ss.distributeDemand(43, demand, 0.6);
     // StorageState should now be ts:(active, commitment)
-    //   (43:(9.6, 12*.6), 44:(16*.6, 0), 45:(10*.6, 72*.6), 46:(6*.6, 0), 47:(0, 60*.6))
+    //   (43:(9.6, 7.2), 44:(16*.6, 0), 45:(10*.6, 36+7.2), 46:(6*.6, 0), 47,(6*.6, 60*.6))
     assertEquals(600, ss.getPopulation());
-    assertNull(ss.getElement(41));
     assertNull(ss.getElement(42)); // #42 is now gone
     assertNotNull(ss.getElement(43));
-    assertEquals(16.0*.6, ss.getElement(43).getActiveChargers(), 1e-6);
-    assertEquals(0.0, ss.getElement(43).getRemainingCommitment(), 1e-6,
-                 "commitment in 1st ts should have been cleared");
+    assertEquals(12.0, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
     assertNotNull(ss.getElement(44));
-    assertEquals(16*.6, ss.getElement(44).getActiveChargers(), 1e-6);
+    assertEquals(9.6, ss.getElement(44).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
     // keep charging in 44
     assertNotNull(ss.getElement(45));
-    assertEquals(6*.6, ss.getElement(45).getActiveChargers(), 1e-6);
-    assertEquals(72*.6, ss.getElement(45).getRemainingCommitment(), 1e-6);
+    assertEquals(9.6, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(43.2, ss.getElement(45).getRemainingCommitment(), 1e-6);
     // no demand in 46
     assertNotNull(ss.getElement(46));
     assertEquals(6*.6, ss.getElement(46).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
-    // last element is 47
+    // final is 47
     assertNotNull(ss.getElement(47));
-    assertEquals(0.0, ss.getElement(47).getActiveChargers(), 1e-6);
-    assertEquals(60*.6, ss.getElement(47).getRemainingCommitment(), 1e-6);
-    // this is the end
+    assertEquals(6*.6, ss.getElement(47).getActiveChargers(), 1e-6);
+    assertEquals(36.0, ss.getElement(47).getRemainingCommitment(), 1e-6);
     assertNull(ss.getElement(48));
     assertEquals(5, ss.getHorizon(43));
+  }
+
+  @Test
+  void testTranche ()
+  {
+    double chargerCapacity = 4.0; //kW
+    TariffSubscription dc =
+            subscribeTo (customer, defaultConsumption,
+                         (int) Math.round(customer.getPopulation() * 1.0));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 4.0, 12.0));
+    demand.add(new DemandElement(2, 7.0, 12.0));
+    demand.add(new DemandElement(4, 14.0, 25.0));
+    demand.add(new DemandElement(5, 6.0, 191.0));
+    ss.distributeDemand(22, demand, 1.0);
+    // nchargers should be (0:31, 1:27, 2:27, 3:20, 4:20, 5:6) 
+    assertEquals(4, ss.getTranche(22));
+    assertEquals(0, ss.getTranche(23));
+    assertEquals(7, ss.getTranche(24));
+    assertEquals(0, ss.getTranche(25));
+    assertEquals(14, ss.getTranche(26));
+    assertEquals(6, ss.getTranche(27));
+  }
+
+  @Test
+  void testMinEnergyReq ()
+  {
+    double chargerCapacity = 2.0; //kW
+    TariffSubscription dc =
+            subscribeTo (customer, defaultConsumption,
+                         (int) Math.round(customer.getPopulation() * 0.6));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 4.0, 12.0)); // needs 3 kW
+    demand.add(new DemandElement(1, 4.0, 12.0)); // needs 1.5 kW
+    demand.add(new DemandElement(2, 4.0, 25.0)); // needs just over 2 kW
+    demand.add(new DemandElement(3, 6.0, 38.3));// just under 2 kW
+    ss.distributeDemand(22, demand, 0.8);
+
+    TreeMap<Double, Integer> map = ss.getMinEnergyRequirements(22);
+    assertEquals(2, map.size());
+    Iterator<Double> result = map.descendingKeySet().iterator();
+    Double y = result.next();
+    assertEquals(0, map.get(y));
   }
 
   @Test
@@ -258,13 +306,13 @@ class StorageStateTest
     //   (42:(7.6, 0), 43:(5.4, 8.4), 44:(5.4, 0), 45:(2.4, 16), 46:(0, 14))
     assertEquals(7.6, ss.getElement(42).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
-    assertEquals(5.4, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(7.6, ss.getElement(43).getActiveChargers(), 1e-6);
     assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
     assertEquals(5.4, ss.getElement(44).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    assertEquals(2.4, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(5.4, ss.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-    assertEquals(0.0, ss.getElement(46).getActiveChargers(), 1e-6);
+    assertEquals(2.4, ss.getElement(46).getActiveChargers(), 1e-6);
     assertEquals(14.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
 
     // Now assume we are in ts 43, and up-regulate by 7 kWh
@@ -295,11 +343,11 @@ class StorageStateTest
     //   (42:(5.2, 0), 43:(3, 8.4), 44:(3, 0), 45:(0, 16))
     assertEquals(5.2, ss.getElement(42).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
-    assertEquals(3.0, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(5.2, ss.getElement(43).getActiveChargers(), 1e-6);
     assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
     assertEquals(3.0, ss.getElement(44).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    assertEquals(0.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(3.0, ss.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
 
     // Now assume we are in ts 43, get up-regulation of 7 kWh
@@ -327,13 +375,13 @@ class StorageStateTest
     demand.add(new DemandElement(7, 25.0, 130.0));
     ss.distributeDemand(42, demand, 0.4);
     // StorageState should now be ts:(active, commitment)
-    //   (42:(25.2, 0), 43:(25.2, 0), 44:(20.8, 16.8), 45:(14.8, 32),
-    //    46:(14.8, 0), 47:(10, 24), 48:(10, 0), 49:(0, 52))
-    assertEquals(20.8, ss.getElement(44).getActiveChargers(), 1e-6);
+    //   (42:(25.2, 0), 43:(25.2, 0), 44:(25.2, 16.8), 45:(14.8, 32),
+    //    46:(14.8, 0), 47:(37.0 * 0.4, 24), 48:(10.0, 0), 49:(10.0, 52))
+    assertEquals(25.2, ss.getElement(44).getActiveChargers(), 1e-6);
     assertEquals(16.8, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    assertEquals(14.8, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(20.8, ss.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(32.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-    assertEquals(0.0, ss.getElement(49).getActiveChargers(), 1e-6);
+    assertEquals(10.0, ss.getElement(49).getActiveChargers(), 1e-6);
     assertEquals(52.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
 
     // no timeslots need more than their share
@@ -410,15 +458,15 @@ class StorageStateTest
     //   (42:(27, 0), 43:(24.6, 7.2), 44:(24.6, 0), 45:(21, 36), 46:(9, 120), 47:(0, 108))
     assertEquals(27.0, ss.getElement(42).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
-    assertEquals(24.6, ss.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(27.0, ss.getElement(43).getActiveChargers(), 1e-6);
     assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
     assertEquals(24.6, ss.getElement(44).getActiveChargers(), 1e-6);
     assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-    assertEquals(21.0, ss.getElement(45).getActiveChargers(), 1e-6);
+    assertEquals(24.6, ss.getElement(45).getActiveChargers(), 1e-6);
     assertEquals(36.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-    assertEquals(9.0, ss.getElement(46).getActiveChargers(), 1e-6);
+    assertEquals(21.0, ss.getElement(46).getActiveChargers(), 1e-6);
     assertEquals(120.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
-    assertEquals(0.0, ss.getElement(47).getActiveChargers(), 1e-6);
+    assertEquals(9.0, ss.getElement(47).getActiveChargers(), 1e-6);
     assertEquals(108.0, ss.getElement(47).getRemainingCommitment(), 1e-6);
 
     List<Object> result = ss.gatherState(42);

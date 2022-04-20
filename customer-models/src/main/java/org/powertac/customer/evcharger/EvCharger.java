@@ -114,7 +114,7 @@ implements CustomerModelAccessor
     // fill out CustomerInfo
     CustomerInfo info = new CustomerInfo(name, (int) Math.round(population));
     info.withPowerType(powerType)
-        .withCustomerClass(CustomerClass.LARGE);
+        .withCustomerClass(CustomerClass.SMALL);
     addCustomerInfo(info);
     ensureSeeds();
 
@@ -123,10 +123,10 @@ implements CustomerModelAccessor
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
-    tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
+    tariffEvaluator.withInertia(0.6).withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
     // TODO - fix this, possibly some ratio of population
-    tariffEvaluator.initializeRegulationFactors(-1.0, 0.0, 1.0);
+    tariffEvaluator.initializeRegulationFactors(-100.0, 0.0, 100.0);
   }
 
   // called from CustomerModelService after initialization
@@ -158,8 +158,7 @@ implements CustomerModelAccessor
   @Override
   public CustomerInfo getCustomerInfo ()
   {
-    // TODO Auto-generated method stub
-    return null;
+    return getCustomerInfo(powerType);
   }
 
   //private Map<Tariff, TariffInfo> TariffProfiles = null;
@@ -173,22 +172,23 @@ implements CustomerModelAccessor
   @Override
   public double getBrokerSwitchFactor (boolean isSuperseding)
   {
-    // TODO Auto-generated method stub
-    return 0;
+    if (isSuperseding)
+      return 0;
+    else
+      return 0.02;
+
   }
 
   @Override
   public double getTariffChoiceSample ()
   {
-    // TODO Auto-generated method stub
-    return 0;
+    return evalSeed.nextDouble();
   }
 
   @Override
   public double getInertiaSample ()
   {
-    // TODO Auto-generated method stub
-    return 0;
+    return evalSeed.nextDouble();
   }
 
   @Override
@@ -381,9 +381,8 @@ implements CustomerModelAccessor
   }
 
   /**
-   * Returns a vector of pairs, indexed by time horizon (or the number of timeslots in the
-   * future), each representing the number of vehicles that will unplug and stop actively
-   * charging in that timeslot and how much energy is needed by those unplugging vehicles. 
+   * Returns a vector of DemandElement instances representing the number of vehicles that
+   * plug in now and unplug in a future timeslot, how much energy they need. 
    */
   public List<DemandElement> getDemandInfo (DateTime time)
   {
