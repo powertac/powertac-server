@@ -30,6 +30,7 @@ import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.util.Pair;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -283,10 +284,10 @@ class StorageStateTest
     ss.distributeDemand(22, demand, 0.8);
 
     TreeMap<Double, Integer> map = ss.getMinEnergyRequirements(22);
-    assertEquals(2, map.size());
+    assertEquals(3, map.size());
     Iterator<Double> result = map.descendingKeySet().iterator();
     Double y = result.next();
-    assertEquals(0, map.get(y));
+    assertEquals(2, map.get(y));
   }
 
   @Test
@@ -404,17 +405,17 @@ class StorageStateTest
    * StorageState for that subscription.
    * Then move half of them to a new EV tariff by calling the CMA. This will test the ability to 
    */
-  //@Test
+  @Test
   void testNewSubscription ()
   {
+    //TODO - finish this
     double chargerCapacity = 5.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
     oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
     TariffSpecification ts1 =
-            new TariffSpecification(bob,
-                                    PowerType.ELECTRIC_VEHICLE).
-                                    addRate(new Rate().withValue(-0.09))
-                                    .withSignupPayment(-2.0);
+            new TariffSpecification(bob, PowerType.ELECTRIC_VEHICLE)
+            .addRate(new Rate().withValue(-0.09))
+            .withSignupPayment(-2.0);
         Tariff tariff1 = new Tariff(ts1);
         initTariff(tariff1);
     //fail("Not yet implemented");
@@ -422,9 +423,26 @@ class StorageStateTest
 
   // Test both nominal demand and regulation capacity
   @Test
-  void testNominalDemand ()
+  void testMinMax ()
   {
-    
+    double chargerCapacity = 4.0; //kW
+    double ratio = 0.8;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 11.0, 42.0)); // max 44
+    demand.add(new DemandElement(1, 10.0, 48.0)); // cap=44
+    demand.add(new DemandElement(2, 8.0, 52.0));  // max 32*3 = 96
+    demand.add(new DemandElement(3, 15.0, 50.0)); // cap = 60
+    demand.add(new DemandElement(5, 12.0, 60.0));
+    demand.add(new DemandElement(7, 25.0, 130.0));
+    ss.distributeDemand(22, demand, ratio);
+
+    Pair<Double, Double> minMax = ss.getMinMax(22);
+    assertEquals(40.0, minMax.car(), 1e-6);
+    assertEquals(249.6, minMax.cdr(), 1e-6);
   }
 
   @Test
@@ -439,6 +457,7 @@ class StorageStateTest
     
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   void testGatherState ()
   {
@@ -469,9 +488,12 @@ class StorageStateTest
     assertEquals(9.0, ss.getElement(47).getActiveChargers(), 1e-6);
     assertEquals(108.0, ss.getElement(47).getRemainingCommitment(), 1e-6);
 
-    List<Object> result = ss.gatherState(42);
+    List<List> result = ss.gatherState(42);
     assertEquals(6, result.size());
-    assertEquals(42, ((List)result.get(0)).get(0));
+    List entry = result.get(0);
+    assertEquals(42, (int) (entry.get(0)));
+    assertEquals(27.0, (double) (result.get(1)).get(2));
+    assertEquals(2.4, (double) (result.get(1)).get(1));
   }
 
   class DummyCMA implements CustomerModelAccessor

@@ -75,12 +75,18 @@ implements CustomerModelAccessor
   @ConfigurableValue(valueType = "Integer",
           publish = false, bootstrapState = true, dump = true,
           description = "Maximum horizon for individual charging demand elements")
-  private int maxDemandHorizon = 96;
+  private int maxDemandHorizon = 96; // 4 days?
+
+  // Tariff terms could affect this
+  @ConfigurableValue(valueType = "Double",
+          publish = false, bootstrapState = false, dump = true,
+          description = "Portion of flexibility to hold back")
+  private double defaultFlexibilityMargin = 0.02; // 2% on both ends
 
   @ConfigurableValue(valueType = "List",
           publish = false, dump = false, bootstrapState = true,
           description = "State of active chargers at end of boot session")
-  private List<Object> storageRecord;
+  private List<List> storageRecord;
 
   // Local definition of negligible energy quantity = 1 Wh
   private double epsilon = 0.001;
@@ -139,7 +145,8 @@ implements CustomerModelAccessor
     }
     // decorate the initial subscription
     TariffSubscription sub = subscriptions.get(0);
-    subState.put(sub, new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon()));
+    subState.put(sub, new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
+                 .withUnitCapacity(getChargerCapacity()));
     // we assume the new StorageState will be initialized on the first step. No subscription
     // changes should occur before than.
   }
@@ -230,7 +237,9 @@ implements CustomerModelAccessor
       log.error("Null StorageState on subscription {}", oldsub.getId());
       return;
     }
-    StorageState newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon());
+    // TODO - might want to set flexibility margin according to flexibility value
+    StorageState newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon())
+            .withUnitCapacity(getChargerCapacity());
     subState.put(newsub, newss);
     newss.moveSubscribers(timeslotIndex, count, oldss);
   }
@@ -246,7 +255,7 @@ implements CustomerModelAccessor
     List<DemandElement>newDemand = getDemandInfo(currentTime);
     log.info("New demand {}", newDemand);
     
-    // adjust for current weather
+    // adjust for current weather?
 
     // check horizon and capacity constraints - Each DemandElement must specify enough
     // charger capacity to meet the associated demand
@@ -279,7 +288,8 @@ implements CustomerModelAccessor
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
       
-      RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand, limits);
+      RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand,
+                                                        limits.cdr(), limits.car());
       if (null != rc) {
         // if this subscription will compensate us for regulation, we'll report our
         // available capacity
@@ -293,35 +303,36 @@ implements CustomerModelAccessor
   {
     double result = 0.0;
     Tariff tariff = sub.getTariff();
+    double halfRange = (minMax.cdr() - minMax.car()) / 2.0;
     if (!tariff.isTimeOfUse()
             && !tariff.isVariableRate()
             && !tariff.hasRegulationRate()) {
-      // for flat-rate consumption tariffs, we just take the mean
-      result = (minMax.car() - minMax.cdr()) / 2.0;
+      // for flat-rate consumption tariffs, we charge as quickly as we can
+      result = Math.max(minMax.cdr() - halfRange * defaultFlexibilityMargin,
+                        minMax.car() + halfRange);
     }
     // handle other types here
     else {
       // default case
-      result = (minMax.car() - minMax.cdr()) / 2.0;
+      result = minMax.car() + halfRange;
     }
     return result;
   }
 
-  // Checks next-timeslot constraint, removes its demand from usage.
+  // Checks current-timeslot constraint, removes its demand from usage.
   // Returns remaining usage to be distributed over future timeslots
   private double topUpNext (int timeslot, StorageState ss, double usage)
   {
-    double shortage = 0.0;
-    // First, peel off the commitment for the next timeslot
-    // Note that we can only use the chargers that are came with this tranche
-    StorageElement next = ss.getElement(timeslot + 1);
+    //double shortage = 0.0;
+    // First, peel off the commitment for the current timeslot
+    // Note that we can only use the chargers that came with this demand
+    StorageElement next = ss.getElement(timeslot);
     double commitment = next.getRemainingCommitment();
     double result = usage - commitment;
-    double dedicatedChargers =
-            ss.getElement(timeslot).getActiveChargers() - next.getActiveChargers();
+    double dedicatedChargers = next.getTranche();
     if (commitment > usage) {
       // big problem
-      log.error("usage {} insufficient for next-timeslot commitment {}",
+      log.error("usage {} insufficient for current-timeslot commitment {}",
                 usage, commitment);
       next.reduceCommitment(usage);
       result = 0.0;
@@ -341,16 +352,10 @@ implements CustomerModelAccessor
   // Computes the regulation capacity to be reported on a subscription
   // Note that we don't assume the next timeslot will absorb regulation
   private RegulationCapacity computeRegulationCapacity (TariffSubscription sub,
-                                                        Double nominalDemand,
-                                                        Pair<Double, Double>limits)
+                                                        double nominalDemand,
+                                                        double minDemand, double maxDemand)
   {
-    if (sub.getTariff().hasRegulationRate()) {
-      // nothing to do here unless we'll get compensated for regulation
-      return new RegulationCapacity();      
-    }
-    else {
-      return null;
-    }
+    return new RegulationCapacity(sub, maxDemand - nominalDemand, nominalDemand - minDemand);
   }
 
   @Override

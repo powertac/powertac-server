@@ -362,7 +362,8 @@ public class StorageState
   }
 
   /**
-   * Returns a TreeMap of the sets of chargers that must consume non-zero energy in the
+   * Returns a TreeMap of the sets of chargers, other than the set in the current timeslot,
+   * that must consume non-zero energy in the
    * current timeslot in order to complete their remaining commitments
    * in future timeslots. The keys are the minimum energy per charger that must be provided
    * in the current timeslot to avoid constraint violation in the future. The values are the
@@ -379,12 +380,12 @@ public class StorageState
   TreeMap<Double, Integer> getMinEnergyRequirements (int timeslot, double regulationPwr)
   {
     TreeMap<Double, Integer> result = new TreeMap<>();
-    for (int i = 0; i < getHorizon(timeslot); i++) {
+    for (int i = 1; i < getHorizon(timeslot); i++) {
       // i + 1 is the number of timeslots over which the commitment must be satisfied
       StorageElement target = getElement(timeslot + i);
       // now we need to know how many chargers are involved and average power required
-      double tranche = getTranche(timeslot + i);
-      double futureCapacity = tranche * getUnitCapacity() * (i + 1);
+      double tranche = target.getTranche();
+      double futureCapacity = tranche * getUnitCapacity() * (i);
       if (target.getRemainingCommitment() > futureCapacity - tranche * regulationPwr) {
         result.put(target.getRemainingCommitment()
                    - futureCapacity - tranche * regulationPwr, i);
@@ -398,32 +399,30 @@ public class StorageState
    */
   Pair<Double, Double> getMinMax (int timeslot)
   {
-    double minDemand = 0.0;
-    double maxDemand = 0.0;
+    // Minimum demand includes at least as much as needed in the current timeslot
+    double minDemand = getElement(timeslot).getRemainingCommitment();
+    double maxDemand = minDemand;
 
-    // Minimum demand includes at least as much as needed in the next timeslot
-    minDemand = getElement(timeslot).getRemainingCommitment();
-    minDemand += getElement(timeslot + 1).getRemainingCommitment();
-    maxDemand = getElement(timeslot).getRemainingCommitment();
-    maxDemand += getElement(timeslot + 1).getRemainingCommitment();
 
-    // Now iterate through the remaining timeslots and add up min and max values
-    for (int i = 2; i < getHorizon(timeslot); i++) {
+    // Now we see who has trouble if we supply only minDemand
+    TreeMap<Double, Integer> minRequirements = getMinEnergyRequirements(timeslot);
+    for (double req : minRequirements.descendingKeySet()) {
+      minDemand += req;
+    }
+
+    // Now iterate through the remaining timeslots and add up max values
+    // The most it can be is the remaining active chargers all running at full capacity
+    maxDemand += getElement(timeslot + 1).getActiveChargers() * getUnitCapacity();
+    for (int i = 1; i < getHorizon(timeslot); i++) {
       StorageElement current = getElement(timeslot + i);
-      double tranche = getTranche(timeslot + i);
-      
-      double futureCapacity = tranche * getUnitCapacity() * (i - 1);
-      if (futureCapacity < current.getRemainingCommitment()) {
-        // we need some now to meet this one
-        minDemand += current.getRemainingCommitment() - futureCapacity;
+      double tranche = current.getTranche();
+      if (0.0 == tranche) {
+        continue;
       }
-      if (current.getRemainingCommitment() < tranche * getUnitCapacity()) {
-        // cannot use full capacity now
-        maxDemand += current.getRemainingCommitment();
-      }
-      else {
-        // we can run this tranche at full capacity
-        maxDemand += tranche * getUnitCapacity();
+      double max = tranche * getUnitCapacity();
+      if (current.getRemainingCommitment() < max) {
+        //Can't use that much, need to trim the excess
+        maxDemand -= max - current.getRemainingCommitment();
       }
     }
     return new Pair<Double, Double>(minDemand, maxDemand);
@@ -432,10 +431,10 @@ public class StorageState
   /**
    * Gathers and returns a list that represents the current state
    */
-  public List<Object> gatherState (int timeslot)
+  public List<List> gatherState (int timeslot)
   {
-    ArrayList<Object> result = new ArrayList<>();
-    System.out.println("horizon=" + getHorizon(timeslot));
+    ArrayList<List> result = new ArrayList<>();
+    //System.out.println("horizon=" + getHorizon(timeslot));
     for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
       StorageElement se = getElement(i);
       List<Object> row = new ArrayList<>();
@@ -443,7 +442,7 @@ public class StorageState
       row.add(se.tranche);
       row.add(se.activeChargers);
       row.add(se.remainingCommitment);
-      result.add((Object) row);
+      result.add(row);
     }
     return result;
   }
@@ -468,11 +467,22 @@ public class StorageState
   }
 
   /**
-   * Returns the capacity of individual chargers
+   * Returns or sets the capacity of individual chargers
    */
   double getUnitCapacity ()
   {
     return unitCapacity;
+  }
+
+  StorageState withUnitCapacity (double capacity)
+  {
+    if (unitCapacity < 0.0) {
+      log.error("Invalid unit capacity {}", capacity);
+    }
+    else {
+      unitCapacity = capacity;
+    }
+    return this;
   }
 
   /**
