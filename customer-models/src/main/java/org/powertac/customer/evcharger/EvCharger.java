@@ -350,7 +350,6 @@ implements CustomerModelAccessor
   }
 
   // Computes the regulation capacity to be reported on a subscription
-  // Note that we don't assume the next timeslot will absorb regulation
   private RegulationCapacity computeRegulationCapacity (TariffSubscription sub,
                                                         double nominalDemand,
                                                         double minDemand, double maxDemand)

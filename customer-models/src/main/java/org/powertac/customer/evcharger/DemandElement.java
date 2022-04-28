@@ -15,6 +15,8 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.util.List;
+
 /**
  * Immutable data carrier, represents the energy need for some number of vehicles that will
  * depart from their chargers in a single timeslot in the future.
@@ -30,10 +32,14 @@ class DemandElement // package visibility
   // It's a double, not an int, to allow for more accurate simulation.
   private double nVehicles = 0.0;
 
-  // how much energy in kWh is needed by those vehicles at the time they disconnect?
-  private double requiredEnergy = 0.0;
+  // how much energy in units of charger-hours is needed by those vehicles at the time they
+  // disconnect? This is a histogram of (horizon + 1) elements, such that the first element
+  // is the charger-hours needed by vehicles that need at least horizon charger-hours,
+  // the next is the charger-hours needed by vehicles needing between h and (h-1) charger-
+  // hours, and so on.
+  private double[] requiredEnergy = {0.0};
   
-  DemandElement (int horizon, double nVehicles, double requiredEnergy)
+  DemandElement (int horizon, double nVehicles, double[] requiredEnergy)
   {
     super();
     this.horizon = horizon;
@@ -51,18 +57,27 @@ class DemandElement // package visibility
     return nVehicles;
   }
 
-  double getRequiredEnergy ()
+  double[] getRequiredEnergy ()
   {
     return requiredEnergy;
   }
 
-  void adjustRequiredEnergy (double increment)
+  void adjustRequiredEnergy (double[] increment)
   {
-    requiredEnergy += increment;
+    if (increment.length > requiredEnergy.length) {
+      double[] newre = new double[increment.length];
+      for (int i = 0; i < requiredEnergy.length; i++) {
+        newre[i] = requiredEnergy[i];
+      }
+      requiredEnergy = newre;
+    }
+    for (int i = 0; i < increment.length; i++ ) {
+      requiredEnergy[i] += increment[i];
+    }
   }
 
   public String toString ()
   {
-    return String.format("(h%d,n%.3f,e%3f)", horizon, nVehicles, requiredEnergy);
+    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, requiredEnergy.toString());
   }
 }

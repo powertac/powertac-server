@@ -400,25 +400,50 @@ class StorageStateTest
   /**
    * Here we need two subscriptions to two different tariffs and two different subscriptions.
    * The "old" subscription is needed because its StorageState needs to retrieve the population.
-   * The "new" subscription may have 0 or non-zero population.
+   * The "new" subscription may have 0 or non-zero population, in this case zero because it's new.
    * Start with all of PodunkChargers subscribed to the default consumption tariff, and create a
    * StorageState for that subscription.
-   * Then move half of them to a new EV tariff by calling the CMA. This will test the ability to 
+   * Then move 40% of them to a new EV tariff. This will test the ability to correctly populate
+   * a new subscription.
    */
   @Test
   void testNewSubscription ()
   {
-    //TODO - finish this
     double chargerCapacity = 5.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
     oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
+    // add some demand
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(2, 11.0, 42.0));
+    demand.add(new DemandElement(3, 15.0, 80.0));
+    demand.add(new DemandElement(5, 12.0, 60.0));
+    demand.add(new DemandElement(7, 25.0, 130.0));
+    oldSS.distributeDemand(40, demand, 1.0);
+    // state: (40(63,0),41(63,0),42(63,42),43(52,80),44(37,0),45(37,60),46(25,0),47(25,130))
+    assertEquals(63.0, oldSS.getElement(42).getActiveChargers(), 1e-6);
+    assertEquals(52.0, oldSS.getElement(43).getActiveChargers(), 1e-6);
+    assertEquals(80.0, oldSS.getElement(43).getRemainingCommitment(), 1e-6);
+    assertNull(oldSS.getElement(48));
+
+    // introduce a new tariff and shift 40% of the population to it
     TariffSpecification ts1 =
             new TariffSpecification(bob, PowerType.ELECTRIC_VEHICLE)
             .addRate(new Rate().withValue(-0.09))
             .withSignupPayment(-2.0);
-        Tariff tariff1 = new Tariff(ts1);
-        initTariff(tariff1);
-    //fail("Not yet implemented");
+    Tariff tariff1 = new Tariff(ts1);
+    initTariff(tariff1);
+    TariffSubscription newSub =
+            subscribeTo(customer, tariff1, (int) Math.round(customer.getPopulation() * 0.4));
+    StorageState newSS = new StorageState(newSub, chargerCapacity, maxHorizon);
+    newSS.moveSubscribers(40, newSub.getCustomersCommitted(), oldSS);
+    assertEquals(63.0 * 0.6, oldSS.getElement(42).getActiveChargers(), 1e-6);
+    assertEquals(63.0 * 0.4, newSS.getElement(42).getActiveChargers(), 1e-6);
+  }
+
+  @Test
+  void testSubscriptionShift ()
+  {
+    
   }
 
   // Test both nominal demand and regulation capacity
