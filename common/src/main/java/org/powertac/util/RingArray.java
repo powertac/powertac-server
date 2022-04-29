@@ -16,6 +16,8 @@
 package org.powertac.util;
 
 import java.lang.reflect.Method;
+import java.util.AbstractList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -113,13 +115,40 @@ public class RingArray <T>
   }
 
   /**
-   *  Applies the given operation to all elements starting with startIndex anding with maxIndex
+   *  Returns the current active elements as an AbstractList. Note that this list is a
+   *  snapshot and will no longer be valid after elements are added or removed from the ring.
    */
-  //@SuppressWarnings("unchecked")
-  //public void operate (Consumer<T> operation, int startIndex)
-  //{
-    //for (int index = startIndex; index <= maxIndex; index++) {
-      //operation.accept((T) data[index % size]);
-    //}
-  //}
+  public List<T> asList (int start)
+  {
+    return new RaList<T>(start);
+  }
+
+  class RaList <T> extends AbstractList<T>
+  {
+    private int start = 0;
+    private RingArray<T> ring;
+
+    // Constructor takes a snapshot
+    @SuppressWarnings("unchecked")
+    RaList (int startIndex)
+    {
+      super();
+      ring = (RingArray<T>) RingArray.this;
+      this.start = startIndex;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public T get (int index)
+    {
+      return (T) ring.get(index + start);
+    }
+
+    @Override
+    public int size ()
+    {
+      return ring.maxIndex - start + 1;
+    }
+    
+  }
 }
