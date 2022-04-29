@@ -535,10 +535,10 @@ public class StorageState
     private double tranche = 0;
 
     // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
-    private double remainingCommitment = 0.0;
+    private double[] remainingCommitment = {0.0};
 
     // commitment from previous timeslot, needed to distribute regulation
-    private double previousCommitment = 0.0;
+    //private double previousCommitment = 0.0;
 
     // default constructor
     StorageElement ()
@@ -547,7 +547,7 @@ public class StorageState
     }
 
     // populated constructor
-    StorageElement (double tranche, double activeChargers, double remainingCommitment)
+    StorageElement (double tranche, double activeChargers, double[] remainingCommitment)
     {
       super();
       this.tranche = tranche;
@@ -575,7 +575,7 @@ public class StorageState
       tranche += addition;
     }
 
-    double getRemainingCommitment ()
+    double[] getRemainingCommitment ()
     {
       return remainingCommitment;
     }
