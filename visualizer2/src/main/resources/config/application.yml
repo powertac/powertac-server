@@ -49,7 +49,10 @@ spring:
             max-request-size: 1024MB
     main:
         allow-bean-definition-overriding: true
-
+        allow-circular-references: true
+    config:
+        use-legacy-processing: true
+ 
 security:
     basic:
         enabled: false
@@ -79,7 +82,7 @@ jhipster:
         queue-capacity: 10000
     # By default CORS is disabled. Uncomment to enable.
     #cors:
-        #allowed-origins: "*"
+        #allowed-origin-pattern: "*"
         #allowed-methods: GET, PUT, POST, DELETE, OPTIONS
         #allowed-headers: "*"
         #exposed-headers:
