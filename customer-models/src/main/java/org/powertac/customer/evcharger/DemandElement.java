@@ -19,7 +19,9 @@ import java.util.List;
 
 /**
  * Immutable data carrier, represents the energy need for some number of vehicles that will
- * depart from their chargers in a single timeslot in the future.
+ * disconnect from their chargers in a single timeslot in the future. If <i>t</i> is the current
+ * timeslot, then the horizon <i>h</i> tells us how many timeslots we have to do the charging.
+ * 
  * 
  * @author John Collins
  */
@@ -32,19 +34,22 @@ class DemandElement // package visibility
   // It's a double, not an int, to allow for more accurate simulation.
   private double nVehicles = 0.0;
 
-  // how much energy in units of charger-hours is needed by those vehicles at the time they
-  // disconnect? This is a histogram of (horizon + 1) elements, such that the first element
-  // is the charger-hours needed by vehicles that need at least horizon charger-hours,
-  // the next is the charger-hours needed by vehicles needing between h and (h-1) charger-
-  // hours, and so on.
-  private double[] requiredEnergy = {0.0};
+  // how much total energy must be delivered by the horizon?
+  private double energy;
+
+  // how is the population distributed in terms of energy requirements before they disconnect?
+  // This is a histogram of (horizon + 1) elements, such that the first element
+  // is the population that needs at least horizon charger-hours, the next is the
+  // population needing between h and (h-1) charger-hours, and so on.
+  private double[] energyDistribution = {0.0};
   
-  DemandElement (int horizon, double nVehicles, double[] requiredEnergy)
+  DemandElement (int horizon, double nVehicles, double energy, double[] distribution)
   {
     super();
     this.horizon = horizon;
     this.nVehicles = nVehicles;
-    this.requiredEnergy = requiredEnergy;
+    this.energy = energy;
+    this.energyDistribution = distribution;
   }
 
   int getHorizon ()
@@ -57,27 +62,32 @@ class DemandElement // package visibility
     return nVehicles;
   }
 
-  double[] getRequiredEnergy ()
+  double getEnergy ()
   {
-    return requiredEnergy;
+    return energy;
   }
 
-  void adjustRequiredEnergy (double[] increment)
+  double[] getEnergyDistribution ()
   {
-    if (increment.length > requiredEnergy.length) {
-      double[] newre = new double[increment.length];
-      for (int i = 0; i < requiredEnergy.length; i++) {
-        newre[i] = requiredEnergy[i];
-      }
-      requiredEnergy = newre;
-    }
-    for (int i = 0; i < increment.length; i++ ) {
-      requiredEnergy[i] += increment[i];
-    }
+    return energyDistribution;
   }
+
+//  void adjustRequiredEnergy (double[] increment)
+//  {
+//    if (increment.length > requiredEnergy.length) {
+//      double[] newre = new double[increment.length];
+//      for (int i = 0; i < requiredEnergy.length; i++) {
+//        newre[i] = requiredEnergy[i];
+//      }
+//      requiredEnergy = newre;
+//    }
+//    for (int i = 0; i < increment.length; i++ ) {
+//      requiredEnergy[i] += increment[i];
+//    }
+//  }
 
   public String toString ()
   {
-    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, requiredEnergy.toString());
+    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, energyDistribution.toString());
   }
 }
