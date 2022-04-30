@@ -120,7 +120,7 @@
 
             if (vm.state.competition && vm.state.competition.simulationBaseTime) {
                 vm.duration = vm.state.competition.timeslotDuration; // one hour
-                vm.start = vm.state.competition.simulationBaseTime.millis;
+                vm.start = Date.parse(vm.state.competition.simulationBaseTime);
                 // Uggh.. Detect boot game by number of brokers
                 if (State.brokers.length > 1) {
                     vm.start += vm.duration * (vm.state.competition.bootstrapTimeslotCount + vm.state.competition.bootstrapDiscardedTimeslots);

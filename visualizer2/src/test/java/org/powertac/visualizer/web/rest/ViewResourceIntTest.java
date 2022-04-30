@@ -206,7 +206,7 @@ public class ViewResourceIntTest {
         // Get all the viewList
         restViewMockMvc.perform(get("/api/views?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(view.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
             .andExpect(jsonPath("$.[*].graphs").value(hasItem(DEFAULT_GRAPHS.toString())))
@@ -222,7 +222,7 @@ public class ViewResourceIntTest {
         // Get the view
         restViewMockMvc.perform(get("/api/views/{id}", view.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(view.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()))
             .andExpect(jsonPath("$.graphs").value(DEFAULT_GRAPHS.toString()))
