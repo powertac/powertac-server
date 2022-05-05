@@ -22,6 +22,10 @@ import java.util.List;
  * disconnect from their chargers in a single timeslot in the future. If <i>t</i> is the current
  * timeslot, then the horizon <i>h</i> tells us how many timeslots we have to do the charging.
  * 
+ * The distribution field tells how the energy needs of the nVehicles are distributed. This
+ * is a histogram of (horizon + 1) elements, such that the first element is the fraction of
+ * the population that needs at least horizon charger-hours, the next is the fraction of the
+ * population needing between h and (h-1) charger-hours, and so on.
  * 
  * @author John Collins
  */
@@ -38,10 +42,8 @@ class DemandElement // package visibility
   private double energy;
 
   // how is the population distributed in terms of energy requirements before they disconnect?
-  // This is a histogram of (horizon + 1) elements, such that the first element
-  // is the population that needs at least horizon charger-hours, the next is the
-  // population needing between h and (h-1) charger-hours, and so on.
-  private double[] energyDistribution = {0.0};
+  // It is a requirement that there by horizon elements in this array.
+  private double[] distribution = {0.0};
   
   DemandElement (int horizon, double nVehicles, double energy, double[] distribution)
   {
@@ -49,7 +51,7 @@ class DemandElement // package visibility
     this.horizon = horizon;
     this.nVehicles = nVehicles;
     this.energy = energy;
-    this.energyDistribution = distribution;
+    this.distribution = distribution;
   }
 
   int getHorizon ()
@@ -67,27 +69,13 @@ class DemandElement // package visibility
     return energy;
   }
 
-  double[] getEnergyDistribution ()
+  double[] getdistribution ()
   {
-    return energyDistribution;
+    return distribution;
   }
-
-//  void adjustRequiredEnergy (double[] increment)
-//  {
-//    if (increment.length > requiredEnergy.length) {
-//      double[] newre = new double[increment.length];
-//      for (int i = 0; i < requiredEnergy.length; i++) {
-//        newre[i] = requiredEnergy[i];
-//      }
-//      requiredEnergy = newre;
-//    }
-//    for (int i = 0; i < increment.length; i++ ) {
-//      requiredEnergy[i] += increment[i];
-//    }
-//  }
 
   public String toString ()
   {
-    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, energyDistribution.toString());
+    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, distribution.toString());
   }
 }
