@@ -259,19 +259,19 @@ implements CustomerModelAccessor
 
     // check horizon and capacity constraints - Each DemandElement must specify enough
     // charger capacity to meet the associated demand
-    for (DemandElement de : newDemand) {
-      if (de.getHorizon() >= getMaxDemandHorizon()) {
-        log.info("Reducing demand horizon from {} to {}", de.getHorizon(), getMaxDemandHorizon());
-      }
-      double margin = de.getNVehicles() * de.getHorizon() * getChargerCapacity()
-              - de.getRequiredEnergy();
-      if (margin < 0.0) {
-        // constraint violation
-        log.warn("Capacity constraint violation: ts {}, horizon {}, excess demand {}",
-                 timeslotIndex, de.getHorizon(), -margin);
-        de.adjustRequiredEnergy(margin);
-      }
-    }
+//    for (DemandElement de : newDemand) {
+//      if (de.getHorizon() >= getMaxDemandHorizon()) {
+//        log.info("Reducing demand horizon from {} to {}", de.getHorizon(), getMaxDemandHorizon());
+//      }
+//      double margin = de.getNVehicles() * de.getHorizon() * getChargerCapacity()
+//              - de.getRequiredEnergy();
+//      if (margin < 0.0) {
+//        // constraint violation
+//        log.warn("Capacity constraint violation: ts {}, horizon {}, excess demand {}",
+//                 timeslotIndex, de.getHorizon(), -margin);
+//        de.adjustRequiredEnergy(margin);
+//      }
+//    }
 
     // iterate over subscriptions
     for (TariffSubscription sub : service.getTariffSubscriptionRepo()
@@ -284,7 +284,7 @@ implements CustomerModelAccessor
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       Pair<Double, Double> limits = ss.getMinMax(timeslotIndex);
       double nominalDemand = computeNominalDemand(sub, limits);
-      nominalDemand = topUpNext(timeslotIndex, ss, nominalDemand);
+      //nominalDemand = topUpNext(timeslotIndex, ss, nominalDemand);
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
       
@@ -299,7 +299,8 @@ implements CustomerModelAccessor
   }
 
   // Computes nominal demand for the current timeslot based on tariff terms
-  private double computeNominalDemand (TariffSubscription sub, Pair<Double, Double> minMax)
+  private double computeNominalDemand (TariffSubscription sub,
+                                       Pair<Double, Double> minMax)
   {
     double result = 0.0;
     Tariff tariff = sub.getTariff();
@@ -321,33 +322,33 @@ implements CustomerModelAccessor
 
   // Checks current-timeslot constraint, removes its demand from usage.
   // Returns remaining usage to be distributed over future timeslots
-  private double topUpNext (int timeslot, StorageState ss, double usage)
-  {
-    //double shortage = 0.0;
-    // First, peel off the commitment for the current timeslot
-    // Note that we can only use the chargers that came with this demand
-    StorageElement next = ss.getElement(timeslot);
-    double commitment = next.getRemainingCommitment();
-    double result = usage - commitment;
-    double dedicatedChargers = next.getTranche();
-    if (commitment > usage) {
-      // big problem
-      log.error("usage {} insufficient for current-timeslot commitment {}",
-                usage, commitment);
-      next.reduceCommitment(usage);
-      result = 0.0;
-    }
-    else if (commitment > dedicatedChargers * getChargerCapacity()) {
-      // charger capacity problem
-      log.error("{} {} chargers insufficient to supply {} in one timeslot",
-                dedicatedChargers, getChargerCapacity(), commitment);
-      next.reduceCommitment(commitment);
-    }
-    else {
-      next.reduceCommitment(commitment);
-    }
-    return result;
-  }
+//  private double topUpNext (int timeslot, StorageState ss, double usage)
+//  {
+//    //double shortage = 0.0;
+//    // First, peel off the commitment for the current timeslot
+//    // Note that we can only use the chargers that came with this demand
+//    StorageElement next = ss.getElement(timeslot);
+//    double commitment = next.getRemainingCommitment();
+//    double result = usage - commitment;
+//    double dedicatedChargers = next.getTranche();
+//    if (commitment > usage) {
+//      // big problem
+//      log.error("usage {} insufficient for current-timeslot commitment {}",
+//                usage, commitment);
+//      next.reduceCommitment(usage);
+//      result = 0.0;
+//    }
+//    else if (commitment > dedicatedChargers * getChargerCapacity()) {
+//      // charger capacity problem
+//      log.error("{} {} chargers insufficient to supply {} in one timeslot",
+//                dedicatedChargers, getChargerCapacity(), commitment);
+//      next.reduceCommitment(commitment);
+//    }
+//    else {
+//      next.reduceCommitment(commitment);
+//    }
+//    return result;
+//  }
 
   // Computes the regulation capacity to be reported on a subscription
   private RegulationCapacity computeRegulationCapacity (TariffSubscription sub,
