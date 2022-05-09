@@ -169,7 +169,8 @@ public class StorageState
    * NOTE that this code assumes the newDemand list is sorted by increasing timeslot. It also
    * assumes no constraint violations in the new demand vector.
    */
-  public void distributeDemand (int timeslot, List<DemandElement> newDemand, Double ratio)
+  public void distributeDemand (int timeslot, List<DemandElement> newDemand,
+                                Double ratio)
   {
     // what if the newDemand list is empty?
     if (null == newDemand || 0 == newDemand.size()) {
@@ -183,7 +184,7 @@ public class StorageState
     // All the vehicles in newDemand start charging now, so we first have to find
     // the total activations for the current timeslot
     double activations = 0.0;
-    int maxTimeslot = timeslot + getHorizon(timeslot);
+    int maxTimeslot = 0;
     for (DemandElement de : newDemand) {
       activations += de.getNVehicles() * ratio;
       maxTimeslot = (int) Math.max(maxTimeslot, de.getHorizon() + timeslot);
@@ -216,20 +217,15 @@ public class StorageState
         //se.addTranche(nextDe.getNVehicles() * ratio);
         activations -= nextDe.getNVehicles() * ratio;
         // distribute nextDe population and energy according to distributino
-        double[] chAllocations = nextDe.getdistribution();
-        double[] pop = new double [chAllocations.length];
-        double[] energy = new double [chAllocations.length];
+        double[] allocations = nextDe.getdistribution();
+        double[] pop = new double [allocations.length];
+        double[] energy = new double [allocations.length];
 
-        // This gives the size of the energy chunks to be allocated.
-        // We assume each timeslot gets (h-.5) chunks where h is the length
-        // of the distribution array
-        double energyChunk = 1.0 / (chAllocations.length * chAllocations.length / 2.0)
-                * nextDe.getEnergy() * ratio;
-        for (int ix = 0; ix < chAllocations.length; ix++) {
-          pop[ix] = nextDe.getNVehicles() * ratio * chAllocations[ix];
-          energy[ix] = energyChunk * (horizon - 0.5);
+        for (int ix = 0; ix < allocations.length; ix++) {
+          pop[ix] = nextDe.getNVehicles() * ratio * allocations[ix];
+          energy[ix] = getUnitCapacity() * pop[ix] * (allocations.length - ix - 0.5);
         }
-        se.extendArrays(chAllocations.length);
+        se.extendArrays(allocations.length);
         se.addCommitments(pop, energy);
         if (elements.hasNext()) {
           // go again if we haven't finished the list
