@@ -65,10 +65,9 @@ class DemandSampler
   {
     double[] means = config.get(double[].class, "pluginProbability.means.mean");
     double[] variances =
-      config.get(double[].class, "pluginProbability" + ".covs.cov");
+      config.get(double[].class, "pluginProbability.covs.cov");
     Array2DRowRealMatrix covariances = new Array2DRowRealMatrix(variances);
-    double[] weights =
-      config.get(double[].class, "pluginProbability" + ".weights");
+    double[] weights = config.get(double[].class, "pluginProbability.weights");
     List<Pair<Double, MultivariateNormalDistribution>> mvns =
       new LinkedList<>();
     for (int i = 0; i < means.length; i++) {
