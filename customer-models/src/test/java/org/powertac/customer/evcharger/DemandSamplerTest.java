@@ -15,7 +15,10 @@
  */
 package org.powertac.customer.evcharger;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -37,24 +40,51 @@ class DemandSamplerTest
   @Test
   public void testSampleNewPlugins ()
   {
-    double newPlugins = demandSampler.sampleNewPlugins(16, POP_SIZE);
-    assert newPlugins <= POP_SIZE;
-    assert newPlugins >= 0;
+    final double newPlugins = demandSampler.sampleNewPlugins(16, POP_SIZE);
+    assertTrue(newPlugins <= POP_SIZE);
+    assertTrue(newPlugins >= 0);
   }
 
   @Test
   public void testSampleNewPluginsAreRandom ()
   {
-    double newPlugins1 = demandSampler.sampleNewPlugins(16, POP_SIZE);
-    double newPlugins2 = demandSampler.sampleNewPlugins(16, POP_SIZE);
-    Assertions.assertNotEquals(newPlugins1, newPlugins2);
+    final double newPlugins1 = demandSampler.sampleNewPlugins(16, POP_SIZE);
+    final double newPlugins2 = demandSampler.sampleNewPlugins(16, POP_SIZE);
+    assertNotEquals(newPlugins1, newPlugins2);
   }
 
   @Test
   public void testSampleNewPluginsNightIsLessThanDay ()
   {
-    double newPluginsDay = demandSampler.sampleNewPlugins(16, POP_SIZE);
-    double newPluginsNight = demandSampler.sampleNewPlugins(2, POP_SIZE);
-    assert newPluginsNight < newPluginsDay;
+    final double newPluginsDay = demandSampler.sampleNewPlugins(16, POP_SIZE);
+    final double newPluginsNight = demandSampler.sampleNewPlugins(2, POP_SIZE);
+    assertTrue(newPluginsNight < newPluginsDay);
+  }
+
+  @Test
+  public void testSampleHorizonEnergyTuplesHaveCorrectDimension ()
+  {
+    final int n = 100;
+    double[][] horizonEnergyTuples =
+      demandSampler.sampleHorizonEnergyTuples(n, 16);
+    assertEquals(horizonEnergyTuples.length, 100);
+
+    for (double[] tuple: horizonEnergyTuples) {
+      assertEquals(tuple.length, 2);
+    }
+  }
+
+  @Test
+  public void testSampleHorizonEnergyTuplesAreNonNegative ()
+  {
+    final int n = 100;
+    double[][] horizonEnergyTuples =
+      demandSampler.sampleHorizonEnergyTuples(n, 16);
+    assertEquals(horizonEnergyTuples.length, 100);
+
+    for (double[] tuple: horizonEnergyTuples) {
+      assertTrue(tuple[0] >= 0);
+      assertTrue(tuple[1] >= 0);
+    }
   }
 }

@@ -26,8 +26,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.Configurator;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Sampler class which holds the logic of sampling new EV charger demand from
@@ -40,6 +43,8 @@ class DemandSampler
   private static final Logger log =
     LogManager.getLogger(DemandSampler.class.getSimpleName());
   private MixtureMultivariateNormalDistribution pluginProbability;
+  private Map<String, MixtureMultivariateNormalDistribution> condHorizonDemandProbabilities =
+    new HashMap<>();
   private XMLConfiguration config;
 
   void initialize ()
@@ -57,6 +62,7 @@ class DemandSampler
     }
 
     setupPluginProbability();
+    setupDemandHorizonProbabilities();
   }
 
   // This will parse the XML config into a
@@ -80,15 +86,51 @@ class DemandSampler
     pluginProbability = new MixtureMultivariateNormalDistribution(mvns);
   }
 
+  // This will parse the XML config into a
+  // HashMap<hour of day, MixtureMultivariateNormalDistribtion>.
+  // The demandHorizonProbabilities represent the conditional Gaussian Mixture
+  // Model.
+  private void setupDemandHorizonProbabilities ()
+  {
+    String[] instances = config.getStringArray("instances");
+
+    for (String instance: instances) {
+      final double[] flatMeans =
+        config.get(double[].class, String.format("%s.means.mean", instance));
+      final double[] flatCovs =
+        config.get(double[].class, String.format("%s.covs.cov", instance));
+      final double[] weights =
+        config.get(double[].class, String.format("%s.weights", instance));
+
+      final double[][] meanVectors = new double[weights.length][2];
+      for (int i = 0; i < flatMeans.length / 2; i++) {
+        meanVectors[i] = Arrays.copyOfRange(flatMeans, 2 * i, 2 * i + 2);
+      }
+
+      final double[][][] covarianceMatrices = new double[weights.length][2][2];
+      for (int i = 0; i < flatCovs.length / 2 / 2; i++) {
+        double[] row1 = Arrays.copyOfRange(flatCovs, 4 * i, 4 * i + 2);
+        double[] row2 = Arrays.copyOfRange(flatCovs, 4 * i + 2, 4 * i + 4);
+        covarianceMatrices[i] = new double[][] { row1, row2 };
+      }
+
+      condHorizonDemandProbabilities
+              .put(instance,
+                   new MixtureMultivariateNormalDistribution(weights,
+                                                             meanVectors,
+                                                             covarianceMatrices));
+    }
+  }
+
   /**
-   * Sample the number of new plugins for a given hour of day. Returns the
+   * Sample the number of new plug-ins for a given hour of day. Returns the
    * result as a double to allow for better accuracy in the simulation.
    *
    * @param hod
    *          Current hour of day
    * @param popSize
    *          Population size of chargers
-   * @return Number of new plugins for the current timeslot
+   * @return Number of new plug-ins for the current timeslot
    */
   double sampleNewPlugins (final int hod, final int popSize)
   {
@@ -97,5 +139,43 @@ class DemandSampler
       new NormalDistribution(0, result * 0.1);
     result += gaussianNoise.sample();
     return Math.max(0, result);
+  }
+
+  /**
+   * Sample n (horizon, energy demand) tuples.
+   * 
+   * @param n
+   *          The number of samples to be retrieved. This is typically given by
+   *          {@link DemandSampler#sampleNewPlugins}.
+   * @param hod
+   *          The current hour of day as integer. Must be in the interval [0,
+   *          23].
+   * @return Tuples of horizon and energy demand. The return dimension is n x 2.
+   *         Samples are guaranteed to be larger or equal to zero.
+   */
+  double[][] sampleHorizonEnergyTuples (final int n, final int hod)
+  {
+    MixtureMultivariateNormalDistribution condDist =
+      condHorizonDemandProbabilities.get("hod" + hod);
+    if (condDist == null) {
+      throw new IllegalArgumentException(String
+              .format("Cannot find distribution for provided hour of day %s.",
+                      hod));
+    }
+    // [[d_1, e_1],
+    // [d_2, e_2],
+    // ...
+    // [d_n, e_n]]
+    double[][] horizonEnergyTuples = condDist.sample(n);
+
+    // Make sure to replace negative values by zero (in rare cases the model
+    // might return negative values due to the symmetry of the
+    // normal distribution).
+    for (int i = 0; i < horizonEnergyTuples.length; i++) {
+      horizonEnergyTuples[i][0] = Math.max(horizonEnergyTuples[i][0], 0);
+      horizonEnergyTuples[i][1] = Math.max(horizonEnergyTuples[i][1], 0);
+    }
+
+    return horizonEnergyTuples;
   }
 }
