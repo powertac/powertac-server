@@ -17,6 +17,7 @@ package org.powertac.customer.evcharger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -86,5 +87,22 @@ class DemandSamplerTest
       assertTrue(tuple[0] >= 0);
       assertTrue(tuple[1] >= 0);
     }
+  }
+
+  @Test
+  public void
+    testSampleHorizonEnergyTuplesThrowsIllegalArgumentExceptionIfHodIsInvalid ()
+  {
+    final int n = 100;
+
+    // hod must be in [0, 23]
+    assertThrows(IllegalArgumentException.class,
+                 () -> demandSampler.sampleHorizonEnergyTuples(n, 24));
+    assertThrows(IllegalArgumentException.class,
+                 () -> demandSampler.sampleHorizonEnergyTuples(n, -1));
+    assertThrows(IllegalArgumentException.class,
+                 () -> demandSampler.sampleHorizonEnergyTuples(n, 300));
+    assertThrows(IllegalArgumentException.class,
+                 () -> demandSampler.sampleHorizonEnergyTuples(n, -300));
   }
 }

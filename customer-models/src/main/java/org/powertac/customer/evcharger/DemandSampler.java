@@ -150,6 +150,8 @@ class DemandSampler
    * @param hod
    *          The current hour of day as integer. Must be in the interval [0,
    *          23].
+   * @throws IllegalArgumentException
+   *           If no distribution is found for the given hour of day.
    * @return Tuples of horizon and energy demand. The return dimension is n x 2.
    *         Samples are guaranteed to be larger or equal to zero.
    */
