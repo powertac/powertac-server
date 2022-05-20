@@ -216,8 +216,8 @@ public class StorageState
         // TODO - probably we don't need this
         //se.addTranche(nextDe.getNVehicles() * ratio);
         activations -= nextDe.getNVehicles() * ratio;
-        // distribute nextDe population and energy according to distributino
-        double[] allocations = nextDe.getdistribution();
+        // distribute nextDe population and energy according to distribution
+        double[] allocations = nextDe.getDistribution();
         double[] pop = new double [allocations.length];
         double[] energy = new double [allocations.length];
 
