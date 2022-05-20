@@ -165,7 +165,7 @@ class DemandSampler
     int maxChargerHours = (int) (maxEnergy / chargerCapacity);
     for (int i = 0; i <= maxHorizon; i++) {
       // The histogram should be ordered naturally meaning that 0 implies the
-      // vehicle needs to charge immediately, 1 means the vehicle needs 1
+      // vehicle needs at least 0 charging hours, 1 means the vehicle needs 1
       // charger hour, ...
       cohortChargerHoursHistogram.put(i, new TreeMap<>(Comparator.naturalOrder()));
       for (int j = 0; j <= maxChargerHours; j++) {
