@@ -281,6 +281,64 @@ class StorageStateTest
 //    assertEquals(5, ss.getHorizon(43));
   }
 
+  // Create some demand, distribute nominal usage. Should be no rebalancing needed
+  @Test
+  void testDistributeUsageMax ()
+  {
+    
+  }
+
+  // Create some demand, distribute nominal usage. Should be some rebalancing
+  @Test
+  void testDistributeUsageNominal ()
+  {
+    double chargerCapacity = 6.0; //kW
+    double ratio = 0.4;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(2, 11.0, 42.0,
+                                 new double[] {0.2,0.5,0.3}));
+//    demand.add(new DemandElement(3, 15.0, 80.0));
+//    demand.add(new DemandElement(5, 12.0, 60.0));
+//    demand.add(new DemandElement(7, 25.0, 130.0));
+//    ss.distributeDemand(42, demand, 0.4);
+//    // StorageState should now be ts:(active, commitment)
+//    //   (42:(25.2, 0), 43:(25.2, 0), 44:(25.2, 16.8), 45:(14.8, 32),
+//    //    46:(14.8, 0), 47:(37.0 * 0.4, 24), 48:(10.0, 0), 49:(10.0, 52))
+//    assertEquals(25.2, ss.getElement(44).getActiveChargers(), 1e-6);
+//    assertEquals(16.8, ss.getElement(44).getRemainingCommitment(), 1e-6);
+//    assertEquals(20.8, ss.getElement(45).getActiveChargers(), 1e-6);
+//    assertEquals(32.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+//    assertEquals(10.0, ss.getElement(49).getActiveChargers(), 1e-6);
+//    assertEquals(52.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
+//
+//    // no timeslots need more than their share
+//    assertEquals(0, ss.getMinEnergyRequirements(42).size());
+//
+//    ss.distributeUsage(42, 100.0);
+//    // charge rate should be 100/25.2 = 3.97 kW
+//    assertEquals(0, ss.getElement(44).getRemainingCommitment(), 1e-6);
+//    // charge rate is now 4 kW
+//    assertEquals(8.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
+//    assertEquals(4.8, ss.getElement(47).getRemainingCommitment(), 1e-6);
+//    assertEquals(12.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
+  }
+
+  @Test
+  void testRebalanceUp ()
+  {
+    
+  }
+
+  @Test
+  void testRebalanceDown ()
+  {
+    
+  }
+
   @Test
   void testDistributeRegulationUp1 ()
   {
@@ -352,40 +410,9 @@ class StorageStateTest
   }
 
   @Test
-  void testDistributeUsage ()
+  void testTsComplete ()
   {
-//    double chargerCapacity = 6.0; //kW
-//    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-//                                         (int) Math.round(customer.getPopulation() * 0.4));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    
-//    demand.add(new DemandElement(2, 11.0, 42.0));
-//    demand.add(new DemandElement(3, 15.0, 80.0));
-//    demand.add(new DemandElement(5, 12.0, 60.0));
-//    demand.add(new DemandElement(7, 25.0, 130.0));
-//    ss.distributeDemand(42, demand, 0.4);
-//    // StorageState should now be ts:(active, commitment)
-//    //   (42:(25.2, 0), 43:(25.2, 0), 44:(25.2, 16.8), 45:(14.8, 32),
-//    //    46:(14.8, 0), 47:(37.0 * 0.4, 24), 48:(10.0, 0), 49:(10.0, 52))
-//    assertEquals(25.2, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(16.8, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(20.8, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(32.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    assertEquals(10.0, ss.getElement(49).getActiveChargers(), 1e-6);
-//    assertEquals(52.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
-//
-//    // no timeslots need more than their share
-//    assertEquals(0, ss.getMinEnergyRequirements(42).size());
-//
-//    ss.distributeUsage(42, 100.0);
-//    // charge rate should be 100/25.2 = 3.97 kW
-//    assertEquals(0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    // charge rate is now 4 kW
-//    assertEquals(8.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    assertEquals(4.8, ss.getElement(47).getRemainingCommitment(), 1e-6);
-//    assertEquals(12.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
+    
   }
 
   /**
@@ -441,24 +468,27 @@ class StorageStateTest
   @Test
   void testMinMax ()
   {
-//    double chargerCapacity = 4.0; //kW
-//    double ratio = 0.8;
-//    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-//                                         (int) Math.round(customer.getPopulation() * ratio));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    demand.add(new DemandElement(0, 11.0, 42.0)); // max 44
-//    demand.add(new DemandElement(1, 10.0, 48.0)); // cap=44
-//    demand.add(new DemandElement(2, 8.0, 52.0));  // max 32*3 = 96
-//    demand.add(new DemandElement(3, 15.0, 50.0)); // cap = 60
-//    demand.add(new DemandElement(5, 12.0, 60.0));
-//    demand.add(new DemandElement(7, 25.0, 130.0));
-//    ss.distributeDemand(22, demand, ratio);
-//
-//    Pair<Double, Double> minMax = ss.getMinMax(22);
-//    assertEquals(40.0, minMax.car(), 1e-6);
-//    assertEquals(249.6, minMax.cdr(), 1e-6);
+    double chargerCapacity = 4.0; //kW
+    double ratio = 0.8;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    // min: 8ch * 4kW * .5 = 16
+    demand.add(new DemandElement(0, 10.0, 0.0,
+                                 new double[]{1.0}));
+    // min: 6ch * 4kW = 24, max: 6 ch * 4kW * .5 = 12
+    demand.add(new DemandElement(1, 15.0, 0.0,
+                                 new double[] {0.5,0.5}));
+    // min: 2.4ch * 4 kW = 9.6, max: 14.4ch * 4 kW + 7.2ch * 4kw * .5 = 72
+    demand.add(new DemandElement(2, 30.0, 0.0,
+                                 new double[] {0.1,0.6,0.3}));
+    ss.distributeDemand(22, demand, ratio);
+
+    double[] minMax = ss.getMinMax(22);
+    assertEquals(49.6, minMax[0], 1e-6);
+    assertEquals(133.6, minMax[1], 1e-6);
   }
 
   @Test
@@ -473,10 +503,10 @@ class StorageStateTest
     
   }
 
-//  @SuppressWarnings("rawtypes")
-//  @Test
-//  void testGatherState ()
-//  {
+  @SuppressWarnings("rawtypes")
+  @Test
+  void testGatherState ()
+  {
 //    double chargerCapacity = 6.0; //kW
 //    TariffSubscription dc =
 //            subscribeTo (customer, defaultConsumption,
@@ -510,7 +540,7 @@ class StorageStateTest
 //    assertEquals(42, (int) (entry.get(0)));
 //    assertEquals(27.0, (double) (result.get(1)).get(2));
 //    assertEquals(2.4, (double) (result.get(1)).get(1));
-//  }
+  }
 
   class DummyCMA implements CustomerModelAccessor
   {

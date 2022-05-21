@@ -282,40 +282,41 @@ implements CustomerModelAccessor
       // regulation must distributed before distributing future demand
       ss.distributeRegulation(timeslotIndex, sub.getRegulation());
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
-      Pair<Double, Double> limits = ss.getMinMax(timeslotIndex);
+      double[] limits = ss.getMinMax(timeslotIndex);
       double nominalDemand = computeNominalDemand(sub, limits);
       //nominalDemand = topUpNext(timeslotIndex, ss, nominalDemand);
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
       
       RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand,
-                                                        limits.cdr(), limits.car());
+                                                        limits[1], limits[0]);
       if (null != rc) {
         // if this subscription will compensate us for regulation, we'll report our
         // available capacity
         sub.setRegulationCapacity(rc);
       }
+      // Finally we must finish off this timeslot
+      ss.timeslotComplete(timeslotIndex);
     }
   }
 
   // Computes nominal demand for the current timeslot based on tariff terms
-  private double computeNominalDemand (TariffSubscription sub,
-                                       Pair<Double, Double> minMax)
+  private double computeNominalDemand (TariffSubscription sub, double[] minMax)
   {
     double result = 0.0;
     Tariff tariff = sub.getTariff();
-    double halfRange = (minMax.cdr() - minMax.car()) / 2.0;
+    double halfRange = (minMax[1] - minMax[0]) / 2.0;
     if (!tariff.isTimeOfUse()
             && !tariff.isVariableRate()
             && !tariff.hasRegulationRate()) {
       // for flat-rate consumption tariffs, we charge as quickly as we can
-      result = Math.max(minMax.cdr() - halfRange * defaultFlexibilityMargin,
-                        minMax.car() + halfRange);
+      result = Math.max(minMax[1] - halfRange * defaultFlexibilityMargin,
+                        minMax[0] + halfRange);
     }
     // handle other types here
     else {
       // default case
-      result = minMax.car() + halfRange;
+      result = minMax[0] + halfRange;
     }
     return result;
   }

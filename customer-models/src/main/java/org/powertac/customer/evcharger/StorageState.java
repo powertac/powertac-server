@@ -319,6 +319,33 @@ public class StorageState
   }
 
   /**
+   * Closes out a timeslot by reducing the length of all the population and
+   * energy arrays by 1. This should work because the last index now needs at most
+   * one hour to complete charging, as does the previous index.
+   */
+  public void timeslotComplete (int timeslot)
+  {
+    // we can ignore the first timeslot, it should already be closed out and
+    // won't be re-visited
+    for (int ts = timeslot + 1; ts < capacityVector.getActiveLength(timeslot); ts++) {
+      StorageElement target = getElement(ts);
+      // last index, if not already complete, must be folded into the previous index
+      int lastIndex = target.getEnergy().length - 1;
+      if (target.getEnergy()[lastIndex] < 0.0) {
+        // very strange
+        log.error("negative demand {} timeslot {}", target.getEnergy()[lastIndex], ts);
+        target.getEnergy()[lastIndex] = 0.0;
+        target.getPopulation()[lastIndex] = 0.0;
+      }
+      else if (target.getEnergy()[lastIndex] > 0.0) {
+        // move this up to the previous index along with its population
+        target.getEnergy()[lastIndex - 1] += target.getEnergy()[lastIndex];
+        target.getPopulation()[lastIndex - 1] += target.getPopulation()[lastIndex];
+      }
+    }
+  }
+
+  /**
    * Distributes exercised regulation over the horizon starting at timeslot - 1.
    * Note that a positive number means up-regulation, in which case we need to
    * replace that much energy.
@@ -437,7 +464,7 @@ public class StorageState
   /**
    * Computes the minimum and maximum demand for the current timeslot
    */
-  Pair<Double, Double> getMinMax (int timeslot)
+  double[] getMinMax (int timeslot)
   {
     // Minimum demand includes enough for the current timeslot plus the
     // amounts needed for the full-power cohorts in all future timeslots
@@ -446,7 +473,9 @@ public class StorageState
     StorageElement target = getElement(timeslot);
     // The first one has only one cohort that must be completely satisfied
     minDemand += target.getEnergy()[0];
-    for (int ts = timeslot + 1; ts < getHorizon(timeslot); ts++) {
+    maxDemand += minDemand;
+    for (int ts = timeslot + 1;
+            ts < timeslot + getHorizon(timeslot); ts++) {
       target = getElement(ts);
       double[] pop = target.getPopulation();
       // Add must-run chargers from future timeslots to minDemand
@@ -457,8 +486,7 @@ public class StorageState
                               pop[i] * getUnitCapacity());
       }
     }
-
-    return new Pair<Double, Double>(minDemand, maxDemand);
+    return new double[] {minDemand, maxDemand};
   }
 
   /**
