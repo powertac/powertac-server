@@ -201,13 +201,13 @@ public class StorageState
       StorageElement se = getElement(i);
       if (null == se) {
         // empty spot
-        se = new StorageElement(0.0, new double[]{0.0}, new double[]{0.0});
+        se = new StorageElement(i - timeslot + 1);
         putElement(i, se);
       }
       
       // now we fill out the population and energy arrays
       // the population array is proportional
-      int horizon = maxTimeslot - i;
+      //int horizon = maxTimeslot - i;
 
       // add remaining activations regardless of whether there's demand for this ts
       se.addChargers(activations);
@@ -222,7 +222,7 @@ public class StorageState
           pop[ix] = nextDe.getNVehicles() * ratio * allocations[ix];
           energy[ix] = getUnitCapacity() * pop[ix] * (allocations.length - ix - 0.5);
         }
-        se.extendArrays(allocations.length);
+        //se.extendArrays(allocations.length);
         se.addCommitments(pop, energy);
         if (elements.hasNext()) {
           // go again if we haven't finished the list
@@ -265,6 +265,7 @@ public class StorageState
     else {
       remainingCapacity -=
               energy[energy.length - 1];
+      energy[0] = 0.0;
     }
 
     // Next, we have to run the critical chargers in all future timeslots
@@ -300,11 +301,15 @@ public class StorageState
       target = getElement(ts);
       for (int e = 1; e < target.getEnergy().length; e++) {
         double pop = target.getPopulation()[e];
-        double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[0]);
+        double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[e]);
         // here's where we allocate energy
         target.getEnergy()[e] -= hrEnergy * capacityRatio;
       }
     }
+
+    // Now the first timeslot is complete, we need to collapse the remainder
+    // by reducing their array lengths by one
+    collapseElements(timeslot);
 
     // Finally we re-balance all the remaining timeslots just in case ratio < 1.0
     if (capacityRatio < 1.0)
@@ -314,13 +319,15 @@ public class StorageState
   /**
    * Closes out a timeslot by reducing the length of all the population and
    * energy arrays by 1. This should work because the last index now needs at most
-   * one hour to complete charging, as does the previous index.
+   * one hour to complete charging, as does the previous index. This must be done
+   * before re-balancing.
    */
-  public void timeslotComplete (int timeslot)
+  public void collapseElements (int timeslot)
   {
     // we can ignore the first timeslot, it should already be closed out and
     // won't be re-visited
-    for (int ts = timeslot + 1; ts < capacityVector.getActiveLength(timeslot); ts++) {
+    for (int ts = timeslot + 1;
+            ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       StorageElement target = getElement(ts);
       // last index, if not already complete, must be folded into the previous index
       int lastIndex = target.getEnergy().length - 1;
@@ -335,6 +342,7 @@ public class StorageState
         target.getEnergy()[lastIndex - 1] += target.getEnergy()[lastIndex];
         target.getPopulation()[lastIndex - 1] += target.getPopulation()[lastIndex];
       }
+      target.collapseArrays();
     }
   }
 
@@ -478,7 +486,6 @@ public class StorageState
     StorageElement target = getElement(timeslot);
     // The first one has only one cohort that must be completely satisfied
     minDemand += target.getEnergy()[0];
-    maxDemand += minDemand;
     for (int ts = timeslot + 1;
             ts < timeslot + getHorizon(timeslot); ts++) {
       target = getElement(ts);
@@ -486,11 +493,12 @@ public class StorageState
       // Add must-run chargers from future timeslots to minDemand
       minDemand += Math.min(target.getEnergy()[0], pop[0] * getUnitCapacity());
       // Add a full chunk from each future timeslot to maxDemand
-      for (int i = 0; i < pop.length; i++) {
+      for (int i = 1; i < pop.length; i++) {
         maxDemand += Math.min(target.getEnergy()[i],
                               pop[i] * getUnitCapacity());
       }
     }
+    maxDemand += minDemand;
     return new double[] {minDemand, maxDemand,
                          minDemand + (maxDemand - minDemand) / 2.0};
   }
@@ -608,9 +616,11 @@ public class StorageState
     //private double previousCommitment = 0.0;
 
     // default constructor
-    StorageElement ()
+    StorageElement (int arrayLength)
     {
       super();
+      this.energy = new double[arrayLength];
+      this.population = new double[arrayLength];
     }
 
     // populated constructor
@@ -619,20 +629,36 @@ public class StorageState
       super();
       this.activeChargers = activeChargers;
       this.energy = energy;
+      this.population = population;
     }
 
-    void extendArrays (int newLength)
+//    void extendArrays (int newLength)
+//    {
+//      if (population.length < newLength) {
+//        double[] newPop = new double[newLength];
+//        double[] newEnergy = new double[newLength];
+//        for (int i = 0; i < population.length; i++) {
+//          newPop[i] = population[i];
+//          newEnergy[i] = energy[i];
+//        }
+//        population = newPop;
+//        energy = newEnergy;
+//      }
+//    }
+
+    // Shrinks energy and population arrays, dropping the final element
+    // which is no longer needed
+    void collapseArrays ()
     {
-      if (population.length < newLength) {
-        double[] newPop = new double[newLength];
-        double[] newEnergy = new double[newLength];
-        for (int i = 0; i < population.length; i++) {
-          newPop[i] = population[i];
-          newEnergy[i] = energy[i];
-        }
-        population = newPop;
-        energy = newEnergy;
+      int len = population.length;
+      if (len < 2) {
+        // nothing to do here
+        return;
       }
+      //population[len - 2] += population[len - 1];
+      population = Arrays.copyOf(population, len - 1);
+      //energy[len - 2] += energy[len - 1];
+      energy = Arrays.copyOf(energy, len - 1);
     }
 
     double getActiveChargers ()
@@ -694,12 +720,12 @@ public class StorageState
     // adds a portion of an existing element to the contents of this one
     void addScaled (StorageElement element, double scale)
     {
-      //tranche += element.getTranche() * scale;
-      activeChargers += element.getActiveChargers() * scale;
-      //energy += element.getRemainingCommitment() * scale;
-      if (element.getPopulation().length > population.length) {
-        extendArrays(element.getPopulation().length);
+      if (element.getPopulation().length != population.length) {
+        // should not happen
+        log.error("Attempt to add element of length {} to element of length {}",
+                  population.length, element.getPopulation().length);
       }
+      activeChargers += element.getActiveChargers() * scale;
       for (int i = 0; i < population.length; i++) {
         population[i] += element.getPopulation()[i] * scale;
         energy[i] += element.getEnergy()[i] * scale;

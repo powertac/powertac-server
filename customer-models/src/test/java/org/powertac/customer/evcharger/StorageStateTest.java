@@ -249,17 +249,51 @@ class StorageStateTest
     demand.add(new DemandElement(2, 30.0, new double[] {0.1, 0.6, 0.3}));
     ss.distributeDemand(22, demand, ratio);
     double[] minMax = ss.getMinMax(22);
-    assertEquals(21.0 + 31.5 + 12.6, minMax[0], 1e-6);
-    assertEquals(21.0 + 42.0 + 107.1, minMax[1], 1e6);
+    assertEquals(65.1, minMax[0], 1e-6); // 21.0 + 31.5 + 12.6
+    assertEquals(175.35, minMax[1], 1e-6); //21.0 + 42.0 + 107.1
+    assertEquals(120.225, minMax[2], 1e-6); // 65.1 + (170.1 - 65.1) / 2
 
     // nominal is min + (max - min) / 2
-    ss.distributeUsage(22, 102.375);
+    ss.distributeUsage(22, 120.225);
+    assertEquals(0.0, ss.getElement(22).getEnergy()[0], 1e-6);
+    assertEquals(1, ss.getElement(23).getEnergy().length);
+    assertArrayEquals(new double[] {6.825, 14.175},
+                      ss.getElement(24).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {61.425, 42.525},
+                      ss.getElement(24).getEnergy(), 1e-6);
   }
 
   // Create some demand, distribute maximum usage. Should be no rebalancing needed
   @Test
   void testDistributeUsageMax ()
   {
+    double chargerCapacity = 6.0; //kW
+    double ratio = 0.7;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    // min = max = 7ch * 6kW * .5 = 21
+    demand.add(new DemandElement(0, 10.0, new double[]{1.0}));
+    // min: 5.25ch * 6kW = 31.5, max: + 5.25ch * 6kW * .5 = 42
+    demand.add(new DemandElement(1, 15.0, new double[] {0.5, 0.5}));
+    // min: 2.1ch * 6 kW = 12.6, max: + 21ch*.6*6kW+21ch*.3*6kw*.5 = 107.1
+    demand.add(new DemandElement(2, 30.0, new double[] {0.1, 0.6, 0.3}));
+    ss.distributeDemand(22, demand, ratio);
+    double[] minMax = ss.getMinMax(22);
+    assertEquals(65.1, minMax[0], 1e-6); // 21.0 + 31.5 + 12.6
+    assertEquals(175.35, minMax[1], 1e-6); //21.0 + 42.0 + 107.1
+    assertEquals(120.225, minMax[2], 1e-6); // 65.1 + (170.1 - 65.1) / 2
+
+    // nominal is min + (max - min) / 2
+    ss.distributeUsage(22, 175.35);
+    assertEquals(0.0, ss.getElement(22).getEnergy()[0], 1e-6);
+    assertEquals(1, ss.getElement(23).getEnergy().length);
+    assertArrayEquals(new double[] {2.1, 12.6},
+                      ss.getElement(24).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {18.9, 37.8},
+                      ss.getElement(24).getEnergy(), 1e-6);
     
   }
 

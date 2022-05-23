@@ -283,8 +283,8 @@ implements CustomerModelAccessor
       ss.distributeRegulation(timeslotIndex, sub.getRegulation());
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       double[] limits = ss.getMinMax(timeslotIndex);
+      
       double nominalDemand = computeNominalDemand(sub, limits);
-      //nominalDemand = topUpNext(timeslotIndex, ss, nominalDemand);
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
       
@@ -296,7 +296,7 @@ implements CustomerModelAccessor
         sub.setRegulationCapacity(rc);
       }
       // Finally we must finish off this timeslot
-      ss.timeslotComplete(timeslotIndex);
+      //ss.timeslotComplete(timeslotIndex);
     }
   }
 
