@@ -18,15 +18,16 @@ package org.powertac.customer.evcharger;
 import java.util.List;
 
 /**
- * Immutable data carrier, represents the energy need for some number of vehicles that will
- * disconnect from their chargers in a single timeslot in the future. If <i>t</i> is the current
- * timeslot, then the horizon <i>h</i> tells us how many timeslots we have to do the charging.
+ * Immutable data carrier, represents the energy need for some number of vehicles that
+ * will disconnect from their chargers in a single timeslot in the future. If <i>t</i>
+ * is the current timeslot, then the horizon <i>h</i> tells us how many timeslots we
+ * have to do the charging.
  * 
- * The distribution field tells how the energy needs of the nVehicles are distributed. This
- * is a histogram of (horizon + 1) elements, such that the first element is the fraction of
- * the population that needs at least horizon charger-hours, the next is the fraction of the
- * population needing between h and (h-1) charger-hours, and so on.
- * 
+ * The distribution field tells how the energy needs of the nVehicles are distributed.
+ * This is a histogram of (horizon + 1) elements, such that the first element is the
+ * fraction of the population that needs at least horizon charger-hours, the next is
+ * the fraction of the population needing between h and (h-1) charger-hours, and so on.
+ *  
  * @author John Collins
  */
 class DemandElement // package visibility
@@ -38,20 +39,23 @@ class DemandElement // package visibility
   // It's a double, not an int, to allow for more accurate simulation.
   private double nVehicles = 0.0;
 
-  // how much total energy must be delivered by the horizon?
-  private double energy;
-
   // how is the population distributed in terms of energy requirements before they disconnect?
   // It is a requirement that there by horizon elements in this array.
   private double[] distribution = {0.0};
-  
-  DemandElement (int horizon, double nVehicles, double energy, double[] distribution)
+
+  // Preferred constructor
+  DemandElement (int horizon, double nVehicles, double[] distribution)
   {
     super();
     this.horizon = horizon;
     this.nVehicles = nVehicles;
-    this.energy = energy;
     this.distribution = distribution;
+  }
+
+  // Original constructor -- energy parameter is not used.
+  DemandElement (int horizon, double nVehicles, double energy, double[] distribution)
+  {
+    this(horizon, nVehicles, distribution);
   }
 
   int getHorizon ()
@@ -62,11 +66,6 @@ class DemandElement // package visibility
   double getNVehicles ()
   {
     return nVehicles;
-  }
-
-  double getEnergy ()
-  {
-    return energy;
   }
 
   double[] getdistribution ()
