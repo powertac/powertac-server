@@ -247,56 +247,53 @@ implements CustomerModelAccessor
   @Override
   public void step ()
   {
-    // sample distribution for the current date/time
-    // assume sample is list of (activationCount, horizon, kWh) structs
+    // First, we must distribute regulation from the previous timeslot, and then re-balance
+    // storage state histograms for each subscription.
     DateTime currentTime = service.getTimeService().getCurrentDateTime();
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
+
+    List<TariffSubscription> subs = service.getTariffSubscriptionRepo()
+            .findActiveSubscriptionsForCustomer(getCustomerInfo());
+    for (TariffSubscription sub : subs) {
+      StorageState ss = subState.get(sub);
+      // regulation must distributed before distributing future demand
+      log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
+               sub.getId(), sub.getRegulation());
+      ss.distributeRegulation(timeslotIndex, sub.getRegulation());
+      // after regulation, we must collapse arrays and rebalance
+      ss.collapseElements(timeslotIndex);
+      ss.rebalance(timeslotIndex);
+    }
+
+    // Next, we sample demand distributions for the current date/time
+    // assume sample is list of (horizon, activation count, [distribution]) structs
+    // in which the lengths of the distribution arrays are equal to horizon + 1
     // get current demand
     List<DemandElement>newDemand = getDemandInfo(currentTime);
     log.info("New demand {}", newDemand);
     
     // adjust for current weather?
 
-    // check horizon and capacity constraints - Each DemandElement must specify enough
-    // charger capacity to meet the associated demand
-//    for (DemandElement de : newDemand) {
-//      if (de.getHorizon() >= getMaxDemandHorizon()) {
-//        log.info("Reducing demand horizon from {} to {}", de.getHorizon(), getMaxDemandHorizon());
-//      }
-//      double margin = de.getNVehicles() * de.getHorizon() * getChargerCapacity()
-//              - de.getRequiredEnergy();
-//      if (margin < 0.0) {
-//        // constraint violation
-//        log.warn("Capacity constraint violation: ts {}, horizon {}, excess demand {}",
-//                 timeslotIndex, de.getHorizon(), -margin);
-//        de.adjustRequiredEnergy(margin);
-//      }
-//    }
-
-    // iterate over subscriptions
-    for (TariffSubscription sub : service.getTariffSubscriptionRepo()
-      .findActiveSubscriptionsForCustomer(getCustomerInfo())) {
+    // distribute new demand over subscriptions, use power, set regulation capacity
+    for (TariffSubscription sub : subs) {
       // should ss compute these values? No.
       double ratio = (double) sub.getCustomersCommitted() / population;
       StorageState ss = subState.get(sub);
-      // regulation must distributed before distributing future demand
-      ss.distributeRegulation(timeslotIndex, sub.getRegulation());
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       double[] limits = ss.getMinMax(timeslotIndex);
       
       double nominalDemand = computeNominalDemand(sub, limits);
+      
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
       
       RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand,
-                                                        limits[1], limits[0]);
+                                                        limits[0], limits[1]);
       if (null != rc) {
         // if this subscription will compensate us for regulation, we'll report our
         // available capacity
         sub.setRegulationCapacity(rc);
       }
-      // Finally we must finish off this timeslot
-      //ss.timeslotComplete(timeslotIndex);
     }
   }
 
@@ -305,58 +302,26 @@ implements CustomerModelAccessor
   {
     double result = 0.0;
     Tariff tariff = sub.getTariff();
-    double halfRange = (minMax[1] - minMax[0]) / 2.0;
     if (!tariff.isTimeOfUse()
             && !tariff.isVariableRate()
             && !tariff.hasRegulationRate()) {
       // for flat-rate consumption tariffs, we charge as quickly as we can
-      result = Math.max(minMax[1] - halfRange * defaultFlexibilityMargin,
-                        minMax[0] + halfRange);
+      result = minMax[1];
     }
     // handle other types here
     else {
-      // default case
-      result = minMax[0] + halfRange;
+      // default case is the midpoint
+      result = minMax[2];
     }
     return result;
   }
-
-  // Checks current-timeslot constraint, removes its demand from usage.
-  // Returns remaining usage to be distributed over future timeslots
-//  private double topUpNext (int timeslot, StorageState ss, double usage)
-//  {
-//    //double shortage = 0.0;
-//    // First, peel off the commitment for the current timeslot
-//    // Note that we can only use the chargers that came with this demand
-//    StorageElement next = ss.getElement(timeslot);
-//    double commitment = next.getRemainingCommitment();
-//    double result = usage - commitment;
-//    double dedicatedChargers = next.getTranche();
-//    if (commitment > usage) {
-//      // big problem
-//      log.error("usage {} insufficient for current-timeslot commitment {}",
-//                usage, commitment);
-//      next.reduceCommitment(usage);
-//      result = 0.0;
-//    }
-//    else if (commitment > dedicatedChargers * getChargerCapacity()) {
-//      // charger capacity problem
-//      log.error("{} {} chargers insufficient to supply {} in one timeslot",
-//                dedicatedChargers, getChargerCapacity(), commitment);
-//      next.reduceCommitment(commitment);
-//    }
-//    else {
-//      next.reduceCommitment(commitment);
-//    }
-//    return result;
-//  }
 
   // Computes the regulation capacity to be reported on a subscription
   private RegulationCapacity computeRegulationCapacity (TariffSubscription sub,
                                                         double nominalDemand,
                                                         double minDemand, double maxDemand)
   {
-    return new RegulationCapacity(sub, maxDemand - nominalDemand, nominalDemand - minDemand);
+    return new RegulationCapacity(sub, nominalDemand - minDemand, maxDemand - nominalDemand);
   }
 
   @Override
