@@ -15,11 +15,13 @@
  */
 package org.powertac.customer.evcharger;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Philipp Page <github@philipp-page.de>
@@ -148,5 +151,16 @@ class DemandSamplerTest
     // energy of horizonEnergyTuple samples. We set double precision to 1e-4.
     assertEquals(expectedTotalEnergy,
                  demandElements.stream().mapToDouble(demandElement -> demandElement.getEnergy()).sum(), 1e-4);
+  }
+
+  @Test
+  public void testReturnsDefaultValuesIfSamplerIsDisabled ()
+  {
+    DemandSampler disabledDemandSampler = new DemandSampler();
+    ReflectionTestUtils.setField(disabledDemandSampler, "enabled", false);
+    disabledDemandSampler.initialize();
+    assertArrayEquals(new double[][] {}, disabledDemandSampler.sampleHorizonEnergyTuples(100, 16));
+    assertEquals(0.0, disabledDemandSampler.sampleNewPlugins(16, POP_SIZE));
+    assertEquals(new ArrayList<DemandElement>(), disabledDemandSampler.sample(16, POP_SIZE, CHARGER_CAPACITY));
   }
 }

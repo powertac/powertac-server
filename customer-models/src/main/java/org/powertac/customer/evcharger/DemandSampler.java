@@ -15,6 +15,7 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ class DemandSampler
   private HashMap<String, MixtureMultivariateNormalDistribution> condHorizonDemandProbabilities = new HashMap<>();
   private Integer seed;
   private XMLConfiguration config;
+  private boolean enabled = true;
 
   void initialize ()
   {
@@ -56,14 +58,21 @@ class DemandSampler
       config = Configurator.readXML(path);
     }
     catch (ConfigurationException e) {
-      log.error("Problem loading configuration: " + e);
+      log.error("Problem loading configuration. Disabling sampler: " + e);
+      enabled = false;
     }
     catch (Exception e) {
-      log.error("Error loading configuration: " + e);
+      log.error("Error loading configuration. Disabling sampler: " + e);
+      enabled = false;
     }
 
     setupPluginProbability();
     setupDemandHorizonProbabilities();
+  }
+
+  boolean isEnabled ()
+  {
+    return enabled;
   }
 
   void setSeed (int seedValue)
@@ -75,6 +84,9 @@ class DemandSampler
   // MixtureMultivariateNormalDistribution.
   private void setupPluginProbability ()
   {
+    if (!isEnabled()) {
+      return;
+    }
     double[] means = config.get(double[].class, "pluginProbability.means.mean");
     double[] variances = config.get(double[].class, "pluginProbability.covs.cov");
     Array2DRowRealMatrix covariances = new Array2DRowRealMatrix(variances);
@@ -95,6 +107,9 @@ class DemandSampler
   // Model conditional on the hour of day.
   private void setupDemandHorizonProbabilities ()
   {
+    if (!isEnabled()) {
+      return;
+    }
     String[] instances = config.getStringArray("instances");
 
     for (String instance: instances) {
@@ -139,6 +154,9 @@ class DemandSampler
    */
   List<DemandElement> sample (final int hod, final int popSize, final double chargerCapacity)
   {
+    if (!isEnabled()) {
+      return new ArrayList<DemandElement>();
+    }
     // Sample N = new plug-ins in this timeslot.
     int nVehicles = (int) sampleNewPlugins(hod, popSize);
 
@@ -205,6 +223,9 @@ class DemandSampler
    */
   double sampleNewPlugins (final int hod, final int popSize)
   {
+    if (!isEnabled()) {
+      return 0.0;
+    }
     double result = pluginProbability.density(new double[] { hod }) * popSize;
     final NormalDistribution gaussianNoise = new NormalDistribution(0, result * 0.1);
     if (seed != null) {
@@ -230,6 +251,9 @@ class DemandSampler
    */
   double[][] sampleHorizonEnergyTuples (final int n, final int hod)
   {
+    if (!isEnabled()) {
+      return new double[][] {};
+    }
     MixtureMultivariateNormalDistribution condDist = condHorizonDemandProbabilities.get("hod" + hod);
     if (condDist == null) {
       throw new IllegalArgumentException(String.format("Cannot find distribution for provided hour of day %s.", hod));
