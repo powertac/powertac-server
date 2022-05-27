@@ -15,7 +15,7 @@
  */
 package org.powertac.customer.evcharger;
 
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * Immutable data carrier, represents the energy need for some number of vehicles that
@@ -29,6 +29,7 @@ import java.util.List;
  * the fraction of the population needing between h and (h-1) charger-hours, and so on.
  *  
  * @author John Collins
+ * @author Philipp Page <github@philipp-page.de>
  */
 class DemandElement // package visibility
 {
@@ -39,8 +40,9 @@ class DemandElement // package visibility
   // It's a double, not an int, to allow for more accurate simulation.
   private double nVehicles = 0.0;
 
-  // how is the population distributed in terms of energy requirements before they disconnect?
-  // It is a requirement that there by horizon elements in this array.
+  // how is the population distributed in terms of energy requirements before
+  // they disconnect?
+  // It is a requirement that there be horizon elements in this array.
   private double[] distribution = {0.0};
 
   // Preferred constructor
@@ -75,6 +77,6 @@ class DemandElement // package visibility
 
   public String toString ()
   {
-    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, distribution.toString());
+    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, Arrays.toString(distribution));
   }
 }

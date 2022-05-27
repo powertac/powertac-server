@@ -15,34 +15,28 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
-import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.Timeslot;
-import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.BootstrapDataCollector;
-import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
-import org.powertac.customer.evcharger.StorageState.StorageElement;
-import org.powertac.util.Pair;
 
 /**
  * 
@@ -50,37 +44,35 @@ import org.powertac.util.Pair;
  */
 @Domain
 @ConfigurableInstance
-public class EvCharger
-extends AbstractCustomer
-implements CustomerModelAccessor
+public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 {
-  static private Logger log =
-          LogManager.getLogger(EvCharger.class.getSimpleName());
-  
-  @ConfigurableValue(valueType = "Double",
-          publish = true, bootstrapState = true, dump = true,
-          description = "Population of chargers")
+  static private Logger log = LogManager.getLogger(EvCharger.class.getSimpleName());
+
+  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
+          dump = true, description = "Population of chargers")
   private double population = 1000.0;
-  
-  @ConfigurableValue(valueType = "Double",
-          publish = true, bootstrapState = true, dump = true,
-          description = "Individual Charger capacity in kW")
+
+  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
+          dump = true, description = "Individual Charger capacity in kW")
   private double chargerCapacity = 8.0;
 
-  @ConfigurableValue(valueType = "Double",
-          publish = false, bootstrapState = true, dump = true,
-          description = "Where in the min-max range we compute nominal demand")
+  @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = true,
+          dump = true, description = "Where in the min-max range we compute nominal demand")
   private double nominalDemandBias = 0.5;
 
-  @ConfigurableValue(valueType = "Integer",
-          publish = false, bootstrapState = true, dump = true,
-          description = "Maximum horizon for individual charging demand elements")
+  @ConfigurableValue(valueType = "Integer", publish = false, bootstrapState = true,
+          dump = true, description = "Maximum horizon for individual charging demand elements")
   private int maxDemandHorizon = 96; // 4 days?
 
-  @ConfigurableValue(valueType = "List",
+  @ConfigurableValue(valueType = "String",
           publish = false, dump = false, bootstrapState = true,
           description = "State of active chargers at end of boot session")
   private String storageRecord;
+
+  // Tariff terms could affect this
+  @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = false,
+          dump = true, description = "Portion of flexibility to hold back")
+  private double defaultFlexibilityMargin = 0.02; // 2% on both ends
 
   // Local definition of negligible energy quantity = 1 Wh
   private double epsilon = 0.001;
@@ -89,6 +81,7 @@ implements CustomerModelAccessor
   private RandomSeed evalSeed;
   private HashMap<TariffSubscription, StorageState> subState;
   private TariffEvaluator tariffEvaluator;
+  private DemandSampler demandSampler;
 
   /**
    * Default constructor, requires manual setting of name
@@ -113,8 +106,7 @@ implements CustomerModelAccessor
     log.info("Initialize " + name);
     // fill out CustomerInfo
     CustomerInfo info = new CustomerInfo(name, (int) Math.round(population));
-    info.withPowerType(powerType)
-        .withCustomerClass(CustomerClass.SMALL);
+    info.withPowerType(powerType).withCustomerClass(CustomerClass.SMALL);
     addCustomerInfo(info);
     ensureSeeds();
 
@@ -132,6 +124,8 @@ implements CustomerModelAccessor
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
     // TODO - fix this, possibly some ratio of population
     tariffEvaluator.initializeRegulationFactors(-100.0, 0.0, 100.0);
+
+    demandSampler.initialize();
   }
 
   // called from CustomerModelService after initialization
@@ -145,8 +139,9 @@ implements CustomerModelAccessor
     // decorate the initial subscription
     TariffSubscription sub = subscriptions.get(0);
     subState.put(sub, new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
-                 .withUnitCapacity(getChargerCapacity()));
-    // we assume the new StorageState will be initialized on the first step. No subscription
+            .withUnitCapacity(getChargerCapacity()));
+    // we assume the new StorageState will be initialized on the first step. No
+    // subscription
     // changes should occur before than.
   }
 
@@ -156,8 +151,7 @@ implements CustomerModelAccessor
   {
     if (null == evalSeed) {
       RandomSeedRepo repo = service.getRandomSeedRepo();
-      evalSeed = repo.getRandomSeed(
-                         EvCharger.class.getName() + "-" + name, 0, "eval");
+      evalSeed = repo.getRandomSeed(EvCharger.class.getName() + "-" + name, 0, "eval");
     }
   }
 
@@ -167,7 +161,7 @@ implements CustomerModelAccessor
     return getCustomerInfo(powerType);
   }
 
-  //private Map<Tariff, TariffInfo> TariffProfiles = null;
+  // private Map<Tariff, TariffInfo> TariffProfiles = null;
   @Override
   public CapacityProfile getCapacityProfile (Tariff tariff)
   {
@@ -210,20 +204,16 @@ implements CustomerModelAccessor
    * every member of the population is always subscribed to some tariff or another.
    */
   @Override
-  public void notifyCustomer (TariffSubscription oldsub,
-                              TariffSubscription newsub,
-                              int count)
+  public void notifyCustomer (TariffSubscription oldsub, TariffSubscription newsub, int count)
   {
     // We assume count is positive
     if (count < 0) {
-      log.error("Negative population in notifyCustomer({}, {} {})",
-                oldsub.getId(), newsub.getId(), count);
+      log.error("Negative population in notifyCustomer({}, {} {})", oldsub.getId(), newsub.getId(), count);
       return;
     }
     else if (count == 0) {
       // unexpected, but not exactly an error
-      log.warn("Zero population in notifyCustomer({}, {}, 0)",
-               oldsub.getId(), newsub.getId());
+      log.warn("Zero population in notifyCustomer({}, {}, 0)", oldsub.getId(), newsub.getId());
       return;
     }
 
@@ -240,8 +230,8 @@ implements CustomerModelAccessor
       // Need to set up a new SS
       newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon())
               .withUnitCapacity(getChargerCapacity());
+      subState.put(newsub, newss);
     }
-    subState.put(newsub, newss);
     newss.moveSubscribers(timeslotIndex, count, oldss);
   }
 
@@ -281,29 +271,28 @@ implements CustomerModelAccessor
     // assume sample is list of (horizon, activation count, [distribution]) structs
     // in which the lengths of the distribution arrays are equal to horizon + 1
     // get current demand
-    List<DemandElement>newDemand = getDemandInfo(currentTime);
+    List<DemandElement> newDemand = getDemandInfo(currentTime);
     log.info("New demand {}", newDemand);
-    
+
     // adjust for current weather?
 
-    // distribute new demand over subscriptions, use power, set regulation capacity
-    for (TariffSubscription sub : subs) {
+    // iterate over subscriptions
+    for (TariffSubscription sub: service.getTariffSubscriptionRepo()
+            .findActiveSubscriptionsForCustomer(getCustomerInfo())) {
       // should ss compute these values? No.
       double ratio = (double) sub.getCustomersCommitted() / population;
       StorageState ss = subState.get(sub);
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       double[] limits = ss.getMinMax(timeslotIndex);
-      
       double nominalDemand = computeNominalDemand(sub, limits);
-      
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
       
       RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand,
                                                         limits[0], limits[1]);
       if (null != rc) {
-        // if this subscription will compensate us for regulation, we'll report our
-        // available capacity
+        // if this subscription will compensate us for regulation, we'll report
+        // our available capacity
         sub.setRegulationCapacity(rc);
       }
     }
@@ -330,9 +319,8 @@ implements CustomerModelAccessor
   }
 
   // Computes the regulation capacity to be reported on a subscription
-  private RegulationCapacity computeRegulationCapacity (TariffSubscription sub,
-                                                        double nominalDemand,
-                                                        double minDemand, double maxDemand)
+  private RegulationCapacity computeRegulationCapacity (TariffSubscription sub, double nominalDemand, double minDemand,
+                                                        double maxDemand)
   {
     return new RegulationCapacity(sub, nominalDemand - minDemand, maxDemand - nominalDemand);
   }
@@ -353,8 +341,8 @@ implements CustomerModelAccessor
   public void saveBootstrapState ()
   {
     int timeslot = service.getTimeslotRepo().currentSerialNumber();
-    List<TariffSubscription> subs = service.getTariffSubscriptionRepo().
-            findActiveSubscriptionsForCustomer(getCustomerInfo());
+    List<TariffSubscription> subs =
+      service.getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(getCustomerInfo());
     if (subs.size() > 1) {
       // should only be one in a bootstrap session
       log.error("{} subscriptions, should be just one", subs.size());
@@ -365,15 +353,31 @@ implements CustomerModelAccessor
   }
 
   /**
-   * Returns a vector of DemandElement instances representing the number of vehicles that
-   * plug in now and unplug in a future timeslot, how much energy they need. 
+   * Returns a vector of DemandElement instances representing the number of
+   * vehicles that
+   * plug in now and unplug in a future timeslot, how much energy they need.
    */
   public List<DemandElement> getDemandInfo (DateTime time)
   {
-    return null; // stub
+    List<DemandElement> demandInfo = new ArrayList<DemandElement>();
+    if (!demandSampler.isEnabled()) {
+      log.error("Demand sampler is currently disabled due to an internal error. Returning empty demand info.");
+      return demandInfo;
+    }
+    try {
+      demandInfo = demandSampler.sample(time.getHourOfDay(), (int) population, chargerCapacity);
+    }
+    catch (IllegalArgumentException e) {
+      log.error("Cannot sample new demandInfo due to an invalid argument. Returning empty demand info: " + e);
+    }
+    catch (Exception e) {
+      log.error("Cannot sample new demand info. Returning emtpy demand info: " + e);
+    }
+
+    return demandInfo;
   }
 
-  //getters and setters, package visibility
+  // getters and setters, package visibility
   double getPopulation ()
   {
     return population;
