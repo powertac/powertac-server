@@ -18,31 +18,25 @@ package org.powertac.customer.evcharger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
-import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.Timeslot;
-import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.BootstrapDataCollector;
-import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
-import org.powertac.customer.evcharger.StorageState.StorageElement;
 import org.powertac.util.Pair;
 
 /**
@@ -380,7 +374,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   public List<DemandElement> getDemandInfo (DateTime time)
   {
     List<DemandElement> demandInfo = new ArrayList<DemandElement>();
-    if(!demandSampler.isEnabled()) {
+    if (!demandSampler.isEnabled()) {
       log.error("Demand sampler is currently disabled due to an internal error. Returning empty demand info.");
       return demandInfo;
     }

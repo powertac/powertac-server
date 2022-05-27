@@ -159,6 +159,8 @@ class DemandSamplerTest
     DemandSampler disabledDemandSampler = new DemandSampler();
     ReflectionTestUtils.setField(disabledDemandSampler, "enabled", false);
     disabledDemandSampler.initialize();
+    // Even though we try to sample 100 tuples for 16 o'clock we expect the
+    // default value to be returned because the model is disabled
     assertArrayEquals(new double[][] {}, disabledDemandSampler.sampleHorizonEnergyTuples(100, 16));
     assertEquals(0.0, disabledDemandSampler.sampleNewPlugins(16, POP_SIZE));
     assertEquals(new ArrayList<DemandElement>(), disabledDemandSampler.sample(16, POP_SIZE, CHARGER_CAPACITY));
