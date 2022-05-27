@@ -103,9 +103,7 @@ public class StorageState
    * We don't care about maximum demand in future timeslots, just the current one.
    * 
    * Minimum demand is the least that can be used in the current timeslot without
-   * Jeopardizing future commitments.
-   * 
-   * Minim
+   * jeopardizing future commitments.
    */
   public void moveSubscribers (int timeslotIndex, int count, StorageState oldState)
   {
