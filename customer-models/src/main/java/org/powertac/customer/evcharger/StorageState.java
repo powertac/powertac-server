@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -506,8 +508,9 @@ public class StorageState
   /**
    * Gathers and returns a list that represents the current state
    */
-  public List<List> gatherState (int timeslot)
+  public String gatherState (int timeslot)
   {
+    double precision = 1000000.0; //six decimal places
     ArrayList<List> result = new ArrayList<>();
     //System.out.println("horizon=" + getHorizon(timeslot));
     for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
@@ -515,11 +518,117 @@ public class StorageState
       List<Object> row = new ArrayList<>();
       row.add(i);
       row.add(se.activeChargers);
-      row.add(se.population);
-      row.add(se.energy);
+      List<Double> items = new ArrayList<>();
+      for (double item : se.population)
+        items.add(Math.round(item * precision) / precision);
+      row.add(items);
+      items = new ArrayList<>();
+      for (double item : se.getEnergy())
+        items.add(Math.round(item * precision) / precision);
+      row.add(items);
       result.add(row);
     }
-    return result;
+    return result.toString();
+  }
+
+  /**
+   * Restores the current state at the start of a sim session.
+   * The record is a string produced by running toString() on a nested list,
+   * so here we must parse the string.
+   */
+  public void restoreState (int timeslot, String bootRecord)
+  {
+    // It would be nice to break this up into a couple simpler abstractions, but it seems
+    // there's too much context to do that easily. The only alternative might be to create
+    // another inner class to contain the context.
+    if (!bootRecord.startsWith("[")) {
+      // invalid boot record
+      log.error("Invalid boot record starts with {}", bootRecord.substring(0, 16));
+      return;
+    }
+    Pattern elementPrefix = Pattern.compile("\\[(\\d+), (\\d+\\.\\d+), \\[");
+    Pattern distributionValue = Pattern.compile("(\\d+\\.\\d+)");
+    int index = 1; // skip the opening [
+    String remains = bootRecord.substring(index);
+    boolean complete = false;
+    int arrayLength = 1;
+    while (!complete) {
+      // start with element prefix
+      Matcher m = elementPrefix.matcher(remains);
+      if (!m.lookingAt()) {
+        System.out.println("Don't see prefix at " + remains.substring(0, 12));
+        log.error("Cannot match elementPrefix at {}", remains.substring(0, 12));
+        complete = true;
+        break;
+      }
+      int ts = Integer.valueOf(m.group(1));
+      double chargers = Double.valueOf(m.group(2));
+      double[] population = new double[arrayLength];
+      double[] energy = new double[arrayLength++];
+      remains = remains.substring(m.end());
+
+      // beginning of population array
+      boolean more = true;
+      int arrayIndex = 0;
+      while (more) {
+        m = distributionValue.matcher(remains);
+        if (!m.lookingAt()) {
+          // should be end of array
+          more = false;
+          System.out.println("Should be looking at pop number, seeing " + remains.substring(0, 12));
+          break;
+        }
+        population[arrayIndex++] = (Double.valueOf(m.group(1)));
+        remains = remains.substring(m.end());
+        if (remains.startsWith("]")) {
+          // end of population array
+          remains = remains.substring(4);
+          more = false;
+        }
+        else {
+          // skip to next number
+          remains = remains.substring(2);
+        }
+      }
+
+      // beginning of energy array
+      more = true;
+      arrayIndex = 0;
+      while (more) {
+        m = distributionValue.matcher(remains);
+        if (!m.lookingAt()) {
+          // should be end of array
+          more = false;
+          System.out.println("Should be looking at eng number, seeing " + remains.substring(0, 12));
+          break;
+        }
+        energy[arrayIndex++] = (Double.valueOf(m.group(1)));
+        remains = remains.substring(m.end());
+        if (remains.startsWith("]")) {
+          // end of energy array
+          //remains = remains.substring(2);
+          more = false;
+        }
+        else {
+          // skip to next number
+          remains = remains.substring(2);
+        }
+      }
+
+      // At this point, we have a complete StorageElement
+      StorageElement se = new StorageElement(chargers, energy, population);
+      putElement(ts, se);
+
+      // if the third char is now a ], we are done
+      remains = remains.substring(2);
+      if (remains.startsWith("]")) {
+        complete = true;
+      }
+      else {
+        // skip over the delimiter
+        remains = remains.substring(2);
+      }
+    }
   }
 
   // Returns the subscription attached to this SS

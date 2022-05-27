@@ -77,16 +77,10 @@ implements CustomerModelAccessor
           description = "Maximum horizon for individual charging demand elements")
   private int maxDemandHorizon = 96; // 4 days?
 
-  // Tariff terms could affect this
-  @ConfigurableValue(valueType = "Double",
-          publish = false, bootstrapState = false, dump = true,
-          description = "Portion of flexibility to hold back")
-  private double defaultFlexibilityMargin = 0.02; // 2% on both ends
-
   @ConfigurableValue(valueType = "List",
           publish = false, dump = false, bootstrapState = true,
           description = "State of active chargers at end of boot session")
-  private List<List> storageRecord;
+  private String storageRecord;
 
   // Local definition of negligible energy quantity = 1 Wh
   private double epsilon = 0.001;
@@ -126,6 +120,11 @@ implements CustomerModelAccessor
 
     // set up the subscription-state mapping
     subState = new HashMap<>();
+
+    // handle the bootstrap state if present
+    if (null != storageRecord) {
+      // Should be one SS record, for the default consumption tariff.
+    }
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
@@ -209,7 +208,6 @@ implements CustomerModelAccessor
    * Called when some portion of the population switches from one tariff to another. This
    * is a customer model, so after the initial subscription (see handleInitialSubscription)
    * every member of the population is always subscribed to some tariff or another.
-   * tariff.
    */
   @Override
   public void notifyCustomer (TariffSubscription oldsub,
@@ -237,9 +235,12 @@ implements CustomerModelAccessor
       log.error("Null StorageState on subscription {}", oldsub.getId());
       return;
     }
-    // TODO - might want to set flexibility margin according to flexibility value
-    StorageState newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon())
-            .withUnitCapacity(getChargerCapacity());
+    StorageState newss = subState.get(newsub);
+    if (null == newss) {
+      // Need to set up a new SS
+      newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon())
+              .withUnitCapacity(getChargerCapacity());
+    }
     subState.put(newsub, newss);
     newss.moveSubscribers(timeslotIndex, count, oldss);
   }
@@ -247,20 +248,31 @@ implements CustomerModelAccessor
   @Override
   public void step ()
   {
-    // First, we must distribute regulation from the previous timeslot, and then re-balance
-    // storage state histograms for each subscription.
+    // In each timeslot, we first distribute regulation from the previous timeslot,
+    // and then collapse and re-balance storage state histograms for each subscription.
     DateTime currentTime = service.getTimeService().getCurrentDateTime();
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
 
+    // if needed, set up StorageState for the initial subscription to the default
+    // consumption tariff. If this is a sim session, then the saved storage record needs
+    // to be restored.
     List<TariffSubscription> subs = service.getTariffSubscriptionRepo()
             .findActiveSubscriptionsForCustomer(getCustomerInfo());
+    if (1 == subs.size() && null == subState.get(subs.get(0))) {
+      // Process the saved StorageState
+      TariffSubscription initialSubscription = subs.get(0);
+      StorageState initialSS = new StorageState(initialSubscription,
+                                                getChargerCapacity(), getMaxDemandHorizon());
+      //initialSS.restoreState(storageRecord);
+    }
+
     for (TariffSubscription sub : subs) {
       StorageState ss = subState.get(sub);
-      // regulation must distributed before distributing future demand
+      // regulation must be distributed before distributing future demand
       log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
                sub.getId(), sub.getRegulation());
       ss.distributeRegulation(timeslotIndex, sub.getRegulation());
-      // after regulation, we must collapse arrays and rebalance
+      // after regulation, we collapse arrays and rebalance
       ss.collapseElements(timeslotIndex);
       ss.rebalance(timeslotIndex);
     }
@@ -310,8 +322,9 @@ implements CustomerModelAccessor
     }
     // handle other types here
     else {
-      // default case is the midpoint
-      result = minMax[2];
+      // default case is the configured bias
+      // midpoint is min + (max - min) / 2
+      result = minMax[0] + nominalDemandBias * (minMax[1] - minMax[0]);
     }
     return result;
   }
@@ -327,7 +340,7 @@ implements CustomerModelAccessor
   @Override
   public void evaluateTariffs (List<Tariff> tariffs)
   {
-    // TODO Auto-generated method stub
+    
 
   }
 
