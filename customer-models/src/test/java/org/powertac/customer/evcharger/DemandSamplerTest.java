@@ -146,6 +146,11 @@ class DemandSamplerTest
     // of vehicles in that group. These should be maxChargerHours + 1 elements.
     for (DemandElement demandElement: demandElements) {
       assertEquals(expectedMaxChargerHours + 1, demandElement.getDistribution().length);
+      // The distribution is not allowed to contain vehicles who need more charger hours 
+      // than the max horizon allows.
+      for (int i = demandElement.getHorizon() + 1; i < demandElement.getDistribution().length; i++) {
+        assertEquals(0.0, demandElement.getDistribution()[i]);
+      }
     }
     // The total energy of all DemandElement instances should be the sum of
     // energy of horizonEnergyTuple samples. We set double precision to 1e-4.

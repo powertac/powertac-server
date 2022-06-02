@@ -196,12 +196,15 @@ class DemandSampler
     // Now, we fill in the the values for the charger hour histograms, vehicle
     // sum and energy sum of each cohort.
     for (double[] horizonEnergyTuple: horizonEnergyTuples) {
-      TreeMap<Integer, Integer> histogram = cohortChargerHoursHistogram.get((int) horizonEnergyTuple[0]);
-      histogram.merge((int) (horizonEnergyTuple[1] / chargerCapacity), 1, Integer::sum);
-      cohortChargerHoursHistogram.put((int) horizonEnergyTuple[0], histogram);
+      int horizon = (int) horizonEnergyTuple[0];
+      double energy = horizonEnergyTuple[1];
+      int chargerHours = (int) (energy / chargerCapacity);
+      TreeMap<Integer, Integer> histogram = cohortChargerHoursHistogram.get(horizon);
+      histogram.merge(Math.min(chargerHours, horizon), 1, Integer::sum);
+      cohortChargerHoursHistogram.put(horizon, histogram);
 
-      cohortVehicleSum.merge((int) horizonEnergyTuple[0], 1, Integer::sum);
-      cohortEnergySum.merge((int) horizonEnergyTuple[0], horizonEnergyTuple[1], Double::sum);
+      cohortVehicleSum.merge(horizon, 1, Integer::sum);
+      cohortEnergySum.merge(horizon, energy, Double::sum);
     }
 
     return cohortVehicleSum.keySet().stream()
