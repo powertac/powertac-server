@@ -132,8 +132,6 @@ class DemandSamplerTest
     final double expectedMaxEnergy = Arrays.stream(expectedHorizonEnergyTuples)
             .mapToDouble(horizonEnergyTuple -> horizonEnergyTuple[1]).max().getAsDouble();
     final int expectedMaxChargerHours = (int) (expectedMaxEnergy / CHARGER_CAPACITY);
-    final double expectedTotalEnergy =
-      Arrays.stream(expectedHorizonEnergyTuples).mapToDouble(horizonEnergyTuple -> horizonEnergyTuple[1]).sum();
 
     List<DemandElement> demandElements = demandSampler.sample(hod, POP_SIZE, CHARGER_CAPACITY);
 
@@ -145,17 +143,13 @@ class DemandSamplerTest
     // the index is the amount of charger hours needed and the value the number
     // of vehicles in that group. These should be maxChargerHours + 1 elements.
     for (DemandElement demandElement: demandElements) {
-      assertEquals(expectedMaxChargerHours + 1, demandElement.getDistribution().length);
+      assertEquals(expectedMaxChargerHours + 1, demandElement.getdistribution().length);
       // The distribution is not allowed to contain vehicles who need more charger hours 
       // than the max horizon allows.
-      for (int i = demandElement.getHorizon() + 1; i < demandElement.getDistribution().length; i++) {
-        assertEquals(0.0, demandElement.getDistribution()[i]);
+      for (int i = demandElement.getHorizon() + 1; i < demandElement.getdistribution().length; i++) {
+        assertEquals(0.0, demandElement.getdistribution()[i]);
       }
     }
-    // The total energy of all DemandElement instances should be the sum of
-    // energy of horizonEnergyTuple samples. We set double precision to 1e-4.
-    assertEquals(expectedTotalEnergy,
-                 demandElements.stream().mapToDouble(demandElement -> demandElement.getEnergy()).sum(), 1e-4);
   }
 
   @Test

@@ -169,8 +169,6 @@ class DemandSampler
     HashMap<Integer, TreeMap<Integer, Integer>> cohortChargerHoursHistogram = new HashMap<>();
     // Tracks the number of vehicles in each cohort.
     HashMap<Integer, Integer> cohortVehicleSum = new HashMap<>();
-    // Tracks the total energy demand in each cohort.
-    HashMap<Integer, Double> cohortEnergySum = new HashMap<>();
 
     // We need to initialize all cohorts until maxHorizon and
     // maxChargerHours respectively to avoid gaps in the HashMap indices.
@@ -190,7 +188,6 @@ class DemandSampler
         cohortChargerHoursHistogram.get(i).put(j, 0);
       }
       cohortVehicleSum.put(i, 0);
-      cohortEnergySum.put(i, 0.0);
     }
 
     // Now, we fill in the the values for the charger hour histograms, vehicle
@@ -204,13 +201,11 @@ class DemandSampler
       cohortChargerHoursHistogram.put(horizon, histogram);
 
       cohortVehicleSum.merge(horizon, 1, Integer::sum);
-      cohortEnergySum.merge(horizon, energy, Double::sum);
     }
 
     return cohortVehicleSum.keySet().stream()
-            .map(horizon -> new DemandElement(horizon, cohortVehicleSum.get(horizon), cohortEnergySum.get(horizon),
-                                              cohortChargerHoursHistogram.get(horizon).values().stream()
-                                                      .mapToDouble(Integer::doubleValue).toArray()))
+            .map(horizon -> new DemandElement(horizon, cohortVehicleSum
+                    .get(horizon), cohortChargerHoursHistogram.get(horizon).values().stream().mapToDouble(Integer::doubleValue).toArray()))
             .collect(Collectors.toList());
   }
 
