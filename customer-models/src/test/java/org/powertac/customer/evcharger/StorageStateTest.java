@@ -33,6 +33,8 @@ import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.util.Pair;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import cern.colt.Arrays;
+
 /**
  * @author John Collins
  *
@@ -150,50 +152,30 @@ class StorageStateTest
 
   // check out a single demand distribution, current ts
   @Test
-  public void testDemand1exact ()
+  public void testDemand1 ()
   {
     double chargerCapacity = 6.0; //kW
+    double ratio = 0.8;
     TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-                                         customer.getPopulation() * 4 / 5);
+                                         (int) (customer.getPopulation() * ratio));
     // so the ratio is 0.8
     StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
 
     ArrayList<DemandElement> demand = new ArrayList<>();
-    demand.add(new DemandElement(0, 4.0, 0.0, // 4 chargers, 3 kWh each: exactly half power
+    demand.add(new DemandElement(0, 4.0, 0.0, // 4 chargers, 3 kWh each
                                  new double[]{1.0}));
     ss.distributeDemand(36, demand, 0.8);
     assertEquals(800, ss.getPopulation());
     assertNotNull(ss.getElement(36));
     assertEquals(3.2, ss.getElement(36).getActiveChargers());
-    assertArrayEquals(new double[] {9.6},
-                    ss.getElement(36).getRemainingCommitment(), 1e-6);
+    // should be 3.2 chargers, each half-power
     assertArrayEquals(new double[] {3.2},
                       ss.getElement(36).getPopulation(), 1e-6);
-  }
-
-  // check out a single demand distribution, current ts
-  @Test
-  public void testDemand1approx ()
-  {
-    double chargerCapacity = 6.0; //kW
-    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-                                         customer.getPopulation() * 4 / 5);
-    // so the ratio is 0.8
-    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-
-    ArrayList<DemandElement> demand = new ArrayList<>();
-    demand.add(new DemandElement(0, 4.0, 0.0, // 4 chargers, over 3 kWh each
-                                 new double[]{1.0}));
-    ss.distributeDemand(36, demand, 0.8);
-    assertEquals(800, ss.getPopulation());
-    assertNotNull(ss.getElement(36));
-    assertEquals(3.2, ss.getElement(36).getActiveChargers());
     assertArrayEquals(new double[] {9.6},
                     ss.getElement(36).getRemainingCommitment(), 1e-6);
-    assertArrayEquals(new double[] {3.2},
-                      ss.getElement(36).getPopulation(), 1e-6);
   }
 
+  // distribute demand over two timeslots
   @Test
   public void testDemand2 ()
   {
@@ -210,7 +192,7 @@ class StorageStateTest
                                  new double[]{0.4, 0.6}));
     ss.distributeDemand(42, demand, 0.5);
     // StorageState should now be ts:(active, commitment)
-    //   (42:(5, 0), 43:(5, {0.6,3.6,1.8}), 44:(3, 0), 45:(3, {3,18,9}))
+    //   42:5,{6.0}, 43:3,{10.8,5.4}
     assertEquals(500, ss.getPopulation());
     assertNull(ss.getElement(41));
     assertNotNull(ss.getElement(42));
@@ -224,168 +206,208 @@ class StorageStateTest
     assertArrayEquals(new double[] {10.8,5.4},
                       ss.getElement(43).getEnergy(), 1e-6);
   }
-
-  // two demand distributions in subsequent timeslots
+  
+  // Test computation of min and max capacity
   @Test
-  public void testDemand2a ()
+  void testMinMax ()
+  {
+    double chargerCapacity = 4.0; //kW
+    double ratio = 0.8;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    // min: 8ch * 4kW * .5 = 16
+    demand.add(new DemandElement(0, 10.0, new double[]{1.0}));
+    // min: 6ch * 4kW = 24, max: 6 ch * 4kW * .5 = 12
+    demand.add(new DemandElement(1, 15.0, new double[] {0.5,0.5}));
+    // min: 2.4ch * 4 kW = 9.6, max: 14.4ch * 4 kW + 7.2ch * 4kw * .5 = 72
+    demand.add(new DemandElement(2, 30.0, new double[] {0.1,0.6,0.3}));
+    ss.distributeDemand(22, demand, ratio);
+
+    double[] minMax = ss.getMinMax(22);
+    assertEquals(49.6, minMax[0], 1e-6);
+    assertEquals(133.6, minMax[1], 1e-6);
+    assertEquals(49.6 + (133.6 - 49.6) / 2.0, minMax[2], 1e-6);
+  }
+
+  // Create some demand, distribute maximum usage.
+  @Test
+  void testDistributeUsageMax ()
   {
     double chargerCapacity = 6.0; //kW
-    TariffSubscription dc =
-            subscribeTo (customer, defaultConsumption,
-                         (int) Math.round(customer.getPopulation() * 0.6));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    demand.add(new DemandElement(1, 4.0, 12.0));
-//    demand.add(new DemandElement(3, 6.0, 60.0));
-//
-//    ss.distributeDemand(42, demand, 0.6);
-//    // StorageState should now be ts:(active, commitment)
-//    //   (42:(6, 0), 43:(6, 7.2), 44:(3.6, 0.0), 45:(3.6, 36))
-//    assertEquals(6.0, ss.getElement(43).getActiveChargers(), 1e-6);
-//    assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertEquals(3.6, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(3.6, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(36.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    assertEquals(4, ss.getHorizon(42));
-//
-//    demand.clear();
-//    demand.add(new DemandElement(2, 4.0, 12.0)); //45
-//    demand.add(new DemandElement(4, 6.0, 60.0)); //47
-//    
-//    ss.distributeDemand(43, demand, 0.6);
-//    // StorageState should now be ts:(active, commitment)
-//    //   (43:(9.6, 7.2), 44:(16*.6, 0), 45:(10*.6, 36+7.2), 46:(6*.6, 0), 47,(6*.6, 60*.6))
-//    assertEquals(600, ss.getPopulation());
-//    assertNull(ss.getElement(42)); // #42 is now gone
-//    assertNotNull(ss.getElement(43));
-//    assertEquals(12.0, ss.getElement(43).getActiveChargers(), 1e-6);
-//    assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertNotNull(ss.getElement(44));
-//    assertEquals(9.6, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    // keep charging in 44
-//    assertNotNull(ss.getElement(45));
-//    assertEquals(9.6, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(43.2, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    // no demand in 46
-//    assertNotNull(ss.getElement(46));
-//    assertEquals(6*.6, ss.getElement(46).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
-//    // final is 47
-//    assertNotNull(ss.getElement(47));
-//    assertEquals(6*.6, ss.getElement(47).getActiveChargers(), 1e-6);
-//    assertEquals(36.0, ss.getElement(47).getRemainingCommitment(), 1e-6);
-//    assertNull(ss.getElement(48));
-//    assertEquals(5, ss.getHorizon(43));
+    double ratio = 0.7;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    // min = max = 7ch * 6kW * .5 = 21
+    demand.add(new DemandElement(0, 10.0, new double[]{1.0}));
+    // min: 5.25ch * 6kW = 31.5, max: + 5.25ch * 6kW * .5 = 42
+    demand.add(new DemandElement(1, 15.0, new double[] {0.5, 0.5}));
+    // min: 2.1ch * 6 kW = 12.6, max: + 21ch*.6*6kW+21ch*.3*6kw*.5 = 107.1
+    demand.add(new DemandElement(2, 30.0, new double[] {0.1, 0.6, 0.3}));
+    ss.distributeDemand(22, demand, ratio);
+    double[] minMax = ss.getMinMax(22);
+    assertEquals(65.1, minMax[0], 1e-6); // 21.0 + 31.5 + 12.6
+    assertEquals(175.35, minMax[1], 1e-6); //21.0 + 42.0 + 107.1
+    assertEquals(120.225, minMax[2], 1e-6); // 65.1 + (170.1 - 65.1) / 2
+
+    // nominal is min + (max - min) / 2
+    ss.distributeUsage(22, 175.35);
+    assertEquals(0.0, ss.getElement(22).getEnergy()[0], 1e-6);
+    assertEquals(2, ss.getElement(23).getEnergy().length);
+    assertArrayEquals(new double[] {2.1, 12.6, 6.3},
+                      ss.getElement(24).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {18.9, 37.8, 0.0},
+                      ss.getElement(24).getEnergy(), 1e-6);
+  }
+
+  // Create some demand, distribute minimum usage.
+  @Test
+  void testDistributeUsageMin ()
+  {
+    
+  }
+
+  // Create some demand, distribute nominal usage.
+  @Test
+  void testDistributeUsageNominal ()
+  {
+    double chargerCapacity = 6.0; //kW
+    double ratio = 0.7;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    // min = max = 7ch * 6kW * .5 = 21
+    demand.add(new DemandElement(0, 10.0, new double[]{1.0}));
+    // min: 5.25ch * 6kW = 31.5, max: + 5.25ch * 6kW * .5 = 42
+    demand.add(new DemandElement(1, 15.0, new double[] {0.5, 0.5}));
+    // min: 2.1ch * 6 kW = 12.6, max: + 21ch*.6*6kW+21ch*.3*6kw*.5 = 107.1
+    demand.add(new DemandElement(2, 30.0, new double[] {0.1, 0.6, 0.3}));
+    ss.distributeDemand(22, demand, ratio);
+    double[] minMax = ss.getMinMax(22);
+    assertEquals(65.1, minMax[0], 1e-6); // 21.0 + 31.5 + 12.6
+    assertEquals(175.35, minMax[1], 1e-6); //21.0 + 42.0 + 107.1
+    assertEquals(120.225, minMax[2], 1e-6); // 65.1 + (170.1 - 65.1) / 2
+
+    // nominal is min + (max - min) / 2
+    ss.distributeUsage(22, 120.225);
+    assertEquals(0.0, ss.getElement(22).getEnergy()[0], 1e-6);
+    assertEquals(2, ss.getElement(23).getEnergy().length);
+    assertArrayEquals(new double[] {2.1, 12.6, 6.3},
+                      ss.getElement(24).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {18.9, 75.6, 9.45},
+                      ss.getElement(24).getEnergy(), 1e-6);
+  }
+
+  // Create some demand, use power, clean up, add more demand 
+  @Test
+  void testDemandTwice ()
+  {
+    double chargerCapacity = 8.0; //kW
+    double ratio = 0.8;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    // 8ch = {32}
+    demand.add(new DemandElement(0, 10.0, new double[]{1.0}));
+    // 6ch, 6 ch = {72, 24}
+    demand.add(new DemandElement(1, 15.0, new double[] {0.5,0.5}));
+    // 2.4ch, 14.4ch, 7.2ch = {48, 172.8, 28.8}
+    demand.add(new DemandElement(2, 30.0, new double[] {0.1,0.6,0.3}));
+
+    // start in ts 22
+    ss.distributeDemand(22, demand, ratio);
+    assertArrayEquals(new double[] {32.0},
+                      ss.getElement(22).getEnergy(), 1e-6);
+    assertArrayEquals(new double[] {72.0, 24.0},
+                      ss.getElement(23).getEnergy(), 1e-6);
+    assertArrayEquals(new double[] {48.0, 172.8, 28.8},
+                      ss.getElement(24).getEnergy(), 1e-6);
+
+    double[] minMax = ss.getMinMax(22);
+    assertArrayEquals(new double[] {99.2, 267.2, 183.2}, minMax, 1e-6);
+    ss.distributeUsage(22, minMax[2]);
+
+    // now we move to ts 23
+    ss.collapseElements(23);
+    ss.rebalance(23);
+    assertArrayEquals(new double[] {36.0}, ss.getElement(23).getEnergy(), 1e-6);
+    assertArrayEquals(new double[] {93.6, 64.8}, ss.getElement(24).getEnergy(), 1e-6);
+    //System.out.println("24: " + Arrays.toString(ss.getElement(24).getPopulation())
+    //+ " " + Arrays.toString(ss.getElement(24).getEnergy()));
+
+    demand.clear();
+    demand.add(new DemandElement(1, 18, new double[] {0.6, 0.4}));
+    demand.add(new DemandElement(2, 24, new double[] {0.4, 0.4, 0.2}));
+    ss.distributeDemand(23, demand, ratio);
+    assertArrayEquals(new double[] {197.28, 87.84},
+                      ss.getElement(24).getEnergy(), 1e-6);
+    assertArrayEquals(new double[] {153.6, 92.16, 15.36},
+                      ss.getElement(25).getEnergy(), 1e-6);
+    //System.out.println("23: " + Arrays.toString(ss.getElement(23).getPopulation())
+    //                   + " " + Arrays.toString(ss.getElement(23).getEnergy()));
+    //System.out.println("24: " + Arrays.toString(ss.getElement(24).getPopulation())
+    //                   + " " + Arrays.toString(ss.getElement(24).getEnergy()));
+    //System.out.println("25: " + Arrays.toString(ss.getElement(25).getPopulation())
+    //                   + " " + Arrays.toString(ss.getElement(25).getEnergy()));
   }
 
   @Test
-  void testDistributeRegulationUp1 ()
+  void testRebalance ()
   {
-//    double chargerCapacity = 8.0; //kW
-//    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-//                                         (int) Math.round(customer.getPopulation() * 0.2));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    demand.add(new DemandElement(1, 11.0, 42.0));
-//    demand.add(new DemandElement(3, 15.0, 80.0));
-//    demand.add(new DemandElement(4, 12.0, 70.0));
-//    ss.distributeDemand(42, demand, 0.2);
-//    // StorageState should now be ts:(active, commitment)
-//    //   (42:(7.6, 0), 43:(5.4, 8.4), 44:(5.4, 0), 45:(2.4, 16), 46:(0, 14))
-//    assertEquals(7.6, ss.getElement(42).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
-//    assertEquals(7.6, ss.getElement(43).getActiveChargers(), 1e-6);
-//    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertEquals(5.4, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(5.4, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    assertEquals(2.4, ss.getElement(46).getActiveChargers(), 1e-6);
-//    assertEquals(14.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
-//
-//    // Now assume we are in ts 43, and up-regulate by 7 kWh
-//    // We don't take anything from the current ts
-//    // Power/charger is 7 kWh / 5.4 chargers
-//    ss.distributeRegulation(43, 7.0);
-//    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    // ts 45 has 3 chargers, gets 3.8889 kWh
-//    assertEquals(16.0 + 3.8888889, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    // ts 46 has 2.4 chargers, gets 3.1111 kWn
-//    assertEquals(14.0 + 3.111111, ss.getElement(46).getRemainingCommitment(), 1e-6);
+    double chargerCapacity = 8.0; //kW
+    double ratio = 0.6;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 8.0, // 4.8 chg, 19.2 kWh
+                                 new double[] {1.0}));
+    demand.add(new DemandElement(1, 22.0, // 13.2 chg, p={3.96, 9.24}, e={47.52,36.96}
+                                 new double[] {0.3,0.7}));
+    demand.add(new DemandElement(2, 32.0, // 19.2 chg, p={3.84,11.52,3.84}, e={76.8,138.24,15.36}
+                                 new double[] {0.2,0.6,0.2}));
+    ss.distributeDemand(36, demand, ratio);
+    assertArrayEquals(new double[] {19.2},
+                      ss.getElement(36).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {3.96, 9.24},
+                      ss.getElement(37).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {47.52,36.96},
+                      ss.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {3.84,11.52,3.84},
+                      ss.getElement(38).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {76.8,138.24,15.36},
+                      ss.getElement(38).getRemainingCommitment(), 1e-6);
+    // Now we apply some up-regulation. It is done in the following timeslot, and
+    // should be applied to ts37[1] and ts38[1,2]
+    ss.distributeRegulation(37, 50.0);
+    assertArrayEquals(new double[] {47.52, 49.750698},
+                      ss.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {76.8, 170.133688, 20.675615},
+                      ss.getElement(38).getRemainingCommitment(), 1e-6);
+    
+    // finally we collapse and re-balance
+    ss.collapseElements(37);
+    ss.rebalance(37);
+    assertArrayEquals(new double[] {97.270698},
+                      ss.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {138.24, 30.72},
+                      ss.getElement(38).getRemainingCommitment(), 1e-6);
   }
 
   @Test
-  void testDistributeRegulationUp2 ()
+  void testDistributeRegulationDown ()
   {
-//    double chargerCapacity = 8.0; //kW
-//    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-//                                         (int) Math.round(customer.getPopulation() * 0.2));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    demand.add(new DemandElement(1, 11.0, 42.0));
-//    demand.add(new DemandElement(3, 15.0, 80.0));
-//    ss.distributeDemand(42, demand, 0.2);
-//    // StorageState should now be ts:(active, commitment)
-//    //   (42:(5.2, 0), 43:(3, 8.4), 44:(3, 0), 45:(0, 16))
-//    assertEquals(5.2, ss.getElement(42).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
-//    assertEquals(5.2, ss.getElement(43).getActiveChargers(), 1e-6);
-//    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertEquals(3.0, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(3.0, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(16.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//
-//    // Now assume we are in ts 43, get up-regulation of 7 kWh
-//    // ts 43 is not affected, 44 has no commitment, so it's all on 45
-//    ss.distributeRegulation(43, 7.0);
-//    
-//    assertEquals(8.4, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(23.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-  }
-
-  @Test
-  void testDistributeUsage ()
-  {
-//    double chargerCapacity = 6.0; //kW
-//    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-//                                         (int) Math.round(customer.getPopulation() * 0.4));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    
-//    demand.add(new DemandElement(2, 11.0, 42.0));
-//    demand.add(new DemandElement(3, 15.0, 80.0));
-//    demand.add(new DemandElement(5, 12.0, 60.0));
-//    demand.add(new DemandElement(7, 25.0, 130.0));
-//    ss.distributeDemand(42, demand, 0.4);
-//    // StorageState should now be ts:(active, commitment)
-//    //   (42:(25.2, 0), 43:(25.2, 0), 44:(25.2, 16.8), 45:(14.8, 32),
-//    //    46:(14.8, 0), 47:(37.0 * 0.4, 24), 48:(10.0, 0), 49:(10.0, 52))
-//    assertEquals(25.2, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(16.8, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(20.8, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(32.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    assertEquals(10.0, ss.getElement(49).getActiveChargers(), 1e-6);
-//    assertEquals(52.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
-//
-//    // no timeslots need more than their share
-//    assertEquals(0, ss.getMinEnergyRequirements(42).size());
-//
-//    ss.distributeUsage(42, 100.0);
-//    // charge rate should be 100/25.2 = 3.97 kW
-//    assertEquals(0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    // charge rate is now 4 kW
-//    assertEquals(8.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    assertEquals(4.8, ss.getElement(47).getRemainingCommitment(), 1e-6);
-//    assertEquals(12.0, ss.getElement(49).getRemainingCommitment(), 1e-6);
+    
   }
 
   /**
@@ -400,65 +422,67 @@ class StorageStateTest
   @Test
   void testNewSubscription ()
   {
-//    double chargerCapacity = 5.0; //kW
-//    oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
-//    oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
-//    // add some demand
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    demand.add(new DemandElement(2, 11.0, 42.0));
-//    demand.add(new DemandElement(3, 15.0, 80.0));
-//    demand.add(new DemandElement(5, 12.0, 60.0));
-//    demand.add(new DemandElement(7, 25.0, 130.0));
-//    oldSS.distributeDemand(40, demand, 1.0);
-//    // state: (40(63,0),41(63,0),42(63,42),43(52,80),44(37,0),45(37,60),46(25,0),47(25,130))
-//    assertEquals(63.0, oldSS.getElement(42).getActiveChargers(), 1e-6);
-//    assertEquals(52.0, oldSS.getElement(43).getActiveChargers(), 1e-6);
-//    assertEquals(80.0, oldSS.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertNull(oldSS.getElement(48));
-//
-//    // introduce a new tariff and shift 40% of the population to it
-//    TariffSpecification ts1 =
-//            new TariffSpecification(bob, PowerType.ELECTRIC_VEHICLE)
-//            .addRate(new Rate().withValue(-0.09))
-//            .withSignupPayment(-2.0);
-//    Tariff tariff1 = new Tariff(ts1);
-//    initTariff(tariff1);
-//    TariffSubscription newSub =
-//            subscribeTo(customer, tariff1, (int) Math.round(customer.getPopulation() * 0.4));
-//    StorageState newSS = new StorageState(newSub, chargerCapacity, maxHorizon);
-//    newSS.moveSubscribers(40, newSub.getCustomersCommitted(), oldSS);
-//    assertEquals(63.0 * 0.6, oldSS.getElement(42).getActiveChargers(), 1e-6);
-//    assertEquals(63.0 * 0.4, newSS.getElement(42).getActiveChargers(), 1e-6);
+    double chargerCapacity = 7.0; //kW
+    oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation()); // 100%
+    oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
+    // add some demand
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 11.0, new double[] {1.0}));
+    demand.add(new DemandElement(1, 15.0, new double[] {0.4, 0.6}));
+    demand.add(new DemandElement(3, 12.0, new double[] {0.2, 0.3, 0.3, 0.2}));
+    demand.add(new DemandElement(4, 25.0, new double[] {0.1, 0.3, 0.3, 0.2, 0.1}));
+    oldSS.distributeDemand(40, demand, 1.0);
+    assertArrayEquals(new double[] {38.5},
+                      oldSS.getElement(40).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {63.0, 31.5},
+                      oldSS.getElement(41).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {0.0, 0.0, 0.0},
+                      oldSS.getElement(42).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {58.8, 63.0, 37.8, 8.4},
+                      oldSS.getElement(43).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
+                      oldSS.getElement(44).getRemainingCommitment(), 1e-6);
+
+    // introduce a new tariff and shift 40% of the population to it
+    TariffSpecification ts1 =
+            new TariffSpecification(bob, PowerType.ELECTRIC_VEHICLE)
+            .addRate(new Rate().withValue(-0.09))
+            .withSignupPayment(-2.0);
+    Tariff tariff1 = new Tariff(ts1);
+    initTariff(tariff1);
+    // move 40% of the population to the new tariff
+    TariffSubscription newSub =
+            subscribeTo(customer, tariff1, (int) Math.round(customer.getPopulation() * 0.4));
+    StorageState newSS = new StorageState(newSub, chargerCapacity, maxHorizon);
+    newSS.moveSubscribers(40, newSub.getCustomersCommitted(), oldSS);
+    // energy numbers in the old ss should be 60% of original
+    assertArrayEquals(new double[] {23.1},
+                      oldSS.getElement(40).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {37.8, 18.9},
+                      oldSS.getElement(41).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {0.0, 0.0, 0.0},
+                      oldSS.getElement(42).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {35.28, 37.8, 22.68, 5.04},
+                      oldSS.getElement(43).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {47.25, 110.25, 78.75, 31.5, 5.25},
+                      oldSS.getElement(44).getRemainingCommitment(), 1e-6);
+    // and energy numbers in the new ss should be 40% of the original
+    assertArrayEquals(new double[] {15.4},
+                      newSS.getElement(40).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {25.2, 12.6},
+                      newSS.getElement(41).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {0.0, 0.0, 0.0},
+                      newSS.getElement(42).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {23.52, 25.2, 15.12, 3.36},
+                      newSS.getElement(43).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {31.5, 73.5, 52.5, 21.0, 3.5},
+                      newSS.getElement(44).getRemainingCommitment(), 1e-6);
   }
 
   @Test
   void testSubscriptionShift ()
   {
     
-  }
-
-  // Test both nominal demand and regulation capacity
-  @Test
-  void testMinMax ()
-  {
-//    double chargerCapacity = 4.0; //kW
-//    double ratio = 0.8;
-//    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
-//                                         (int) Math.round(customer.getPopulation() * ratio));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    demand.add(new DemandElement(0, 11.0, 42.0)); // max 44
-//    demand.add(new DemandElement(1, 10.0, 48.0)); // cap=44
-//    demand.add(new DemandElement(2, 8.0, 52.0));  // max 32*3 = 96
-//    demand.add(new DemandElement(3, 15.0, 50.0)); // cap = 60
-//    demand.add(new DemandElement(5, 12.0, 60.0));
-//    demand.add(new DemandElement(7, 25.0, 130.0));
-//    ss.distributeDemand(22, demand, ratio);
-//
-//    Pair<Double, Double> minMax = ss.getMinMax(22);
-//    assertEquals(40.0, minMax.car(), 1e-6);
-//    assertEquals(249.6, minMax.cdr(), 1e-6);
   }
 
   @Test
@@ -473,44 +497,41 @@ class StorageStateTest
     
   }
 
-//  @SuppressWarnings("rawtypes")
-//  @Test
-//  void testGatherState ()
-//  {
-//    double chargerCapacity = 6.0; //kW
-//    TariffSubscription dc =
-//            subscribeTo (customer, defaultConsumption,
-//                         (int) Math.round(customer.getPopulation() * 0.6));
-//    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
-//
-//    ArrayList<DemandElement> demand = new ArrayList<>();
-//    demand.add(new DemandElement(1, 4.0, 12.0)); //43:24.6,7.2
-//    demand.add(new DemandElement(3, 6.0, 60.0)); //45:21,36
-//    demand.add(new DemandElement(4, 20.0, 200.0)); //46:9,120
-//    demand.add(new DemandElement(5, 15.0, 180.0)); //47:0,108
-//    ss.distributeDemand(42, demand, 0.6);
-//    // StorageState should now be ts:(active, commitment)
-//    //   (42:(27, 0), 43:(24.6, 7.2), 44:(24.6, 0), 45:(21, 36), 46:(9, 120), 47:(0, 108))
-//    assertEquals(27.0, ss.getElement(42).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(42).getRemainingCommitment(), 1e-6);
-//    assertEquals(27.0, ss.getElement(43).getActiveChargers(), 1e-6);
-//    assertEquals(7.2, ss.getElement(43).getRemainingCommitment(), 1e-6);
-//    assertEquals(24.6, ss.getElement(44).getActiveChargers(), 1e-6);
-//    assertEquals(0.0, ss.getElement(44).getRemainingCommitment(), 1e-6);
-//    assertEquals(24.6, ss.getElement(45).getActiveChargers(), 1e-6);
-//    assertEquals(36.0, ss.getElement(45).getRemainingCommitment(), 1e-6);
-//    assertEquals(21.0, ss.getElement(46).getActiveChargers(), 1e-6);
-//    assertEquals(120.0, ss.getElement(46).getRemainingCommitment(), 1e-6);
-//    assertEquals(9.0, ss.getElement(47).getActiveChargers(), 1e-6);
-//    assertEquals(108.0, ss.getElement(47).getRemainingCommitment(), 1e-6);
-//
-//    List<List> result = ss.gatherState(42);
-//    assertEquals(6, result.size());
-//    List entry = result.get(0);
-//    assertEquals(42, (int) (entry.get(0)));
-//    assertEquals(27.0, (double) (result.get(1)).get(2));
-//    assertEquals(2.4, (double) (result.get(1)).get(1));
-//  }
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @Test
+  void testGatherState ()
+  {
+    double chargerCapacity = 7.0; //kW
+    oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation()); // 100%
+    oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
+    // add some demand
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 11.0, new double[] {1.0}));
+    demand.add(new DemandElement(1, 15.0, new double[] {0.4, 0.6}));
+    demand.add(new DemandElement(3, 12.0, new double[] {0.2, 0.3, 0.3, 0.2}));
+    demand.add(new DemandElement(4, 25.0, new double[] {0.1, 0.3, 0.3, 0.2, 0.1}));
+    oldSS.distributeDemand(40, demand, 1.0);
+    assertArrayEquals(new double[] {38.5},
+                      oldSS.getElement(40).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {63.0, 31.5},
+                      oldSS.getElement(41).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {0.0, 0.0, 0.0},
+                      oldSS.getElement(42).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {58.8, 63.0, 37.8, 8.4},
+                      oldSS.getElement(43).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
+                      oldSS.getElement(44).getRemainingCommitment(), 1e-6);
+
+    String record = oldSS.gatherState(40);
+//    assertEquals(5, record.size());
+    System.out.println(record);
+    StorageState newSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
+    newSS.restoreState(maxHorizon, record);
+    assertArrayEquals(new double[] {38.5},
+                      newSS.getElement(40).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
+                      newSS.getElement(44).getRemainingCommitment(), 1e-6);
+  }
 
   class DummyCMA implements CustomerModelAccessor
   {

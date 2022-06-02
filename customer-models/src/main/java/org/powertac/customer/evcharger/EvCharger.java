@@ -37,7 +37,6 @@ import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
-import org.powertac.util.Pair;
 
 /**
  * 
@@ -49,24 +48,31 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 {
   static private Logger log = LogManager.getLogger(EvCharger.class.getSimpleName());
 
-  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true, dump = true, description = "Population of chargers")
+  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
+          dump = true, description = "Population of chargers")
   private double population = 1000.0;
 
-  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true, dump = true, description = "Individual Charger capacity in kW")
+  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
+          dump = true, description = "Individual Charger capacity in kW")
   private double chargerCapacity = 8.0;
 
-  @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = true, dump = true, description = "Where in the min-max range we compute nominal demand")
+  @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = true,
+          dump = true, description = "Where in the min-max range we compute nominal demand")
   private double nominalDemandBias = 0.5;
 
-  @ConfigurableValue(valueType = "Integer", publish = false, bootstrapState = true, dump = true, description = "Maximum horizon for individual charging demand elements")
+  @ConfigurableValue(valueType = "Integer", publish = false, bootstrapState = true,
+          dump = true, description = "Maximum horizon for individual charging demand elements")
   private int maxDemandHorizon = 96; // 4 days?
 
-  // Tariff terms could affect this
-  @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = false, dump = true, description = "Portion of flexibility to hold back")
-  private double defaultFlexibilityMargin = 0.02; // 2% on both ends
+  @ConfigurableValue(valueType = "String",
+          publish = false, dump = false, bootstrapState = true,
+          description = "State of active chargers at end of boot session")
+  private String storageRecord;
 
-  @ConfigurableValue(valueType = "List", publish = false, dump = false, bootstrapState = true, description = "State of active chargers at end of boot session")
-  private List<List> storageRecord;
+  // Tariff terms could affect this
+  @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = false,
+          dump = true, description = "Portion of flexibility to hold back")
+  private double defaultFlexibilityMargin = 0.02; // 2% on both ends
 
   // Local definition of negligible energy quantity = 1 Wh
   private double epsilon = 0.001;
@@ -106,6 +112,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
     // set up the subscription-state mapping
     subState = new HashMap<>();
+
+    // handle the bootstrap state if present
+    if (null != storageRecord) {
+      // Should be one SS record, for the default consumption tariff.
+    }
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
@@ -188,13 +199,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   }
 
   /**
-   * Called when some portion of the population switches from one tariff to
-   * another. This
-   * is a customer model, so after the initial subscription (see
-   * handleInitialSubscription)
-   * every member of the population is always subscribed to some tariff or
-   * another.
-   * tariff.
+   * Called when some portion of the population switches from one tariff to another. This
+   * is a customer model, so after the initial subscription (see handleInitialSubscription)
+   * every member of the population is always subscribed to some tariff or another.
    */
   @Override
   public void notifyCustomer (TariffSubscription oldsub, TariffSubscription newsub, int count)
@@ -218,46 +225,56 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       log.error("Null StorageState on subscription {}", oldsub.getId());
       return;
     }
-    // TODO - might want to set flexibility margin according to flexibility
-    // value
-    StorageState newss =
-      new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon()).withUnitCapacity(getChargerCapacity());
-    subState.put(newsub, newss);
+    StorageState newss = subState.get(newsub);
+    if (null == newss) {
+      // Need to set up a new SS
+      newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon())
+              .withUnitCapacity(getChargerCapacity());
+      subState.put(newsub, newss);
+    }
     newss.moveSubscribers(timeslotIndex, count, oldss);
   }
 
   @Override
   public void step ()
   {
-    // sample distribution for the current date/time
-    // assume sample is list of (activationCount, horizon, kWh) structs
+    // In each timeslot, we first distribute regulation from the previous timeslot,
+    // and then collapse and re-balance storage state histograms for each subscription.
     DateTime currentTime = service.getTimeService().getCurrentDateTime();
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
+
+    // if needed, set up StorageState for the initial subscription to the default
+    // consumption tariff. If this is a sim session, then the saved storage record needs
+    // to be restored.
+    List<TariffSubscription> subs = service.getTariffSubscriptionRepo()
+            .findActiveSubscriptionsForCustomer(getCustomerInfo());
+    if (1 == subs.size() && null == subState.get(subs.get(0))) {
+      // Process the saved StorageState
+      TariffSubscription initialSubscription = subs.get(0);
+      StorageState initialSS = new StorageState(initialSubscription,
+                                                getChargerCapacity(), getMaxDemandHorizon());
+      //initialSS.restoreState(storageRecord);
+    }
+
+    for (TariffSubscription sub : subs) {
+      StorageState ss = subState.get(sub);
+      // regulation must be distributed before distributing future demand
+      log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
+               sub.getId(), sub.getRegulation());
+      ss.distributeRegulation(timeslotIndex, sub.getRegulation());
+      // after regulation, we collapse arrays and rebalance
+      ss.collapseElements(timeslotIndex);
+      ss.rebalance(timeslotIndex);
+    }
+
+    // Next, we sample demand distributions for the current date/time
+    // assume sample is list of (horizon, activation count, [distribution]) structs
+    // in which the lengths of the distribution arrays are equal to horizon + 1
     // get current demand
     List<DemandElement> newDemand = getDemandInfo(currentTime);
     log.info("New demand {}", newDemand);
 
     // adjust for current weather?
-
-    // check horizon and capacity constraints - Each DemandElement must specify
-    // enough
-    // charger capacity to meet the associated demand
-    // for (DemandElement de : newDemand) {
-    // if (de.getHorizon() >= getMaxDemandHorizon()) {
-    // log.info("Reducing demand horizon from {} to {}", de.getHorizon(),
-    // getMaxDemandHorizon());
-    // }
-    // double margin = de.getNVehicles() * de.getHorizon() *
-    // getChargerCapacity()
-    // - de.getRequiredEnergy();
-    // if (margin < 0.0) {
-    // // constraint violation
-    // log.warn("Capacity constraint violation: ts {}, horizon {}, excess demand
-    // {}",
-    // timeslotIndex, de.getHorizon(), -margin);
-    // de.adjustRequiredEnergy(margin);
-    // }
-    // }
 
     // iterate over subscriptions
     for (TariffSubscription sub: service.getTariffSubscriptionRepo()
@@ -265,84 +282,53 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       // should ss compute these values? No.
       double ratio = (double) sub.getCustomersCommitted() / population;
       StorageState ss = subState.get(sub);
-      // regulation must distributed before distributing future demand
-      ss.distributeRegulation(timeslotIndex, sub.getRegulation());
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
-      Pair<Double, Double> limits = ss.getMinMax(timeslotIndex);
+      double[] limits = ss.getMinMax(timeslotIndex);
       double nominalDemand = computeNominalDemand(sub, limits);
-      // nominalDemand = topUpNext(timeslotIndex, ss, nominalDemand);
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
-
-      RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand, limits.cdr(), limits.car());
+      
+      RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand,
+                                                        limits[0], limits[1]);
       if (null != rc) {
         // if this subscription will compensate us for regulation, we'll report
-        // our
-        // available capacity
+        // our available capacity
         sub.setRegulationCapacity(rc);
       }
     }
   }
 
   // Computes nominal demand for the current timeslot based on tariff terms
-  private double computeNominalDemand (TariffSubscription sub, Pair<Double, Double> minMax)
+  private double computeNominalDemand (TariffSubscription sub, double[] minMax)
   {
     double result = 0.0;
     Tariff tariff = sub.getTariff();
-    double halfRange = (minMax.cdr() - minMax.car()) / 2.0;
-    if (!tariff.isTimeOfUse() && !tariff.isVariableRate() && !tariff.hasRegulationRate()) {
+    if (!tariff.isTimeOfUse()
+            && !tariff.isVariableRate()
+            && !tariff.hasRegulationRate()) {
       // for flat-rate consumption tariffs, we charge as quickly as we can
-      result = Math.max(minMax.cdr() - halfRange * defaultFlexibilityMargin, minMax.car() + halfRange);
+      result = minMax[1];
     }
     // handle other types here
     else {
-      // default case
-      result = minMax.car() + halfRange;
+      // default case is the configured bias
+      // midpoint is min + (max - min) / 2
+      result = minMax[0] + nominalDemandBias * (minMax[1] - minMax[0]);
     }
     return result;
   }
-
-  // Checks current-timeslot constraint, removes its demand from usage.
-  // Returns remaining usage to be distributed over future timeslots
-  // private double topUpNext (int timeslot, StorageState ss, double usage)
-  // {
-  // //double shortage = 0.0;
-  // // First, peel off the commitment for the current timeslot
-  // // Note that we can only use the chargers that came with this demand
-  // StorageElement next = ss.getElement(timeslot);
-  // double commitment = next.getRemainingCommitment();
-  // double result = usage - commitment;
-  // double dedicatedChargers = next.getTranche();
-  // if (commitment > usage) {
-  // // big problem
-  // log.error("usage {} insufficient for current-timeslot commitment {}",
-  // usage, commitment);
-  // next.reduceCommitment(usage);
-  // result = 0.0;
-  // }
-  // else if (commitment > dedicatedChargers * getChargerCapacity()) {
-  // // charger capacity problem
-  // log.error("{} {} chargers insufficient to supply {} in one timeslot",
-  // dedicatedChargers, getChargerCapacity(), commitment);
-  // next.reduceCommitment(commitment);
-  // }
-  // else {
-  // next.reduceCommitment(commitment);
-  // }
-  // return result;
-  // }
 
   // Computes the regulation capacity to be reported on a subscription
   private RegulationCapacity computeRegulationCapacity (TariffSubscription sub, double nominalDemand, double minDemand,
                                                         double maxDemand)
   {
-    return new RegulationCapacity(sub, maxDemand - nominalDemand, nominalDemand - minDemand);
+    return new RegulationCapacity(sub, nominalDemand - minDemand, maxDemand - nominalDemand);
   }
 
   @Override
   public void evaluateTariffs (List<Tariff> tariffs)
   {
-    // TODO Auto-generated method stub
+    
 
   }
 
