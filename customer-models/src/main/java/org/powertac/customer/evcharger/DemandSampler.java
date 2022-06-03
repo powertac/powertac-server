@@ -169,8 +169,6 @@ class DemandSampler
     HashMap<Integer, TreeMap<Integer, Integer>> cohortChargerHoursHistogram = new HashMap<>();
     // Tracks the number of vehicles in each cohort.
     HashMap<Integer, Integer> cohortVehicleSum = new HashMap<>();
-    // Tracks the total energy demand in each cohort.
-    HashMap<Integer, Double> cohortEnergySum = new HashMap<>();
 
     // We need to initialize all cohorts until maxHorizon and
     // maxChargerHours respectively to avoid gaps in the HashMap indices.
@@ -190,24 +188,24 @@ class DemandSampler
         cohortChargerHoursHistogram.get(i).put(j, 0);
       }
       cohortVehicleSum.put(i, 0);
-      cohortEnergySum.put(i, 0.0);
     }
 
     // Now, we fill in the the values for the charger hour histograms, vehicle
     // sum and energy sum of each cohort.
     for (double[] horizonEnergyTuple: horizonEnergyTuples) {
-      TreeMap<Integer, Integer> histogram = cohortChargerHoursHistogram.get((int) horizonEnergyTuple[0]);
-      histogram.merge((int) (horizonEnergyTuple[1] / chargerCapacity), 1, Integer::sum);
-      cohortChargerHoursHistogram.put((int) horizonEnergyTuple[0], histogram);
+      int horizon = (int) horizonEnergyTuple[0];
+      double energy = horizonEnergyTuple[1];
+      int chargerHours = (int) (energy / chargerCapacity);
+      TreeMap<Integer, Integer> histogram = cohortChargerHoursHistogram.get(horizon);
+      histogram.merge(Math.min(chargerHours, horizon), 1, Integer::sum);
+      cohortChargerHoursHistogram.put(horizon, histogram);
 
-      cohortVehicleSum.merge((int) horizonEnergyTuple[0], 1, Integer::sum);
-      cohortEnergySum.merge((int) horizonEnergyTuple[0], horizonEnergyTuple[1], Double::sum);
+      cohortVehicleSum.merge(horizon, 1, Integer::sum);
     }
 
     return cohortVehicleSum.keySet().stream()
-            .map(horizon -> new DemandElement(horizon, cohortVehicleSum.get(horizon), cohortEnergySum.get(horizon),
-                                              cohortChargerHoursHistogram.get(horizon).values().stream()
-                                                      .mapToDouble(Integer::doubleValue).toArray()))
+            .map(horizon -> new DemandElement(horizon, cohortVehicleSum
+                    .get(horizon), cohortChargerHoursHistogram.get(horizon).values().stream().mapToDouble(Integer::doubleValue).toArray()))
             .collect(Collectors.toList());
   }
 
