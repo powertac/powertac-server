@@ -45,7 +45,7 @@ class DemandSamplerTest
   public static void beforeAll ()
   {
     demandSampler = new DemandSampler();
-    demandSampler.initialize();
+    demandSampler.initialize("residential_ev_1.xml");
   }
 
   @BeforeEach
@@ -157,7 +157,7 @@ class DemandSamplerTest
   {
     DemandSampler disabledDemandSampler = new DemandSampler();
     ReflectionTestUtils.setField(disabledDemandSampler, "enabled", false);
-    disabledDemandSampler.initialize();
+    disabledDemandSampler.initialize("residential_ev_1.xml");
     // Even though we try to sample 100 tuples for 16 o'clock we expect the
     // default value to be returned because the model is disabled
     assertArrayEquals(new double[][] {}, disabledDemandSampler.sampleHorizonEnergyTuples(100, 16));

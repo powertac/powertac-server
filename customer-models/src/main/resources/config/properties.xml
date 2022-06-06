@@ -86,6 +86,17 @@
     </coldStorage>
   </coldstorage>
 
+  <evcharger>
+    <evCharger>
+      <instances>residential_ev</instances>
+      <residential_ev>
+        <population>10000</population>
+        <chargerCapacity>7.0</chargerCapacity> <!-- kW -->
+        <model>residential_ev_1.xml</model>
+      </residential_ev>
+    </evCharger>
+  </evcharger>
+
   <model>
     <liftTruck>
       <instances>sf2,sf3,fc2,fc3</instances>

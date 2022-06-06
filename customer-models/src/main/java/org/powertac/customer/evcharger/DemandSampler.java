@@ -50,10 +50,9 @@ class DemandSampler
   private XMLConfiguration config;
   private boolean enabled = true;
 
-  void initialize ()
+  void initialize (String model)
   {
-    // TODO: Make this dynamic (How?)
-    String path = "config/residential_ev.xml";
+    String path = "config/" + model;
     try {
       config = Configurator.readXML(path);
     }
@@ -75,6 +74,7 @@ class DemandSampler
     return enabled;
   }
 
+  //TODO: Make this a RandomSeed instance
   void setSeed (int seedValue)
   {
     this.seed = seedValue;

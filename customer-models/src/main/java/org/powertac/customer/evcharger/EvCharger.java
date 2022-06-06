@@ -48,6 +48,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 {
   static private Logger log = LogManager.getLogger(EvCharger.class.getSimpleName());
 
+  @ConfigurableValue(valueType = "String", publish = false, bootstrapState = false,
+          dump = true, description = "Name of statistical model config file")
+  private String model = "dummy";
+
   @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
           dump = true, description = "Population of chargers")
   private double population = 1000.0;
@@ -125,7 +129,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     // TODO - fix this, possibly some ratio of population
     tariffEvaluator.initializeRegulationFactors(-100.0, 0.0, 100.0);
 
-    demandSampler.initialize();
+    demandSampler = new DemandSampler();
+    demandSampler.initialize(model);
   }
 
   // called from CustomerModelService after initialization
