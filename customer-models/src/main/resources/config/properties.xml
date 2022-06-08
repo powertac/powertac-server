@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!--  Default properties setup for multiple cold-storage warehouses -->
+<!--  Default properties setup for multiple customer models -->
 
 <customer-model-root><customer>
   <coldstorage>
     <coldStorage>
       <instances>seafood-1,seafood-2,freezeco-1,freezeco-2,freezeco-3</instances>
       <seafood-1>
-	<maxTemp>-10</maxTemp>
-	<nominalTemp>-20</nominalTemp>
-	<minTemp>-30</minTemp>
-	<newStockTemp>-2</newStockTemp>
-	<roofArea>625</roofArea>
-	<wallArea>240</wallArea>
-	<stockCapacity>400</stockCapacity>
-	<turnoverRatio>0.15</turnoverRatio>
-	<cop>1.2</cop>
-	<unitSize>40</unitSize>
-	<nonCoolingUsage>16</nonCoolingUsage>
+		<maxTemp>-10</maxTemp>
+		<nominalTemp>-20</nominalTemp>
+		<minTemp>-30</minTemp>
+		<newStockTemp>-2</newStockTemp>
+		<roofArea>625</roofArea>
+		<wallArea>240</wallArea>
+		<stockCapacity>400</stockCapacity>
+		<turnoverRatio>0.15</turnoverRatio>
+		<cop>1.2</cop>
+		<unitSize>40</unitSize>
+		<nonCoolingUsage>16</nonCoolingUsage>
       </seafood-1>
       <seafood-2>
-	<maxTemp>-10</maxTemp>
-	<nominalTemp>-20</nominalTemp>
-	<minTemp>-30</minTemp>
-	<newStockTemp>-2</newStockTemp>
-	<roofArea>1600</roofArea>
-	<wallArea>960</wallArea>
-	<stockCapacity>900</stockCapacity>
-	<turnoverRatio>0.15</turnoverRatio>
-	<cop>1.5</cop>
-	<unitSize>50</unitSize>
-	<nonCoolingUsage>15</nonCoolingUsage>
+		<maxTemp>-10</maxTemp>
+		<nominalTemp>-20</nominalTemp>
+		<minTemp>-30</minTemp>
+		<newStockTemp>-2</newStockTemp>
+		<roofArea>1600</roofArea>
+		<wallArea>960</wallArea>
+		<stockCapacity>900</stockCapacity>
+		<turnoverRatio>0.15</turnoverRatio>
+		<cop>1.5</cop>
+		<unitSize>50</unitSize>
+		<nonCoolingUsage>15</nonCoolingUsage>
       </seafood-2>
       <seafood-3>
         <maxTemp>-10</maxTemp>
@@ -45,43 +45,43 @@
         <nonCoolingUsage>25</nonCoolingUsage>
       </seafood-3>
       <freezeco-1>
-	<maxTemp>-5</maxTemp>
-	<nominalTemp>-15</nominalTemp>
-	<minTemp>-35</minTemp>
-	<newStockTemp>0</newStockTemp>
-	<roofArea>400</roofArea>
-	<wallArea>320</wallArea>
-	<stockCapacity>250</stockCapacity>
-	<turnoverRatio>0.05</turnoverRatio>
-	<cop>1.4</cop>
-	<unitSize>25</unitSize>
-	<nonCoolingUsage>8</nonCoolingUsage>
+		<maxTemp>-5</maxTemp>
+		<nominalTemp>-15</nominalTemp>
+		<minTemp>-35</minTemp>
+		<newStockTemp>0</newStockTemp>
+		<roofArea>400</roofArea>
+		<wallArea>320</wallArea>
+		<stockCapacity>250</stockCapacity>
+		<turnoverRatio>0.05</turnoverRatio>
+		<cop>1.4</cop>
+		<unitSize>25</unitSize>
+		<nonCoolingUsage>8</nonCoolingUsage>
       </freezeco-1>
       <freezeco-2>
-	<maxTemp>-5</maxTemp>
-	<nominalTemp>-15</nominalTemp>
-	<minTemp>-35</minTemp>
-	<newStockTemp>10</newStockTemp>
-	<roofArea>600</roofArea>
-	<wallArea>500</wallArea>
-	<stockCapacity>375</stockCapacity>
-	<turnoverRatio>0.08</turnoverRatio>
-	<cop>1.6</cop>
-	<unitSize>35</unitSize>
-	<nonCoolingUsage>12</nonCoolingUsage>
+		<maxTemp>-5</maxTemp>
+		<nominalTemp>-15</nominalTemp>
+		<minTemp>-35</minTemp>
+		<newStockTemp>10</newStockTemp>
+		<roofArea>600</roofArea>
+		<wallArea>500</wallArea>
+		<stockCapacity>375</stockCapacity>
+		<turnoverRatio>0.08</turnoverRatio>
+		<cop>1.6</cop>
+		<unitSize>35</unitSize>
+		<nonCoolingUsage>12</nonCoolingUsage>
       </freezeco-2>
       <freezeco-3>
-	<maxTemp>-5</maxTemp>
-	<nominalTemp>-15</nominalTemp>
-	<minTemp>-35</minTemp>
-	<newStockTemp>0</newStockTemp>
-	<roofArea>6400</roofArea>
-	<wallArea>4000</wallArea>
-	<stockCapacity>450</stockCapacity>
-	<turnoverRatio>0.02</turnoverRatio>
-	<cop>1.7</cop>
-	<unitSize>120</unitSize>
-	<nonCoolingUsage>10</nonCoolingUsage>
+		<maxTemp>-5</maxTemp>
+		<nominalTemp>-15</nominalTemp>
+		<minTemp>-35</minTemp>
+		<newStockTemp>0</newStockTemp>
+		<roofArea>6400</roofArea>
+		<wallArea>4000</wallArea>
+		<stockCapacity>450</stockCapacity>
+		<turnoverRatio>0.02</turnoverRatio>
+		<cop>1.7</cop>
+		<unitSize>120</unitSize>
+		<nonCoolingUsage>10</nonCoolingUsage>
       </freezeco-3>
     </coldStorage>
   </coldstorage>
@@ -92,6 +92,10 @@
       <residential_ev>
         <population>10000</population>
         <chargerCapacity>7.0</chargerCapacity> <!-- kW -->
+        <defaultCapacityProfile> <!-- kWh/hr/vehicle starting at midnight -->
+        	3.0,3.0,3.0,3.0,3.0,3.0,3.0,4.0,4.0,4.0,3.0,3.0,
+        	4.0,4.0,4.0,4.0,4.0,4.0,5.0,6.0,7.0,6.0,5.0,4.0
+        	</defaultCapacityProfile>
         <model>residential_ev_1.xml</model>
       </residential_ev>
     </evCharger>

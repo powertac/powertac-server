@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +28,7 @@ import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.customer.AbstractCustomer;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -127,7 +131,24 @@ class EvChargerTest
     ReflectionTestUtils.setField(sub, "timeService", timeService);
     ReflectionTestUtils.setField(sub, "tariffMarketService", tariffMarket);
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
-  }  
+  }
+
+  // Make sure EvCharger shows up in the list of AbstractCustomers
+  @Test
+  void testCM ()
+  {
+    ServiceLoader<AbstractCustomer> loader =
+            ServiceLoader.load(AbstractCustomer.class);
+    Iterator<AbstractCustomer> modelIterator = loader.iterator();
+    boolean found = false;
+    while (!found && modelIterator.hasNext()) {
+      AbstractCustomer example = modelIterator.next();
+      if (example.getClass() == EvCharger.class) {
+        found = true;
+      }
+    }
+    assertTrue(found);
+  }
 
   /**
    * To test this, we need two subscriptions to two different tariffs and two different subscriptions.

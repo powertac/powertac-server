@@ -198,6 +198,7 @@ public class StorageState
     // we assume without checking that the entries in nextDe.distribution
     // add up to 1.0.
     for (int i = timeslot; i <= maxTimeslot && null != nextDe; i++) {
+      int arrayLength = i - timeslot + 1;
       StorageElement se = getElement(i);
       if (null == se) {
         // empty spot
@@ -215,10 +216,11 @@ public class StorageState
         activations -= nextDe.getNVehicles() * ratio;
         // distribute nextDe population and energy according to distribution
         double[] allocations = nextDe.getdistribution();
-        double[] pop = new double [allocations.length];
-        double[] energy = new double [allocations.length];
+        double[] pop = new double [arrayLength];
+        double[] energy = new double [arrayLength];
 
-        for (int ix = 0; ix < allocations.length; ix++) {
+        int nValues = (int) Math.round(Math.min(arrayLength, allocations.length));
+        for (int ix = 0; ix < nValues; ix++) {
           pop[ix] = nextDe.getNVehicles() * ratio * allocations[ix];
           energy[ix] = getUnitCapacity() * pop[ix] * (allocations.length - ix - 0.5);
         }
@@ -792,6 +794,8 @@ public class StorageState
     // a result of new demand
     void addCommitments (double[] population, double[] energy) {
       // We assume our arrays have already been re-sized
+      if (population.length > this.population.length)
+        log.error("array size mismatch {} into {}", population.length, this.population.length);
       for (int i = 0; i < population.length; i++) {
         this.population[i] += population[i];
         this.energy[i] += energy[i];

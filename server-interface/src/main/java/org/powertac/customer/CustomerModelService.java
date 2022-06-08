@@ -111,6 +111,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
     Iterator<AbstractCustomer> modelIterator = loader.iterator();
     while (modelIterator.hasNext()) {
       AbstractCustomer modelEx = modelIterator.next();
+      log.info("Configuring model {}", modelEx.getClass().getSimpleName());
       Collection<?> instances =
           serverConfig.configureInstances(modelEx.getClass());
       for (Object modelObj: instances) {

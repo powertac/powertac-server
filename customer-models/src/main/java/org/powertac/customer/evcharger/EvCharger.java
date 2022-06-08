@@ -17,6 +17,8 @@ package org.powertac.customer.evcharger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -46,7 +48,7 @@ import org.powertac.customer.AbstractCustomer;
 @ConfigurableInstance
 public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 {
-  static private Logger log = LogManager.getLogger(EvCharger.class.getSimpleName());
+  static private Logger log = LogManager.getLogger(EvCharger.class.getName());
 
   @ConfigurableValue(valueType = "String", publish = false, bootstrapState = false,
           dump = true, description = "Name of statistical model config file")
@@ -78,8 +80,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           dump = true, description = "Portion of flexibility to hold back")
   private double defaultFlexibilityMargin = 0.02; // 2% on both ends
 
-  // Local definition of negligible energy quantity = 1 Wh
-  private double epsilon = 0.001;
+  // Default tariff-eval profile, configurable in the setter
+  // Values are hourly per-vehicle. Mean hourly value should be between 0.2 and 0.5 kWh,
+  // or a bit less than 4 kWh for a vehicle that drives 20000 km/year and gets around 2.2 kWh/km
+  private double[] defaultCapacityProfile = null;
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -146,8 +150,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     subState.put(sub, new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
             .withUnitCapacity(getChargerCapacity()));
     // we assume the new StorageState will be initialized on the first step. No
-    // subscription
-    // changes should occur before than.
+    // subscription changes should occur before that.
   }
 
   // Gets a new random-number opSeed just in case we don't already have one.
@@ -166,12 +169,41 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return getCustomerInfo(powerType);
   }
 
+  @ConfigurableValue (valueType = "List", dump = false,
+          description = "default expected hourly consumption in kWh/vehicle")
+  public void setDefaultCapacityProfile (List<String> values)
+  {
+    defaultCapacityProfile = new double[values.size()];
+    ArrayList<String> tokens = new ArrayList<>(values);
+    Iterator<String> vi = values.iterator();
+    int index = 0;
+    while (vi.hasNext()) {
+      String token = vi.next();
+      double val = Double.valueOf(token);
+      defaultCapacityProfile[index] = val;
+    }
+  }
+
+  public List<String> getDefaultCapacityProfile ()
+  {
+    ArrayList<String> result = new ArrayList<>();
+    for (int i = 0; i < defaultCapacityProfile.length; i++) {
+      result.add(Double.toString(defaultCapacityProfile[i]));
+    }
+    return result;
+  }
+
   // private Map<Tariff, TariffInfo> TariffProfiles = null;
   @Override
   public CapacityProfile getCapacityProfile (Tariff tariff)
   {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO make tariff-specific profiles, multiply by expected tariff population
+    DateTime currentTime = service.getTimeService().getCurrentDateTime();
+    double[] profile = new double[defaultCapacityProfile.length];
+    for (int i = 0; i < profile.length; i++) {
+      profile[i] = defaultCapacityProfile[i] * getPopulation() / 2;
+    }
+    return new CapacityProfile(profile, currentTime.toInstant());
   }
 
   @Override
@@ -200,7 +232,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   public double getShiftingInconvenienceFactor (Tariff tariff)
   {
     // TODO Auto-generated method stub
-    return 0;
+    return 0.0;
   }
 
   /**
@@ -247,29 +279,35 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     // and then collapse and re-balance storage state histograms for each subscription.
     DateTime currentTime = service.getTimeService().getCurrentDateTime();
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
+    log.info("Step at ts {}", timeslotIndex);
 
     // if needed, set up StorageState for the initial subscription to the default
     // consumption tariff. If this is a sim session, then the saved storage record needs
     // to be restored.
     List<TariffSubscription> subs = service.getTariffSubscriptionRepo()
             .findActiveSubscriptionsForCustomer(getCustomerInfo());
-    if (1 == subs.size() && null == subState.get(subs.get(0))) {
-      // Process the saved StorageState
-      TariffSubscription initialSubscription = subs.get(0);
-      StorageState initialSS = new StorageState(initialSubscription,
-                                                getChargerCapacity(), getMaxDemandHorizon());
-      //initialSS.restoreState(storageRecord);
-    }
+    if (timeslotIndex > 0) {
+      // can't do much in the first ts of a boot session
+      if (1 == subs.size() && null == subState.get(subs.get(0))) {
+        // Process the saved StorageState
+        TariffSubscription initialSubscription = subs.get(0);
+        StorageState initialSS = new StorageState(initialSubscription,
+                                                  getChargerCapacity(), getMaxDemandHorizon());
+        subState.put(initialSubscription, initialSS);
+        if (null != storageRecord)
+          initialSS.restoreState(timeslotIndex, storageRecord);
+      }
 
-    for (TariffSubscription sub : subs) {
-      StorageState ss = subState.get(sub);
-      // regulation must be distributed before distributing future demand
-      log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
-               sub.getId(), sub.getRegulation());
-      ss.distributeRegulation(timeslotIndex, sub.getRegulation());
-      // after regulation, we collapse arrays and rebalance
-      ss.collapseElements(timeslotIndex);
-      ss.rebalance(timeslotIndex);
+      for (TariffSubscription sub : subs) {
+        StorageState ss = subState.get(sub);
+        // regulation must be distributed before distributing future demand
+        log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
+                 sub.getId(), sub.getRegulation());
+        ss.distributeRegulation(timeslotIndex, sub.getRegulation());
+        // after regulation, we collapse arrays and rebalance
+        ss.collapseElements(timeslotIndex);
+        ss.rebalance(timeslotIndex);
+      }
     }
 
     // Next, we sample demand distributions for the current date/time
@@ -330,11 +368,12 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return new RegulationCapacity(sub, nominalDemand - minDemand, maxDemand - nominalDemand);
   }
 
+  // -------------------------- Evaluate tariffs ------------------------
   @Override
   public void evaluateTariffs (List<Tariff> tariffs)
   {
-    
-
+    log.info(getName() + ": evaluate tariffs");
+    tariffEvaluator.evaluateTariffs();
   }
 
   /**

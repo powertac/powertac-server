@@ -64,7 +64,7 @@ implements CustomerModelAccessor
 {
   static private Logger log = LogManager.getLogger(ColdStorage.class.getName());
 
-  // handy contstants
+  // handy constants
   static final double R_CONVERSION = 3.1545 / 1000.0; // kW/m^2-K
   static final double TON_CONVERSION = 3.504; // kW heat
   static final double CP_ICE = 0.564; // kWh/tonne-K
