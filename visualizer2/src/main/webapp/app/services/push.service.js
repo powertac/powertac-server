@@ -16,7 +16,12 @@
         };
 
         var loc = window.location;
-        var SOCKET_URL = '//' + loc.host + loc.pathname + 'websocket/push';
+        var host = loc.host
+        var pathname = loc.pathname
+        if (pathname.endsWith('index.html')) {
+            pathname = pathname.substring(0, pathname.length - 10);
+        }
+        var SOCKET_URL = '//' + host + pathname + 'websocket/push';
         var TOPIC = '/topic/push';
 
         var RECONNECT_TIMEOUT_START = 125;
