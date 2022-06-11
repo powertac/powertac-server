@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ServiceLoader;
 
 import org.joda.time.Instant;
@@ -173,6 +175,26 @@ class EvChargerTest
         Tariff tariff1 = new Tariff(ts1);
         initTariff(tariff1);
     //fail("Not yet implemented");
+  }
+
+  @Test
+  public void testDefaultCapacityProfile ()
+  {
+    EvCharger uut = new EvCharger("test");
+    double chargerCapacity = 5.0; //kW
+    uut.setDefaultCapacityProfile(Arrays.asList("3.0","3.0","3.0","3.0","3.0","3.0",
+                                                "3.0","4.0","4.0","4.0","3.0","3.0",
+                                                "4.0","4.0","4.0","4.0","4.0","4.0",
+                                                "5.0","6.0","7.0","6.0","5.0","4.0"));
+    List<String> dcp = uut.getDefaultCapacityProfile();
+    assertEquals(24, dcp.size());
+    assertEquals("3.0", dcp.get(0));
+  }
+
+  @Test
+  public void testRegulationCapacity ()
+  {
+    //TODO - test this feature
   }
 
   class DummyCMA implements CustomerModelAccessor

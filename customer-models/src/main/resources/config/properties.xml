@@ -92,10 +92,6 @@
       <residential_ev>
         <population>10000</population>
         <chargerCapacity>7.0</chargerCapacity> <!-- kW -->
-        <defaultCapacityProfile> <!-- kWh/hr/vehicle starting at midnight -->
-        	3.0,3.0,3.0,3.0,3.0,3.0,3.0,4.0,4.0,4.0,3.0,3.0,
-        	4.0,4.0,4.0,4.0,4.0,4.0,5.0,6.0,7.0,6.0,5.0,4.0
-        	</defaultCapacityProfile>
         <model>residential_ev_1.xml</model>
       </residential_ev>
     </evCharger>

@@ -16,6 +16,7 @@
 package org.powertac.customer.evcharger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -132,7 +133,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
     // TODO - fix this, possibly some ratio of population
     tariffEvaluator.initializeRegulationFactors(-100.0, 0.0, 100.0);
-
+    // TODO - do something more sensible here
+    defaultCapacityProfile = new double[] {3.0,3.0,3.0,3.0,3.0,3.0,3.0,4.0,4.0,4.0,3.0,3.0,
+                                           4.0,4.0,4.0,4.0,4.0,4.0,5.0,6.0,7.0,6.0,5.0,4.0};
     demandSampler = new DemandSampler();
     demandSampler.initialize(model);
   }
@@ -180,7 +183,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     while (vi.hasNext()) {
       String token = vi.next();
       double val = Double.valueOf(token);
-      defaultCapacityProfile[index] = val;
+      defaultCapacityProfile[index++] = val;
     }
   }
 
@@ -367,7 +370,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private RegulationCapacity computeRegulationCapacity (TariffSubscription sub, double nominalDemand, double minDemand,
                                                         double maxDemand)
   {
-    return new RegulationCapacity(sub, nominalDemand - minDemand, maxDemand - nominalDemand);
+    return new RegulationCapacity(sub, nominalDemand - minDemand, nominalDemand - maxDemand);
   }
 
   // -------------------------- Evaluate tariffs ------------------------
