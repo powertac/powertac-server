@@ -204,8 +204,10 @@ class DemandSampler
     }
 
     return cohortVehicleSum.keySet().stream()
-            .map(horizon -> new DemandElement(horizon, cohortVehicleSum
-                    .get(horizon), cohortChargerHoursHistogram.get(horizon).values().stream().mapToDouble(Integer::doubleValue).toArray()))
+            .map(horizon -> 
+            new DemandElement(horizon, cohortVehicleSum.get(horizon),
+                              cohortChargerHoursHistogram.get(horizon)
+                              .values().stream().mapToDouble(Integer::doubleValue).toArray()))
             .collect(Collectors.toList());
   }
 
@@ -252,11 +254,14 @@ class DemandSampler
     if (!isEnabled()) {
       return new double[][] {};
     }
-    MixtureMultivariateNormalDistribution condDist = condHorizonDemandProbabilities.get("hod" + hod);
+    MixtureMultivariateNormalDistribution condDist =
+            condHorizonDemandProbabilities.get("hod" + hod);
     if (condDist == null) {
-      throw new IllegalArgumentException(String.format("Cannot find distribution for provided hour of day %s.", hod));
+      throw new IllegalArgumentException(String.format("Cannot find distribution for provided hour of day %d.", hod));
     }
     if (seed != null) {
+      // JEC - What is this doing? Do we really want to repeat the same sequence of
+      //       random values each time this is called?
       condDist.reseedRandomGenerator(seed);
     }
     // [[d_1, e_1],
@@ -269,8 +274,8 @@ class DemandSampler
     // might return negative values due to the symmetry of the
     // normal distribution).
     for (int i = 0; i < horizonEnergyTuples.length; i++) {
-      horizonEnergyTuples[i][0] = Math.max(horizonEnergyTuples[i][0], 0);
-      horizonEnergyTuples[i][1] = Math.max(horizonEnergyTuples[i][1], 0);
+      horizonEnergyTuples[i][0] = Math.max(horizonEnergyTuples[i][0], 0.0);
+      horizonEnergyTuples[i][1] = Math.max(horizonEnergyTuples[i][1], 0.0);
     }
 
     return horizonEnergyTuples;

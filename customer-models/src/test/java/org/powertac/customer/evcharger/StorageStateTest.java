@@ -47,6 +47,7 @@ class StorageStateTest
   private TariffRepo tariffRepo;
   private TariffSubscriptionRepo tariffSubscriptionRepo;
   private int maxHorizon = 48;
+  private int population = 1000;
 
   // brokers and initial tariffs
   private Broker defaultBroker;
@@ -108,7 +109,7 @@ class StorageStateTest
     evTariff = new Tariff(evSpec);
     initTariff(evTariff);
 
-    customer = new CustomerInfo("PodunkChargers", 1000)
+    customer = new CustomerInfo("PodunkChargers", population)
             .withPowerType(PowerType.ELECTRIC_VEHICLE);
   }
 
@@ -205,6 +206,66 @@ class StorageStateTest
     assertEquals(3.0, ss.getElement(43).getActiveChargers(), 1e-6);
     assertArrayEquals(new double[] {10.8,5.4},
                       ss.getElement(43).getEnergy(), 1e-6);
+  }
+
+  // Test actual demand that's causing strange results
+  @Test
+  void testDemandX ()
+  {
+    double chargerCapacity = 7.0; //kW
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+                                         customer.getPopulation());
+    // so the ratio is 1.0
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    // Actual demand from early trial
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 2.0,
+                                 new double[] {2.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(1, 1.0,
+                                 new double[] {0.0, 1.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(2, 1.0,
+                                 new double[] {0.0, 0.0, 1.0, 0.0, 0.0}));
+    demand.add(new DemandElement(3, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(4, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(5, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(6, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(7, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(8, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(9, 2.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(10, 3.0,
+                                 new double[] {1.0, 0.0, 0.0, 1.0, 1.0}));
+    demand.add(new DemandElement(11, 2.0,
+                                 new double[] {0.0, 1.0, 1.0, 0.0, 0.0}));
+    demand.add(new DemandElement(12, 1.0,
+                                 new double[] {0.0, 0.0, 0.0, 1.0, 0.0}));
+    demand.add(new DemandElement(13, 1.0,
+                                 new double[] {0.0, 1.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(14, 1.0,
+                                 new double[] {0.0, 0.0, 1.0, 0.0, 0.0}));
+    demand.add(new DemandElement(15, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(16, 2.0,
+                                 new double[] {2.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(17, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(18, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    demand.add(new DemandElement(19, 0.0,
+                                 new double[] {0.0, 0.0, 0.0, 0.0, 0.0}));
+    ss.distributeDemand(0, demand, 1.0);
+    assertEquals(1000, ss.getPopulation());
+    assertNotNull(ss.getElement(0));
+    assertEquals(16.0, ss.getElement(0).getActiveChargers(), 1e-6);
+    assertArrayEquals(new double[] {7.0},
+                      ss.getElement(0).getRemainingCommitment(), 1e-6);
   }
   
   // Test computation of min and max capacity

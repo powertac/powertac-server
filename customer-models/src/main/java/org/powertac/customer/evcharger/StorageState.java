@@ -221,8 +221,8 @@ public class StorageState
 
         int nValues = (int) Math.round(Math.min(arrayLength, allocations.length));
         for (int ix = 0; ix < nValues; ix++) {
-          pop[ix] = nextDe.getNVehicles() * ratio * allocations[ix];
-          energy[ix] = getUnitCapacity() * pop[ix] * (allocations.length - ix - 0.5);
+          pop[ix] = nextDe.getNVehicles() * allocations[ix] * ratio;
+          energy[ix] = getUnitCapacity() * pop[ix] * (arrayLength - ix - 0.5);
         }
         //se.extendArrays(allocations.length);
         se.addCommitments(pop, energy);
@@ -234,6 +234,17 @@ public class StorageState
           nextDe = null;
         }
       }
+    }
+    if (log.isInfoEnabled()) {
+      StringBuffer buf = new StringBuffer();
+      int horizon = maxTimeslot - timeslot;
+      buf.append(String.format("StorageState, h = %d:", horizon));
+      for (int i = 0; i < (int) Math.min(5,  horizon); i++) {
+        buf.append("\n   ");
+        StorageElement se = getElement(timeslot + i);
+        buf.append(se.toString());
+      }
+      log.info(buf);
     }
   }
 
@@ -849,6 +860,13 @@ public class StorageState
         population[i] *= fraction;
         energy[i] *= fraction;
       }
+    }
+
+    // Create a String representation
+    public String toString ()
+    {
+      return String.format("ch%.3f %s %s", activeChargers,
+                           Arrays.toString(population), Arrays.toString(energy));
     }
   }
 }

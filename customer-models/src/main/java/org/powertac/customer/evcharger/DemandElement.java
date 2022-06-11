@@ -51,7 +51,27 @@ class DemandElement // package visibility
     super();
     this.horizon = horizon;
     this.nVehicles = nVehicles;
-    this.distribution = distribution;
+    double dsum = Arrays.stream(distribution).sum();
+    if (distribution.length == horizon + 1
+            && (Math.abs(dsum - 1.0) < 1.0e-6
+                || (nVehicles == 0 && dsum == 0.0))){
+      this.distribution = distribution;
+    }
+    else {
+      this.distribution = new double[horizon + 1];
+      int index = 0;
+      while (index < horizon + 1 - distribution.length) {
+        this.distribution[index++] = 0.0;
+      }
+      int offset = index;
+      while (index < horizon + 1) {
+        double dval =
+                (0.0 == nVehicles)? 0.0 :
+                  distribution[index - offset] / nVehicles;
+        this.distribution[index] = dval;
+        index += 1;
+      }      
+    }
   }
 
   // Original constructor -- energy parameter is not used.
@@ -73,6 +93,24 @@ class DemandElement // package visibility
   double[] getdistribution ()
   {
     return distribution;
+  }
+
+  void makeCannonical ()
+  {
+    if (1.0 == getNVehicles()
+            && distribution.length == getHorizon() + 1) {
+      // It looks OK
+      return;
+    }
+    double[] newDist = new double[getHorizon() + 1];
+    int index = 0;
+    while (index < getHorizon() + 1 - distribution.length) {
+      newDist[index++] = 0.0;
+    }
+    while (index < getHorizon() + 1) {
+      newDist[index] = distribution[index++] / getNVehicles();
+    }
+    distribution = newDist;
   }
 
   public String toString ()
