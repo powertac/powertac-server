@@ -92,6 +92,7 @@
       <residential_ev>
         <population>10000</population>
         <chargerCapacity>7.0</chargerCapacity> <!-- kW -->
+        <nominalDemandBias>0.5</nominalDemandBias>
         <model>residential_ev_1.xml</model>
       </residential_ev>
     </evCharger>

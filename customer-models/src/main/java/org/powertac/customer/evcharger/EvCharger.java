@@ -425,26 +425,6 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return demandInfo;
   }
 
-  // Convert Demand info to cannonical form if necessary. 
-  // In cannonical form, the values in the distribution array add up to 1.0,
-  // and the arrays are of length horizon + 1.
-  private List<DemandElement> diCannonicalize(List<DemandElement> original)
-  {
-    List<DemandElement> result = new ArrayList<>();
-    // if nChargers > 1 or sum(distribution != 1
-    DemandElement testCase = original.get(0);
-    if (testCase.getHorizon() != 0) {
-      // Very strange
-      log.warn("Strange first DemandElement {}, tossing out demand", original.toString());
-      result.add(new DemandElement(0, 0, new double[] {0.0}));
-      return result;
-    }
-    for (DemandElement de : original) {
-      
-    }
-    return result;
-  }
-
   // getters and setters, package visibility
   double getPopulation ()
   {
@@ -482,5 +462,23 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   {
     nominalDemandBias = bias;
     return this;
+  }
+
+  class TariffInfo
+  {
+    private Tariff tariff;
+    double[] prices;
+    CapacityProfile capacityProfile;
+    
+    TariffInfo (Tariff tariff)
+    {
+      super();
+      this.tariff = tariff;
+    }
+
+    Tariff getTariff ()
+    {
+      return tariff;
+    }
   }
 }
