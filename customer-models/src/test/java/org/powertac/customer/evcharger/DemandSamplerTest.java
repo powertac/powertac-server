@@ -164,4 +164,21 @@ class DemandSamplerTest
     assertEquals(0.0, disabledDemandSampler.sampleNewPlugins(16, POP_SIZE));
     assertEquals(new ArrayList<DemandElement>(), disabledDemandSampler.sample(16, POP_SIZE, CHARGER_CAPACITY));
   }
+  
+  
+  // This test makes sure that the plug-in probability has actual density mass
+  // within the interval [0, 23]
+  @Test
+  public void testPluginDensitySumsUpCloseToOne ()
+  {
+    double probabilitySum = 0.0;
+    for (int i = 0; i < 24; i++) {
+      // We divide by POP_SIZE to reduce the absolute number to a probability
+      // again.
+      probabilitySum += demandSampler.sampleNewPlugins(i, POP_SIZE) / POP_SIZE;
+    }
+    // We allow for a tolerance of alpha = 0.05 which means that 5% of the
+    // density are allowed to lie outside of the interval [0, 23] on each side.
+    assertTrue(probabilitySum >= 0.9);
+  }
 }
