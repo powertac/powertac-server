@@ -88,6 +88,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
+  private RandomSeed demandSeed;
   private HashMap<TariffSubscription, StorageState> subState;
   private TariffEvaluator tariffEvaluator;
   private DemandSampler demandSampler;
@@ -163,6 +164,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     if (null == evalSeed) {
       RandomSeedRepo repo = service.getRandomSeedRepo();
       evalSeed = repo.getRandomSeed(EvCharger.class.getName() + "-" + name, 0, "eval");
+      demandSeed = repo.getRandomSeed(EvCharger.class.getName(), maxDemandHorizon, model);
     }
   }
 
@@ -207,6 +209,14 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       profile[i] = defaultCapacityProfile[i] * getPopulation() / 2;
     }
     return new CapacityProfile(profile, currentTime.toInstant());
+  }
+
+  /**
+   *  Returns the random seed for generating demand
+   */
+  public RandomSeed getDemandSeed ()
+  {
+    return demandSeed;
   }
 
   @Override
