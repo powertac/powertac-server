@@ -30,9 +30,11 @@ import org.apache.commons.math3.distribution.MixtureMultivariateNormalDistributi
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.random.RandomDataGenerator;
 import org.apache.commons.math3.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.config.Configurator;
 
 /**
@@ -46,9 +48,17 @@ class DemandSampler
   private static final Logger log = LogManager.getLogger(DemandSampler.class.getSimpleName());
   private MixtureMultivariateNormalDistribution pluginProbability;
   private HashMap<String, MixtureMultivariateNormalDistribution> condHorizonDemandProbabilities = new HashMap<>();
-  private Integer seed;
+  private Long currentSeed;
+  private RandomDataGenerator randomSeedGenerator;
   private XMLConfiguration config;
   private boolean enabled = true;
+
+  void initialize (String model, RandomSeed randomSeed)
+  {
+    this.initialize(model);
+    randomSeedGenerator = new RandomDataGenerator();
+    randomSeedGenerator.reSeed(randomSeed.getValue());
+  }
 
   void initialize (String model)
   {
@@ -74,10 +84,9 @@ class DemandSampler
     return enabled;
   }
 
-  //TODO: Make this a RandomSeed instance
-  void setSeed (int seedValue)
+  void setCurrentSeed (long seedValue)
   {
-    this.seed = seedValue;
+    this.currentSeed = seedValue;
   }
 
   // This will parse the XML config for pluginProbability into a
@@ -94,7 +103,8 @@ class DemandSampler
     List<Pair<Double, MultivariateNormalDistribution>> mvns = new LinkedList<>();
     for (int i = 0; i < means.length; i++) {
       // We pass null as random number generator because we do not need sampling
-      // of plug-in probability.
+      // of plug-in probability. We evaluate the density at the current hour of
+      // day.
       mvns.add(Pair.create(weights[i], new MultivariateNormalDistribution(null, new double[] { means[i] },
                                                                           new double[][] { covariances.getRow(i) })));
     }
@@ -157,6 +167,15 @@ class DemandSampler
     if (!isEnabled()) {
       return new ArrayList<DemandElement>();
     }
+    
+    // We set a new seed using the randomSeedGenerator each timeslot to make
+    // sure that experiments are reproducible for the same random seed (see
+    // initialize method).
+    if (randomSeedGenerator != null) {
+      setCurrentSeed(randomSeedGenerator.nextLong(Long.MIN_VALUE,
+                                                  Long.MAX_VALUE));
+    }
+
     // Sample N = new plug-ins in this timeslot.
     int nVehicles = (int) sampleNewPlugins(hod, popSize);
 
@@ -228,8 +247,8 @@ class DemandSampler
     }
     double result = pluginProbability.density(new double[] { hod }) * popSize;
     final NormalDistribution gaussianNoise = new NormalDistribution(0, result * 0.1);
-    if (seed != null) {
-      gaussianNoise.reseedRandomGenerator(seed);
+    if (currentSeed != null) {
+      gaussianNoise.reseedRandomGenerator(currentSeed);
     }
     result += gaussianNoise.sample();
     return Math.max(0, result);
@@ -259,10 +278,8 @@ class DemandSampler
     if (condDist == null) {
       throw new IllegalArgumentException(String.format("Cannot find distribution for provided hour of day %d.", hod));
     }
-    if (seed != null) {
-      // JEC - What is this doing? Do we really want to repeat the same sequence of
-      //       random values each time this is called?
-      condDist.reseedRandomGenerator(seed);
+    if (currentSeed != null) {
+      condDist.reseedRandomGenerator(currentSeed);
     }
     // [[d_1, e_1],
     // [d_2, e_2],

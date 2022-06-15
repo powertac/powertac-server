@@ -138,7 +138,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     defaultCapacityProfile = new double[] {3.0,3.0,3.0,3.0,3.0,3.0,3.0,4.0,4.0,4.0,3.0,3.0,
                                            4.0,4.0,4.0,4.0,4.0,4.0,5.0,6.0,7.0,6.0,5.0,4.0};
     demandSampler = new DemandSampler();
-    demandSampler.initialize(model);
+    demandSampler.initialize(model, getDemandSeed());
   }
 
   // called from CustomerModelService after initialization

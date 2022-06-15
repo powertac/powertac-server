@@ -17,6 +17,7 @@ package org.powertac.customer.evcharger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -51,7 +54,7 @@ class DemandSamplerTest
   @BeforeEach
   public void beforeEach ()
   {
-    demandSampler.setSeed(42);
+    demandSampler.setCurrentSeed(42);
   }
 
   @Test
@@ -66,7 +69,7 @@ class DemandSamplerTest
   public void testSampleNewPluginsAreRandom ()
   {
     final double newPlugins1 = demandSampler.sampleNewPlugins(16, POP_SIZE);
-    demandSampler.setSeed(1337);
+    demandSampler.setCurrentSeed(1337);
     final double newPlugins2 = demandSampler.sampleNewPlugins(16, POP_SIZE);
     assertNotEquals(newPlugins1, newPlugins2);
   }
@@ -118,20 +121,17 @@ class DemandSamplerTest
 
   // For robustness we run this for different random seeds
   @ParameterizedTest
-  @ValueSource(ints = { 42, 43, 1337 })
+  @ValueSource(ints = { 1, 2, 3 })
   public void testSampleDemandElement (int seedValue)
   {
     final int hod = 16;
-    demandSampler.setSeed(seedValue);
+    demandSampler.setCurrentSeed(seedValue);
     final int expectedNumberOfPlugins = (int) demandSampler.sampleNewPlugins(hod, POP_SIZE);
     final double[][] expectedHorizonEnergyTuples =
       demandSampler.sampleHorizonEnergyTuples(expectedNumberOfPlugins, hod);
 
     final int expectedMaxHorizon = Arrays.stream(expectedHorizonEnergyTuples)
             .mapToInt(horizonEnergyTuple -> (int) horizonEnergyTuple[0]).max().getAsInt();
-    final double expectedMaxEnergy = Arrays.stream(expectedHorizonEnergyTuples)
-            .mapToDouble(horizonEnergyTuple -> horizonEnergyTuple[1]).max().getAsDouble();
-    final int expectedMaxChargerHours = (int) (expectedMaxEnergy / CHARGER_CAPACITY);
 
     List<DemandElement> demandElements = demandSampler.sample(hod, POP_SIZE, CHARGER_CAPACITY);
 
@@ -143,7 +143,7 @@ class DemandSamplerTest
     // the index is the amount of charger hours needed and the value the number
     // of vehicles in that group. These should be maxChargerHours + 1 elements.
     for (DemandElement demandElement: demandElements) {
-      //assertEquals(expectedMaxChargerHours + 1, demandElement.getdistribution().length);
+      assertEquals(demandElement.getHorizon() + 1, demandElement.getdistribution().length);
       // The distribution is not allowed to contain vehicles who need more charger hours 
       // than the max horizon allows.
       for (int i = demandElement.getHorizon() + 1; i < demandElement.getdistribution().length; i++) {
@@ -164,13 +164,22 @@ class DemandSamplerTest
     assertEquals(0.0, disabledDemandSampler.sampleNewPlugins(16, POP_SIZE));
     assertEquals(new ArrayList<DemandElement>(), disabledDemandSampler.sample(16, POP_SIZE, CHARGER_CAPACITY));
   }
-  
-  
+
+  @Test
+  public void testSamplerGetsDisabledIfConfigPathIsWrong ()
+  {
+    DemandSampler wrongConfigPathDemandSampler = new DemandSampler();
+    wrongConfigPathDemandSampler.initialize("Some wrong config path.xml");
+    assertFalse(wrongConfigPathDemandSampler.isEnabled());
+  }
+
   // This test makes sure that the plug-in probability has actual density mass
   // within the interval [0, 23]
-  @Test
-  public void testPluginDensitySumsUpCloseToOne ()
+  @ParameterizedTest
+  @ValueSource(ints = { 1, 2, 3 })
+  public void testPluginDensitySumsUpCloseToOne (int seedValue)
   {
+    demandSampler.setCurrentSeed(seedValue);
     double probabilitySum = 0.0;
     for (int i = 0; i < 24; i++) {
       // We divide by POP_SIZE to reduce the absolute number to a probability
@@ -180,5 +189,60 @@ class DemandSamplerTest
     // We allow for a tolerance of alpha = 0.05 which means that 5% of the
     // density are allowed to lie outside of the interval [0, 23] on each side.
     assertTrue(probabilitySum >= 0.9);
+  }
+
+  @Test
+  public void testDemandSamplerReturnsReproducibleSequenceIfRandomSeedIsGiven ()
+  {
+    String model = "residential_ev_1.xml";
+    RandomSeedRepo randomSeedRepo = new RandomSeedRepo();
+
+    RandomSeed demandSeed1 =
+      randomSeedRepo.getRandomSeed(EvCharger.class.getName(), POP_SIZE, model);
+    // Sample a sequence of DemandElement lists.
+    DemandSampler randomSeedDemandSampler1 = new DemandSampler();
+    randomSeedDemandSampler1.initialize(model, demandSeed1);
+    assertTrue(randomSeedDemandSampler1.isEnabled());
+    List<DemandElement> demandElements11 =
+      randomSeedDemandSampler1.sample(16, POP_SIZE, CHARGER_CAPACITY);
+    List<DemandElement> demandElements12 =
+      randomSeedDemandSampler1.sample(17, POP_SIZE, CHARGER_CAPACITY);
+    // Same hod as demandElements11
+    List<DemandElement> demandElements13 =
+      randomSeedDemandSampler1.sample(16, POP_SIZE, CHARGER_CAPACITY);
+
+    RandomSeed demandSeed2 =
+      randomSeedRepo.getRandomSeed(EvCharger.class.getName(), POP_SIZE, model);
+    // Sample a sequence of DemandElement lists with a different
+    // DemandSampler but the same demandSeed from the repo.
+    DemandSampler randomSeedDemandSampler2 = new DemandSampler();
+    randomSeedDemandSampler2.initialize(model, demandSeed2);
+    assertTrue(randomSeedDemandSampler2.isEnabled());
+    List<DemandElement> demandElements21 =
+      randomSeedDemandSampler2.sample(16, POP_SIZE, CHARGER_CAPACITY);
+    List<DemandElement> demandElements22 =
+      randomSeedDemandSampler2.sample(17, POP_SIZE, CHARGER_CAPACITY);
+    // Same hod as demandElements21
+    List<DemandElement> demandElements23 =
+      randomSeedDemandSampler2.sample(16, POP_SIZE, CHARGER_CAPACITY);
+
+    // Both independent sequences must be equal
+    assertEquals(demandElements11.size(), demandElements21.size());
+    for (int i = 0; i < demandElements11.size(); i++) {
+      assertEquals(demandElements11.get(i), demandElements21.get(i));
+    }
+    assertEquals(demandElements12.size(), demandElements22.size());
+    for (int i = 0; i < demandElements12.size(); i++) {
+      assertEquals(demandElements12.get(i), demandElements22.get(i));
+    }
+    assertEquals(demandElements13.size(), demandElements23.size());
+    for (int i = 0; i < demandElements13.size(); i++) {
+      assertEquals(demandElements13.get(i), demandElements23.get(i));
+    }
+
+    // But the same DemandSampler should not repeat samples for the same
+    // parameters.
+    assertNotEquals(demandElements11, demandElements13);
+    assertNotEquals(demandElements21, demandElements23);
   }
 }
