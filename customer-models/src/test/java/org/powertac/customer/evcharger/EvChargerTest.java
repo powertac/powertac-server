@@ -182,13 +182,12 @@ class EvChargerTest
   {
     EvCharger uut = new EvCharger("test");
     double chargerCapacity = 5.0; //kW
-    uut.setDefaultCapacityProfile(Arrays.asList("3.0","3.0","3.0","3.0","3.0","3.0",
-                                                "3.0","4.0","4.0","4.0","3.0","3.0",
-                                                "4.0","4.0","4.0","4.0","4.0","4.0",
-                                                "5.0","6.0","7.0","6.0","5.0","4.0"));
-    List<String> dcp = uut.getDefaultCapacityProfile();
-    assertEquals(24, dcp.size());
-    assertEquals("3.0", dcp.get(0));
+    uut.setDefaultCapacityProfile("3.0,3.0,3.0,3.0,3.0,3.0,3.0,4.0,4.0,4.0,3.0,3.0,"
+                                  + "4.0,4.0,4.0,4.0,4.0,4.0,5.0,6.0,7.0,6.0,5.0,4.0");
+    String dcp = uut.getDefaultCapacityProfile();
+    double[] dcpn = uut.getDefaultCapacityProfileArray();
+    assertEquals(24, dcpn.length);
+    assertEquals(3000.0, dcpn[0], 1e-6);
   }
 
   @Test

@@ -116,7 +116,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     log.info("Initialize " + name);
     // fill out CustomerInfo
     CustomerInfo info = new CustomerInfo(name, (int) Math.round(population));
-    info.withPowerType(powerType).withCustomerClass(CustomerClass.SMALL);
+    info.withPowerType(powerType)
+      .withCustomerClass(CustomerClass.SMALL)
+      .withUpRegulationKW(0.0)
+      .withDownRegulationKW(0.0);
     addCustomerInfo(info);
     ensureSeeds();
 
@@ -174,28 +177,31 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return getCustomerInfo(powerType);
   }
 
-  @ConfigurableValue (valueType = "List", dump = false,
+  @ConfigurableValue (valueType = "String", dump = false,
           description = "default expected hourly consumption in kWh/vehicle")
-  public void setDefaultCapacityProfile (List<String> values)
+  public void setDefaultCapacityProfile (String values)
   {
-    defaultCapacityProfile = new double[values.size()];
-    ArrayList<String> tokens = new ArrayList<>(values);
-    Iterator<String> vi = values.iterator();
-    int index = 0;
-    while (vi.hasNext()) {
-      String token = vi.next();
-      double val = Double.valueOf(token);
-      defaultCapacityProfile[index++] = val;
+    String[] vals = values.split(",");
+    defaultCapacityProfile = new double[vals.length];
+    for (int i = 0; i < vals.length; i++) {
+      defaultCapacityProfile[i] = Double.valueOf(vals[i]) * getPopulation();
     }
   }
 
-  public List<String> getDefaultCapacityProfile ()
+  public String getDefaultCapacityProfile ()
   {
-    ArrayList<String> result = new ArrayList<>();
+    StringBuffer result = new StringBuffer();
     for (int i = 0; i < defaultCapacityProfile.length; i++) {
-      result.add(Double.toString(defaultCapacityProfile[i]));
+      String delim = "";
+      result.append(delim).append(Double.toString(defaultCapacityProfile[i] / getPopulation()));
+      delim = ",";
     }
-    return result;
+    return result.toString();
+  }
+
+  public double[] getDefaultCapacityProfileArray ()
+  {
+    return defaultCapacityProfile;
   }
 
   // private Map<Tariff, TariffInfo> TariffProfiles = null;
@@ -340,6 +346,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       StorageState ss = subState.get(sub);
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       double[] limits = ss.getMinMax(timeslotIndex);
+      log.info("nominalDemandBias = {}", nominalDemandBias);
       double nominalDemand = computeNominalDemand(sub, limits);
       log.info("Sub {}: Use power min={}, max={}, nominal={}",
                sub.getId(), limits[0], limits[1], nominalDemand);
@@ -361,18 +368,18 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   {
     double result = 0.0;
     Tariff tariff = sub.getTariff();
-    if (!tariff.isTimeOfUse()
-            && !tariff.isVariableRate()
-            && !tariff.hasRegulationRate()) {
-      // for flat-rate consumption tariffs, we charge as quickly as we can
-      result = minMax[1];
-    }
-    // handle other types here
-    else {
+//    if (!tariff.isTimeOfUse()
+//            && !tariff.isVariableRate()
+//            && !tariff.hasRegulationRate()) {
+//      // for flat-rate consumption tariffs, we charge as quickly as we can
+//      result = minMax[1];
+//    }
+//    // handle other types here
+//    else {
       // default case is the configured bias
       // midpoint is min + (max - min) / 2
       result = minMax[0] + nominalDemandBias * (minMax[1] - minMax[0]);
-    }
+//    }
     return result;
   }
 
