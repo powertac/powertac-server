@@ -16,6 +16,7 @@
 package org.powertac.customer.evcharger;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Immutable data carrier, represents the energy need for some number of vehicles that
@@ -116,5 +117,31 @@ class DemandElement // package visibility
   public String toString ()
   {
     return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, Arrays.toString(distribution));
+  }
+  
+  @Override
+  public int hashCode ()
+  {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + Arrays.hashCode(distribution);
+    result = prime * result + Objects.hash(horizon, nVehicles);
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object obj)
+  {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    DemandElement other = (DemandElement) obj;
+    return Arrays.equals(distribution, other.distribution)
+           && horizon == other.horizon
+           && Double.doubleToLongBits(nVehicles) == Double
+                   .doubleToLongBits(other.nVehicles);
   }
 }
