@@ -19,15 +19,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.powertac.common.RegulationCapacity;
 import org.powertac.common.TariffSubscription;
-import org.powertac.util.Pair;
 import org.powertac.util.RingArray;
 
 /**
@@ -66,7 +63,7 @@ public class StorageState
 
   // Cached values for current timeslot
   //private int cacheTimeslot = -1;
-  private double epsilon = 0.001;
+  //private double epsilon = 0.001;
   //private double minDemand = 0.0;
   //private double maxDemand = 0.0;
   //private double nominalDemand = 0.0;
@@ -435,7 +432,7 @@ public class StorageState
           // need to get ratio down to 0.5 by moving population & energy left
           // ratio = 1.5 -> move 100% left
           double move = ratio - 0.5;
-          double qty = Math.min(chunk, energy[i]);
+          //double qty = Math.min(chunk, energy[i]);
           //pop[i - 1] += pop[i] * move;
           //energy[i - 1] += qty * move;
           //pop[i] -= pop[i] * move;
@@ -522,6 +519,7 @@ public class StorageState
   public String gatherState (int timeslot)
   {
     double precision = 1000000.0; //six decimal places
+    @SuppressWarnings("rawtypes")
     ArrayList<List> result = new ArrayList<>();
     //System.out.println("horizon=" + getHorizon(timeslot));
     for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {

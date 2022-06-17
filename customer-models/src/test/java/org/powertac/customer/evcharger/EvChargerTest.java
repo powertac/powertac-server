@@ -4,32 +4,53 @@
 package org.powertac.customer.evcharger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration2.MapConfiguration;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherReport;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.customer.AbstractCustomer;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -40,10 +61,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 class EvChargerTest
 {
   private Competition competition;
+  private CustomerServiceAccessor serviceAccessor;
   private TimeService timeService;
   private Instant start;
   private TariffRepo tariffRepo;
   private TariffSubscriptionRepo tariffSubscriptionRepo;
+  private RandomSeedRepo mockSeedRepo;
+  private RandomSeed seed;
+  private TimeslotRepo mockTimeslotRepo;
+  private WeatherReportRepo mockWeatherRepo;
+  private WeatherReport weather;
 
   // brokers and initial tariffs
   private Broker defaultBroker;
@@ -51,6 +78,10 @@ class EvChargerTest
   private Tariff evTariff;
   private Broker bob;
   private Broker sally;
+
+  // configuration
+  private ServerConfiguration serverConfig;
+  private Configurator config;
 
   // mocks
   private TariffMarket tariffMarket;
@@ -83,6 +114,21 @@ class EvChargerTest
     tariffMarket = mock(TariffMarket.class);
     accountingService = mock(Accounting.class);
 
+    // set up randomSeed mock
+    mockSeedRepo = mock(RandomSeedRepo.class);
+    seed = mock(RandomSeed.class);
+    when(mockSeedRepo.getRandomSeed(anyString(),
+                                    anyLong(),
+                                    anyString())).thenReturn(seed);
+
+    // mock the timeslotRepo
+    mockTimeslotRepo = mock(TimeslotRepo.class);
+
+    // set up WeatherRepo mock
+    mockWeatherRepo = mock(WeatherReportRepo.class);
+    when(mockWeatherRepo.currentWeatherReport()).thenReturn(weather);
+    serviceAccessor = new ServiceAccessor();
+
     // set up default tariffs
     defaultBroker = new Broker("default");
     TariffSpecification dcSpec =
@@ -107,6 +153,18 @@ class EvChargerTest
 
     customer = new CustomerInfo("PodunkChargers", 1000)
             .withPowerType(PowerType.ELECTRIC_VEHICLE);
+
+    // Set up serverProperties mock
+    serverConfig = mock(ServerConfiguration.class);
+    config = new Configurator();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        config.configureSingleton(args[0]);
+        return null;
+      }
+    }).when(serverConfig).configureMe(any());
   }
 
   private TariffSubscription subscribeTo (CustomerInfo customer, Tariff tariff, int count)
@@ -152,10 +210,39 @@ class EvChargerTest
     assertTrue(found);
   }
 
+  // test configuration
+  @Test
+  public void testConfig ()
+  {
+    uut = new EvCharger("test");
+    uut.setServiceAccessor(serviceAccessor);
+    uut.initialize();
+
+    DateTime now =
+            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    when(mockTimeslotRepo.currentTimeslot())
+    .thenReturn(new Timeslot(0, now.toInstant()));
+
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.evcharger.evCharger.population", "1000");
+    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
+    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
+    map.put("customer.evcharger.evCharger.defaultCapacityData",
+            "1.55-1.46-1.36-1.25-1.16-1.02-0.80-0.51-0.34-0.30-0.32-0.37-0.48-0.62-0.78-0.96-1.13-1.32-1.49-1.60-1.69-1.74-1.73-1.66");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(uut);
+    assertEquals(1000, uut.getPopulation(), "correct population");
+    assertEquals(8.0, uut.getChargerCapacity(), 1e-6, "correct charger capacity");
+    double[] profile = uut.getDefaultCapacityProfile().getProfile();
+    assertEquals(24, profile.length, "full profile");
+    assertEquals(1460.0, profile[1], 1e-6, "profile OK");
+  }
+
   /**
    * To test this, we need two subscriptions to two different tariffs and two different subscriptions.
    * The "old" subscription is needed because its StorageState needs to retrieve the population.
-   * The "new" subscriptin may have 0 or non-zero population.
+   * The "new" subscription may have 0 or non-zero population.
    * Start with all of PodunkChargers subscribed to the default consumption tariff, and create a
    * StorageState for that subscription.
    * Then move half of them to a new EV tariff by calling the CMA. This will test the ability to 
@@ -164,16 +251,21 @@ class EvChargerTest
   public void test ()
   {
     EvCharger uut = new EvCharger("test");
+    uut.setServiceAccessor(serviceAccessor);
+    uut.initialize();
     double chargerCapacity = 5.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
+    ArrayList<TariffSubscription> subs = new ArrayList<>();
+    subs.add(oldSub);
+    uut.handleInitialSubscription(subs);
     oldSS = new StorageState(oldSub, chargerCapacity, uut.getMaxDemandHorizon());
     TariffSpecification ts1 =
             new TariffSpecification(bob,
                                     PowerType.ELECTRIC_VEHICLE).
                                     addRate(new Rate().withValue(-0.09))
                                     .withSignupPayment(-2.0);
-        Tariff tariff1 = new Tariff(ts1);
-        initTariff(tariff1);
+    Tariff tariff1 = new Tariff(ts1);
+    initTariff(tariff1);
     //fail("Not yet implemented");
   }
 
@@ -181,13 +273,27 @@ class EvChargerTest
   public void testDefaultCapacityProfile ()
   {
     EvCharger uut = new EvCharger("test");
+    uut.setServiceAccessor(serviceAccessor);
+    uut.initialize();
+
+    DateTime now =
+            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    when(mockTimeslotRepo.currentTimeslot())
+    .thenReturn(new Timeslot(0, now.toInstant()));
+
     double chargerCapacity = 5.0; //kW
-    uut.setDefaultCapacityProfile("3.0,3.0,3.0,3.0,3.0,3.0,3.0,4.0,4.0,4.0,3.0,3.0,"
-                                  + "4.0,4.0,4.0,4.0,4.0,4.0,5.0,6.0,7.0,6.0,5.0,4.0");
-    String dcp = uut.getDefaultCapacityProfile();
-    double[] dcpn = uut.getDefaultCapacityProfileArray();
+    uut.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
+                                  + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
+    CapacityProfile cp = uut.getDefaultCapacityProfile();
+    double[] dcpn = cp.getProfile();
     assertEquals(24, dcpn.length);
     assertEquals(3000.0, dcpn[0], 1e-6);
+    // The getCapacityProfile() method should also return the default until
+    // there are multiple tariffs around
+    cp = uut.getCapacityProfile(evTariff);
+    dcpn = cp.getProfile();
+    assertEquals(24, dcpn.length);
+    assertEquals(4000.0, dcpn[7], 1e-6);    
   }
 
   @Test
@@ -248,6 +354,65 @@ class EvChargerTest
       // TODO Auto-generated method stub
       
     }
-    
+  }
+
+  class ServiceAccessor implements CustomerServiceAccessor
+  {
+
+    @Override
+    public CustomerRepo getCustomerRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public RandomSeedRepo getRandomSeedRepo ()
+    {
+      return mockSeedRepo;
+    }
+
+    @Override
+    public TariffRepo getTariffRepo ()
+    {
+      return tariffRepo;
+    }
+
+    @Override
+    public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+    {
+      return tariffSubscriptionRepo;
+    }
+
+    @Override
+    public TimeslotRepo getTimeslotRepo ()
+    {
+      return mockTimeslotRepo;
+    }
+
+    @Override
+    public TimeService getTimeService ()
+    {
+      return timeService;
+    }
+
+    @Override
+    public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return mockWeatherRepo;
+    }
+
+    @Override
+    public ServerConfiguration getServerConfiguration ()
+    {
+      // Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
   }
 }

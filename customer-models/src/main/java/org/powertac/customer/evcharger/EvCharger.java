@@ -25,6 +25,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -33,6 +35,7 @@ import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -84,12 +87,20 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   // Default tariff-eval profile, configurable in the setter
   // Values are hourly per-vehicle. Mean hourly value should be between 0.2 and 0.5 kWh,
   // or a bit less than 4 kWh for a vehicle that drives 20000 km/year and gets around 2.2 kWh/km
-  private double[] defaultCapacityProfile = null;
+  private CapacityProfile defaultCapacityProfile = null;
+
+  @ConfigurableValue (valueType = "String", dump = false,
+          description = "default expected hourly consumption in kWh/vehicle, comma-separated values")
+  private String defaultCapacityData = null;
+
+  // for tariffs that do not have weekly TOU rates, we stick with a 24-hour profile.
+  private int defaultProfileSize = 24; 
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
   private RandomSeed demandSeed;
   private HashMap<TariffSubscription, StorageState> subState;
+  private HashMap<Tariff, TariffInfo> tariffInfo;
   private TariffEvaluator tariffEvaluator;
   private DemandSampler demandSampler;
 
@@ -118,13 +129,14 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     CustomerInfo info = new CustomerInfo(name, (int) Math.round(population));
     info.withPowerType(powerType)
       .withCustomerClass(CustomerClass.SMALL)
-      .withUpRegulationKW(0.0)
-      .withDownRegulationKW(0.0);
+      .withUpRegulationKW(-100.0)
+      .withDownRegulationKW(100.0);
     addCustomerInfo(info);
     ensureSeeds();
 
     // set up the subscription-state mapping
     subState = new HashMap<>();
+    tariffInfo = new HashMap<>();
 
     // handle the bootstrap state if present
     if (null != storageRecord) {
@@ -133,13 +145,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
-    tariffEvaluator.withInertia(0.6).withPreferredContractDuration(14);
+    tariffEvaluator.withInertia(0.5).withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
-    // TODO - fix this, possibly some ratio of population
-    tariffEvaluator.initializeRegulationFactors(-100.0, 0.0, 100.0);
-    // TODO - do something more sensible here
-    defaultCapacityProfile = new double[] {3.0,3.0,3.0,3.0,3.0,3.0,3.0,4.0,4.0,4.0,3.0,3.0,
-                                           4.0,4.0,4.0,4.0,4.0,4.0,5.0,6.0,7.0,6.0,5.0,4.0};
+    tariffEvaluator.initializeRegulationFactors(-0.1*population, 0.0, 0.1*population);
     demandSampler = new DemandSampler();
     demandSampler.initialize(model, getDemandSeed());
   }
@@ -177,31 +185,34 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return getCustomerInfo(powerType);
   }
 
-  @ConfigurableValue (valueType = "String", dump = false,
-          description = "default expected hourly consumption in kWh/vehicle")
-  public void setDefaultCapacityProfile (String values)
+  /**
+   * Returns the String representation of the default capacity profile.
+   * Note that this does not return a CapacityProfile instance, but is
+   * needed in this format to keep Java happy. If you want the
+   * CapacityProfile instance, call getDefaultCapacityProfileInstance()
+   */
+  public CapacityProfile getDefaultCapacityProfile ()
   {
-    String[] vals = values.split(",");
-    defaultCapacityProfile = new double[vals.length];
-    for (int i = 0; i < vals.length; i++) {
-      defaultCapacityProfile[i] = Double.valueOf(vals[i]) * getPopulation();
+    if (null == defaultCapacityProfile) {
+      if (null == defaultCapacityData) {
+        // we need to always return a non-null value here
+        log.error("Empty default capacity data");
+        return null;
+      }
+      String[] vals = defaultCapacityData.split("-");
+      double[] dcp = new double[vals.length];
+      for (int i = 0; i < vals.length; i++) {
+        dcp[i] = Double.valueOf(vals[i]) * getPopulation();
+      }
+      defaultCapacityProfile = new CapacityProfile(dcp, lastSunday());
     }
-  }
-
-  public String getDefaultCapacityProfile ()
-  {
-    StringBuffer result = new StringBuffer();
-    for (int i = 0; i < defaultCapacityProfile.length; i++) {
-      String delim = "";
-      result.append(delim).append(Double.toString(defaultCapacityProfile[i] / getPopulation()));
-      delim = ",";
-    }
-    return result.toString();
-  }
-
-  public double[] getDefaultCapacityProfileArray ()
-  {
     return defaultCapacityProfile;
+  }
+
+  // test-support method, package visibility
+  void setDefaultCapacityData (String data)
+  {
+    defaultCapacityData = data;
   }
 
   // private Map<Tariff, TariffInfo> TariffProfiles = null;
@@ -209,12 +220,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   public CapacityProfile getCapacityProfile (Tariff tariff)
   {
     // TODO make tariff-specific profiles, multiply by expected tariff population
-    DateTime currentTime = service.getTimeService().getCurrentDateTime();
-    double[] profile = new double[defaultCapacityProfile.length];
-    for (int i = 0; i < profile.length; i++) {
-      profile[i] = defaultCapacityProfile[i] * getPopulation() / 2;
-    }
-    return new CapacityProfile(profile, currentTime.toInstant());
+    //DateTime currentTime = service.getTimeService().getCurrentDateTime();
+    //return new CapacityProfile(profile, currentTime.toInstant());
+    return getDefaultCapacityProfile();
   }
 
   /**
@@ -367,27 +375,32 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private double computeNominalDemand (TariffSubscription sub, double[] minMax)
   {
     double result = 0.0;
-    Tariff tariff = sub.getTariff();
-//    if (!tariff.isTimeOfUse()
-//            && !tariff.isVariableRate()
-//            && !tariff.hasRegulationRate()) {
-//      // for flat-rate consumption tariffs, we charge as quickly as we can
-//      result = minMax[1];
-//    }
-//    // handle other types here
-//    else {
-      // default case is the configured bias
-      // midpoint is min + (max - min) / 2
+    TariffInfo info = getTariffInfo(sub);
+    if (!info.isTOU()
+            && !info.isVariableRate()) {
+      // For flat-rate consumption tariffs, we go for a relatively flat profile
+      // which we get by applying the default nominalDemandBias.
+      // This also maximizes flexibility.
       result = minMax[0] + nominalDemandBias * (minMax[1] - minMax[0]);
-//    }
+    }
+    // handle other types here
+    else {
+      // if price will drop in the near future, go closer to min,
+      // if it will rise in the near future, go closer to max. How close is a
+      // function of price variation magnitude and value pf flexibility
+      result = minMax[0] + info.getDemandBias() * (minMax[1] - minMax[0]);
+    }
     return result;
   }
 
   // Computes the regulation capacity to be reported on a subscription
-  private RegulationCapacity computeRegulationCapacity (TariffSubscription sub, double nominalDemand, double minDemand,
-                                                        double maxDemand)
+  private RegulationCapacity
+  computeRegulationCapacity (TariffSubscription sub,
+                             double actualDemand, double minDemand, double maxDemand)
   {
-    return new RegulationCapacity(sub, nominalDemand - minDemand, nominalDemand - maxDemand);
+    return new RegulationCapacity(sub,
+                                  actualDemand - minDemand,
+                                  actualDemand - maxDemand);
   }
 
   // -------------------------- Evaluate tariffs ------------------------
@@ -398,6 +411,24 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     tariffEvaluator.evaluateTariffs();
   }
 
+  // Returns the TariffInfo associated with this Tariff, creating it if necessary
+  TariffInfo getTariffInfo (Tariff tariff)
+  {
+    TariffInfo result = tariffInfo.get(tariff);
+    if (null == result) {
+      result = new TariffInfo(tariff);
+      tariffInfo.put(tariff, result);
+    }
+    return result;
+  }
+
+  // Returns the TariffInfo associated with this Subscription
+  TariffInfo getTariffInfo (TariffSubscription sub)
+  {
+    return getTariffInfo(sub.getTariff());
+  }
+
+  // ------------------- AbstractCustomer methods ------------------------
   /**
    * Bootstrap data is just the content of the StorageState.
    * For this we need to know the timeslot index of the first timeslot in the
@@ -484,18 +515,69 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   class TariffInfo
   {
     private Tariff tariff;
-    double[] prices;
-    CapacityProfile capacityProfile;
+    private int profileSize = defaultProfileSize;
+    private CapacityProfile capacityProfile;
     
     TariffInfo (Tariff tariff)
     {
       super();
       this.tariff = tariff;
+      if (tariff.isWeekly()) {
+        // use a weekly profile
+        profileSize = defaultProfileSize * 7; 
+      }
     }
 
     Tariff getTariff ()
     {
       return tariff;
     }
+
+    CapacityProfile getCapacityProfile ()
+    {
+      return defaultCapacityProfile;
+    }
+
+    // true just in case the tariff is a TOU tariff. If it's not, then
+    // the price array and capacityProfile will be empty (null).
+    boolean isTOU ()
+    {
+      return tariff.isTimeOfUse();
+    }
+
+    boolean isVariableRate ()
+    {
+      return tariff.isVariableRate();
+    }
+
+    // Heuristic decision on demand bias, depending on current vs near-future prices
+    // and on value of demand flexibility
+    double getDemandBias ()
+    {
+      double result = getNominalDemandBias();
+      // do something here
+      return result;
+    }
+
+    // expected cost 00:00 Monday through 23:00 Sunday
+//    double[] getCost ()
+//    {
+//      if (null != this.costs)
+//        return costs;
+//      costs = new double[profileSize];
+//      double cumulativeUsage = 0.0;
+//      Instant start =
+//          service.getTimeslotRepo().currentTimeslot().getStartInstant();
+//      for (int i = 0; i < profileSize; i++) {
+//        Instant when = start.plus(i * TimeService.HOUR);
+//        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
+//          cumulativeUsage = 0.0;
+//        }
+//        costs[i] =
+//            tariff.getUsageCharge(when, cumulativeUsage) / nhc;
+//        cumulativeUsage += nhc;
+//      }
+//      return costs;
+//    }
   }
 }
