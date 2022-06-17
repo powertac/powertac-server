@@ -341,7 +341,7 @@ public class StorageState
       StorageElement target = getElement(ts);
       // last index, if not already complete, must be folded into the previous index
       int lastIndex = target.getEnergy().length - 1;
-      if (target.getEnergy()[lastIndex] < 0.0) {
+      if (target.getEnergy()[lastIndex] < -0.001) {
         // very strange
         log.error("negative demand {} timeslot {}", target.getEnergy()[lastIndex], ts);
         target.getEnergy()[lastIndex] = 0.0;
