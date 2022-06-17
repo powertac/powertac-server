@@ -342,7 +342,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     // in which the lengths of the distribution arrays are equal to horizon + 1
     // get current demand
     List<DemandElement> newDemand = getDemandInfo(currentTime);
-    log.info("New demand {}", newDemand);
+    //log.info("New demand {}", newDemand);
 
     // adjust for current weather?
 

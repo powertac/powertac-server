@@ -235,8 +235,8 @@ public class StorageState
     if (log.isInfoEnabled()) {
       StringBuffer buf = new StringBuffer();
       int horizon = maxTimeslot - timeslot;
-      buf.append(String.format("StorageState, h = %d:", horizon));
-      for (int i = 0; i < (int) Math.min(5,  horizon); i++) {
+      buf.append(String.format("StorageState [p] [e], h = %d:", horizon));
+      for (int i = 0; i < (int) Math.min(6,  horizon); i++) {
         buf.append("\n   ");
         StorageElement se = getElement(timeslot + i);
         buf.append(se.toString());
