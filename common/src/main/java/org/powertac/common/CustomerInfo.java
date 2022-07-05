@@ -62,9 +62,11 @@ public class CustomerInfo //implements Serializable
   @XStreamAsAttribute
   private double controllableKW = 0.0;
 
+  /** Negative value for up-regulation */
   @XStreamAsAttribute
   private double upRegulationKW = 0.0;
 
+  /** Positive value for down-regulation */
   @XStreamAsAttribute
   private double downRegulationKW = 0.0;
 
