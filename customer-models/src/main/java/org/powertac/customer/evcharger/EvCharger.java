@@ -139,9 +139,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     tariffInfo = new HashMap<>();
 
     // handle the bootstrap state if present
-    if (null != storageRecord) {
-      // Should be one SS record, for the default consumption tariff.
-    }
+    // TODO - remove if not needed
+    //if (null != storageRecord) {
+    //  // Should be one SS record, for the default consumption tariff.
+    //}
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
@@ -161,9 +162,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       log.error("Should be only one subscription, but saw {}", subscriptions.size());
     }
     // decorate the initial subscription
-    TariffSubscription sub = subscriptions.get(0);
-    subState.put(sub, new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
-            .withUnitCapacity(getChargerCapacity()));
+    log.info("initial subscription for {}", getCustomerInfo().getName());
     // we assume the new StorageState will be initialized on the first step. No
     // subscription changes should occur before that.
   }
@@ -313,25 +312,31 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     // to be restored.
     List<TariffSubscription> subs = service.getTariffSubscriptionRepo()
             .findActiveSubscriptionsForCustomer(getCustomerInfo());
-    if (timeslotIndex > 0) {
-      // can't do much in the first ts of a boot session
-      if (1 == subs.size() && null == subState.get(subs.get(0))) {
-        // Process the saved StorageState
-        TariffSubscription initialSubscription = subs.get(0);
-        StorageState initialSS = new StorageState(initialSubscription,
-                                                  getChargerCapacity(), getMaxDemandHorizon());
-        subState.put(initialSubscription, initialSS);
-        if (null != storageRecord)
-          initialSS.restoreState(timeslotIndex, storageRecord);
-      }
+    if (0 == subs.size()) {
+      log.error("No subscriptions at step {}", timeslotIndex);
+    }
+    else if (1 == subs.size()) {
+      // We just have the initial subscription.
+      // We must decorate it with its StorageState,
+      // and initialize the state if we're in a sim session.
+      TariffSubscription sub = subs.get(0);
+      StorageState initialSS = new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
+              .withUnitCapacity(getChargerCapacity());
+      subState.put(sub, initialSS);
+      if (null != storageRecord)
+        // sim session
+        initialSS.restoreState(timeslotIndex, storageRecord);
+    }
 
+    if (timeslotIndex > 0) {
+      // Now we handle regulation, unless this is the first ts of a boot session
       for (TariffSubscription sub : subs) {
         StorageState ss = subState.get(sub);
         // regulation must be distributed before distributing future demand
         log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
                  sub.getId(), sub.getRegulation());
         ss.distributeRegulation(timeslotIndex, sub.getRegulation());
-        // after regulation, we collapse arrays and rebalance
+        // after regulation, we must collapse StorageState arrays and rebalance
         ss.collapseElements(timeslotIndex);
         ss.rebalance(timeslotIndex);
       }
