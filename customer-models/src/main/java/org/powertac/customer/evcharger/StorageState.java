@@ -263,6 +263,10 @@ public class StorageState
     double remainingCapacity = capacity;
     // Start by finishing off the current timeslot
     StorageElement target = getElement(timeslot);
+    if (null == target) {
+      // can't do much here
+      return;
+    }
     // this one should have only one bundle
     double[] energy = target.getEnergy();
     if (energy.length > 1) {
@@ -494,6 +498,10 @@ public class StorageState
     double minDemand = 0.0;
     double maxDemand = 0.0;
     StorageElement target = getElement(timeslot);
+    if (null == target || 0 == target.getEnergy().length) {
+      // nothing to work with here
+      return new double[] {minDemand, maxDemand};
+    }
     // The first one has only one cohort that must be completely satisfied
     minDemand += target.getEnergy()[0];
     for (int ts = timeslot + 1;

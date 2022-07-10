@@ -141,7 +141,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     // handle the bootstrap state if present
     // TODO - remove if not needed
     //if (null != storageRecord) {
-    //  // Should be one SS record, for the default consumption tariff.
+    //  // Should be one SS record, for the default EV tariff.
     //}
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
@@ -153,7 +153,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     demandSampler.initialize(model, getDemandSeed());
   }
 
-  // called from CustomerModelService after initialization
+  // Called from CustomerModelService after initialization.
+  // We don't need to do much here for this model, the rest
+  // will be handled in step() during the first timeslot.
   @Override
   public void handleInitialSubscription (List<TariffSubscription> subscriptions)
   {
@@ -161,10 +163,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     if (subscriptions.size() != 1) {
       log.error("Should be only one subscription, but saw {}", subscriptions.size());
     }
-    // decorate the initial subscription
+    // log the initial subscription
     log.info("initial subscription for {}", getCustomerInfo().getName());
-    // we assume the new StorageState will be initialized on the first step. No
-    // subscription changes should occur before that.
+    // we assume the new StorageState and TariffInfo instances will be
+    // initialized on the first step. No subscription changes should
+    // occur before that.
   }
 
   // Gets a new random-number opSeed just in case we don't already have one.
@@ -185,10 +188,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   }
 
   /**
-   * Returns the String representation of the default capacity profile.
-   * Note that this does not return a CapacityProfile instance, but is
-   * needed in this format to keep Java happy. If you want the
-   * CapacityProfile instance, call getDefaultCapacityProfileInstance()
+   * Creates, if necessary, and returns the configured
+   * default capacity profile, presumably suitable for
+   * a flat-rate tariff.
    */
   public CapacityProfile getDefaultCapacityProfile ()
   {
@@ -282,20 +284,34 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
     // Now we do the transfer
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
-    StorageState oldss = subState.get(oldsub);
+    StorageState oldss = getStorageState(oldsub);
     // Should not be null
     if (null == oldss) {
       log.error("Null StorageState on subscription {}", oldsub.getId());
       return;
     }
-    StorageState newss = subState.get(newsub);
+    StorageState newss = getStorageState(newsub);
     if (null == newss) {
       // Need to set up a new SS
       newss = new StorageState(newsub, getChargerCapacity(), getMaxDemandHorizon())
               .withUnitCapacity(getChargerCapacity());
-      subState.put(newsub, newss);
+      setStorageState(newsub, newss);
     }
     newss.moveSubscribers(timeslotIndex, count, oldss);
+  }
+
+  void setStorageState (TariffSubscription sub, StorageState ss)
+  {
+    if (null == subState) {
+      // lazy initialization
+      subState = new HashMap<>();
+    }
+    subState.put(sub, ss);
+  }
+
+  StorageState getStorageState (TariffSubscription sub)
+  {
+    return subState.get(sub);
   }
 
   @Override
@@ -317,21 +333,23 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     else if (1 == subs.size()) {
       // We just have the initial subscription.
-      // We must decorate it with its StorageState,
+      // We must decorate it with its StorageState and TariffInfo,
       // and initialize the state if we're in a sim session.
       TariffSubscription sub = subs.get(0);
       StorageState initialSS = new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
               .withUnitCapacity(getChargerCapacity());
-      subState.put(sub, initialSS);
+      setStorageState(sub, initialSS);
       if (null != storageRecord)
         // sim session
         initialSS.restoreState(timeslotIndex, storageRecord);
+      TariffInfo ti = new TariffInfo(sub.getTariff());
+      ti.setCapacityProfile(getDefaultCapacityProfile());
     }
 
     if (timeslotIndex > 0) {
       // Now we handle regulation, unless this is the first ts of a boot session
       for (TariffSubscription sub : subs) {
-        StorageState ss = subState.get(sub);
+        StorageState ss = getStorageState(sub);
         // regulation must be distributed before distributing future demand
         log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
                  sub.getId(), sub.getRegulation());
@@ -356,7 +374,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
             .findActiveSubscriptionsForCustomer(getCustomerInfo())) {
       // should ss compute these values? No.
       double ratio = (double) sub.getCustomersCommitted() / population;
-      StorageState ss = subState.get(sub);
+      StorageState ss = getStorageState(sub);
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       double[] limits = ss.getMinMax(timeslotIndex);
       log.info("nominalDemandBias = {}", nominalDemandBias);
@@ -450,7 +468,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       log.error("{} subscriptions, should be just one", subs.size());
     }
     TariffSubscription sub = subs.get(0);
-    StorageState finalState = subState.get(sub);
+    StorageState finalState = getStorageState(sub);
     storageRecord = finalState.gatherState(timeslot);
   }
 
@@ -536,6 +554,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     Tariff getTariff ()
     {
       return tariff;
+    }
+
+    void setCapacityProfile (CapacityProfile profile)
+    {
+      capacityProfile = profile;      
     }
 
     CapacityProfile getCapacityProfile ()

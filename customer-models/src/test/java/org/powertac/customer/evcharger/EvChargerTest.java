@@ -103,12 +103,13 @@ class EvChargerTest
   void setUp () throws Exception
   {
     competition = Competition.newInstance("storage-state-test");
+    Competition.setCurrent(competition);
     timeService = new TimeService();
     timeService.setCurrentTime(competition.getSimulationBaseTime()
                                .plus(TimeService.HOUR * 7));
     start = timeService.getCurrentTime().plus(TimeService.HOUR);
     tariffSubscriptionRepo = new TariffSubscriptionRepo();
-    tariffRepo = mock(TariffRepo.class);
+    tariffRepo = new TariffRepo();
     ReflectionTestUtils.setField(tariffSubscriptionRepo,
                                  "tariffRepo", tariffRepo);
     tariffMarket = mock(TariffMarket.class);
@@ -151,9 +152,6 @@ class EvChargerTest
     evTariff = new Tariff(evSpec);
     initTariff(evTariff);
 
-    customer = new CustomerInfo("PodunkChargers", 1000)
-            .withPowerType(PowerType.ELECTRIC_VEHICLE);
-
     // Set up serverProperties mock
     serverConfig = mock(ServerConfiguration.class);
     config = new Configurator();
@@ -165,12 +163,19 @@ class EvChargerTest
         return null;
       }
     }).when(serverConfig).configureMe(any());
+    uut = new EvCharger("test");
+    uut.setServiceAccessor(serviceAccessor);
   }
 
-  private TariffSubscription subscribeTo (CustomerInfo customer, Tariff tariff, int count)
+  private TariffSubscription subscribeTo (EvCharger customer, Tariff tariff, double count)
+  {
+    return subscribeTo(customer, tariff, (int)Math.round(count));
+  }
+
+  private TariffSubscription subscribeTo (EvCharger customer, Tariff tariff, int count)
   {
     TariffSubscription subscription =
-            new TariffSubscription(customer, tariff);
+            new TariffSubscription(customer.getCustomerInfo(), tariff);
     initSubscription(subscription);
     subscription.subscribe(count);
     tariffSubscriptionRepo.add(subscription);
@@ -214,8 +219,6 @@ class EvChargerTest
   @Test
   public void testConfig ()
   {
-    uut = new EvCharger("test");
-    uut.setServiceAccessor(serviceAccessor);
     uut.initialize();
 
     DateTime now =
@@ -239,6 +242,74 @@ class EvChargerTest
     assertEquals(1460.0, profile[1], 1e-6, "profile OK");
   }
 
+  @Test
+  public void testFirstStepBoot ()
+  {
+    uut.initialize();
+    // default subscription happens in CustomerModelService
+    TariffSubscription defaultSub =
+            subscribeTo (uut, evTariff, uut.getPopulation());
+    tariffSubscriptionRepo.add(defaultSub);
+    uut.handleInitialSubscription(tariffSubscriptionRepo
+                                  .findActiveSubscriptionsForCustomer(uut.getCustomerInfo()));
+
+    DateTime now =
+            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    when(mockTimeslotRepo.currentTimeslot())
+    .thenReturn(new Timeslot(0, now.toInstant()));
+
+    //double chargerCapacity = 5.0; //kW
+    uut.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
+                                  + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
+
+  }
+
+  @Test
+  public void testFirstStepSim ()
+  {
+    // need to configure first
+
+    uut = new EvCharger("residential_ev");
+    uut.setServiceAccessor(serviceAccessor);
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.evcharger.evCharger.population", "1000");
+    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
+    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
+    map.put("customer.evcharger.evCharger.defaultCapacityData",
+            "1.55-1.46-1.36-1.25-1.16-1.02-0.80-0.51-0.34-0.30-0.32-0.37-0.48-0.62-0.78-0.96-1.13-1.32-1.49-1.60-1.69-1.74-1.73-1.66");
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(uut);
+
+    uut.initialize();
+    DateTime now =
+            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    timeService.setCurrentTime(now.toInstant());
+    uut.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
+            + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
+    uut.initialize();
+    // default subscription happens in CustomerModelService
+    TariffSubscription defaultSub =
+            subscribeTo (uut, evTariff, uut.getPopulation());
+    //tariffSubscriptionRepo.add(defaultSub);
+    uut.handleInitialSubscription(tariffSubscriptionRepo
+                                  .findActiveSubscriptionsForCustomer(uut.getCustomerInfo()));
+
+    when(mockTimeslotRepo.currentTimeslot())
+    .thenReturn(new Timeslot(360, now.toInstant()));
+    when(mockTimeslotRepo.currentSerialNumber())
+    .thenReturn(360);
+
+    // now we step and make sure everything is set up
+    uut.step();
+
+    StorageState ss = uut.getStorageState(defaultSub);
+    assertNotNull(ss);
+    assertEquals(defaultSub, ss.getSubscription());
+
+  }
+
   /**
    * To test this, we need two subscriptions to two different tariffs and two different subscriptions.
    * The "old" subscription is needed because its StorageState needs to retrieve the population.
@@ -250,15 +321,13 @@ class EvChargerTest
   @Test
   public void test ()
   {
-    EvCharger uut = new EvCharger("test");
-    uut.setServiceAccessor(serviceAccessor);
     uut.initialize();
-    double chargerCapacity = 5.0; //kW
-    oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation());
+    //double chargerCapacity = 5.0; //kW
+    oldSub = subscribeTo (uut, defaultConsumption, uut.getPopulation());
     ArrayList<TariffSubscription> subs = new ArrayList<>();
     subs.add(oldSub);
     uut.handleInitialSubscription(subs);
-    oldSS = new StorageState(oldSub, chargerCapacity, uut.getMaxDemandHorizon());
+    //oldSS = new StorageState(oldSub, chargerCapacity, uut.getMaxDemandHorizon());
     TariffSpecification ts1 =
             new TariffSpecification(bob,
                                     PowerType.ELECTRIC_VEHICLE).
@@ -272,8 +341,6 @@ class EvChargerTest
   @Test
   public void testDefaultCapacityProfile ()
   {
-    EvCharger uut = new EvCharger("test");
-    uut.setServiceAccessor(serviceAccessor);
     uut.initialize();
 
     DateTime now =
@@ -281,7 +348,7 @@ class EvChargerTest
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
 
-    double chargerCapacity = 5.0; //kW
+    //double chargerCapacity = 5.0; //kW
     uut.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
                                   + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
     CapacityProfile cp = uut.getDefaultCapacityProfile();
@@ -308,8 +375,7 @@ class EvChargerTest
     @Override
     public CustomerInfo getCustomerInfo ()
     {
-      // TODO Auto-generated method stub
-      return null;
+      return customer;
     }
 
     @Override
