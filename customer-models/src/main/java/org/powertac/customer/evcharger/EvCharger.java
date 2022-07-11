@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -95,6 +96,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   // for tariffs that do not have weekly TOU rates, we stick with a 24-hour profile.
   private int defaultProfileSize = 24; 
+  
+  // Keeps track of mean energy histogram per cohort
+  private final Map<Integer, double[]> energyHistogramMean = new HashMap<>();
+  // Counter to update the energyHistogramMean dynamically
+  private int energyHistogramMeanCounter = 0;
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -486,6 +492,25 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     try {
       demandInfo = demandSampler.sample(time.getHourOfDay(), (int) population, chargerCapacity);
+      
+      for (DemandElement de: demandInfo) {
+        double[] currentEnergyHistogram =
+          energyHistogramMean.get(de.getHorizon());
+        double[] newEnergyHistogram = de.getdistribution();
+        double[] meanEnergyHistogram = new double[newEnergyHistogram.length];
+        if (currentEnergyHistogram != null) {
+          for (int i = 0; i < meanEnergyHistogram.length; i++) {
+            meanEnergyHistogram[i] =
+              (currentEnergyHistogram[i] * energyHistogramMeanCounter
+               + newEnergyHistogram[i]) / (energyHistogramMeanCounter + 1);
+          }
+        }
+        else {
+          meanEnergyHistogram = newEnergyHistogram.clone();
+        }
+        energyHistogramMean.put(de.getHorizon(), meanEnergyHistogram);
+      }
+      energyHistogramMeanCounter++;
     }
     catch (IllegalArgumentException e) {
       log.error("Cannot sample new demandInfo due to an invalid argument. Returning empty demand info: " + e);
@@ -493,7 +518,13 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     catch (Exception e) {
       log.error("Cannot sample new demand info. Returning emtpy demand info: " + e);
     }
+
     return demandInfo;
+  }
+  
+  public Map<Integer, double[]> getEnergyHistogramMean ()
+  {
+    return energyHistogramMean;
   }
 
   // getters and setters, package visibility

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.TreeMap;
 
@@ -196,6 +197,43 @@ class EvChargerTest
     ReflectionTestUtils.setField(sub, "timeService", timeService);
     ReflectionTestUtils.setField(sub, "tariffMarketService", tariffMarket);
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
+  }
+
+  @Test
+  public void testDemandElementMeanCalculation ()
+  {
+    uut = new EvCharger("residential_ev");
+    uut.setServiceAccessor(serviceAccessor);
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(uut);
+
+    uut.initialize();
+
+    List<DemandElement> demand1 =
+      uut.getDemandInfo(timeService.getCurrentDateTime());
+    List<DemandElement> demand2 =
+      uut.getDemandInfo(timeService.getCurrentDateTime().plusHours(12));
+    List<DemandElement> demand3 =
+      uut.getDemandInfo(timeService.getCurrentDateTime().plusHours(16));
+    assertEquals(uut.getEnergyHistogramMean().size(), Math
+            .max(Math.max(demand1.size(), demand2.size()), demand3.size()));
+    for (double[] histogram: uut.getEnergyHistogramMean().values()) {
+      assertTrue(Arrays.stream(histogram).sum() <= 1.0);
+    }
+
+    // Check for some samples if the mean calculation was correct
+    int someHorizon = 4;
+    double[] sample1 = demand1.get(someHorizon).getdistribution();
+    double[] sample2 = demand2.get(someHorizon).getdistribution();
+    double[] sample3 = demand3.get(someHorizon).getdistribution();
+    for (int i = 0; i < someHorizon + 1; i++) {
+      double correctMean = (sample1[i] + sample2[i] + sample3[i]) / 3;
+      assertEquals(correctMean,
+                   uut.getEnergyHistogramMean().get(someHorizon)[i]);
+    }
   }
 
   // Make sure EvCharger shows up in the list of AbstractCustomers
