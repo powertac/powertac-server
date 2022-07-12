@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 by John Collins.
+ * Copyright (c) 2022 by Philipp Page.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

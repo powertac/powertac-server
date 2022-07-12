@@ -28,6 +28,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
+import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
@@ -216,14 +217,22 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     defaultCapacityData = data;
   }
 
-  // private Map<Tariff, TariffInfo> TariffProfiles = null;
   @Override
   public CapacityProfile getCapacityProfile (Tariff tariff)
   {
-    // TODO make tariff-specific profiles, multiply by expected tariff population
-    //DateTime currentTime = service.getTimeService().getCurrentDateTime();
-    //return new CapacityProfile(profile, currentTime.toInstant());
-    return getDefaultCapacityProfile();
+    // return existing capacityProfile if it exists
+    return getTariffInfo(tariff).getCapacityProfile();
+  }
+
+  // Returns the TariffInfo for this tariff, creating it if necessary
+  TariffInfo getTariffInfo (Tariff tariff)
+  {
+    TariffInfo result = tariffInfo.get(tariff);
+    if (null == result) {
+      result = new TariffInfo (tariff);
+      tariffInfo.put(tariff, result);
+    }
+    return result;
   }
 
   /**
@@ -378,7 +387,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       ss.distributeDemand(timeslotIndex, newDemand, ratio);
       double[] limits = ss.getMinMax(timeslotIndex);
       log.info("nominalDemandBias = {}", nominalDemandBias);
-      double nominalDemand = computeNominalDemand(sub, limits);
+      double nominalDemand = computeNominalDemand(currentTime, sub, limits);
       log.info("Sub {}: Use power min={}, max={}, nominal={}",
                sub.getId(), limits[0], limits[1], nominalDemand);
       ss.distributeUsage(timeslotIndex, nominalDemand);
@@ -395,7 +404,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   }
 
   // Computes nominal demand for the current timeslot based on tariff terms
-  private double computeNominalDemand (TariffSubscription sub, double[] minMax)
+  private double computeNominalDemand (DateTime time,
+                                       TariffSubscription sub,
+                                       double[] minMax)
   {
     double result = 0.0;
     TariffInfo info = getTariffInfo(sub);
@@ -432,17 +443,6 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   {
     log.info(getName() + ": evaluate tariffs");
     tariffEvaluator.evaluateTariffs();
-  }
-
-  // Returns the TariffInfo associated with this Tariff, creating it if necessary
-  TariffInfo getTariffInfo (Tariff tariff)
-  {
-    TariffInfo result = tariffInfo.get(tariff);
-    if (null == result) {
-      result = new TariffInfo(tariff);
-      tariffInfo.put(tariff, result);
-    }
-    return result;
   }
 
   // Returns the TariffInfo associated with this Subscription
@@ -538,8 +538,12 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   class TariffInfo
   {
     private Tariff tariff;
-    private int profileSize = defaultProfileSize;
+    private int profileSize;
     private CapacityProfile capacityProfile;
+
+    // regulation premium is an array, the length of the profile
+    private double[] upRegulationPremium;
+    private double[] downRegulationPremium;
     
     TariffInfo (Tariff tariff)
     {
@@ -547,7 +551,15 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       this.tariff = tariff;
       if (tariff.isWeekly()) {
         // use a weekly profile
-        profileSize = defaultProfileSize * 7; 
+        profileSize = 
+                (int) (TimeService.WEEK
+                        / Competition.currentCompetition().getTimeslotDuration()); 
+      }
+      else {
+        profileSize = 
+                (int) (TimeService.DAY
+                        / Competition.currentCompetition().getTimeslotDuration()); 
+        
       }
     }
 
@@ -563,7 +575,30 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
     CapacityProfile getCapacityProfile ()
     {
-      return defaultCapacityProfile;
+      if (null == capacityProfile) {
+        // need to create the profile
+        if ((!isTOU()) && (!isVariableRate())) {
+          // Simplest case
+          setCapacityProfile(getDefaultCapacityProfile());
+        }
+        else if (isTOU()) {
+          // we first need to understand the value of flexibility
+          computeRegulationPremium();
+          Instant evalTime = lastSunday();
+          long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
+          for (int index = 0; index < profileSize; index++) {
+            double cost = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
+            evalTime = evalTime.plus(increment);
+          }          
+        }
+        else {
+          // TODO - we should set up a TariffEvaluationHelper to deal
+          // with variable-rate tariffs. For now we'll just use
+          // the default profile
+          setCapacityProfile(getDefaultCapacityProfile());
+        }
+      }
+      return capacityProfile;
     }
 
     // true just in case the tariff is a TOU tariff. If it's not, then
@@ -586,6 +621,44 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       // do something here
       return result;
     }
+
+    // For a TOU
+    void computeRegulationPremium ()
+    {
+      if (tariff.hasRegulationRate()) {
+        // We expect the upregPayment to be positive (customer gets paid).
+        double upregPayment = getTariff().getRegulationCharge(-1.0, 0.0, false); // up-reg +
+        double downregCost = getTariff().getRegulationCharge(1.0,  0.0, false); // down-reg -
+        Instant evalTime = lastSunday();
+        long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
+        for (int index = 0; index < profileSize; index++) {
+          double cost = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
+          // Premiums < 0.0 mean we lose money on regulation
+          upRegulationPremium[index] = upregPayment + cost;
+          downRegulationPremium[index] = downregCost - cost;
+          evalTime = evalTime.plus(increment);
+        }
+      }
+      else {
+        // fill with zeros
+        Arrays.fill(upRegulationPremium, 0.0);
+        Arrays.fill(downRegulationPremium, 0.0);
+      }
+    }
+
+    // tariff.getRegulationCharge(kwh, 0, false); neg for up-reg. pos for down-reg
+    // tariff.getUsageCharge(when, kwh, 0.0, false, TEH); 
+
+    // Creates and returns a tariff-specific capacity profile
+    // to support tariff eval.
+    // For now, we want a 24h profile. To avoid startup effects, we will
+    // create a 48h profile and just use the last 24h.
+    // This requires
+    // - setting up a StorageState
+    // - processing the median DemandElements
+    // - using the normal heuristics to adjust demand to prices,
+    //   while maintaining flexibility in case the tariff has
+    //   a regulation rate
 
     // expected cost 00:00 Monday through 23:00 Sunday
 //    double[] getCost ()

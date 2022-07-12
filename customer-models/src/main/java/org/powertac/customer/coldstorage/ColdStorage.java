@@ -368,17 +368,17 @@ implements CustomerModelAccessor
   }
 
   // ------------- CustomerModelAccessor methods -----------------
-  private Map<Tariff, TariffInfo> TariffProfiles = null;
+  private Map<Tariff, TariffInfo> tariffProfiles = null;
   double nominalHourlyConsumption = 0.0;
   @Override
   public CapacityProfile getCapacityProfile (Tariff tariff)
   {
     // lazy creation of capacityProfile table
-    if (null == TariffProfiles) {
-      TariffProfiles = new HashMap<Tariff, TariffInfo>();
+    if (null == tariffProfiles) {
+      tariffProfiles = new HashMap<Tariff, TariffInfo>();
     }
     // return existing capacityProfile if it exists
-    TariffInfo info = TariffProfiles.get(tariff);
+    TariffInfo info = tariffProfiles.get(tariff);
     if (null != info) {
       return info.getCapacityProfile();
     }
@@ -394,7 +394,7 @@ implements CustomerModelAccessor
       info.setCapacityProfile(new CapacityProfile(pr, lastSunday()));
     }
     log.debug(getName() + " capacityProfile " + Arrays.toString(info.getCapacityProfile().getProfile()));
-    TariffProfiles.put(tariff, info);
+    tariffProfiles.put(tariff, info);
     return info.getCapacityProfile();
   }
 
