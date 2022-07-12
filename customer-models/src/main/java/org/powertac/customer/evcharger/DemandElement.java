@@ -15,6 +15,7 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -32,8 +33,10 @@ import java.util.Objects;
  * @author John Collins
  * @author Philipp Page <github@philipp-page.de>
  */
-class DemandElement // package visibility
+class DemandElement implements Serializable // package visibility
 {
+  private static final long serialVersionUID = -4634719604251761446L;
+
   // how far in the future will this amount be needed?
   private int horizon = 0;
 
@@ -94,6 +97,11 @@ class DemandElement // package visibility
   double[] getdistribution ()
   {
     return distribution;
+  }
+  
+  void setDistribution (double[] distribution)
+  {
+    this.distribution = distribution;
   }
 
   void makeCannonical ()

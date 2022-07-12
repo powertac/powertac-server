@@ -16,18 +16,16 @@
 package org.powertac.customer.evcharger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -36,7 +34,6 @@ import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -97,10 +94,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   // for tariffs that do not have weekly TOU rates, we stick with a 24-hour profile.
   private int defaultProfileSize = 24; 
   
-  // Keeps track of mean energy histogram per cohort
-  private final Map<Integer, double[]> energyHistogramMean = new HashMap<>();
-  // Counter to update the energyHistogramMean dynamically
-  private int energyHistogramMeanCounter = 0;
+  // Keeps track of mean demand info lists per hour of day.
+  private final Map<Integer, List<DemandElement>> demandInfoMean = new HashMap<>();
+  // Counter to update the rolling mean demand info lists dynamically.
+  private Map<Integer, Integer> demandInfoMeanCounter = new HashMap<>();
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -491,26 +488,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       return demandInfo;
     }
     try {
-      demandInfo = demandSampler.sample(time.getHourOfDay(), (int) population, chargerCapacity);
-      
-      for (DemandElement de: demandInfo) {
-        double[] currentEnergyHistogram =
-          energyHistogramMean.get(de.getHorizon());
-        double[] newEnergyHistogram = de.getdistribution();
-        double[] meanEnergyHistogram = new double[newEnergyHistogram.length];
-        if (currentEnergyHistogram != null) {
-          for (int i = 0; i < meanEnergyHistogram.length; i++) {
-            meanEnergyHistogram[i] =
-              (currentEnergyHistogram[i] * energyHistogramMeanCounter
-               + newEnergyHistogram[i]) / (energyHistogramMeanCounter + 1);
-          }
-        }
-        else {
-          meanEnergyHistogram = newEnergyHistogram.clone();
-        }
-        energyHistogramMean.put(de.getHorizon(), meanEnergyHistogram);
-      }
-      energyHistogramMeanCounter++;
+      int hod = time.getHourOfDay();
+      demandInfo = demandSampler.sample(hod, (int) population, chargerCapacity);
+      updateDemandInfoMean(demandInfo, hod);
     }
     catch (IllegalArgumentException e) {
       log.error("Cannot sample new demandInfo due to an invalid argument. Returning empty demand info: " + e);
@@ -522,9 +502,55 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return demandInfo;
   }
   
-  public Map<Integer, double[]> getEnergyHistogramMean ()
+  private void updateDemandInfoMean (List<DemandElement> demandInfo, int hod)
   {
-    return energyHistogramMean;
+    // We clone the DemandElements so that the modifications to the
+    // distributions do not affect the actual demandInfo object on the heap.
+    List<DemandElement> newDemandInfo = demandInfo.stream()
+            .map(SerializationUtils::clone).collect(Collectors.toList());
+    // Make sure demandInfo is sorted by horizon so that the horizon
+    // corresponds to the List index.
+    newDemandInfo.sort(Comparator.comparingInt(DemandElement::getHorizon));
+
+    List<DemandElement> currentDemandInfoMean = demandInfoMean.get(hod);
+
+    if (currentDemandInfoMean == null) {
+      demandInfoMean.put(hod, newDemandInfo);
+    }
+    else {
+      int count = demandInfoMeanCounter.get(hod);
+      for (DemandElement de: newDemandInfo) {
+        if (de.getHorizon() < currentDemandInfoMean.size()) {
+          // In this case we need to update the means for the existing
+          // DemandElement.
+          DemandElement currentDemandElementMean =
+            currentDemandInfoMean.get(de.getHorizon());
+          double[] currentEnergyHistogram =
+            currentDemandElementMean.getdistribution();
+          double[] newEnergyHistogram =
+            new double[currentEnergyHistogram.length];
+          for (int i = 0; i < currentEnergyHistogram.length; i++) {
+            newEnergyHistogram[i] =
+              (currentEnergyHistogram[i] * count + de.getdistribution()[i])
+                                    / (count + 1);
+          }
+          de.setDistribution(newEnergyHistogram);
+          currentDemandInfoMean.set(de.getHorizon(), de);
+        }
+        else {
+          // In this case we simply add the new DemandElement to the end of
+          // the list.
+          currentDemandInfoMean.add(de);
+        }
+      }
+    }
+
+    demandInfoMeanCounter.merge(hod, 1, Integer::sum);
+  }
+  
+  public Map<Integer, List<DemandElement>> getDemandInfoMean ()
+  {
+    return demandInfoMean;
   }
 
   // getters and setters, package visibility
