@@ -232,7 +232,7 @@ public abstract class AbstractCustomer
 
   // Tariff evaluation support
   // Returns the start of the week
-  protected Instant lastSunday ()
+  public Instant lastSunday ()
   {
     Instant start = service.getTimeslotRepo().currentTimeslot().getStartInstant();
     return start.toDateTime(DateTimeZone.UTC)

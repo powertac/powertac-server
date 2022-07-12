@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 by John Collins.
+ * Copyright (c) 2022 by John Collins and Philipp Page.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.powertac.common.CapacityProfile;
-import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
@@ -44,8 +43,9 @@ import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
 
 /**
+ * This is a population model of Electric Vehicle chargers. 
  * 
- * @author John Collins
+ * @author John Collins, Philipp Page
  */
 @Domain
 @ConfigurableInstance
@@ -83,7 +83,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           dump = true, description = "Portion of flexibility to hold back")
   private double defaultFlexibilityMargin = 0.02; // 2% on both ends
 
-  // Default tariff-eval profile, configurable in the setter
+  // Default tariff-eval profile, configurable through defaultCapacityData
   // Values are hourly per-vehicle. Mean hourly value should be between 0.2 and 0.5 kWh,
   // or a bit less than 4 kWh for a vehicle that drives 20000 km/year and gets around 2.2 kWh/km
   private CapacityProfile defaultCapacityProfile = null;
@@ -96,6 +96,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private int defaultProfileSize = 24; 
   
   // Keeps track of mean demand info lists per hour of day.
+  // TODO - this needs to be serialized to the boot record, and restored
+  //        in sim-mode startup.
   private final Map<Integer, List<DemandElement>> demandInfoMean = new HashMap<>();
   // Counter to update the rolling mean demand info lists dynamically.
   private Map<Integer, Integer> demandInfoMeanCounter = new HashMap<>();
@@ -232,7 +234,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   {
     TariffInfo result = tariffInfo.get(tariff);
     if (null == result) {
-      result = new TariffInfo (tariff);
+      result = new TariffInfo (this, tariff);
       tariffInfo.put(tariff, result);
     }
     return result;
@@ -354,7 +356,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       if (null != storageRecord)
         // sim session
         initialSS.restoreState(timeslotIndex, storageRecord);
-      TariffInfo ti = new TariffInfo(sub.getTariff());
+      TariffInfo ti = new TariffInfo(this, sub.getTariff());
       ti.setCapacityProfile(getDefaultCapacityProfile());
     }
 
@@ -477,8 +479,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   /**
    * Returns a vector of DemandElement instances representing the number of
-   * vehicles that
-   * plug in now and unplug in a future timeslot, how much energy they need.
+   * vehicles that plug in now and unplug in a future timeslot,
+   * and how needed energy is distributed.
    */
   public List<DemandElement> getDemandInfo (DateTime time)
   {
@@ -590,152 +592,5 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   {
     nominalDemandBias = bias;
     return this;
-  }
-
-  class TariffInfo
-  {
-    private Tariff tariff;
-    private int profileSize;
-    private CapacityProfile capacityProfile;
-
-    // regulation premium is an array, the length of the profile
-    private double[] upRegulationPremium;
-    private double[] downRegulationPremium;
-    
-    TariffInfo (Tariff tariff)
-    {
-      super();
-      this.tariff = tariff;
-      if (tariff.isWeekly()) {
-        // use a weekly profile
-        profileSize = 
-                (int) (TimeService.WEEK
-                        / Competition.currentCompetition().getTimeslotDuration()); 
-      }
-      else {
-        profileSize = 
-                (int) (TimeService.DAY
-                        / Competition.currentCompetition().getTimeslotDuration()); 
-        
-      }
-    }
-
-    Tariff getTariff ()
-    {
-      return tariff;
-    }
-
-    void setCapacityProfile (CapacityProfile profile)
-    {
-      capacityProfile = profile;      
-    }
-
-    CapacityProfile getCapacityProfile ()
-    {
-      if (null == capacityProfile) {
-        // need to create the profile
-        if ((!isTOU()) && (!isVariableRate())) {
-          // Simplest case
-          setCapacityProfile(getDefaultCapacityProfile());
-        }
-        else if (isTOU()) {
-          // we first need to understand the value of flexibility
-          computeRegulationPremium();
-          Instant evalTime = lastSunday();
-          long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
-          for (int index = 0; index < profileSize; index++) {
-            double cost = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
-            evalTime = evalTime.plus(increment);
-          }          
-        }
-        else {
-          // TODO - we should set up a TariffEvaluationHelper to deal
-          // with variable-rate tariffs. For now we'll just use
-          // the default profile
-          setCapacityProfile(getDefaultCapacityProfile());
-        }
-      }
-      return capacityProfile;
-    }
-
-    // true just in case the tariff is a TOU tariff. If it's not, then
-    // the price array and capacityProfile will be empty (null).
-    boolean isTOU ()
-    {
-      return tariff.isTimeOfUse();
-    }
-
-    boolean isVariableRate ()
-    {
-      return tariff.isVariableRate();
-    }
-
-    // Heuristic decision on demand bias, depending on current vs near-future prices
-    // and on value of demand flexibility
-    double getDemandBias ()
-    {
-      double result = getNominalDemandBias();
-      // do something here
-      return result;
-    }
-
-    // For a TOU
-    void computeRegulationPremium ()
-    {
-      if (tariff.hasRegulationRate()) {
-        // We expect the upregPayment to be positive (customer gets paid).
-        double upregPayment = getTariff().getRegulationCharge(-1.0, 0.0, false); // up-reg +
-        double downregCost = getTariff().getRegulationCharge(1.0,  0.0, false); // down-reg -
-        Instant evalTime = lastSunday();
-        long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
-        for (int index = 0; index < profileSize; index++) {
-          double cost = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
-          // Premiums < 0.0 mean we lose money on regulation
-          upRegulationPremium[index] = upregPayment + cost;
-          downRegulationPremium[index] = downregCost - cost;
-          evalTime = evalTime.plus(increment);
-        }
-      }
-      else {
-        // fill with zeros
-        Arrays.fill(upRegulationPremium, 0.0);
-        Arrays.fill(downRegulationPremium, 0.0);
-      }
-    }
-
-    // tariff.getRegulationCharge(kwh, 0, false); neg for up-reg. pos for down-reg
-    // tariff.getUsageCharge(when, kwh, 0.0, false, TEH); 
-
-    // Creates and returns a tariff-specific capacity profile
-    // to support tariff eval.
-    // For now, we want a 24h profile. To avoid startup effects, we will
-    // create a 48h profile and just use the last 24h.
-    // This requires
-    // - setting up a StorageState
-    // - processing the median DemandElements
-    // - using the normal heuristics to adjust demand to prices,
-    //   while maintaining flexibility in case the tariff has
-    //   a regulation rate
-
-    // expected cost 00:00 Monday through 23:00 Sunday
-//    double[] getCost ()
-//    {
-//      if (null != this.costs)
-//        return costs;
-//      costs = new double[profileSize];
-//      double cumulativeUsage = 0.0;
-//      Instant start =
-//          service.getTimeslotRepo().currentTimeslot().getStartInstant();
-//      for (int i = 0; i < profileSize; i++) {
-//        Instant when = start.plus(i * TimeService.HOUR);
-//        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
-//          cumulativeUsage = 0.0;
-//        }
-//        costs[i] =
-//            tariff.getUsageCharge(when, cumulativeUsage) / nhc;
-//        cumulativeUsage += nhc;
-//      }
-//      return costs;
-//    }
   }
 }
