@@ -3,7 +3,10 @@
  */
 package org.powertac.customer.evcharger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -12,7 +15,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -196,6 +198,84 @@ class EvChargerTest
     ReflectionTestUtils.setField(sub, "timeService", timeService);
     ReflectionTestUtils.setField(sub, "tariffMarketService", tariffMarket);
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
+  }
+
+  @Test
+  public void testDemandElementMeanCalculation ()
+  {
+    uut = new EvCharger("residential_ev");
+    uut.setServiceAccessor(serviceAccessor);
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(uut);
+
+    uut.initialize();
+
+    DateTime currentTime = timeService.getCurrentDateTime();
+    int hod = currentTime.getHourOfDay();
+    // Check that demandInfoMean is empty by default.
+    assertTrue(uut.getDemandInfoMean().isEmpty());
+
+    // Check that it equals the first demandInfo if only once requested.
+    List<DemandElement> demand1 = uut.getDemandInfo(currentTime);
+    List<DemandElement> demandMean1 = uut.getDemandInfoMean().get(hod);
+    assertIterableEquals(demand1, demandMean1);
+
+    // Check that the means are correctly calculated for two demands.
+    List<DemandElement> demand2 = uut.getDemandInfo(currentTime);
+    List<DemandElement> demandMean2 = uut.getDemandInfoMean().get(hod);
+    assertEquals(demandMean2.size(), Math.max(demand1.size(), demand2.size()));
+    for (int i = 0; i < Math.min(demand1.size(), demand2.size()); i++) {
+      double[] hist1 = demand1.get(i).getdistribution();
+      double[] hist2 = demand2.get(i).getdistribution();
+      double[] histMean = demandMean2.get(i).getdistribution();
+      assertEquals(histMean.length, hist1.length);
+      assertEquals(histMean.length, hist2.length);
+      assertEquals(demandMean2.get(i).getHorizon(),
+                   demand1.get(i).getHorizon());
+      assertEquals(demandMean2.get(i).getHorizon(),
+                   demand2.get(i).getHorizon());
+      for (int j = 0; j < hist1.length; j++) {
+        assertEquals(histMean[j], (hist1[j] + hist2[j]) / 2);
+      }
+    }
+
+    // Check that the means are correctly calculated for three demands.
+    List<DemandElement> demand3 = uut.getDemandInfo(currentTime);
+    List<DemandElement> demandMean3 = uut.getDemandInfoMean().get(hod);
+    assertEquals(demandMean3.size(), Math
+            .max(demand3.size(), Math.max(demand1.size(), demand2.size())));
+    for (int i = 0; i < Math
+            .min(demand3.size(),
+                 Math.min(demand1.size(), demand2.size())); i++) {
+      double[] hist1 = demand1.get(i).getdistribution();
+      double[] hist2 = demand2.get(i).getdistribution();
+      double[] hist3 = demand3.get(i).getdistribution();
+      double[] histMean = demandMean3.get(i).getdistribution();
+      assertEquals(histMean.length, hist1.length);
+      assertEquals(histMean.length, hist2.length);
+      assertEquals(histMean.length, hist3.length);
+      assertEquals(demandMean3.get(i).getHorizon(),
+                   demand1.get(i).getHorizon());
+      assertEquals(demandMean3.get(i).getHorizon(),
+                   demand2.get(i).getHorizon());
+      assertEquals(demandMean3.get(i).getHorizon(),
+                   demand3.get(i).getHorizon());
+      for (int j = 0; j < hist1.length; j++) {
+        assertEquals((hist1[j] + hist2[j] + hist3[j]) / 3, histMean[j]);
+      }
+    }
+
+    // Check that the demandInfoMean is extended for new hours.
+    List<DemandElement> demand4 = uut.getDemandInfo(currentTime.plusHours(1));
+    List<DemandElement> demandMean4 = uut.getDemandInfoMean().get(hod + 1);
+    assertIterableEquals(demand4, demandMean4);
+
+    // Check that the map contains 2 entries because we requested demandInfo for
+    // two different hours.
+    assertEquals(2, uut.getDemandInfoMean().size());
   }
 
   // Make sure EvCharger shows up in the list of AbstractCustomers
