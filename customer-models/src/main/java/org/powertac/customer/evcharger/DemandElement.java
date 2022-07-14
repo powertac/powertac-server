@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 by John Collins.
+ * Copyright (c) 2022 by Philipp Page and John Collins.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import java.util.Objects;
  * 
  * The distribution field tells how the energy needs of the nVehicles are distributed.
  * This is a histogram of (horizon + 1) elements, such that the first element is the
- * fraction of the population that needs at least horizon charger-hours, the next is
- * the fraction of the population needing between h and (h-1) charger-hours, and so on.
- *  
- * @author John Collins
+ * fraction of the population that needs at least (horizon + 1) charger-hours, the next is
+ * the fraction of the population needing between h and (h+1) charger-hours, and so on.
+ * 
  * @author Philipp Page <github@philipp-page.de>
+ * @author John Collins
  */
 class DemandElement implements Serializable // package visibility
 {

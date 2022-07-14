@@ -489,7 +489,9 @@ public class StorageState
 //  }
 
   /**
-   * Computes the minimum, maximum, and nominal demand for the current timeslot
+   * Computes the minimum, maximum, and nominal demand
+   * for the current timeslot. Returns an array containing
+   * [minimum, maximum, midpoint] demand values.
    */
   double[] getMinMax (int timeslot)
   {
@@ -500,7 +502,7 @@ public class StorageState
     StorageElement target = getElement(timeslot);
     if (null == target || 0 == target.getEnergy().length) {
       // nothing to work with here
-      return new double[] {minDemand, maxDemand};
+      return new double[] {0.0, 0.0, 0.0};
     }
     // The first one has only one cohort that must be completely satisfied
     minDemand += target.getEnergy()[0];
