@@ -57,7 +57,7 @@ import org.powertac.common.spring.SpringApplicationContext;
  * constructor is provided, along with an init() method that clears out
  * state and optionally sets parameter values.
  * 
- * Evalution of time-of-use rates depends on being able to compute the hour
+ * Evaluation of time-of-use rates depends on being able to compute the hour
  * of the day for some arbitrary offset. This functionality depends on the
  * Joda Time "default time zone" being set to DateTimeZone.UTC. This normally
  * happens in the TimeService, but may also need to be done in test code.
