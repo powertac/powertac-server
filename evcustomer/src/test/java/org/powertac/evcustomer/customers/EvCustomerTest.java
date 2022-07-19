@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
@@ -666,6 +667,13 @@ public class EvCustomerTest
 
     @Override
     public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public XMLMessageConverter getMessageConverter ()
     {
       // TODO Auto-generated method stub
       return null;

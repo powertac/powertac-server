@@ -40,6 +40,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -768,6 +769,13 @@ public class LiftTruckTest
 
     @Override
     public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public XMLMessageConverter getMessageConverter ()
     {
       // TODO Auto-generated method stub
       return null;

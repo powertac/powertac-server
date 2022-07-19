@@ -22,6 +22,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
@@ -260,5 +261,12 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   {
     // TODO Auto-generated method stub
     return serverConfiguration;
+  }
+
+  @Override
+  public XMLMessageConverter getMessageConverter ()
+  {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

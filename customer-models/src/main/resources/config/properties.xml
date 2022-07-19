@@ -95,6 +95,7 @@
         <defaultCapacityData>1.55-1.46-1.36-1.25-1.16-1.02-0.80-0.51-0.34-0.30-0.32-0.37-0.48-0.62-0.78-0.96-1.13-1.32-1.49-1.60-1.69-1.74-1.73-1.66</defaultCapacityData>
         <nominalDemandBias>0.5</nominalDemandBias>
         <model>residential_ev_1.xml</model>
+        <defaultProfileSize>24</defaultProfileSize>
       </residential_ev>
     </evCharger>
   </evcharger>

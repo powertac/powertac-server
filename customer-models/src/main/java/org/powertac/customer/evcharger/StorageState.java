@@ -16,7 +16,6 @@
 package org.powertac.customer.evcharger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -47,7 +46,7 @@ import org.powertac.util.RingArray;
  */
 public class StorageState
 {
-  private static Logger log =
+  static Logger log =
           LogManager.getLogger(StorageState.class.getName());
 
   // The TariffSubscription associated with this instance
@@ -526,28 +525,17 @@ public class StorageState
   /**
    * Gathers and returns a list that represents the current state
    */
-  public String gatherState (int timeslot)
+  public List gatherState (int timeslot)
   {
     double precision = 1000000.0; //six decimal places
     @SuppressWarnings("rawtypes")
-    ArrayList<List> result = new ArrayList<>();
+    ArrayList<Object> result = new ArrayList<>();
     //System.out.println("horizon=" + getHorizon(timeslot));
+    result.add(timeslot);
     for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
-      StorageElement se = getElement(i);
-      List<Object> row = new ArrayList<>();
-      row.add(i);
-      row.add(se.activeChargers);
-      List<Double> items = new ArrayList<>();
-      for (double item : se.population)
-        items.add(Math.round(item * precision) / precision);
-      row.add(items);
-      items = new ArrayList<>();
-      for (double item : se.getEnergy())
-        items.add(Math.round(item * precision) / precision);
-      row.add(items);
-      result.add(row);
+      result.add(getElement(i));
     }
-    return result.toString();
+    return result;
   }
 
   /**
@@ -555,98 +543,16 @@ public class StorageState
    * The record is a string produced by running toString() on a nested list,
    * so here we must parse the string.
    */
-  public void restoreState (int timeslot, String bootRecord)
+  @SuppressWarnings("unchecked")
+  public void restoreState (int timeslot, List<Object> bootRecord)
   {
-    // It would be nice to break this up into a couple simpler abstractions, but it seems
-    // there's too much context to do that easily. The only alternative might be to create
-    // another inner class to contain the context.
-    if (!bootRecord.startsWith("[")) {
-      // invalid boot record
-      log.error("Invalid boot record starts with {}", bootRecord.substring(0, 16));
-      return;
-    }
-    Pattern elementPrefix = Pattern.compile("\\[(\\d+), (\\d+\\.\\d+), \\[");
-    Pattern distributionValue = Pattern.compile("(\\d+\\.\\d+)");
-    int index = 1; // skip the opening [
-    String remains = bootRecord.substring(index);
-    boolean complete = false;
+    // This is easy using XStream.
     int arrayLength = 1;
-    while (!complete) {
-      // start with element prefix
-      Matcher m = elementPrefix.matcher(remains);
-      if (!m.lookingAt()) {
-        System.out.println("Don't see prefix at " + remains.substring(0, 12));
-        log.error("Cannot match elementPrefix at {}", remains.substring(0, 12));
-        complete = true;
-        break;
-      }
-      int ts = Integer.valueOf(m.group(1));
-      double chargers = Double.valueOf(m.group(2));
-      double[] population = new double[arrayLength];
-      double[] energy = new double[arrayLength++];
-      remains = remains.substring(m.end());
-
-      // beginning of population array
-      boolean more = true;
-      int arrayIndex = 0;
-      while (more) {
-        m = distributionValue.matcher(remains);
-        if (!m.lookingAt()) {
-          // should be end of array
-          more = false;
-          System.out.println("Should be looking at pop number, seeing " + remains.substring(0, 12));
-          break;
-        }
-        population[arrayIndex++] = (Double.valueOf(m.group(1)));
-        remains = remains.substring(m.end());
-        if (remains.startsWith("]")) {
-          // end of population array
-          remains = remains.substring(4);
-          more = false;
-        }
-        else {
-          // skip to next number
-          remains = remains.substring(2);
-        }
-      }
-
-      // beginning of energy array
-      more = true;
-      arrayIndex = 0;
-      while (more) {
-        m = distributionValue.matcher(remains);
-        if (!m.lookingAt()) {
-          // should be end of array
-          more = false;
-          System.out.println("Should be looking at eng number, seeing " + remains.substring(0, 12));
-          break;
-        }
-        energy[arrayIndex++] = (Double.valueOf(m.group(1)));
-        remains = remains.substring(m.end());
-        if (remains.startsWith("]")) {
-          // end of energy array
-          //remains = remains.substring(2);
-          more = false;
-        }
-        else {
-          // skip to next number
-          remains = remains.substring(2);
-        }
-      }
-
-      // At this point, we have a complete StorageElement
-      StorageElement se = new StorageElement(chargers, energy, population);
-      putElement(ts, se);
-
-      // if the third char is now a ], we are done
-      remains = remains.substring(2);
-      if (remains.startsWith("]")) {
-        complete = true;
-      }
-      else {
-        // skip over the delimiter
-        remains = remains.substring(2);
-      }
+    //while (!complete) {
+    int ts = (int) bootRecord.get(0);
+    for (int index = 1; index < bootRecord.size(); index++) {
+      StorageElement element = (StorageElement) bootRecord.get(index);
+      putElement(ts++, element);
     }
   }
 
@@ -709,172 +615,5 @@ public class StorageState
   private void putElement (int index, StorageElement se)
   {
     capacityVector.set(index, se);
-  }
-
-  /** ---------------------------------------------------------------------------------------
-   * Mutable element of the StorageState forward capacity vector for the EV Charger model.
-   * Each contains a capacity histogram of length n + 1 for a timeslot n slots in the future.
-   * 
-   * Max demand is simply the sum of individual capacities of the chargers, constrained by to
-   * remaining unfilled capacity in the batteries of attached vehicles.
-   * 
-   * Min demand is the minimum amount that must be consumed in a given timeslot to meet the
-   * charging requirements of attached vehicles, constrained by max demand.
-   * 
-   * @author John Collins
-   *
-   */
-  class StorageElement // package visibility
-  {
-    // Number of active chargers
-    private double activeChargers = 0.0;
-
-    // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
-    private double[] energy = {0.0};
-
-    // Population allocated to energy requirement breakdown
-    private double[] population = {0.0};
-
-    // commitment from previous timeslot, needed to distribute regulation
-    //private double previousCommitment = 0.0;
-
-    // default constructor
-    StorageElement (int arrayLength)
-    {
-      super();
-      this.energy = new double[arrayLength];
-      this.population = new double[arrayLength];
-    }
-
-    // populated constructor
-    StorageElement (double activeChargers, double[] energy, double[] population)
-    {
-      super();
-      this.activeChargers = activeChargers;
-      this.energy = energy;
-      this.population = population;
-    }
-
-//    void extendArrays (int newLength)
-//    {
-//      if (population.length < newLength) {
-//        double[] newPop = new double[newLength];
-//        double[] newEnergy = new double[newLength];
-//        for (int i = 0; i < population.length; i++) {
-//          newPop[i] = population[i];
-//          newEnergy[i] = energy[i];
-//        }
-//        population = newPop;
-//        energy = newEnergy;
-//      }
-//    }
-
-    // Shrinks energy and population arrays, dropping the final element
-    // which is no longer needed
-    void collapseArrays ()
-    {
-      int len = population.length;
-      if (len < 2) {
-        // nothing to do here
-        return;
-      }
-      //population[len - 2] += population[len - 1];
-      population = Arrays.copyOf(population, len - 1);
-      //energy[len - 2] += energy[len - 1];
-      energy = Arrays.copyOf(energy, len - 1);
-    }
-
-    double getActiveChargers ()
-    {
-      return activeChargers;
-    }
-
-    void addChargers (double n)
-    {
-      activeChargers += n;
-    }
-
-    double[] getRemainingCommitment ()
-    {
-      return energy;
-    }
-
-    double[] getPopulation ()
-    {
-      return population;
-    }
-
-    double[] getEnergy ()
-    {
-      return energy;
-    }
-
-    // Adjusts commitment, either as a result of exercised regulation, or as
-    // a result of new demand
-    void addCommitments (double[] population, double[] energy) {
-      // We assume our arrays have already been re-sized
-      if (population.length > this.population.length)
-        log.error("array size mismatch {} into {}", population.length, this.population.length);
-      for (int i = 0; i < population.length; i++) {
-        this.population[i] += population[i];
-        this.energy[i] += energy[i];
-      }
-    }
-
-    // returns a new StorageElement with the same contents as an old one
-    StorageElement copy ()
-    {
-      return new StorageElement(getActiveChargers(),
-                                Arrays.copyOf(energy, energy.length),
-                                Arrays.copyOf(population, population.length));
-    }
-
-    // returns a new StorageElement containing a portion of an old element
-    StorageElement copyScaled (double scale)
-    {
-      double[] scaledPop = new double[population.length];
-      double[] scaledEnergy = new double[energy.length];
-      for (int i = 0; i < population.length; i++) {
-        scaledPop[i] = population[i] * scale;
-        scaledEnergy[i] = energy[i] * scale;
-      }
-      return new StorageElement(getActiveChargers() * scale,
-                                scaledEnergy, scaledPop);
-    }
-
-    // adds a portion of an existing element to the contents of this one
-    void addScaled (StorageElement element, double scale)
-    {
-      if (element.getPopulation().length != population.length) {
-        // should not happen
-        log.error("Attempt to add element of length {} to element of length {}",
-                  population.length, element.getPopulation().length);
-      }
-      activeChargers += element.getActiveChargers() * scale;
-      for (int i = 0; i < population.length; i++) {
-        population[i] += element.getPopulation()[i] * scale;
-        energy[i] += element.getEnergy()[i] * scale;
-      }
-    }
-
-    // Scale this element by a constant fraction
-    // This should not change the population/energy relationship
-    void scale (double fraction)
-    {
-      //tranche *= fraction;
-      activeChargers *= fraction;
-      //energy *= fraction;
-      for (int i = 0; i < population.length; i++) {
-        population[i] *= fraction;
-        energy[i] *= fraction;
-      }
-    }
-
-    // Create a String representation
-    public String toString ()
-    {
-      return String.format("ch%.3f %s %s", activeChargers,
-                           Arrays.toString(population), Arrays.toString(energy));
-    }
   }
 }

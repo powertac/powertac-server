@@ -40,6 +40,7 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
@@ -107,8 +108,8 @@ class EvChargerTest
     competition = Competition.newInstance("storage-state-test");
     Competition.setCurrent(competition);
     timeService = new TimeService();
-    timeService.setCurrentTime(competition.getSimulationBaseTime()
-                               .plus(TimeService.HOUR * 7));
+    timeService.setCurrentTime(competition.getSimulationBaseTime());
+                               //.plus(TimeService.HOUR * 7));
     start = timeService.getCurrentTime().plus(TimeService.HOUR);
     tariffSubscriptionRepo = new TariffSubscriptionRepo();
     tariffRepo = new TariffRepo();
@@ -556,6 +557,13 @@ class EvChargerTest
 
     @Override
     public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public XMLMessageConverter getMessageConverter ()
     {
       // TODO Auto-generated method stub
       return null;

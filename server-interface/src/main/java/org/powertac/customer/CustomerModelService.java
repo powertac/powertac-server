@@ -28,6 +28,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.InitializationService;
@@ -88,6 +89,9 @@ implements InitializationService, BootstrapState, NewTariffListener,
 
   @Autowired
   private TariffMarket tariffMarketService;
+
+  @Autowired
+  private XMLMessageConverter messageConverter;
 
   // Customer model collection
   //private ArrayList<Class<AbstractCustomerDeprecated>> modelTypes;
@@ -225,5 +229,12 @@ implements InitializationService, BootstrapState, NewTariffListener,
   public TariffMarket getTariffMarket ()
   {
     return tariffMarketService;
+  }
+
+  @Override
+  public XMLMessageConverter getMessageConverter ()
+  {
+    // TODO Auto-generated method stub
+    return messageConverter;
   }
 }

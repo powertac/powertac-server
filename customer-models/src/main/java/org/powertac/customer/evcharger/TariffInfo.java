@@ -1,5 +1,6 @@
 package org.powertac.customer.evcharger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +113,7 @@ class TariffInfo
     StorageState ss = new StorageState(null, evCharger.getChargerCapacity(),
                                        evCharger.getMaxDemandHorizon())
             .withUnitCapacity(evCharger.getChargerCapacity());
-    Map<Integer, List<DemandElement>> demandInfo = evCharger.getDemandInfoMean();
+    List<ArrayList<DemandElement>> demandInfo = evCharger.getDemandInfoMean();
     evalTime = lastSunday;
     // we first run a full day to seed the SS
     for (int hour = 0; hour < demandInfo.size(); hour++) {

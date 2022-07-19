@@ -78,6 +78,15 @@ class DemandElement implements Serializable // package visibility
     }
   }
 
+  // copy constructor
+  DemandElement (DemandElement de)
+  {
+    super();
+    this.horizon = de.horizon;
+    this.nVehicles = de.nVehicles;
+    this.distribution = Arrays.copyOf(de.distribution, de.distribution.length);
+  }
+
   // Original constructor -- energy parameter is not used.
   DemandElement (int horizon, double nVehicles, double energy, double[] distribution)
   {
@@ -92,6 +101,12 @@ class DemandElement implements Serializable // package visibility
   double getNVehicles ()
   {
     return nVehicles;
+  }
+
+  // needed in order to compute mean demand
+  void setNVehicles (double newValue)
+  {
+    nVehicles = newValue;
   }
 
   double[] getdistribution ()
@@ -124,7 +139,7 @@ class DemandElement implements Serializable // package visibility
 
   public String toString ()
   {
-    return String.format("(h%d,n%.3f,e%s%n)", horizon, nVehicles, Arrays.toString(distribution));
+    return String.format("(h%d, n%.3f, e%s)", horizon, nVehicles, Arrays.toString(distribution));
   }
   
   @Override

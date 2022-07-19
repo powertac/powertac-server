@@ -73,10 +73,15 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           dump = true, description = "Maximum horizon for individual charging demand elements")
   private int maxDemandHorizon = 96; // 4 days?
 
-  @ConfigurableValue(valueType = "String",
+  @ConfigurableValue(valueType = "List",
           publish = false, dump = false, bootstrapState = true,
           description = "State of active chargers at end of boot session")
-  private String storageRecord;
+  private List storageRecord;
+
+  @ConfigurableValue(valueType = "String",
+          publish = false, dump = false, bootstrapState = true,
+          description = "Collected demand statistics at end of boot session")
+  private String demandRecord;
 
   // Tariff terms could affect this
   @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = false,
@@ -93,14 +98,23 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private String defaultCapacityData = null;
 
   // for tariffs that do not have weekly TOU rates, we stick with a 24-hour profile.
-  private int defaultProfileSize = 24; 
+  @ConfigurableValue (valueType = "Integer", publish = false, bootstrapState = true,
+          description = "periodicity of the customer data model")
+  private int defaultProfileSize = 24;
   
+  @ConfigurableValue(valueType = "List", dump = false, bootstrapState = true,
+          description = "Mean observed demand behavior, needed for tariff evaluation")
   // Keeps track of mean demand info lists per hour of day.
   // TODO - this needs to be serialized to the boot record, and restored
   //        in sim-mode startup.
-  private final Map<Integer, List<DemandElement>> demandInfoMean = new HashMap<>();
-  // Counter to update the rolling mean demand info lists dynamically.
-  private Map<Integer, Integer> demandInfoMeanCounter = new HashMap<>();
+  private ArrayList<ArrayList<DemandElement>> demandInfoMean;
+  private int[] demandInfoMeanCounter;
+
+  // The count is the product of the number of timeslots in the default profile,
+  // times the number of days that have been averaged by demandInfoMean
+  @ConfigurableValue(valueType = "Integer", publish = false, bootstrapState = true,
+          description = "number of samples represented by demandInfoMean")
+  private int demandInfoMeanCount;
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -140,15 +154,18 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     addCustomerInfo(info);
     ensureSeeds();
 
+    // Initialize data structures for bootstrap session
+    if (null == demandInfoMean) {
+      demandInfoMean = new ArrayList<ArrayList<DemandElement>>();
+      demandInfoMeanCount = 0;
+      demandInfoMeanCounter = new int[defaultProfileSize];
+    }
+
     // set up the subscription-state mapping
     subState = new HashMap<>();
     tariffInfo = new HashMap<>();
 
-    // handle the bootstrap state if present
-    // TODO - remove if not needed
-    //if (null != storageRecord) {
-    //  // Should be one SS record, for the default EV tariff.
-    //}
+    //if 
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
@@ -508,49 +525,63 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   {
     // We clone the DemandElements so that the modifications to the
     // distributions do not affect the actual demandInfo object on the heap.
-    List<DemandElement> newDemandInfo = demandInfo.stream()
-            .map(SerializationUtils::clone).collect(Collectors.toList());
+    //List<DemandElement> newDemandInfo = demandInfo.stream()
+    //        .map(SerializationUtils::clone).collect(Collectors.toList());
     // Make sure demandInfo is sorted by horizon so that the horizon
     // corresponds to the List index.
-    newDemandInfo.sort(Comparator.comparingInt(DemandElement::getHorizon));
+    //newDemandInfo.sort(Comparator.comparingInt(DemandElement::getHorizon));
 
-    List<DemandElement> currentDemandInfoMean = demandInfoMean.get(hod);
-
-    if (currentDemandInfoMean == null) {
-      demandInfoMean.put(hod, newDemandInfo);
+    if (hod > demandInfoMean.size()) {
+      // should not get here
+      log.error("demandInfoMean not initialized at tod = {}", hod);
+      return;
+    }
+    //if (demandInfoMean.isEmpty() && hod == 0
+    //        || demandInfoMean.size() == hod) {
+    int count = demandInfoMeanCounter[hod];
+    if (0 == count) {
+      // First entry, clone the demandInfo
+      demandInfoMean.add((ArrayList<DemandElement>) demandInfo.stream()
+                         .map(de -> new DemandElement(de))
+                         .collect(Collectors.toList()));      
     }
     else {
-      int count = demandInfoMeanCounter.get(hod);
-      for (DemandElement de: newDemandInfo) {
+      // retrieve the current mean value and proceed
+      ArrayList<DemandElement> currentDemandInfoMean = demandInfoMean.get(hod);
+      for (DemandElement de: demandInfo) {
         if (de.getHorizon() < currentDemandInfoMean.size()) {
           // In this case we need to update the means for the existing
           // DemandElement.
           DemandElement currentDemandElementMean =
-            currentDemandInfoMean.get(de.getHorizon());
+                  currentDemandInfoMean.get(de.getHorizon());
           double[] currentEnergyHistogram =
-            currentDemandElementMean.getdistribution();
+                  currentDemandElementMean.getdistribution();
           double[] newEnergyHistogram =
-            new double[currentEnergyHistogram.length];
+                  new double[currentEnergyHistogram.length];
           for (int i = 0; i < currentEnergyHistogram.length; i++) {
             newEnergyHistogram[i] =
-              (currentEnergyHistogram[i] * count + de.getdistribution()[i])
-                                    / (count + 1);
+                    (currentEnergyHistogram[i] * count + de.getdistribution()[i])
+                    / (count + 1);
           }
-          de.setDistribution(newEnergyHistogram);
-          currentDemandInfoMean.set(de.getHorizon(), de);
+          currentDemandElementMean.setDistribution(newEnergyHistogram);
+          double meanVehicles =
+                  (currentDemandElementMean.getNVehicles()
+                          * count + de.getNVehicles()) / (count + 1);
+          currentDemandElementMean.setNVehicles(meanVehicles);
         }
         else {
-          // In this case we simply add the new DemandElement to the end of
-          // the list.
-          currentDemandInfoMean.add(de);
+          // otherwise the horizon is longer than the mean horizon,
+          // so we add this one to the end
+          currentDemandInfoMean.add(de);          
         }
       }
     }
-
-    demandInfoMeanCounter.merge(hod, 1, Integer::sum);
+    // Finally, we update the per-hour and overall counts
+    demandInfoMeanCounter[hod] += 1;
+    demandInfoMeanCount += 1;
   }
   
-  public Map<Integer, List<DemandElement>> getDemandInfoMean ()
+  public List<ArrayList<DemandElement>> getDemandInfoMean ()
   {
     return demandInfoMean;
   }

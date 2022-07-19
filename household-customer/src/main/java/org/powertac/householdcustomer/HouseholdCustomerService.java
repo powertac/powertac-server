@@ -32,6 +32,7 @@ import org.powertac.common.CustomerInfo;
 //import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -326,6 +327,13 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
   @Override
   public TariffMarket getTariffMarket ()
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public XMLMessageConverter getMessageConverter ()
   {
     // TODO Auto-generated method stub
     return null;

@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -102,6 +105,11 @@ class TariffInfoTest
     assertEquals(defaultConsumption, uut.getTariff());
     CapacityProfile cp = uut.getCapacityProfile();
     assertNotNull(cp);
+    ArrayList<DemandElement>[] lists = new ArrayList[2];
+    //ArrayList<DemandElement>
+    //dummy.add(new ArrayList<String>("1.0", "1.5", "2.0"));
+    //dummy.add("-2.0, -3.0, 4.0");
+    //System.out.println(dummy.toString());
   }
 
   @Test
@@ -182,6 +190,13 @@ class TariffInfoTest
 
     @Override
     public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public XMLMessageConverter getMessageConverter ()
     {
       // TODO Auto-generated method stub
       return null;

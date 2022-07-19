@@ -134,6 +134,7 @@ class DemandSamplerTest
             .mapToInt(horizonEnergyTuple -> (int) horizonEnergyTuple[0]).max().getAsInt();
 
     List<DemandElement> demandElements = demandSampler.sample(hod, POP_SIZE, CHARGER_CAPACITY);
+    System.out.println(demandElements.toString());
 
     assertEquals(expectedNumberOfPlugins,
                  demandElements.stream().mapToInt(demandElement -> (int) demandElement.getNVehicles()).sum());

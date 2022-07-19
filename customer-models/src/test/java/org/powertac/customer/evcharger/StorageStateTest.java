@@ -24,6 +24,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CustomerModelAccessor;
@@ -562,6 +563,8 @@ class StorageStateTest
   @Test
   void testGatherState ()
   {
+    XMLMessageConverter converter = new XMLMessageConverter();
+    converter.afterPropertiesSet();
     double chargerCapacity = 7.0; //kW
     oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation()); // 100%
     oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
@@ -583,9 +586,10 @@ class StorageStateTest
     assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
                       oldSS.getElement(44).getRemainingCommitment(), 1e-6);
 
-    String record = oldSS.gatherState(40);
+    List record = oldSS.gatherState(40);
+    String external = converter.toXML(record);
 //    assertEquals(5, record.size());
-    System.out.println(record);
+    System.out.println(external);
     StorageState newSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
     newSS.restoreState(maxHorizon, record);
     assertArrayEquals(new double[] {38.5},
