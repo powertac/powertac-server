@@ -200,6 +200,39 @@ class EvChargerTest
     ReflectionTestUtils.setField(sub, "tariffMarketService", tariffMarket);
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
   }
+  
+  @Test
+  public void testDemandElementMeanCounterForBootstrapSession ()
+  {
+    uut = new EvCharger("residential_ev");
+    uut.setServiceAccessor(serviceAccessor);
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(uut);
+
+    uut.initialize();
+
+    DateTime currentTime = timeService.getCurrentDateTime();
+
+    // A bootstrap session is full 14 days (= 15 times 24 timeslots)
+    for (int day = 0; day < 15; day++) {
+      for (int timeslot = 0; timeslot < 24; timeslot++) {
+        uut.getDemandInfo(currentTime.plusHours(timeslot + day * 24));
+      }
+    }
+
+    int[] demandInfoMeanCounter =
+      (int[]) ReflectionTestUtils.getField(uut, "demandInfoMeanCounter");
+    assertEquals(24, demandInfoMeanCounter.length);
+    for (int i = 0; i < demandInfoMeanCounter.length; i++) {
+      assertEquals(15, demandInfoMeanCounter[i]);
+    }
+
+    assertEquals(360, (int) ReflectionTestUtils
+            .getField(uut, "demandInfoMeanCount"));
+  }
 
   @Test
   public void testDemandElementMeanCalculation ()
