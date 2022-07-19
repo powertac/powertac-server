@@ -229,6 +229,7 @@ class EvChargerTest
     List<DemandElement> demandMean2 = uut.getDemandInfoMean().get(hod);
     assertEquals(demandMean2.size(), Math.max(demand1.size(), demand2.size()));
     for (int i = 0; i < Math.min(demand1.size(), demand2.size()); i++) {
+      // Check energy histograms
       double[] hist1 = demand1.get(i).getdistribution();
       double[] hist2 = demand2.get(i).getdistribution();
       double[] histMean = demandMean2.get(i).getdistribution();
@@ -241,6 +242,11 @@ class EvChargerTest
       for (int j = 0; j < hist1.length; j++) {
         assertEquals(histMean[j], (hist1[j] + hist2[j]) / 2);
       }
+      // Check vehicle count
+      double vehicle1 = demand1.get(i).getNVehicles();
+      double vehicle2 = demand2.get(i).getNVehicles();
+      double vehicleMean = demandMean2.get(i).getNVehicles();
+      assertEquals((vehicle1 + vehicle2) / 2, vehicleMean);
     }
 
     // Check that the means are correctly calculated for three demands.
@@ -251,6 +257,7 @@ class EvChargerTest
     for (int i = 0; i < Math
             .min(demand3.size(),
                  Math.min(demand1.size(), demand2.size())); i++) {
+      // Check energy histograms
       double[] hist1 = demand1.get(i).getdistribution();
       double[] hist2 = demand2.get(i).getdistribution();
       double[] hist3 = demand3.get(i).getdistribution();
@@ -267,6 +274,12 @@ class EvChargerTest
       for (int j = 0; j < hist1.length; j++) {
         assertEquals((hist1[j] + hist2[j] + hist3[j]) / 3, histMean[j]);
       }
+      // Check vehicle count
+      double vehicle1 = demand1.get(i).getNVehicles();
+      double vehicle2 = demand2.get(i).getNVehicles();
+      double vehicle3 = demand3.get(i).getNVehicles();
+      double vehicleMean = demandMean2.get(i).getNVehicles();
+      assertEquals((vehicle1 + vehicle2 + vehicle3) / 3, vehicleMean);
     }
 
     // Check that the demandInfoMean is extended for new hours.
