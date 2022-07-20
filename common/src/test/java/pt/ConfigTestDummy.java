@@ -45,6 +45,9 @@ public class ConfigTestDummy
       description = "list type")
   private List<String> listProperty;
 
+  @ConfigurableValue(valueType = "XML", description = "xml test")
+  private List<Object> xmlProperty;
+
   private List<String> secondList;
 
   public ConfigTestDummy ()
@@ -76,5 +79,10 @@ public class ConfigTestDummy
   public void setSecondList (List<String> list)
   {
     secondList = list;
+  }
+
+  public List<Object> getXmlProperty ()
+  {
+    return xmlProperty;
   }
 }

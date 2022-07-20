@@ -118,6 +118,29 @@ public class ConfiguratorTest
   }
 
   @Test
+  public void testForeignXml ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("pt.configTestDummy.intProperty", "4");
+    map.put("pt.configTestDummy.fixedPerKwh", "4.2");
+    map.put("pt.configTestDummy.xmlProperty", "<list><int>42</int><double>42.42</double></list>");
+    MapConfiguration conf = new MapConfiguration(map);
+    Configurator uut = new Configurator();
+    uut.setConfiguration(conf);
+
+    ConfigTestDummy dummy = new ConfigTestDummy();
+    assertEquals(0, dummy.getIntProperty(), "original value");
+    uut.configureSingleton(dummy);
+    assertEquals(4, dummy.getIntProperty(), "new value");
+    assertEquals(4.2, dummy.getFixedPerKwh(), 1e-6, "new value");
+    assertEquals("dummy", dummy.stringProperty, "original string");
+    List<Object> xmlProp = dummy.getXmlProperty();
+    assertEquals(2, xmlProp.size());
+    assertEquals(42, (int)xmlProp.get(0));
+    assertEquals(42.42, (double)xmlProp.get(1));
+  }
+
+  @Test
   public void testListConfig ()
   {
     TreeMap<String, String> map = new TreeMap<String, String>();

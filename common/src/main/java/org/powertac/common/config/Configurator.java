@@ -51,6 +51,7 @@ import org.apache.commons.configuration2.io.CombinedLocationStrategy;
 import org.apache.commons.configuration2.io.FileLocationStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.util.Predicate;
 
 /**
@@ -756,6 +757,12 @@ public class Configurator
         for (Object thing : (List<?>)defaultValue)
           def.add((String)thing);
       return conf.getList(key, def);
+    }
+    else if (type.equals("XML")) {
+      // deserialize the xml to produce a value
+      XMLMessageConverter converter = new XMLMessageConverter();
+      converter.afterPropertiesSet();
+      return converter.fromXML(conf.getString(key));
     }
     else {
       // do it by reflection
