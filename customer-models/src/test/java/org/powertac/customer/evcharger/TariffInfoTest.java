@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,8 +86,14 @@ class TariffInfoTest
 
     evCharger = new EvCharger("test-dummy");
     evCharger.setServiceAccessor(serviceAccessor);
-    evCharger.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
-            + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
+    ArrayList<String> data =
+            new ArrayList<>(Arrays.asList("3.0", "3.0", "3.0", "3.0", "3.0", "3.0",
+                                          "3.0", "4.0", "4.0", "4.0", "3.0", "3.0",
+                                          "4.0", "4.0", "4.0", "4.0", "4.0", "4.0",
+                                          "5.0", "6.0", "7.0", "6.0", "5.0", "4.0"));
+    evCharger.setDefaultCapacityData(data);
+    //evCharger.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
+    //        + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
     evCharger.initialize();
   }
 

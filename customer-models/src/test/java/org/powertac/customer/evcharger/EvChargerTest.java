@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -83,7 +84,7 @@ class EvChargerTest
   private Broker sally;
 
   // configuration
-  private ServerConfiguration serverConfig;
+  //private ServerConfiguration serverConfig;
   private Configurator config;
 
   // mocks
@@ -156,16 +157,16 @@ class EvChargerTest
     initTariff(evTariff);
 
     // Set up serverProperties mock
-    serverConfig = mock(ServerConfiguration.class);
+    //serverConfig = mock(ServerConfiguration.class);
     config = new Configurator();
-    doAnswer(new Answer<Object>() {
-      @Override
-      public Object answer(InvocationOnMock invocation) {
-        Object[] args = invocation.getArguments();
-        config.configureSingleton(args[0]);
-        return null;
-      }
-    }).when(serverConfig).configureMe(any());
+//    doAnswer(new Answer<Object>() {
+//      @Override
+//      public Object answer(InvocationOnMock invocation) {
+//        Object[] args = invocation.getArguments();
+//        config.configureSingleton(args[0]);
+//        return null;
+//      }
+//    }).when(serverConfig).configureMe(any());
     uut = new EvCharger("test");
     uut.setServiceAccessor(serviceAccessor);
   }
@@ -204,13 +205,13 @@ class EvChargerTest
   @Test
   public void testDemandElementMeanCalculation ()
   {
-    uut = new EvCharger("residential_ev");
-    uut.setServiceAccessor(serviceAccessor);
+    //uut = new EvCharger("residential_ev");
+    //uut.setServiceAccessor(serviceAccessor);
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
     MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
-    serverConfig.configureMe(uut);
+    config.configureSingleton(uut);
 
     uut.initialize();
 
@@ -300,22 +301,22 @@ class EvChargerTest
   @Test
   public void testConfig ()
   {
-    uut.initialize();
+    TreeMap<String, String> map = new TreeMap<>();
+    map.put("customer.evcharger.evCharger.population", "1000");
+    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
+    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
+    map.put("customer.evcharger.evCharger.defaultCapacityData",
+            "1.55, 1.46, 1.36, 1.25, 1.16, 1.02, 0.80, 0.51, 0.34, 0.30, 0.32, 0.37, 0.48, 0.62, 0.78, 0.96, 1.13, 1.32, 1.49, 1.60, 1.69, 1.74, 1.73, 1.66");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    config.configureSingleton(uut);
 
     DateTime now =
             new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
 
-    TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("customer.evcharger.evCharger.population", "1000");
-    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
-    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
-    map.put("customer.evcharger.evCharger.defaultCapacityData",
-            "1.55-1.46-1.36-1.25-1.16-1.02-0.80-0.51-0.34-0.30-0.32-0.37-0.48-0.62-0.78-0.96-1.13-1.32-1.49-1.60-1.69-1.74-1.73-1.66");
-    MapConfiguration mapConfig = new MapConfiguration(map);
-    config.setConfiguration(mapConfig);
-    serverConfig.configureMe(uut);
+    uut.initialize();
     assertEquals(1000, uut.getPopulation(), "correct population");
     assertEquals(8.0, uut.getChargerCapacity(), 1e-6, "correct charger capacity");
     double[] profile = uut.getDefaultCapacityProfile().getProfile();
@@ -340,36 +341,40 @@ class EvChargerTest
     .thenReturn(new Timeslot(0, now.toInstant()));
 
     //double chargerCapacity = 5.0; //kW
-    uut.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
-                                  + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
-
+    ArrayList<String> data =
+            new ArrayList<>(Arrays.asList("3.0", "3.0", "3.0", "3.0", "3.0", "3.0", "3.0", "4.0",
+                                          "4.0", "4.0", "3.0", "3.0", "4.0", "4.0", "4.0", "4.0",
+                                          "4.0", "4.0", "5.0", "6.0", "7.0", "6.0", "5.0", "4.0"));
+    uut.setDefaultCapacityData(data);
+    // TODO - test something
   }
 
   @Test
   public void testFirstStepSim ()
   {
     // need to configure first
-
-    uut = new EvCharger("residential_ev");
-    uut.setServiceAccessor(serviceAccessor);
-    TreeMap<String, String> map = new TreeMap<String, String>();
+    TreeMap<String, String> map = new TreeMap<>();
     map.put("customer.evcharger.evCharger.population", "1000");
     map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
     map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
     map.put("customer.evcharger.evCharger.defaultCapacityData",
-            "1.55-1.46-1.36-1.25-1.16-1.02-0.80-0.51-0.34-0.30-0.32-0.37-0.48-0.62-0.78-0.96-1.13-1.32-1.49-1.60-1.69-1.74-1.73-1.66");
+            "1.55, 1.46, 1.36, 1.25, 1.16, 1.02, 0.80, 0.51, 0.34, 0.30, 0.32, 0.37, 0.48, 0.62, 0.78, 0.96, 1.13, 1.32, 1.49, 1.60, 1.69, 1.74, 1.73, 1.66");
     map.put("customer.evcharger.evCharger.model", "residential_ev_1");
     MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
-    serverConfig.configureMe(uut);
+    config.configureSingleton(uut);
 
     uut.initialize();
     DateTime now =
             new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     timeService.setCurrentTime(now.toInstant());
-    uut.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
-            + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
-    uut.initialize();
+//    ArrayList<Double> data =
+//            new ArrayList<>(Arrays.asList(3.0, 3.0, 3.0, 3.0, 3.0, 3.0,
+//                                          3.0, 4.0, 4.0, 4.0, 3.0, 3.0,
+//                                          4.0, 4.0, 4.0, 4.0, 4.0, 4.0,
+//                                          5.0, 6.0, 7.0, 6.0, 5.0, 4.0));
+//    uut.setDefaultCapacityData(data);
+    //uut.initialize();
     // default subscription happens in CustomerModelService
     TariffSubscription defaultSub =
             subscribeTo (uut, evTariff, uut.getPopulation());
@@ -388,7 +393,6 @@ class EvChargerTest
     StorageState ss = uut.getStorageState(defaultSub);
     assertNotNull(ss);
     assertEquals(defaultSub, ss.getSubscription());
-
   }
 
   /**
@@ -400,7 +404,7 @@ class EvChargerTest
    * Then move half of them to a new EV tariff by calling the CMA. This will test the ability to 
    */
   @Test
-  public void test ()
+  public void testSubscriptions ()
   {
     uut.initialize();
     //double chargerCapacity = 5.0; //kW
@@ -416,7 +420,7 @@ class EvChargerTest
                                     .withSignupPayment(-2.0);
     Tariff tariff1 = new Tariff(ts1);
     initTariff(tariff1);
-    //fail("Not yet implemented");
+    //TODO ("Not yet implemented");
   }
 
   @Test
@@ -430,8 +434,12 @@ class EvChargerTest
     .thenReturn(new Timeslot(0, now.toInstant()));
 
     //double chargerCapacity = 5.0; //kW
-    uut.setDefaultCapacityData("3.0-3.0-3.0-3.0-3.0-3.0-3.0-4.0-4.0-4.0-3.0-3.0-"
-                                  + "4.0-4.0-4.0-4.0-4.0-4.0-5.0-6.0-7.0-6.0-5.0-4.0");
+    ArrayList<String> data =
+            new ArrayList<>(Arrays.asList("3.0", "3.0", "3.0", "3.0", "3.0", "3.0",
+                                          "3.0", "4.0", "4.0", "4.0", "3.0", "3.0",
+                                          "4.0", "4.0", "4.0", "4.0", "4.0", "4.0",
+                                          "5.0", "6.0", "7.0", "6.0", "5.0", "4.0"));
+    uut.setDefaultCapacityData(data);
     CapacityProfile cp = uut.getDefaultCapacityProfile();
     double[] dcpn = cp.getProfile();
     assertEquals(24, dcpn.length);
@@ -551,21 +559,18 @@ class EvChargerTest
     @Override
     public ServerConfiguration getServerConfiguration ()
     {
-      // Auto-generated method stub
       return null;
     }
 
     @Override
     public TariffMarket getTariffMarket ()
     {
-      // TODO Auto-generated method stub
       return null;
     }
 
     @Override
     public XMLMessageConverter getMessageConverter ()
     {
-      // TODO Auto-generated method stub
       return null;
     }
   }

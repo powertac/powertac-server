@@ -16,6 +16,7 @@
 package org.powertac.customer.evcharger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -73,15 +74,15 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           dump = true, description = "Maximum horizon for individual charging demand elements")
   private int maxDemandHorizon = 96; // 4 days?
 
-  @ConfigurableValue(valueType = "List",
+  @ConfigurableValue(valueType = "XML",
           publish = false, dump = false, bootstrapState = true,
           description = "State of active chargers at end of boot session")
-  private List storageRecord;
+  private Object storageRecord;
 
-  @ConfigurableValue(valueType = "String",
+  @ConfigurableValue(valueType = "XML",
           publish = false, dump = false, bootstrapState = true,
           description = "Collected demand statistics at end of boot session")
-  private String demandRecord;
+  private Object demandRecord;
 
   // Tariff terms could affect this
   @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = false,
@@ -93,17 +94,17 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   // or a bit less than 4 kWh for a vehicle that drives 20000 km/year and gets around 2.2 kWh/km
   private CapacityProfile defaultCapacityProfile = null;
 
-  @ConfigurableValue (valueType = "String", dump = false,
+  @ConfigurableValue (valueType = "List", dump = false,
           description = "default expected hourly consumption in kWh/vehicle, comma-separated values")
-  private String defaultCapacityData = null;
+  private List<String> defaultCapacityData = null;
 
   // for tariffs that do not have weekly TOU rates, we stick with a 24-hour profile.
   @ConfigurableValue (valueType = "Integer", publish = false, bootstrapState = true,
           description = "periodicity of the customer data model")
   private int defaultProfileSize = 24;
   
-  @ConfigurableValue(valueType = "List", dump = false, bootstrapState = true,
-          description = "Mean observed demand behavior, needed for tariff evaluation")
+  //@ConfigurableValue(valueType = "XML", dump = false, bootstrapState = true,
+  //        description = "Mean observed demand behavior, needed for tariff evaluation")
   // Keeps track of mean demand info lists per hour of day.
   // TODO - this needs to be serialized to the boot record, and restored
   //        in sim-mode startup.
@@ -161,8 +162,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       demandInfoMeanCounter = new int[defaultProfileSize];
     }
 
-    // set up the subscription-state mapping
-    subState = new HashMap<>();
+    // set up the tariff information map
+    //subState = new HashMap<>();
     tariffInfo = new HashMap<>();
 
     //if 
@@ -223,10 +224,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
         log.error("Empty default capacity data");
         return null;
       }
-      String[] vals = defaultCapacityData.split("-");
-      double[] dcp = new double[vals.length];
-      for (int i = 0; i < vals.length; i++) {
-        dcp[i] = Double.valueOf(vals[i]) * getPopulation();
+      double[] dcp = new double[defaultCapacityData.size()];
+      int index = 0;
+      for (String item : defaultCapacityData) {
+        dcp[index++] = Double.valueOf(item) * getPopulation();
       }
       defaultCapacityProfile = new CapacityProfile(dcp, lastSunday());
     }
@@ -234,7 +235,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   }
 
   // test-support method, package visibility
-  void setDefaultCapacityData (String data)
+  void setDefaultCapacityData (List<String> data)
   {
     defaultCapacityData = data;
   }
@@ -345,6 +346,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return subState.get(sub);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void step ()
   {
@@ -362,19 +364,27 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     if (0 == subs.size()) {
       log.error("No subscriptions at step {}", timeslotIndex);
     }
-    else if (1 == subs.size()) {
-      // We just have the initial subscription.
-      // We must decorate it with its StorageState and TariffInfo,
+    else if (null == subState) {
+      // First step, could be boot or sim session.
+      // We decorate initial subscription with StorageState and TariffInfo,
       // and initialize the state if we're in a sim session.
       TariffSubscription sub = subs.get(0);
+      TariffInfo ti = new TariffInfo(this, sub.getTariff());
+      ti.setCapacityProfile(getDefaultCapacityProfile());
       StorageState initialSS = new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
               .withUnitCapacity(getChargerCapacity());
       setStorageState(sub, initialSS);
-      if (null != storageRecord)
+      if (null != storageRecord) {
         // sim session
-        initialSS.restoreState(timeslotIndex, storageRecord);
-      TariffInfo ti = new TariffInfo(this, sub.getTariff());
-      ti.setCapacityProfile(getDefaultCapacityProfile());
+        initialSS.restoreState(timeslotIndex,
+                               (List<Object>) service
+                               .getMessageConverter()
+                               .fromXML((String) storageRecord));
+      }
+      if (null != demandRecord) {
+        initDemandInfoMean((int) ((List<Object>)demandRecord).get(0),
+                           (List<List<Object>>) ((List<Object>)demandRecord).get(1));
+      }
     }
 
     if (timeslotIndex > 0) {
@@ -479,6 +489,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
    * For this we need to know the timeslot index of the first timeslot in the
    * sim session.
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void saveBootstrapState ()
   {
@@ -491,7 +502,16 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     TariffSubscription sub = subs.get(0);
     StorageState finalState = getStorageState(sub);
-    storageRecord = finalState.gatherState(timeslot);
+    storageRecord =
+            service.getMessageConverter().toXML(finalState.gatherState(timeslot));
+    if (demandInfoMeanCount % demandInfoMean.size() != 0) {
+      log.error("demandInfoMeanCount {} not a multiple of profile size {}",
+                demandInfoMeanCount, defaultProfileSize);
+    }
+    int count = demandInfoMeanCount / demandInfoMean.size();
+    demandRecord = new ArrayList<Object>();
+    ((ArrayList<Object>) demandRecord).add(demandInfoMean);
+    demandRecord = service.getMessageConverter().toXML(demandRecord);
   }
 
   /**
@@ -519,6 +539,23 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
 
     return demandInfo;
+  }
+
+  private void initDemandInfoMean (int count,
+                                   List<List<Object>> info)
+  {
+    // First, we populate the demandInfoMean structure
+    demandInfoMean = new ArrayList<>();
+    for (List<Object> des : info) {
+      ArrayList<DemandElement> row = new ArrayList<>();
+      for (DemandElement de : row) {
+        row.add(de);
+      }
+      demandInfoMean.add(row);
+    }
+    // Second, we have to reconstruct the demandInfoMeanCounter
+    demandInfoMeanCounter = new int[demandInfoMean.size()];
+    Arrays.fill(demandInfoMeanCounter, count);
   }
   
   private void updateDemandInfoMean (List<DemandElement> demandInfo, int hod)
@@ -571,7 +608,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
         }
         else {
           // otherwise the horizon is longer than the mean horizon,
-          // so we add this one to the end
+          // so we add this one to the end. Probably we should make sure
+          // de,horizon is currentDemandInfoMean.size() + 1.
           currentDemandInfoMean.add(de);          
         }
       }
