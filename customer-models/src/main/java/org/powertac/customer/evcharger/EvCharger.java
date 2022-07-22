@@ -62,6 +62,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           dump = true, description = "Population of chargers")
   private double population = 1000.0;
 
+  @ConfigurableValue(valueType = "Integer", publish = true, bootstrapState = true,
+          dump = true, description = "Minimum population subscribing to a specific tariff")
+  private int minimumChunkSize = 20;
+
   @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
           dump = true, description = "Individual Charger capacity in kW")
   private double chargerCapacity = 8.0;
@@ -170,7 +174,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
-    tariffEvaluator.withInertia(0.5).withPreferredContractDuration(14);
+    tariffEvaluator.withInertia(0.5)
+    .withPreferredContractDuration(14)
+    .withChunkSize(minimumChunkSize);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
     tariffEvaluator.initializeRegulationFactors(-0.1*population, 0.0, 0.1*population);
     demandSampler = new DemandSampler();
