@@ -467,8 +467,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
                              double actualDemand, double minDemand, double maxDemand)
   {
     return new RegulationCapacity(sub,
-                                  actualDemand - minDemand,
-                                  actualDemand - maxDemand);
+                                  (actualDemand - minDemand)
+                                  / sub.getCustomersCommitted(),
+                                  (actualDemand - maxDemand)
+                                  / sub.getCustomersCommitted());
   }
 
   // -------------------------- Evaluate tariffs ------------------------
