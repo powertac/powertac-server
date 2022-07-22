@@ -322,6 +322,7 @@ public class CompetitionSetupService
     catch (ConfigurationException e) {
       error = "Error setting configuration";
     }
+    logService.stopLog();
     return error;
   }
 
@@ -405,6 +406,7 @@ public class CompetitionSetupService
     catch (ConfigurationException e) {
       error = "Error setting configuration " + config;
     }
+    logService.stopLog();
     return error;
   }
 

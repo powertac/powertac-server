@@ -946,7 +946,7 @@ public class CompetitionControlService
     }
     jmsManagementService.stop();
     
-    logService.stopLog();
+    //logService.stopLog(); -- see Issue #1138
   }
 
   // ---------------- API contract -------------
