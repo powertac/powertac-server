@@ -544,14 +544,15 @@ public class StorageState
    * so here we must parse the string.
    */
   @SuppressWarnings("unchecked")
-  public void restoreState (int timeslot, List<Object> bootRecord)
+  public void restoreState (int timeslot, Object bootRecord)
   {
     // This is easy using XStream.
     int arrayLength = 1;
+    List record = (List<Object>) bootRecord;
     //while (!complete) {
-    int ts = (int) bootRecord.get(0);
-    for (int index = 1; index < bootRecord.size(); index++) {
-      StorageElement element = (StorageElement) bootRecord.get(index);
+    int ts = (int) record.get(0);
+    for (int index = 1; index < record.size(); index++) {
+      StorageElement element = (StorageElement) record.get(index);
       putElement(ts++, element);
     }
   }

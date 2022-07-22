@@ -376,14 +376,16 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       setStorageState(sub, initialSS);
       if (null != storageRecord) {
         // sim session
-        initialSS.restoreState(timeslotIndex,
-                               (List<Object>) service
-                               .getMessageConverter()
-                               .fromXML((String) storageRecord));
+        initialSS.restoreState(timeslotIndex, storageRecord);
+//                               (List<Object>) service
+//                               .getMessageConverter()
+//                               .fromXML((String) storageRecord));
       }
       if (null != demandRecord) {
-        initDemandInfoMean((int) ((List<Object>)demandRecord).get(0),
-                           (List<List<Object>>) ((List<Object>)demandRecord).get(1));
+        //Object data = service.getMessageConverter().fromXML(demandRecord);
+        List<Object> data = (List<Object>) demandRecord;
+        initDemandInfoMean((int) data.get(0),
+                           (List<List<Object>>) data.get(1));
       }
     }
 
@@ -493,6 +495,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   @Override
   public void saveBootstrapState ()
   {
+    log.info("saveBootstrapState");
     int timeslot = service.getTimeslotRepo().currentSerialNumber();
     List<TariffSubscription> subs =
       service.getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(getCustomerInfo());
@@ -509,9 +512,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
                 demandInfoMeanCount, defaultProfileSize);
     }
     int count = demandInfoMeanCount / demandInfoMean.size();
-    demandRecord = new ArrayList<Object>();
-    ((ArrayList<Object>) demandRecord).add(demandInfoMean);
-    demandRecord = service.getMessageConverter().toXML(demandRecord);
+    ArrayList<Object> demandData = new ArrayList<>();
+    demandData.add(count);
+    demandData.add(demandInfoMean);
+    demandRecord = service.getMessageConverter().toXML(demandData);
   }
 
   /**

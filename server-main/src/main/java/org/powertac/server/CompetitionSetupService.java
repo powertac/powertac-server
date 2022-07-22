@@ -748,6 +748,7 @@ public class CompetitionSetupService
     List<BootstrapState> collectors =
         SpringApplicationContext.listBeansOfType(BootstrapState.class);
     for (BootstrapState collector : collectors) {
+      log.info("Calling saveBootstrapState() on collector {}", collector.getClass().getName());
       collector.saveBootstrapState();
     }
     Properties result = serverProps.getBootstrapState();

@@ -88,10 +88,10 @@ implements InitializationService, BootstrapState, NewTariffListener,
   private TariffSubscriptionRepo tariffSubscriptionRepo;
 
   @Autowired
-  private TariffMarket tariffMarketService;
+  private XMLMessageConverter messageConverter;
 
   @Autowired
-  private XMLMessageConverter messageConverter;
+  private TariffMarket tariffMarketService;
 
   // Customer model collection
   //private ArrayList<Class<AbstractCustomerDeprecated>> modelTypes;
@@ -166,11 +166,13 @@ implements InitializationService, BootstrapState, NewTariffListener,
   @Override
   public void saveBootstrapState ()
   {
-    serverConfig.saveBootstrapState(models);
+    log.info("SaveBootstrapState");
     for (AbstractCustomer model : models) {
       // some models have to save local state
+      log.info("Calling saveBootstrapState() on {}", model.getClass().getName());
       model.saveBootstrapState();
     }
+    serverConfig.saveBootstrapState(models);
   }
 
   // ==============================
