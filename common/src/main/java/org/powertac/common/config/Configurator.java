@@ -418,6 +418,7 @@ public class Configurator
   public void gatherBootstrapState (Object thing,
                                     ConfigurationRecorder recorder)
   {
+    log.info("gatherBootstrapState for {}", thing.getClass().getName());
     if (thing instanceof List) {
       gatherBootstrapList((List<Object>)thing, recorder);
     }
@@ -446,8 +447,8 @@ public class Configurator
           log.error("Null name for " + thing.toString());
         }
         else {
-          //log.info("gathering bootstrap state for " + thingClass.getName()
-          //         + " " + name);
+          log.info("gathering bootstrap state for " + thingClass.getName()
+                   + " " + name);
           gatherConfiguration(thing, (String)name, recorder,
                               prop -> prop.cv.bootstrapState());
         }
