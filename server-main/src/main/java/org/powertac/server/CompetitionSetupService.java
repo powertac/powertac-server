@@ -538,6 +538,12 @@ public class CompetitionSetupService
       }
     };
     session.start();
+    try {
+      session.join();
+    }
+    catch (InterruptedException e) {
+      log.error("Unexpected", e);;
+    }
   }
 
   // Runs a simulation session
@@ -572,6 +578,12 @@ public class CompetitionSetupService
       }
     };
     session.start();
+    try {
+      session.join();
+    }
+    catch (InterruptedException e) {
+      log.error("Unexpected", e);;
+    }
   }
 
   // copied to BootstrapDataRepo
