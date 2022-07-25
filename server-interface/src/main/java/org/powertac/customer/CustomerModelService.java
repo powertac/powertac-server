@@ -166,10 +166,10 @@ implements InitializationService, BootstrapState, NewTariffListener,
   @Override
   public void saveBootstrapState ()
   {
-    log.info("SaveBootstrapState");
+    //log.info("SaveBootstrapState");
     for (AbstractCustomer model : models) {
       // some models have to save local state
-      log.info("Calling saveBootstrapState() on {}", model.getClass().getName());
+      //log.info("Calling saveBootstrapState() on {}", model.getClass().getName());
       model.saveBootstrapState();
     }
     serverConfig.saveBootstrapState(models);

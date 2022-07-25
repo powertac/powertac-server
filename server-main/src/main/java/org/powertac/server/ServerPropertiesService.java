@@ -270,8 +270,8 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   @Override
   public void saveBootstrapState (Object thing)
   {
-    //thing is a list
-    log.info("saveBootstrapState");
+    //thing can be a list
+    //log.info("saveBootstrapState");
     if (null == bootstrapStateRecorder)
       bootstrapStateRecorder = new ConfigurationPublisher();
     configurator.gatherBootstrapState(thing, bootstrapStateRecorder);
