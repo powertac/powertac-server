@@ -337,16 +337,24 @@ class EvChargerTest
 
     DateTime now =
             new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    timeService.setCurrentTime(now.toInstant());
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
+    when(mockTimeslotRepo.currentSerialNumber())
+    .thenReturn(0);
 
-    //double chargerCapacity = 5.0; //kW
     ArrayList<String> data =
             new ArrayList<>(Arrays.asList("3.0", "3.0", "3.0", "3.0", "3.0", "3.0", "3.0", "4.0",
                                           "4.0", "4.0", "3.0", "3.0", "4.0", "4.0", "4.0", "4.0",
                                           "4.0", "4.0", "5.0", "6.0", "7.0", "6.0", "5.0", "4.0"));
     uut.setDefaultCapacityData(data);
-    // TODO - test something
+
+    // now we step and make sure everything is set up
+    uut.step();
+
+    StorageState ss = uut.getStorageState(defaultSub);
+    assertNotNull(ss);
+    assertEquals(defaultSub, ss.getSubscription());
   }
 
   @Test
@@ -368,17 +376,10 @@ class EvChargerTest
     DateTime now =
             new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     timeService.setCurrentTime(now.toInstant());
-//    ArrayList<Double> data =
-//            new ArrayList<>(Arrays.asList(3.0, 3.0, 3.0, 3.0, 3.0, 3.0,
-//                                          3.0, 4.0, 4.0, 4.0, 3.0, 3.0,
-//                                          4.0, 4.0, 4.0, 4.0, 4.0, 4.0,
-//                                          5.0, 6.0, 7.0, 6.0, 5.0, 4.0));
-//    uut.setDefaultCapacityData(data);
-    //uut.initialize();
+
     // default subscription happens in CustomerModelService
     TariffSubscription defaultSub =
             subscribeTo (uut, evTariff, uut.getPopulation());
-    //tariffSubscriptionRepo.add(defaultSub);
     uut.handleInitialSubscription(tariffSubscriptionRepo
                                   .findActiveSubscriptionsForCustomer(uut.getCustomerInfo()));
 
@@ -393,6 +394,9 @@ class EvChargerTest
     StorageState ss = uut.getStorageState(defaultSub);
     assertNotNull(ss);
     assertEquals(defaultSub, ss.getSubscription());
+
+    TariffInfo ti = uut.getTariffInfo(evTariff);
+    assertEquals(uut.getDefaultCapacityProfile(), ti.getCapacityProfile());
   }
 
   /**

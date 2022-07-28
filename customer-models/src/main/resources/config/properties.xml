@@ -96,6 +96,11 @@
         <nominalDemandBias>0.5</nominalDemandBias>
         <model>residential_ev_1.xml</model>
         <defaultProfileSize>24</defaultProfileSize>
+        <!--  tariff eval parameters -->
+        <evalInertia>0.9</evalInertia>
+        <minChunkSize>50</minChunkSize>
+        <evalRationality>0.92</evalRationality>
+        <evaluateAll>true</evaluateAll>
       </residential_ev>
     </evCharger>
   </evcharger>

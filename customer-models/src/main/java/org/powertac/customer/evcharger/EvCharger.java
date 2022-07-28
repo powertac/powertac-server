@@ -98,6 +98,18 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   // or a bit less than 4 kWh for a vehicle that drives 20000 km/year and gets around 2.2 kWh/km
   private CapacityProfile defaultCapacityProfile = null;
 
+  @ConfigurableValue (valueType = "Double", publish = false,
+          description = "Probability customer will ignore tariff publications")
+  private double evalInertia = 0.9;
+
+  @ConfigurableValue (valueType = "Double", publish = false,
+          description = "Probability customer will ignore tariff publications")
+  private double evalRationality = 0.9;
+
+  @ConfigurableValue (valueType = "Boolean", publish = false,
+          description = "If true, then re-evaluate all tariffs in each cycle")
+  private boolean evaluateAll = true;
+
   @ConfigurableValue (valueType = "List", dump = false,
           description = "default expected hourly consumption in kWh/vehicle, comma-separated values")
   private List<String> defaultCapacityData = null;
@@ -110,8 +122,6 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   //@ConfigurableValue(valueType = "XML", dump = false, bootstrapState = true,
   //        description = "Mean observed demand behavior, needed for tariff evaluation")
   // Keeps track of mean demand info lists per hour of day.
-  // TODO - this needs to be serialized to the boot record, and restored
-  //        in sim-mode startup.
   private ArrayList<ArrayList<DemandElement>> demandInfoMean;
   private int[] demandInfoMeanCounter;
 
@@ -176,7 +186,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     tariffEvaluator = createTariffEvaluator(this);
     tariffEvaluator.withInertia(0.5)
     .withPreferredContractDuration(14)
-    .withChunkSize(minimumChunkSize);
+    .withChunkSize(minimumChunkSize)
+    .withInertia(evalInertia)
+    .withRationality(evalRationality)
+    .withEvaluateAllTariffs(evaluateAll);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
     tariffEvaluator.initializeRegulationFactors(-0.1*population, 0.0, 0.1*population);
     demandSampler = new DemandSampler();
@@ -375,7 +388,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       // We decorate initial subscription with StorageState and TariffInfo,
       // and initialize the state if we're in a sim session.
       TariffSubscription sub = subs.get(0);
-      TariffInfo ti = new TariffInfo(this, sub.getTariff());
+      TariffInfo ti = getTariffInfo(sub.getTariff());
       ti.setCapacityProfile(getDefaultCapacityProfile());
       StorageState initialSS = new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
               .withUnitCapacity(getChargerCapacity());
@@ -400,8 +413,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       for (TariffSubscription sub : subs) {
         StorageState ss = getStorageState(sub);
         // regulation must be distributed before distributing future demand
-        log.info("{} regulation for sub {} = {}", getCustomerInfo().getName(),
-                 sub.getId(), sub.getRegulation());
+        log.info("{} regulation for tariff {} = {}", getCustomerInfo().getName(),
+                 sub.getTariff().getId(), sub.getRegulation());
         ss.distributeRegulation(timeslotIndex, sub.getRegulation());
         // after regulation, we must collapse StorageState arrays and rebalance
         ss.collapseElements(timeslotIndex);
