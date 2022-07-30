@@ -16,6 +16,7 @@
 package org.powertac.server;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.*;
@@ -68,6 +69,7 @@ public class CompetitionControlService
   implements CompetitionControl
 {
   static private Logger log = LogManager.getLogger(CompetitionControlService.class);
+  final Level BFAULT = Level.forName("BFAULT", 250);
 
   private Competition competition;
 
@@ -814,7 +816,7 @@ public class CompetitionControlService
       for (Broker broker : brokerRepo.list()) {
         if (badQueues.contains(broker.toQueueName())) {
           // disable broker and revoke all its tariffs
-          log.warn("Disabling unresponsive broker " + broker.getUsername());
+          log.log(BFAULT, "Disabling unresponsive broker " + broker.getUsername());
           broker.setEnabled(false);
         }
       }
