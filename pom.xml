@@ -56,7 +56,7 @@
     <module>distribution-utility</module>
     <module>factored-customer</module>
     <module>genco</module>
-    <!-- <module>household-customer</module> (Issue #1102) -->
+    <module>household-customer</module>
     <module>officecomplex-customer</module>
     <module>logtool-core</module>
     <module>server-main</module>
