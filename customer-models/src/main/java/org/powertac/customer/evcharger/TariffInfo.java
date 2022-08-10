@@ -49,6 +49,8 @@ class TariffInfo
               (int) (TimeService.DAY
                       / Competition.currentCompetition().getTimeslotDuration()); 
     }
+    upRegulationPremium = new double[profileSize];
+    downRegulationPremium = new double[profileSize];
   }
 
   Tariff getTariff ()
