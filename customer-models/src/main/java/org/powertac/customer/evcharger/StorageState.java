@@ -62,7 +62,7 @@ public class StorageState
 
   // Cached values for current timeslot
   //private int cacheTimeslot = -1;
-  //private double epsilon = 0.001;
+  private double epsilon = 0.00001;
   //private double minDemand = 0.0;
   //private double maxDemand = 0.0;
   //private double nominalDemand = 0.0;
@@ -143,12 +143,12 @@ public class StorageState
   // called to scale back values in a state that's losing customers
   private void scaleState(int timeslot, StorageState old, double fraction)
   {
-    if (fraction > 1.0) {
+    if (fraction > (1.0 + epsilon)) {
       // Should not happen
       log.error("updateState called with fraction > 1");
       return;
     }
-    else if (fraction < 0.0) {
+    else if (fraction < -epsilon) {
       log.error("updateState called with negative fraction");
       return;
     }
@@ -344,7 +344,7 @@ public class StorageState
       StorageElement target = getElement(ts);
       // last index, if not already complete, must be folded into the previous index
       int lastIndex = target.getEnergy().length - 1;
-      if (target.getEnergy()[lastIndex] < -0.001) {
+      if (target.getEnergy()[lastIndex] < -epsilon) {
         // very strange
         log.error("negative demand {} timeslot {}", target.getEnergy()[lastIndex], ts);
         target.getEnergy()[lastIndex] = 0.0;
@@ -426,8 +426,8 @@ public class StorageState
         double chunk = getUnitCapacity() * pop[i];
         double ratio =
                 (energy[i] - (chunk * (energy.length - i - 1))) / chunk;
-        if (ratio > 0.5) {
-          if (ratio > 1.5) {
+        if (ratio > (0.5 + epsilon)) {
+          if (ratio > (1.5 + epsilon)) {
             // sanity check -- should not happen
             log.error("Ratio {} > 1.0 in ts {} entry {}", ratio, ts, i);
             ratio = 1.0;
@@ -581,7 +581,7 @@ public class StorageState
 
   StorageState withUnitCapacity (double capacity)
   {
-    if (unitCapacity < 0.0) {
+    if (unitCapacity < -epsilon) {
       log.error("Invalid unit capacity {}", capacity);
     }
     else {
