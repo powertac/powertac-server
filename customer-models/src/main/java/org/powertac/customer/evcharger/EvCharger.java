@@ -687,4 +687,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     nominalDemandBias = bias;
     return this;
   }
+
+  TariffEvaluator getTariffEvaluator ()
+  {
+    return tariffEvaluator;
+  }
 }

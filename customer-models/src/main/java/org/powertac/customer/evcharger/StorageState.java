@@ -429,7 +429,7 @@ public class StorageState
         if (ratio > (0.5 + epsilon)) {
           if (ratio > (1.5 + epsilon)) {
             // sanity check -- should not happen
-            log.error("Ratio {} > 1.0 in ts {} entry {}", ratio, ts, i);
+            log.error("Ratio {} > 1.5 in ts {} entry {}", ratio, ts, i);
             ratio = 1.0;
           }
           // need to get ratio down to 0.5 by moving population & energy left

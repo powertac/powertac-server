@@ -100,6 +100,7 @@ class TariffInfo
     tariffCost = new double[profileSize];
     double costSum = 0.0;
     long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
+    // collect per-kWh cost for each ts in the profile
     for (int index = 0; index < profileSize; index++) {
       tariffCost[index] = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
       maxTariffCost = Math.min(maxTariffCost, tariffCost[index]);

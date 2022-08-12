@@ -35,7 +35,9 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
+import org.powertac.common.RegulationRate;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
@@ -92,13 +94,13 @@ class EvChargerTest
   private Accounting accountingService;
 
   private CustomerInfo customer;
-  private TariffSpecification mySpec;
-  private Tariff myTariff;
-  private TariffSubscription mySub;
+  //private TariffSpecification mySpec;
+  //private Tariff myTariff;
+  //private TariffSubscription mySub;
   private EvCharger uut;
 
   private TariffSubscription oldSub;
-  private StorageState oldSS;
+  //private StorageState oldSS;
 
   /**
    * @throws java.lang.Exception
@@ -142,8 +144,8 @@ class EvChargerTest
                                     addRate(new Rate().withValue(-0.6));
     defaultConsumption = new Tariff(dcSpec);
     initTariff(defaultConsumption);
-    //when(tariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
-    //    .thenReturn(defaultConsumption);
+    when(tariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
+        .thenReturn(defaultConsumption);
 
     // other brokers
     sally = new Broker("Sally");
@@ -155,6 +157,8 @@ class EvChargerTest
                                     addRate(new Rate().withValue(0.1));
     evTariff = new Tariff(evSpec);
     initTariff(evTariff);
+    when(tariffMarket.getDefaultTariff(PowerType.ELECTRIC_VEHICLE))
+    .thenReturn(evTariff);
 
     // Set up serverProperties mock
     //serverConfig = mock(ServerConfiguration.class);
@@ -454,6 +458,97 @@ class EvChargerTest
     dcpn = cp.getProfile();
     assertEquals(24, dcpn.length);
     assertEquals(4000.0, dcpn[7], 1e-6);    
+  }
+
+  @Test
+  public void testTariffEvalSimple ()
+  {
+    
+  }
+
+  @Test
+  public void testTariffEvalTouDaily ()
+  {
+    
+  }
+
+  @Test
+  public void testTariffEvalWeekly ()
+  {
+    uut.initialize();
+    TariffEvaluator te = uut.getTariffEvaluator();
+    ReflectionTestUtils.setField(te, "tariffRepo", tariffRepo);
+    ReflectionTestUtils.setField(te, "tariffSubscriptionRepo", tariffSubscriptionRepo);
+
+    DateTime now =
+            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    when(mockTimeslotRepo.currentTimeslot())
+    .thenReturn(new Timeslot(0, now.toInstant()));
+    
+    TariffSpecification spec =
+            new TariffSpecification(bob, PowerType.THERMAL_STORAGE_CONSUMPTION)
+            .withPeriodicPayment(-1.0);
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(1).withWeeklyEnd(5)
+                 .withDailyBegin(0).withDailyEnd(23)
+                 .withValue(-0.1077));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(0).withDailyEnd(2)
+                 .withValue(-0.111));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(2).withDailyEnd(4)
+                 .withValue(-0.106));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(4).withDailyEnd(6)
+                 .withValue(-0.110));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(6).withDailyEnd(8)
+                 .withValue(-0.104));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(8).withDailyEnd(10)
+                 .withValue(-0.113));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(10).withDailyEnd(22)
+                 .withValue(-0.103));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(12).withDailyEnd(14)
+                 .withValue(-0.108));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(14).withDailyEnd(16)
+                 .withValue(-0.105));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(16).withDailyEnd(18)
+                 .withValue(-0.115));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(18).withDailyEnd(20)
+                 .withValue(-0.113));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(20).withDailyEnd(22)
+                 .withValue(-0.107));
+    spec.addRate(new Rate()
+                 .withWeeklyBegin(6).withWeeklyEnd(7)
+                 .withDailyBegin(22).withDailyEnd(0)
+                 .withValue(-0.109));
+    spec.addRate(new RegulationRate()
+                 .withUpRegulationPayment(0.0735)
+                 .withDownRegulationPayment(-.025));
+    Tariff tariff1 = new Tariff(spec);
+    initTariff(tariff1);
+    ArrayList<Tariff> tariffs = new ArrayList<>();
+    tariffs.add(tariff1);
+
+//    uut.evaluateTariffs(tariffs);
   }
 
   @Test
