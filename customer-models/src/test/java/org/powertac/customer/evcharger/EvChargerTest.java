@@ -144,6 +144,7 @@ class EvChargerTest
                                     addRate(new Rate().withValue(-0.6));
     defaultConsumption = new Tariff(dcSpec);
     initTariff(defaultConsumption);
+    defaultConsumption.setState(Tariff.State.OFFERED);
     when(tariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
         .thenReturn(defaultConsumption);
 
@@ -154,9 +155,10 @@ class EvChargerTest
     TariffSpecification evSpec =
             new TariffSpecification(defaultBroker,
                                     PowerType.ELECTRIC_VEHICLE).
-                                    addRate(new Rate().withValue(0.1));
+                                    addRate(new Rate().withValue(-0.3));
     evTariff = new Tariff(evSpec);
     initTariff(evTariff);
+    evTariff.setState(Tariff.State.OFFERED);
     when(tariffMarket.getDefaultTariff(PowerType.ELECTRIC_VEHICLE))
     .thenReturn(evTariff);
 
@@ -204,6 +206,19 @@ class EvChargerTest
     ReflectionTestUtils.setField(sub, "timeService", timeService);
     ReflectionTestUtils.setField(sub, "tariffMarketService", tariffMarket);
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
+  }
+
+  private void setConfig()
+  {
+    TreeMap<String, String> map = new TreeMap<>();
+    map.put("customer.evcharger.evCharger.population", "1000");
+    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
+    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
+    map.put("customer.evcharger.evCharger.defaultCapacityData",
+            "1.55, 1.46, 1.36, 1.25, 1.16, 1.02, 0.80, 0.51, 0.34, 0.30, 0.32, 0.37, 0.48, 0.62, 0.78, 0.96, 1.13, 1.32, 1.49, 1.60, 1.69, 1.74, 1.73, 1.66");
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
   }
 
   @Test
@@ -365,15 +380,7 @@ class EvChargerTest
   public void testFirstStepSim ()
   {
     // need to configure first
-    TreeMap<String, String> map = new TreeMap<>();
-    map.put("customer.evcharger.evCharger.population", "1000");
-    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
-    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
-    map.put("customer.evcharger.evCharger.defaultCapacityData",
-            "1.55, 1.46, 1.36, 1.25, 1.16, 1.02, 0.80, 0.51, 0.34, 0.30, 0.32, 0.37, 0.48, 0.62, 0.78, 0.96, 1.13, 1.32, 1.49, 1.60, 1.69, 1.74, 1.73, 1.66");
-    map.put("customer.evcharger.evCharger.model", "residential_ev_1");
-    MapConfiguration mapConfig = new MapConfiguration(map);
-    config.setConfiguration(mapConfig);
+    setConfig();
     config.configureSingleton(uut);
 
     uut.initialize();
@@ -475,18 +482,40 @@ class EvChargerTest
   @Test
   public void testTariffEvalWeekly ()
   {
+    // need to configure first
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.evcharger.evCharger.population", "1000");
+    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
+    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
+    map.put("customer.evcharger.evCharger.defaultCapacityData",
+            "1.55, 1.46, 1.36, 1.25, 1.16, 1.02, 0.80, 0.51, 0.34, 0.30, 0.32, 0.37, 0.48, 0.62, 0.78, 0.96, 1.13, 1.32, 1.49, 1.60, 1.69, 1.74, 1.73, 1.66");
+    //map.put("customer.evcharger.evCharger.model", "residential_ev_1");
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    config.configureSingleton(uut);
+
     uut.initialize();
+
     TariffEvaluator te = uut.getTariffEvaluator();
     ReflectionTestUtils.setField(te, "tariffRepo", tariffRepo);
     ReflectionTestUtils.setField(te, "tariffSubscriptionRepo", tariffSubscriptionRepo);
+    ReflectionTestUtils.setField(te, "tariffMarket", tariffMarket);
 
     DateTime now =
             new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
+
+    // build up mean demand data
+    int repeat = 168;
+    for (int i = 0; i < repeat; i++) {
+      List<DemandElement> demand = uut.getDemandInfo(now);
+      now = now.plus(TimeService.HOUR);
+    }
     
     TariffSpecification spec =
-            new TariffSpecification(bob, PowerType.THERMAL_STORAGE_CONSUMPTION)
+            new TariffSpecification(bob, PowerType.ELECTRIC_VEHICLE)
             .withPeriodicPayment(-1.0);
     spec.addRate(new Rate()
                  .withWeeklyBegin(1).withWeeklyEnd(5)
@@ -544,11 +573,15 @@ class EvChargerTest
                  .withUpRegulationPayment(0.0735)
                  .withDownRegulationPayment(-.025));
     Tariff tariff1 = new Tariff(spec);
+    ReflectionTestUtils.setField(tariff1, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff1, "tariffRepo", tariffRepo);
     initTariff(tariff1);
+    tariff1.setState(Tariff.State.OFFERED);
+
+    // TODO -- the list of tariffs is not used, but API needs revision
     ArrayList<Tariff> tariffs = new ArrayList<>();
     tariffs.add(tariff1);
-
-//    uut.evaluateTariffs(tariffs);
+    uut.evaluateTariffs(tariffs);
   }
 
   @Test

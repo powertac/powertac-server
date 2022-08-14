@@ -566,8 +566,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return demandInfo;
   }
 
-  private void initDemandInfoMean (int count,
-                                   List<List<Object>> info)
+  // package visibility to support testing
+  void initDemandInfoMean (int count,
+                           List<List<Object>> info)
   {
     // First, we populate the demandInfoMean structure
     demandInfoMean = new ArrayList<>();
@@ -583,7 +584,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     Arrays.fill(demandInfoMeanCounter, count);
   }
   
-  private void updateDemandInfoMean (List<DemandElement> demandInfo, int hod)
+  // package visibility to support testing
+  void updateDemandInfoMean (List<DemandElement> demandInfo, int hod)
   {
     // We clone the DemandElements so that the modifications to the
     // distributions do not affect the actual demandInfo object on the heap.

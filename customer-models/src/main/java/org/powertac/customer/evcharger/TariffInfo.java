@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.Competition;
@@ -13,6 +15,7 @@ import org.powertac.common.TimeService;
 
 class TariffInfo
 {
+  static private Logger log = LogManager.getLogger(TariffInfo.class.getName());
   private final EvCharger evCharger;
   private Tariff tariff;
   private int profileSize;
@@ -42,12 +45,14 @@ class TariffInfo
       // use a weekly profile
       profileSize = 
               (int) (TimeService.WEEK
-                      / Competition.currentCompetition().getTimeslotDuration()); 
+                      / Competition.currentCompetition().getTimeslotDuration());
+      log.info("Weekly profile size: {}", profileSize);
     }
     else {
       profileSize = 
               (int) (TimeService.DAY
                       / Competition.currentCompetition().getTimeslotDuration()); 
+      log.info("Daily profile size: {}", profileSize);
     }
     upRegulationPremium = new double[profileSize];
     downRegulationPremium = new double[profileSize];
@@ -134,9 +139,10 @@ class TariffInfo
     // now do the same thing to fill up the profile array
     // handle the case where the profile array is larger than the demandInfo map
     int repeat = 1;
-    if (profileSize > demandInfo.size())
+    if (profileSize > demandInfo.size()) {
       repeat = (int) Math.ceil(((double) profileSize)
                                / ((double) demandInfo.size()));
+    }
     double[] profileData = new double[demandInfo.size() * repeat];
     evalTime = lastSunday;
     for (int i = 0; i < repeat; i++) {

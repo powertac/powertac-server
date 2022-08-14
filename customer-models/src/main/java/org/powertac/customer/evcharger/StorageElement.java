@@ -46,19 +46,19 @@ import java.util.Arrays;
       this.population = population;
     }
 
-//    void extendArrays (int newLength)
-//    {
-//      if (population.length < newLength) {
-//        double[] newPop = new double[newLength];
-//        double[] newEnergy = new double[newLength];
-//        for (int i = 0; i < population.length; i++) {
-//          newPop[i] = population[i];
-//          newEnergy[i] = energy[i];
-//        }
-//        population = newPop;
-//        energy = newEnergy;
-//      }
-//    }
+    void extendArrays (int newLength)
+    {
+      if (population.length < newLength) {
+        double[] newPop = new double[newLength];
+        double[] newEnergy = new double[newLength];
+        for (int i = 0; i < population.length; i++) {
+          newPop[i] = population[i];
+          newEnergy[i] = energy[i];
+        }
+        population = newPop;
+        energy = newEnergy;
+      }
+    }
 
     // Shrinks energy and population arrays, dropping the final element
     // which is no longer needed

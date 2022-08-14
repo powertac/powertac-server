@@ -220,7 +220,7 @@ public class StorageState
           pop[ix] = nextDe.getNVehicles() * allocations[ix] * ratio;
           energy[ix] = getUnitCapacity() * pop[ix] * (arrayLength - ix - 0.5);
         }
-        //se.extendArrays(allocations.length);
+        se.extendArrays(allocations.length);
         se.addCommitments(pop, energy);
         if (elements.hasNext()) {
           // go again if we haven't finished the list
