@@ -238,6 +238,10 @@ public class StorageState
       for (int i = 0; i < (int) Math.min(6,  horizon); i++) {
         buf.append("\n   ");
         StorageElement se = getElement(timeslot + i);
+        if (null == se) {
+          log.error("Null StorageElement at {} of {}",
+                    timeslot, maxTimeslot);
+        }
         buf.append(se.toString());
       }
       log.info(buf);
@@ -308,15 +312,23 @@ public class StorageState
     // We now know how much we could use, and how much we have
     // The task now is to spread out the actual capacity evenly across all
     // the remaining chargers
-    double capacityRatio = remainingCapacity / remainingDemand;
-    for (int ts = timeslot + 1;
-            ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
-      target = getElement(ts);
-      for (int e = 1; e < target.getEnergy().length; e++) {
-        double pop = target.getPopulation()[e];
-        double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[e]);
-        // here's where we allocate energy
-        target.getEnergy()[e] -= hrEnergy * capacityRatio;
+    if (0.0 == remainingDemand) {
+      if (Math.abs(remainingCapacity) > epsilon) {
+        log.error("Remaining capacity = {} with remainingDemand = 0.0",
+                  remainingCapacity);
+      }
+    }
+    else {
+      double capacityRatio = remainingCapacity / remainingDemand;
+      for (int ts = timeslot + 1;
+              ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
+        target = getElement(ts);
+        for (int e = 1; e < target.getEnergy().length; e++) {
+          double pop = target.getPopulation()[e];
+          double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[e]);
+          // here's where we allocate energy
+          target.getEnergy()[e] -= hrEnergy * capacityRatio;
+        }
       }
     }
 
@@ -424,6 +436,9 @@ public class StorageState
       double[] pop = target.getPopulation();
       for (int i = 1; i < energy.length; i++) {
         double chunk = getUnitCapacity() * pop[i];
+        if (0.0 == chunk) {
+          continue;
+        }
         double ratio =
                 (energy[i] - (chunk * (energy.length - i - 1))) / chunk;
         if (ratio > (0.5 + epsilon)) {

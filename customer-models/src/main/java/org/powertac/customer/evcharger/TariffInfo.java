@@ -96,6 +96,7 @@ class TariffInfo
   // and run a full day of demand, then run the
   // prototype DemandInfo sequence and collect
   // data until our DemandProfile is complete.
+  // Values in the demandProfile are per-member
   void generateTouProfile ()
   {
     // we first need to understand the value of flexibility
@@ -144,7 +145,7 @@ class TariffInfo
                                / ((double) demandInfo.size()));
     }
     double[] profileData = new double[demandInfo.size() * repeat];
-    evalTime = lastSunday;
+    //evalTime = lastSunday;
     for (int i = 0; i < repeat; i++) {
       // add a demandInfo.size block to the profile
       for (int hour = 0; hour < demandInfo.size(); hour++) {

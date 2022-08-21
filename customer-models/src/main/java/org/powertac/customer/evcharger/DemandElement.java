@@ -79,11 +79,11 @@ class DemandElement implements Serializable // package visibility
   }
 
   // copy constructor
-  DemandElement (DemandElement de)
+  DemandElement (DemandElement de, double scale)
   {
     super();
     this.horizon = de.horizon;
-    this.nVehicles = de.nVehicles;
+    this.nVehicles = de.nVehicles * scale;
     this.distribution = Arrays.copyOf(de.distribution, de.distribution.length);
   }
 
@@ -139,7 +139,7 @@ class DemandElement implements Serializable // package visibility
 
   public String toString ()
   {
-    return String.format("(h%d, n%.3f, e%s)", horizon, nVehicles, Arrays.toString(distribution));
+    return String.format("(h%d, n%.7f, e%s)", horizon, nVehicles, Arrays.toString(distribution));
   }
   
   @Override

@@ -27,6 +27,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -35,6 +36,7 @@ import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -56,7 +58,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   @ConfigurableValue(valueType = "String", publish = false, bootstrapState = false,
           dump = true, description = "Name of statistical model config file")
-  private String model = "dummy";
+  private String model = "dummy.xml";
 
   @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
           dump = true, description = "Population of chargers")
@@ -83,10 +85,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           description = "State of active chargers at end of boot session")
   private Object storageRecord;
 
-  @ConfigurableValue(valueType = "XML",
-          publish = false, dump = false, bootstrapState = true,
-          description = "Collected demand statistics at end of boot session")
-  private Object demandRecord;
+  //@ConfigurableValue(valueType = "XML",
+  //        publish = false, dump = false, bootstrapState = true,
+  //        description = "Collected demand statistics at end of boot session")
+  //private Object demandRecord;
 
   // Tariff terms could affect this
   @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = false,
@@ -119,17 +121,14 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           description = "periodicity of the customer data model")
   private int defaultProfileSize = 24;
   
-  //@ConfigurableValue(valueType = "XML", dump = false, bootstrapState = true,
-  //        description = "Mean observed demand behavior, needed for tariff evaluation")
-  // Keeps track of mean demand info lists per hour of day.
   private ArrayList<ArrayList<DemandElement>> demandInfoMean;
   private int[] demandInfoMeanCounter;
 
   // The count is the product of the number of timeslots in the default profile,
   // times the number of days that have been averaged by demandInfoMean
-  @ConfigurableValue(valueType = "Integer", publish = false, bootstrapState = true,
-          description = "number of samples represented by demandInfoMean")
-  private int demandInfoMeanCount;
+  //@ConfigurableValue(valueType = "Integer", publish = false, bootstrapState = true,
+  //        description = "number of samples represented by demandInfoMean")
+  //private int demandInfoMeanCount;
 
   private PowerType powerType = PowerType.ELECTRIC_VEHICLE;
   private RandomSeed evalSeed;
@@ -138,6 +137,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private HashMap<Tariff, TariffInfo> tariffInfo;
   private TariffEvaluator tariffEvaluator;
   private DemandSampler demandSampler;
+  private double epsilon = 1e-9; // small number for numeric accuracy testing
 
   /**
    * Default constructor, requires manual setting of name
@@ -169,11 +169,12 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     addCustomerInfo(info);
     ensureSeeds();
 
-    // Initialize data structures for bootstrap session
+    // Initialize demandInfoMean
     if (null == demandInfoMean) {
       demandInfoMean = new ArrayList<ArrayList<DemandElement>>();
-      demandInfoMeanCount = 0;
+      //demandInfoMeanCount = 0;
       demandInfoMeanCounter = new int[defaultProfileSize];
+      //demandInfoMeanWeight = new double[defaultProfileSize];
     }
 
     // set up the tariff information map
@@ -194,6 +195,16 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     tariffEvaluator.initializeRegulationFactors(-0.1*population, 0.0, 0.1*population);
     demandSampler = new DemandSampler();
     demandSampler.initialize(model, getDemandSeed());
+  }
+
+  // Initialize the demandInfoMean structure -- package visibility for testing
+  void initDemandInfoMean ()
+  {
+    int repeat = 168;
+    DateTime currentTime = service.getTimeService().getCurrentDateTime();
+    for (int i = 0; i < repeat; i++) {
+      getDemandInfo(currentTime.plus(i * TimeService.HOUR));
+    }
   }
 
   // Called from CustomerModelService after initialization.
@@ -365,7 +376,6 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return subState.get(sub);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void step ()
   {
@@ -400,11 +410,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 //                               .getMessageConverter()
 //                               .fromXML((String) storageRecord));
       }
-      if (null != demandRecord) {
-        //Object data = service.getMessageConverter().fromXML(demandRecord);
-        List<Object> data = (List<Object>) demandRecord;
-        initDemandInfoMean((int) data.get(0),
-                           (List<List<Object>>) data.get(1));
+      if (0 == demandInfoMean.size()) {
+        log.info("Initializing demandInfoMean");
+        //List<Object> data = (List<Object>) demandRecord;
+        initDemandInfoMean();
       }
     }
 
@@ -427,7 +436,17 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     // in which the lengths of the distribution arrays are equal to horizon + 1
     // get current demand
     List<DemandElement> newDemand = getDemandInfo(currentTime);
-    //log.info("New demand {}", newDemand);
+    if (newDemand.size() < 4) {
+      log.info("short demand sample {}", newDemand.size());
+    }
+    else {
+      for (int i = 0; i < 4; i++) {
+        DemandElement de = newDemand.get(i);
+        log.info("New demand h={} nv={} d={}",
+                 de.getHorizon(), de.getNVehicles(),
+                 Arrays.toString(de.getdistribution()));
+      }
+    }
 
     // adjust for current weather?
 
@@ -528,15 +547,17 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     StorageState finalState = getStorageState(sub);
     storageRecord =
             service.getMessageConverter().toXML(finalState.gatherState(timeslot));
-    if (demandInfoMeanCount % demandInfoMean.size() != 0) {
-      log.error("demandInfoMeanCount {} not a multiple of profile size {}",
-                demandInfoMeanCount, defaultProfileSize);
-    }
-    int count = demandInfoMeanCount / demandInfoMean.size();
-    ArrayList<Object> demandData = new ArrayList<>();
-    demandData.add(count);
-    demandData.add(demandInfoMean);
-    demandRecord = service.getMessageConverter().toXML(demandData);
+//    if (demandInfoMeanCount % demandInfoMean.size() != 0) {
+//      log.error("demandInfoMeanCount {} not a multiple of profile size {}",
+//                demandInfoMeanCount, defaultProfileSize);
+//    }
+//    int count = demandInfoMeanCount / demandInfoMean.size();
+//    log.info("demandInfoMean count = {} from {}/{}",
+//             count, demandInfoMeanCount, demandInfoMean.size());
+//    ArrayList<Object> demandData = new ArrayList<>();
+//    demandData.add(count);
+//    demandData.add(demandInfoMean);
+//    demandRecord = service.getMessageConverter().toXML(demandData);
   }
 
   /**
@@ -553,7 +574,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     try {
       int hod = time.getHourOfDay();
-      demandInfo = demandSampler.sample(hod, (int) population, chargerCapacity);
+      demandInfo = demandSampler.sample(hod, (int) getPopulation(), chargerCapacity);
       updateDemandInfoMean(demandInfo, hod);
     }
     catch (IllegalArgumentException e) {
@@ -567,46 +588,43 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   }
 
   // package visibility to support testing
-  void initDemandInfoMean (int count,
-                           List<List<Object>> info)
-  {
-    // First, we populate the demandInfoMean structure
-    demandInfoMean = new ArrayList<>();
-    for (List<Object> des : info) {
-      ArrayList<DemandElement> row = new ArrayList<>();
-      for (DemandElement de : row) {
-        row.add(de);
-      }
-      demandInfoMean.add(row);
-    }
-    // Second, we have to reconstruct the demandInfoMeanCounter
-    demandInfoMeanCounter = new int[demandInfoMean.size()];
-    Arrays.fill(demandInfoMeanCounter, count);
-  }
+  // Dead code?
+//  void initDemandInfoMean (int count,
+//                           List<List<Object>> info)
+//  {
+//    // First, we populate the demandInfoMean structure
+//    demandInfoMean = new ArrayList<>();
+//    for (List<Object> des : info) {
+//      ArrayList<DemandElement> row = new ArrayList<>();
+//      //for (DemandElement de : row) {
+//      //  row.add(de);
+//      //}
+//      demandInfoMean.add(row);
+//    }
+//    // Second, we have to reconstruct the demandInfoMeanCounter
+//    demandInfoMeanCounter = new int[demandInfoMean.size()];
+//    Arrays.fill(demandInfoMeanCounter, count);
+//  }
   
   // package visibility to support testing
   void updateDemandInfoMean (List<DemandElement> demandInfo, int hod)
   {
-    // We clone the DemandElements so that the modifications to the
-    // distributions do not affect the actual demandInfo object on the heap.
-    //List<DemandElement> newDemandInfo = demandInfo.stream()
-    //        .map(SerializationUtils::clone).collect(Collectors.toList());
-    // Make sure demandInfo is sorted by horizon so that the horizon
-    // corresponds to the List index.
-    //newDemandInfo.sort(Comparator.comparingInt(DemandElement::getHorizon));
-
     if (hod > demandInfoMean.size()) {
       // should not get here
       log.error("demandInfoMean not initialized at tod = {}", hod);
       return;
     }
-    //if (demandInfoMean.isEmpty() && hod == 0
-    //        || demandInfoMean.size() == hod) {
     int count = demandInfoMeanCounter[hod];
+    //double weight = demandInfoMeanWeight[hod];
+    
+    // We clone the DemandElements so that the modifications to the
+    // distributions do not affect the actual demandInfo object on the heap.
+    // We also scale mean values to population = 1.0 for correct tariff eval.
+    double scale = 1.0 / getPopulation();
     if (0 == count) {
       // First entry, clone the demandInfo
       demandInfoMean.add((ArrayList<DemandElement>) demandInfo.stream()
-                         .map(de -> new DemandElement(de))
+                         .map(de -> new DemandElement(de, scale))
                          .collect(Collectors.toList()));      
     }
     else {
@@ -622,28 +640,48 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
                   currentDemandElementMean.getdistribution();
           double[] newEnergyHistogram =
                   new double[currentEnergyHistogram.length];
-          for (int i = 0; i < currentEnergyHistogram.length; i++) {
-            newEnergyHistogram[i] =
-                    (currentEnergyHistogram[i] * count + de.getdistribution()[i])
-                    / (count + 1);
+          // preserve invariant
+          double histogramSum = 0.0;
+          double currentWeight = count * currentDemandElementMean.getNVehicles();
+          if (0.0 != (currentWeight + de.getNVehicles())) {
+            for (int i = 0; i < currentEnergyHistogram.length; i++) {
+              newEnergyHistogram[i] =
+                      (currentEnergyHistogram[i] * currentWeight
+                              + de.getdistribution()[i] * de.getNVehicles())
+                      / (currentWeight + de.getNVehicles());
+              histogramSum += newEnergyHistogram[i];
+            }
+          }
+          if (histogramSum > epsilon) {
+            double invariantError = histogramSum - 1.0;
+            if (Math.abs(invariantError) > epsilon) {
+              // restore invariant
+              double ratio = 1.0 / histogramSum;
+              log.info("DemandInfoMean restoring invariant at hod={} by {}",
+                       hod, ratio);
+              for (int i = 0; i < newEnergyHistogram.length; i++) {
+                newEnergyHistogram[i] *= ratio;
+              }
+            }
           }
           currentDemandElementMean.setDistribution(newEnergyHistogram);
           double meanVehicles =
-                  (currentDemandElementMean.getNVehicles()
-                          * count + de.getNVehicles()) / (count + 1);
+                  ((currentDemandElementMean.getNVehicles() * count)
+                          + (de.getNVehicles() * scale))
+                  / (count + 1);
           currentDemandElementMean.setNVehicles(meanVehicles);
         }
         else {
           // otherwise the horizon is longer than the mean horizon,
           // so we add this one to the end. Probably we should make sure
           // de,horizon is currentDemandInfoMean.size() + 1.
-          currentDemandInfoMean.add(de);          
+          currentDemandInfoMean.add(new DemandElement(de, scale));
         }
       }
     }
     // Finally, we update the per-hour and overall counts
     demandInfoMeanCounter[hod] += 1;
-    demandInfoMeanCount += 1;
+    //demandInfoMeanCount += 1;
   }
   
   public List<ArrayList<DemandElement>> getDemandInfoMean ()
