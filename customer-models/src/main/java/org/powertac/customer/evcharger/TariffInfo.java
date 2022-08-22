@@ -123,19 +123,21 @@ class TariffInfo
                                        evCharger.getMaxDemandHorizon())
             .withUnitCapacity(evCharger.getChargerCapacity());
     List<ArrayList<DemandElement>> demandInfo = evCharger.getDemandInfoMean();
-    evalTime = lastSunday;
+    //evalTime = lastSunday;
     // we first run a full day to seed the SS
-    for (int hour = 0; hour < demandInfo.size(); hour++) {
-      List<DemandElement> demand = demandInfo.get(hour);
-      ss.distributeDemand(hour, demand, 1.0);
-      double[] limits = ss.getMinMax(hour);
+    int timeslot = 0;
+    while (timeslot < demandInfo.size()) {
+      List<DemandElement> demand = demandInfo.get(timeslot);
+      ss.distributeDemand(timeslot, demand, 1.0);
+      double[] limits = ss.getMinMax(timeslot);
       // determine usage, but don't record
-      double usage = determineUsage(hour, limits);
-      ss.distributeUsage(hour, usage);
+      double usage = determineUsage(timeslot, limits);
+      ss.distributeUsage(timeslot, usage);
       // normally these steps happen after distributing regulation
-      ss.collapseElements(hour + 1);
-      ss.rebalance(hour + 1);
-      evalTime = evalTime.plus(increment);        
+      ss.collapseElements(timeslot + 1);
+      ss.rebalance(timeslot + 1);
+      //evalTime = evalTime.plus(increment);
+      timeslot += 1;
     }
     // now do the same thing to fill up the profile array
     // handle the case where the profile array is larger than the demandInfo map
@@ -146,20 +148,24 @@ class TariffInfo
     }
     double[] profileData = new double[demandInfo.size() * repeat];
     //evalTime = lastSunday;
+    int tsOffset = timeslot; // 0-based index for profile data
     for (int i = 0; i < repeat; i++) {
       // add a demandInfo.size block to the profile
       for (int hour = 0; hour < demandInfo.size(); hour++) {
+        // Here we use hour for accessing demandInfo,
+        // and (timeslot-tsOffset) for accessing profile data
         List<DemandElement> demand = demandInfo.get(hour);
-        ss.distributeDemand(hour, demand, 1.0);
-        double[] limits = ss.getMinMax(hour);
-        double usage = determineUsage(hour, limits);
+        ss.distributeDemand(timeslot, demand, 1.0);
+        double[] limits = ss.getMinMax(timeslot);
+        double usage = determineUsage(timeslot - tsOffset, limits);
         // record usage
-        profileData[i * demandInfo.size() + hour] = usage;
-        ss.distributeUsage(hour, usage);
+        profileData[timeslot - tsOffset] = usage;
+        ss.distributeUsage(timeslot, usage);
         // clean up for next timeslot
-        ss.collapseElements(hour + 1);
-        ss.rebalance(hour + 1);
-        evalTime = evalTime.plus(increment);
+        ss.collapseElements(timeslot + 1);
+        ss.rebalance(timeslot + 1);
+        //evalTime = evalTime.plus(increment);
+        timeslot += 1;
       }
     }
     capacityProfile = new CapacityProfile(profileData, lastSunday);

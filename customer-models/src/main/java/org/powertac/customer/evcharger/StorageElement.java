@@ -161,6 +161,21 @@ import java.util.Arrays;
       }
     }
 
+    // Returns the charger-hours needed for each cohort
+    double[] getRatios (double chargerCapacity)
+    {
+      double[] result = new double[population.length];
+      for (int i = 0; i < result.length; i++) {
+        if (population[i] < 1e-9) {
+          result[i] = 0.0;
+        }
+        else {
+          result[i] = energy[i] / chargerCapacity / population[i];
+        }
+      }
+      return result;
+    }
+
     // Create a String representation
     public String toString ()
     {

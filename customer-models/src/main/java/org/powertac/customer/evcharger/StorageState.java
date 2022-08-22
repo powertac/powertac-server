@@ -26,6 +26,8 @@ import org.apache.logging.log4j.Logger;
 import org.powertac.common.TariffSubscription;
 import org.powertac.util.RingArray;
 
+import cern.colt.Arrays;
+
 /**
  * Records the current state of a population of EV chargers subscribed to a
  * particular tariff. The code here depends strongly on being called
@@ -62,7 +64,7 @@ public class StorageState
 
   // Cached values for current timeslot
   //private int cacheTimeslot = -1;
-  private double epsilon = 0.00001;
+  private double epsilon = 1e-9;
   //private double minDemand = 0.0;
   //private double maxDemand = 0.0;
   //private double nominalDemand = 0.0;
@@ -242,7 +244,10 @@ public class StorageState
           log.error("Null StorageElement at {} of {}",
                     timeslot, maxTimeslot);
         }
-        buf.append(se.toString());
+        else {
+          buf.append(se.toString());
+          buf.append(", r").append(Arrays.toString(se.getRatios(unitCapacity)));
+        }
       }
       log.info(buf);
     }
@@ -281,7 +286,7 @@ public class StorageState
     }
     else {
       remainingCapacity -=
-              energy[energy.length - 1];
+              energy[0];
       energy[0] = 0.0;
     }
 
@@ -331,14 +336,6 @@ public class StorageState
         }
       }
     }
-
-    // Now the first timeslot is complete, we need to collapse the remainder
-    // by reducing their array lengths by one
-    //collapseElements(timeslot);
-
-    // Finally we re-balance all the remaining timeslots just in case ratio < 1.0
-    //if (capacityRatio < 1.0)
-    //  rebalanceUp(timeslot);
   }
 
   /**

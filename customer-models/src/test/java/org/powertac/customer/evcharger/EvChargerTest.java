@@ -436,10 +436,10 @@ class EvChargerTest
     List<ArrayList<DemandElement>> demandInfoMean = uut.getDemandInfoMean();
     assertNotNull(demandInfoMean);
     assertEquals(24, demandInfoMean.size());
-    for (int i = 0; i < demandInfoMean.size(); i++) {
-      List<DemandElement> element = demandInfoMean.get(i);
-      System.out.println(element.toString());
-    }
+    //for (int i = 0; i < demandInfoMean.size(); i++) {
+    //  List<DemandElement> element = demandInfoMean.get(i);
+    //  System.out.println(element.toString());
+    //}
 
     TariffInfo ti = uut.getTariffInfo(evTariff);
     assertEquals(uut.getDefaultCapacityProfile(), ti.getCapacityProfile());
