@@ -423,6 +423,78 @@ class StorageStateTest
   }
 
   @Test
+  void testCopyState ()
+  {
+    double chargerCapacity = 8.0; //kW
+    double ratio = 1.0;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption, 100);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 8.0, // 8 chg, 32 kWh
+                                 new double[] {1.0}));
+    demand.add(new DemandElement(1, 22.0, // 22 chg, p={6.6,15.4}, e={79.2,61.6}
+                                 new double[] {0.3,0.7}));
+    demand.add(new DemandElement(2, 32.0, // 32 chg, p={6.4,19.2,6.4}, e={25.6,230.4,128.0}
+                                 new double[] {0.2,0.6,0.2}));
+    ss.distributeDemand(36, demand, ratio);
+
+    // confirm demand data
+    assertArrayEquals(new double[] {8.0},
+                      ss.getElement(36).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {32.0},
+                      ss.getElement(36).getEnergy(), 1e-6);
+
+    assertArrayEquals(new double[] {6.6, 15.4},
+                      ss.getElement(37).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {79.2, 61.6},
+                      ss.getElement(37).getEnergy(), 1e-6);
+
+    assertArrayEquals(new double[] {6.4, 19.2, 6.4},
+                      ss.getElement(38).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {128.0, 230.4, 25.6},
+                      ss.getElement(38).getEnergy(), 1e-6);
+
+    StorageState copy = ss.copy();
+
+    // confirm demand data in copy
+    assertArrayEquals(new double[] {8.0},
+                      copy.getElement(36).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {32.0},
+                      copy.getElement(36).getEnergy(), 1e-6);
+
+    assertArrayEquals(new double[] {6.6, 15.4},
+                      copy.getElement(37).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {79.2, 61.6},
+                      copy.getElement(37).getEnergy(), 1e-6);
+
+    assertArrayEquals(new double[] {6.4, 19.2, 6.4},
+                      copy.getElement(38).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {128.0, 230.4, 25.6},
+                      copy.getElement(38).getEnergy(), 1e-6);
+    
+    // modify the new state, ensure the old one was not changed
+    copy.distributeUsage(36, 136.0);
+
+    // confirm demand data again
+    assertArrayEquals(new double[] {8.0},
+                      ss.getElement(36).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {32.0},
+                      ss.getElement(36).getEnergy(), 1e-6);
+
+    assertArrayEquals(new double[] {6.6, 15.4},
+                      ss.getElement(37).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {79.2, 61.6},
+                      ss.getElement(37).getEnergy(), 1e-6);
+
+    assertArrayEquals(new double[] {6.4, 19.2, 6.4},
+                      ss.getElement(38).getPopulation(), 1e-6);
+    assertArrayEquals(new double[] {128.0, 230.4, 25.6},
+                      ss.getElement(38).getEnergy(), 1e-6);
+
+  }
+
+  @Test
   void testRebalance ()
   {
     double chargerCapacity = 8.0; //kW
@@ -439,37 +511,115 @@ class StorageStateTest
     demand.add(new DemandElement(2, 32.0, // 19.2 chg, p={3.84,11.52,3.84}, e={76.8,138.24,15.36}
                                  new double[] {0.2,0.6,0.2}));
     ss.distributeDemand(36, demand, ratio);
+    assertArrayEquals(new double[] {4.8},
+                      ss.getElement(36).getPopulation(), 1e-6);
     assertArrayEquals(new double[] {19.2},
                       ss.getElement(36).getRemainingCommitment(), 1e-6);
     assertArrayEquals(new double[] {3.96, 9.24},
                       ss.getElement(37).getPopulation(), 1e-6);
-    assertArrayEquals(new double[] {47.52,36.96},
+    assertArrayEquals(new double[] {47.52,36.96}, // [1.5, 0.5]
                       ss.getElement(37).getRemainingCommitment(), 1e-6);
     assertArrayEquals(new double[] {3.84,11.52,3.84},
                       ss.getElement(38).getPopulation(), 1e-6);
-    assertArrayEquals(new double[] {76.8,138.24,15.36},
+    assertArrayEquals(new double[] {76.8,138.24,15.36}, // [2.5, 1.5, 0.5]
                       ss.getElement(38).getRemainingCommitment(), 1e-6);
-    // Now we apply some up-regulation. It is done in the following timeslot, and
-    // should be applied to ts37[1] and ts38[1,2]
-    ss.distributeRegulation(37, 50.0);
-    assertArrayEquals(new double[] {47.52, 49.750698},
-                      ss.getElement(37).getRemainingCommitment(), 1e-6);
-    assertArrayEquals(new double[] {76.8, 170.133688, 20.675615},
-                      ss.getElement(38).getRemainingCommitment(), 1e-6);
+
+    StorageState ss1 = ss.copy();
+
+    // Now we apply minimal usage
+    double[] minMax = ss1.getMinMax(36);
+    assertArrayEquals(new double[] {81.6, 226.08, 153.84}, minMax, 1e-8);
+
+    ss1.distributeUsage(36, minMax[0]); // minimal usage
+    assertArrayEquals(new double[] {0.0},
+                      ss1.getElement(36).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {15.84, 36.96}, // [0.5, 0.5]
+                      ss1.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {46.08,138.24,15.36}, // [1.5, 1.5, 0.5]
+                      ss1.getElement(38).getRemainingCommitment(), 1e-6);
     
-    // finally we collapse and re-balance
-    ss.collapseElements(37);
-    ss.rebalance(37);
-    assertArrayEquals(new double[] {97.270698},
-                      ss.getElement(37).getRemainingCommitment(), 1e-6);
-    assertArrayEquals(new double[] {138.24, 30.72},
-                      ss.getElement(38).getRemainingCommitment(), 1e-6);
+    // collapse and rebalance
+    ss1.collapseElements(37);
+    ss1.rebalance(37);
+    assertArrayEquals(new double[] {15.84 + 36.96},
+                      ss1.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {46.08 + 138.24, 15.36},
+                      ss1.getElement(38).getRemainingCommitment(), 1e-6);
+
+    // next we apply max usage, collapse and rebalance
+    ss1 = ss.copy();
+    ss1.distributeUsage(36, minMax[1]); // max usage
+    assertArrayEquals(new double[] {0.0},
+                      ss1.getElement(36).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {15.84, 0.0}, // [0.5, 0.0]
+                      ss1.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {46.08,46.08,0.0}, // [1.5, 0.5, 0.0]
+                      ss1.getElement(38).getRemainingCommitment(), 1e-6);
+    
+    ss1.collapseElements(37);
+    ss1.rebalance(37);
+    assertArrayEquals(new double[] {15.84},
+                      ss1.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {46.08, 46.08},
+                      ss1.getElement(38).getRemainingCommitment(), 1e-6);
+
+    // finally we apply nominal usage, collapse and rebalance
+    ss1 = ss.copy();
+    ss1.distributeUsage(36, minMax[2]); // nominal usage
+    assertArrayEquals(new double[] {0.0},
+                      ss1.getElement(36).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {15.84, 18.48}, // [0.5, 0.25]
+                      ss1.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {46.08,92.16,7.68}, // [1.5, 1.0, 0.25]
+                      ss1.getElement(38).getRemainingCommitment(), 1e-6);
+    
+    ss1.collapseElements(37);
+    ss1.rebalance(37);
+    assertArrayEquals(new double[] {15.84+18.48},
+                      ss1.getElement(37).getRemainingCommitment(), 1e-6);
+    assertArrayEquals(new double[] {103.68, 42.24},
+                      ss1.getElement(38).getRemainingCommitment(), 1e-6);
   }
 
   @Test
-  void testDistributeRegulationDown ()
+  void testDistributeRegulation ()
   {
-    
+    double chargerCapacity = 8.0; //kW
+    double ratio = 1.0;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption, 100);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 8.0, // 8 chg, 32 kWh
+                                 new double[] {1.0}));
+    demand.add(new DemandElement(1, 22.0, // 22 chg, p={6.6,15.4}, e={79.2,61.6}
+                                 new double[] {0.3,0.7}));
+    demand.add(new DemandElement(2, 32.0, // 32 chg, p={6.4,19.2,6.4}, e={25.6,230.4,128.0}
+                                 new double[] {0.2,0.6,0.2}));
+    ss.distributeDemand(36, demand, ratio);
+
+    // energy is now [32.0], [79.2, 61.6], [128.0, 230.4, 25.6]
+    StorageState ssc = ss.copy();
+    double[] minMax = ssc.getMinMax(36);
+    assertArrayEquals(new double[] {136.0, 376.8, 256.4}, minMax, 1e-6);
+    ssc.distributeUsage(36,  minMax[1]);
+    // upRegulationCapacity = 376.8 - 136.0; 
+    double result = ssc.distributeRegulation(37, 100.0); // next timeslot
+    //System.out.println("difference = " + result);
+    assertEquals(0.0, result, 1e-6);
+
+    //distribute nominal usage, check state, then distribute regulation in following timeslot
+    ssc = ss.copy();
+    ssc.distributeUsage(36, minMax[2]);
+    assertArrayEquals(new double[] {0.0},
+                      ssc.getElement(36).getEnergy(), 1e-6);
+    assertArrayEquals(new double[] {26.4, 30.8}, // (6.6*8*.5), (15.4*8*.25)
+                      ssc.getElement(37).getEnergy(), 1e-6);
+    assertArrayEquals(new double[] {76.8, 153.6, 12.8}, // 6.4*8*1.5, 19.2*8*1.0, 6.4*.25
+                      ssc.getElement(38).getEnergy(), 1e-6);
+    // down-regulation capacity = 136 - 256.4
+    result = ssc.distributeRegulation(37, -100);
+    assertEquals(0.0, result, 1e-6);    
   }
 
   /**
@@ -589,7 +739,7 @@ class StorageStateTest
     List record = oldSS.gatherState(40);
     String external = converter.toXML(record);
 //    assertEquals(5, record.size());
-    System.out.println(external);
+//    System.out.println(external);
     StorageState newSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
     newSS.restoreState(maxHorizon, record);
     assertArrayEquals(new double[] {38.5},

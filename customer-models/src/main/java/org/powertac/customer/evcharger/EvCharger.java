@@ -424,7 +424,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
         // regulation must be distributed before distributing future demand
         log.info("{} regulation for tariff {} = {}", getCustomerInfo().getName(),
                  sub.getTariff().getId(), sub.getRegulation());
-        ss.distributeRegulation(timeslotIndex, sub.getRegulation());
+        double residue = ss.distributeRegulation(timeslotIndex, sub.getRegulation());
+        if (Math.abs(residue) > epsilon) {
+          log.error("Attempt to distribute regulation {} in ts {} left residue of {}",
+                    sub.getRegulation(), timeslotIndex, residue);
+        }
         // after regulation, we must collapse StorageState arrays and rebalance
         ss.collapseElements(timeslotIndex);
         ss.rebalance(timeslotIndex);
