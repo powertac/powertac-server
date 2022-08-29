@@ -110,7 +110,7 @@
       <instances>sf2,sf3,fc2,fc3</instances>
       <sf2>
 	    <!-- 4 trucks, one 10-hr shift 6 days -->
-	    <nBatteries>4</nBatteries>
+	    <nBatteries>9</nBatteries>
 	    <nChargers>5</nChargers>
 	    <shiftData>block,1,2,3,4,5,6, shift,7,10,4</shiftData>
       </sf2>

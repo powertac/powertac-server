@@ -1083,6 +1083,9 @@ implements CustomerModelAccessor
 
     void setCost (double cost)
     {
+      if (Double.isNaN(cost)) {
+        log.error("cost NaN for truck {}", name);
+      }
       this.cost = cost;
     }
 
@@ -1411,11 +1414,18 @@ implements CustomerModelAccessor
           obj[column] = blocks[blockIndex].getCost();
           lb[column] = 0.0;
           if (0.0 == needs[i].getDuration()) {
-            log.error("Zero value in needs[{}]", i);
+            log.warn("Zero value in needs[{}]", i);
           }
           ub[column] =
                   (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
                   * (double)blocks[blockIndex].getDuration() / needs[i].getDuration();
+          if (Double.isNaN(ub[column])) {
+            log.warn("NaN upper bound c={}, i={} blockDuration={}, en {}, bd{}, nb{}",
+                      column, i,  blocks[blockIndex].getDuration(),
+                      needs[i].getEnergyNeeded(), blocks[blockIndex].getDuration(),
+                      needs[i].getDuration());
+            ub[column] = 0.0;
+          }
           column += 1;
           // construct cumulative usage constraints
           //a[i][column] = -1.0;
@@ -1436,8 +1446,18 @@ implements CustomerModelAccessor
         a[i][columns + i] = 1.0;
         lb[columns + i] = 0.0;
         // upper bound is max possible energy for shift
+        double validEn = needs[i].getEnergyNeeded();
+        if (Double.isNaN(validEn)) {
+          log.warn("ub [{}] energyNeeded = NaN", i);
+          validEn = 0.0;
+        }
+        double validSurplus = needs[i].getMaxSurplus();
+        if (Double.isNaN(validSurplus)) {
+          log.warn("ub[{}] maxSurplus = NaN", i);
+          validSurplus = 0.0;
+        }
         ub[columns + i] =
-            (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus());
+            (validEn + validSurplus);
       }
       // run the optimization
       LPOptimizationRequest or = new LPOptimizationRequest();
@@ -1491,8 +1511,11 @@ implements CustomerModelAccessor
           // fill in objective function
           // cost/kWh based on assumption that shift need is evenly distributed
           double kwhPerTs = kwh / needs[i].getDuration();
-          double cost =
-              tariff.getUsageCharge(time, kwhPerTs, kwh) / kwhPerTs;
+          double cost = tariff.getUsageCharge(time, kwhPerTs, kwh) / kwhPerTs;
+          if (Double.isNaN(cost)) {
+            log.warn("cost NaN for truck {}", name);
+            cost = 0.0;
+          }
           if (null == currentBlock) {
             blockCost = cost;
             currentBlock = new ShiftBlock(needs[i], j);
