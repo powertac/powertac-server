@@ -109,30 +109,30 @@
     <liftTruck>
       <instances>sf2,sf3,fc2,fc3</instances>
       <sf2>
-	    <!-- 8 trucks, one 10-hr shift 6 days -->
-	    <nBatteries>10</nBatteries>
-	    <nChargers>8</nChargers>
-	    <shiftData>block,1,2,3,4,5,6, shift,7,10,8</shiftData>
+	    <!-- 4 trucks, one 10-hr shift 6 days -->
+	    <nBatteries>4</nBatteries>
+	    <nChargers>5</nChargers>
+	    <shiftData>block,1,2,3,4,5,6, shift,7,10,4</shiftData>
       </sf2>
       <sf3>
-        <!-- 24 trucks, 3 shifts weekdays, 1 shift weekends -->
-        <nBatteries>48</nBatteries>
-        <nChargers>28</nChargers>
-        <shiftData>block,1,2,3,4,5, shift,0,8,16, shift,8,8,24, shift,16,8,16,
-                   block,6,7, shift,8,8,20</shiftData>
+        <!-- 12 trucks, 3 shifts weekdays, 1 shift weekends -->
+        <nBatteries>24</nBatteries>
+        <nChargers>14</nChargers>
+        <shiftData>block,1,2,3,4,5, shift,0,8,8, shift,8,8,12, shift,16,8,8,
+                   block,6,7, shift,8,8,10</shiftData>
       </sf3>
       <fc2>
-		<!-- 10 trucks, 3 shifts weekdays -->
-		<nBatteries>21</nBatteries>
-		<nChargers>12</nChargers>
-		<shiftData>block,1,2,3,4,5, shift,0,8,8, shift,8,8,10, shift,16,8,8</shiftData>
+		<!-- 1 truck, 3 shifts weekdays -->
+		<nBatteries>3</nBatteries>
+		<nChargers>2</nChargers>
+		<shiftData>block,1,2,3,4,5, shift,0,8,1, shift,8,8,1, shift,16,8,1</shiftData>
       </fc2>
       <fc3>
-		<!-- 16 trucks, 2 shifts weekdays, 1 shift weekends -->
-		<nBatteries>34</nBatteries>
-		<nChargers>20</nChargers>
-		<shiftData>block,1,2,3,4,5, shift,8,8,16, shift,16,8,12,
-                   block,6,7, shift,8,8,8</shiftData>
+		<!-- 8 trucks, 2 shifts weekdays, 1 shift weekends -->
+		<nBatteries>18</nBatteries>
+		<nChargers>10</nChargers>
+		<shiftData>block,1,2,3,4,5, shift,8,8,8, shift,16,8,6,
+                   block,6,7, shift,8,8,4</shiftData>
       </fc3>
     </liftTruck>
 

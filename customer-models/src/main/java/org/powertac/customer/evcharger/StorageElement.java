@@ -18,6 +18,7 @@ import java.util.Arrays;
   class StorageElement // package visibility
   {
     // Number of active chargers
+    // TODO - it's possible this activeChargers value is not used anywhere
     private double activeChargers = 0.0;
 
     // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
@@ -26,8 +27,7 @@ import java.util.Arrays;
     // Population allocated to energy requirement breakdown
     private double[] population = {0.0};
 
-    // commitment from previous timeslot, needed to distribute regulation
-    //private double previousCommitment = 0.0;
+    private double epsilon = 1e-8;
 
     // default constructor
     StorageElement (int arrayLength)
@@ -46,20 +46,6 @@ import java.util.Arrays;
       this.population = population;
     }
 
-    void extendArrays (int newLength)
-    {
-      if (population.length < newLength) {
-        double[] newPop = new double[newLength];
-        double[] newEnergy = new double[newLength];
-        for (int i = 0; i < population.length; i++) {
-          newPop[i] = population[i];
-          newEnergy[i] = energy[i];
-        }
-        population = newPop;
-        energy = newEnergy;
-      }
-    }
-
     // Shrinks energy and population arrays, dropping the final element
     // which is no longer needed
     void collapseArrays ()
@@ -69,10 +55,38 @@ import java.util.Arrays;
         // nothing to do here
         return;
       }
-      //population[len - 2] += population[len - 1];
       population = Arrays.copyOf(population, len - 1);
-      //energy[len - 2] += energy[len - 1];
       energy = Arrays.copyOf(energy, len - 1);
+    }
+
+    // Moves energy and population to smaller indices as needed to preserve
+    // hourly constraints
+    void rebalance (double chargerCapacity)
+    {
+      // This only works if there are multiple groups
+      if (1 == population.length)
+        return;
+      // Each element i should have energy ratio <= (len - i - 1) + 0.5
+      for (int i = energy.length - 1; i > 0; i--) {
+        //note that we are not moving energy and population above index 0
+        //first, find the surplus in this timeslot
+        double xRatio = (energy.length - 1 - i) + 0.5; // current cell
+        double chunk = population[i] * chargerCapacity;
+        double currentRatio = energy[i] / chunk;
+        if (currentRatio <= xRatio) {
+          // We are finished!
+          break;
+        }
+        else {
+          double move = (currentRatio - xRatio);
+          double moveP = population[i] * move;
+          population[i] -= moveP;
+          population[i - 1] += moveP;
+          double moveE = energy[i] - population[i] * chargerCapacity * xRatio;
+          energy[i] -= moveE;
+          energy[i - 1] += moveE;
+        }
+      }
     }
 
     double getActiveChargers ()

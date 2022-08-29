@@ -74,10 +74,7 @@ class TariffInfo
       // need to create the profile
       if ((!isTOU()) && (!isVariableRate())) {
         // Simplest case
-        meanTariffCost = tariff.getUsageCharge(1.0, 0.0, false);
-        minTariffCost = meanTariffCost;
-        maxTariffCost = meanTariffCost;
-        setCapacityProfile(evCharger.getDefaultCapacityProfile());
+        generateSimpleProfile();
       }
       else if (isTOU()) {
         generateTouProfile();          
@@ -92,6 +89,14 @@ class TariffInfo
     return capacityProfile;
   }
 
+  protected void generateSimpleProfile ()
+  {
+    meanTariffCost = tariff.getUsageCharge(1.0, 0.0, false);
+    minTariffCost = meanTariffCost;
+    maxTariffCost = meanTariffCost;
+    setCapacityProfile(evCharger.getDefaultCapacityProfile());
+  }
+
   // For a TOU tariff, we have to create a StorageState
   // and run a full day of demand, then run the
   // prototype DemandInfo sequence and collect
@@ -99,6 +104,11 @@ class TariffInfo
   // Values in the demandProfile are per-member
   void generateTouProfile ()
   {
+    if (0 == profileSize) {
+      log.error("zero profile size");
+      generateSimpleProfile();
+      return;
+    }
     // we first need to understand the value of flexibility
     computeRegulationPremium();
     Instant lastSunday = evCharger.lastSunday();
@@ -123,6 +133,11 @@ class TariffInfo
                                        evCharger.getMaxDemandHorizon())
             .withUnitCapacity(evCharger.getChargerCapacity());
     List<ArrayList<DemandElement>> demandInfo = evCharger.getDemandInfoMean();
+    if (0 == demandInfo.size()) {
+      log.error("empty demandInfo");
+      generateSimpleProfile();
+      return;
+    }
     //evalTime = lastSunday;
     // we first run a full day to seed the SS
     int timeslot = 0;

@@ -1410,6 +1410,9 @@ implements CustomerModelAccessor
           // fill in objective function
           obj[column] = blocks[blockIndex].getCost();
           lb[column] = 0.0;
+          if (0.0 == needs[i].getDuration()) {
+            log.error("Zero value in needs[{}]", i);
+          }
           ub[column] =
                   (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
                   * (double)blocks[blockIndex].getDuration() / needs[i].getDuration();
