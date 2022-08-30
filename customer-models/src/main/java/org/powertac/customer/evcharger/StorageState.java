@@ -343,7 +343,8 @@ public class StorageState
             ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       target = getElement(ts);
       double[] pop = target.getPopulation();
-      double usage = unitCapacity * pop[0];
+      energy = target.getEnergy();
+      double usage = Math.min(unitCapacity * pop[0], energy[0]);
       target.energy[0] -= usage;
       remainingCapacity -= usage;
     }
