@@ -72,9 +72,14 @@ import java.util.Arrays;
         //first, find the surplus in this timeslot
         double xRatio = (energy.length - 1 - i) + 0.5; // current cell
         double chunk = population[i] * chargerCapacity;
-        double currentRatio = energy[i] / chunk;
+        double currentRatio = 0.0;
+        if (chunk < epsilon) {
+          // this cell is already zero
+          break;
+        }
+        currentRatio = energy[i] / chunk;
         if (currentRatio <= xRatio) {
-          // We are finished!
+          // We are finished
           break;
         }
         else {
