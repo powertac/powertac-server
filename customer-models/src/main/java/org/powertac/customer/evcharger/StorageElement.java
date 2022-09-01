@@ -77,15 +77,16 @@ import org.apache.logging.log4j.Logger;
         //note that we are not moving energy and population above index 0
         //first, find the surplus in this timeslot
         double xRatio = (energy.length - 1 - i) + 0.5; // current cell
-        double chunk = population[i] * chargerCapacity;
-        double currentRatio = 0.0;
-        if (chunk < epsilon) {
-          // this cell is already zero
+        if (population[i] < epsilon) {
+          // clear this one out
+          population[i] = 0.0;
+          energy[i] = 0.0;
           continue;
         }
+        double chunk = population[i] * chargerCapacity;
+        double currentRatio = 0.0;
         currentRatio = energy[i] / chunk;
         if (currentRatio <= xRatio) {
-          // We are finished
           continue;
         }
         else {
