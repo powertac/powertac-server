@@ -61,6 +61,8 @@ import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.customer.AbstractCustomer;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.thoughtworks.xstream.XStream;
+
 /**
  * @author John Collins
  *
@@ -407,7 +409,34 @@ class EvChargerTest
   public void testFirstStepSim ()
   {
     // need to configure first
-    setConfig();
+    TreeMap<String, String> map = new TreeMap<>();
+    map.put("customer.evcharger.evCharger.population", "1000");
+    map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
+    map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
+    map.put("customer.evcharger.evCharger.defaultCapacityData",
+            "1.55, 1.46, 1.36, 1.25, 1.16, 1.02, 0.80, 0.51, 0.34, 0.30, 0.32, 0.37, 0.48, 0.62, 0.78, 0.96, 1.13, 1.32, 1.49, 1.60, 1.69, 1.74, 1.73, 1.66");
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
+    // for this test, we also need to provide a storage record
+    List<Object> record = new ArrayList<>();
+    record.add(359);
+    record.add(new StorageElement(10.0,
+                                  new double[] {0.0},
+                                  new double[] {1.0}));
+    record.add(new StorageElement(9.0,
+                                  new double[] {10.0, 2.0},
+                                  new double[] {2.0, 1.0}));
+    record.add(new StorageElement(6.0,
+                                  new double[] {15.0, 8.0, 1.5},
+                                  new double[] {1.0, 1.0, 1.0}));
+    record.add(new StorageElement(3.0,
+                                  new double[] {22.0, 8.0, 3.5, 3.4},
+                                  new double[] {1.0, 0.5, 0.5, 1.0}));
+    XStream xstream = XMLMessageConverter.getXStream();
+    String recordX = xstream.toXML(record);
+    map.put("customer.evcharger.evCharger.storageRecord", recordX);
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+
     config.configureSingleton(uut);
 
     uut.initialize();

@@ -120,6 +120,32 @@ public class StorageState
   }
 
   /**
+   * Restores the current state at the start of a sim session.
+   * The record is a list containing the initial timeslot
+   * and a sequence of StorageElement instances.
+   */
+//  @SuppressWarnings("unchecked")
+  static public StorageState restoreState
+  (double unitCapacity, TariffSubscription sub,
+   int maxHorizon, List<Object> bootRecord)
+  {
+    StorageState result =
+            new StorageState(sub, unitCapacity, maxHorizon);
+    int first = (int) bootRecord.get(0);
+    result.setStartIndex(first);
+    for (int index = 1; index < bootRecord.size(); index++) {
+      StorageElement next = (StorageElement) bootRecord.get(index);
+      result.putElement(first + index - 1, next);
+//    List<Object> record = (List<Object>) bootRecord;
+//    int ts = (int) record.get(0);
+//    for (int index = 1; index < record.size(); index++) {
+//      StorageElement element = (StorageElement) record.get(index);
+//      putElement(ts++, element);
+    }
+    return result;
+  }
+
+  /**
    * Transfers subscribers from another subscription having the specified StorageState.
    * Updates the capacityVector accordingly.
    * 
@@ -416,8 +442,21 @@ public class StorageState
     // Reported capacity was the amount by which
     // discretionary usage could be cut in the last timeslot.
     // We want a ratio to be applied to every group in every cohort.
+    if (Math.abs(currentUsage - currentMin) < epsilon) {
+      // cannot do up-regulation in this case
+      if (regulation > 0.0) {
+        log.error("up-regulation {} requested in ts {}, no available capacity",
+                  regulation, timeslot);        
+        return result;
+      }
+      // TODO - apply down-regulation in this case
+      log.warn("ts {} request for down-regulation from min usage not implemented");
+      return result;
+    }
     double ratio = (currentUsage + regulation - currentMin)
             / (currentUsage - currentMin);
+    log.info("Regulation {}, currentUsage={}, currentMin={}, ratio={}",
+             regulation, currentUsage, currentMin, ratio);
     // Usage has already been reported, but collapse/rebalance has not happened
     for (int ts = timeslot;
             ts < timeslot + capacityVector.getActiveLength(timeslot);
@@ -534,24 +573,6 @@ public class StorageState
       result.add(getElement(i));
     }
     return result;
-  }
-
-  /**
-   * Restores the current state at the start of a sim session.
-   * The record is a string produced by running toString() on a nested list,
-   * so here we must parse the string.
-   */
-  @SuppressWarnings("unchecked")
-  public void restoreState (int timeslot, Object bootRecord)
-  {
-    // This is easy using XStream.
-    //int arrayLength = 1;
-    List<Object> record = (List<Object>) bootRecord;
-    int ts = (int) record.get(0);
-    for (int index = 1; index < record.size(); index++) {
-      StorageElement element = (StorageElement) record.get(index);
-      putElement(ts++, element);
-    }
   }
 
   // Returns the subscription attached to this SS

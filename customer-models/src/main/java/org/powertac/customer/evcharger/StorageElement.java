@@ -2,6 +2,9 @@ package org.powertac.customer.evcharger;
 
 import java.util.Arrays;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /** ---------------------------------------------------------------------------------------
    * Mutable element of the StorageState forward capacity vector for the EV Charger model.
    * Each contains a capacity histogram of length n + 1 for a timeslot n slots in the future.
@@ -17,6 +20,9 @@ import java.util.Arrays;
    */
   class StorageElement // package visibility
   {
+    static Logger log =
+            LogManager.getLogger(StorageElement.class.getName());
+
     // Number of active chargers
     // TODO - it's possible this activeChargers value is not used anywhere
     private double activeChargers = 0.0;
@@ -66,7 +72,7 @@ import java.util.Arrays;
       // This only works if there are multiple groups
       if (1 == population.length)
         return;
-      // Each element i should have energy ratio <= (len - i - 1) + 0.5
+      // Each group i should have energy ratio <= (len - i - 1) + 0.5
       for (int i = energy.length - 1; i > 0; i--) {
         //note that we are not moving energy and population above index 0
         //first, find the surplus in this timeslot
@@ -75,15 +81,18 @@ import java.util.Arrays;
         double currentRatio = 0.0;
         if (chunk < epsilon) {
           // this cell is already zero
-          break;
+          continue;
         }
         currentRatio = energy[i] / chunk;
         if (currentRatio <= xRatio) {
           // We are finished
-          break;
+          continue;
         }
         else {
           double move = (currentRatio - xRatio);
+          if (move > 1.0 || move < 0.0) {
+            log.error("Move ratio = {} out of range", move);
+          }
           double moveP = population[i] * move;
           population[i] -= moveP;
           population[i - 1] += moveP;

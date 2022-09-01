@@ -400,15 +400,20 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       TariffSubscription sub = subs.get(0);
       TariffInfo ti = getTariffInfo(sub.getTariff());
       ti.setCapacityProfile(getDefaultCapacityProfile());
-      StorageState initialSS = new StorageState(sub, getChargerCapacity(), getMaxDemandHorizon())
-              .withUnitCapacity(getChargerCapacity());
-      setStorageState(sub, initialSS);
       if (null != storageRecord) {
-        // sim session
-        initialSS.restoreState(timeslotIndex, storageRecord);
-//                               (List<Object>) service
-//                               .getMessageConverter()
-//                               .fromXML((String) storageRecord));
+        // sim session;
+        @SuppressWarnings("unchecked")
+        StorageState initialSS =
+                StorageState.restoreState(getChargerCapacity(), sub,
+                                          getMaxDemandHorizon(),
+                                          (List<Object>) storageRecord);
+        setStorageState(sub, initialSS);
+      }
+      else {
+        // boot session, need to set up ss
+        StorageState initialSS = new StorageState(sub, getChargerCapacity(),
+                                                  getMaxDemandHorizon());
+        setStorageState(sub, initialSS);
       }
       if (0 == demandInfoMean.size()) {
         log.info("Initializing demandInfoMean");
@@ -535,7 +540,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
    * For this we need to know the timeslot index of the first timeslot in the
    * sim session.
    */
-  @SuppressWarnings("unchecked")
+  //@SuppressWarnings("unchecked")
   @Override
   public void saveBootstrapState ()
   {

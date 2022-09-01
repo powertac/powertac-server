@@ -754,44 +754,44 @@ class StorageStateTest
     
   }
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  @Test
-  void testGatherState ()
-  {
-    XMLMessageConverter converter = new XMLMessageConverter();
-    converter.afterPropertiesSet();
-    double chargerCapacity = 7.0; //kW
-    oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation()); // 100%
-    oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
-    // add some demand
-    ArrayList<DemandElement> demand = new ArrayList<>();
-    demand.add(new DemandElement(0, 11.0, new double[] {1.0}));
-    demand.add(new DemandElement(1, 15.0, new double[] {0.4, 0.6}));
-    demand.add(new DemandElement(3, 12.0, new double[] {0.2, 0.3, 0.3, 0.2}));
-    demand.add(new DemandElement(4, 25.0, new double[] {0.1, 0.3, 0.3, 0.2, 0.1}));
-    oldSS.distributeDemand(40, demand, 1.0);
-    assertArrayEquals(new double[] {38.5},
-                      oldSS.getElement(40).getEnergy(), 1e-6);
-    assertArrayEquals(new double[] {63.0, 31.5},
-                      oldSS.getElement(41).getEnergy(), 1e-6);
-    assertArrayEquals(new double[] {0.0, 0.0, 0.0},
-                      oldSS.getElement(42).getEnergy(), 1e-6);
-    assertArrayEquals(new double[] {58.8, 63.0, 37.8, 8.4},
-                      oldSS.getElement(43).getEnergy(), 1e-6);
-    assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
-                      oldSS.getElement(44).getEnergy(), 1e-6);
-
-    List record = oldSS.gatherState(40);
-    String external = converter.toXML(record);
-//    assertEquals(5, record.size());
-//    System.out.println(external);
-    StorageState newSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
-    newSS.restoreState(maxHorizon, record);
-    assertArrayEquals(new double[] {38.5},
-                      newSS.getElement(40).getEnergy(), 1e-6);
-    assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
-                      newSS.getElement(44).getEnergy(), 1e-6);
-  }
+//  @SuppressWarnings({ "rawtypes", "unchecked" })
+//  @Test
+//  void testGatherState ()
+//  {
+//    XMLMessageConverter converter = new XMLMessageConverter();
+//    converter.afterPropertiesSet();
+//    double chargerCapacity = 7.0; //kW
+//    oldSub = subscribeTo (customer, defaultConsumption, customer.getPopulation()); // 100%
+//    oldSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
+//    // add some demand
+//    ArrayList<DemandElement> demand = new ArrayList<>();
+//    demand.add(new DemandElement(0, 11.0, new double[] {1.0}));
+//    demand.add(new DemandElement(1, 15.0, new double[] {0.4, 0.6}));
+//    demand.add(new DemandElement(3, 12.0, new double[] {0.2, 0.3, 0.3, 0.2}));
+//    demand.add(new DemandElement(4, 25.0, new double[] {0.1, 0.3, 0.3, 0.2, 0.1}));
+//    oldSS.distributeDemand(40, demand, 1.0);
+//    assertArrayEquals(new double[] {38.5},
+//                      oldSS.getElement(40).getEnergy(), 1e-6);
+//    assertArrayEquals(new double[] {63.0, 31.5},
+//                      oldSS.getElement(41).getEnergy(), 1e-6);
+//    assertArrayEquals(new double[] {0.0, 0.0, 0.0},
+//                      oldSS.getElement(42).getEnergy(), 1e-6);
+//    assertArrayEquals(new double[] {58.8, 63.0, 37.8, 8.4},
+//                      oldSS.getElement(43).getEnergy(), 1e-6);
+//    assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
+//                      oldSS.getElement(44).getEnergy(), 1e-6);
+//
+//    List record = oldSS.gatherState(40);
+//    String external = converter.toXML(record);
+////    assertEquals(5, record.size());
+////    System.out.println(external);
+//    StorageState newSS = new StorageState(oldSub, chargerCapacity, maxHorizon);
+//    newSS.restoreState(maxHorizon, record);
+//    assertArrayEquals(new double[] {38.5},
+//                      newSS.getElement(40).getEnergy(), 1e-6);
+//    assertArrayEquals(new double[] {78.75, 183.75, 131.25, 52.5, 8.75},
+//                      newSS.getElement(44).getEnergy(), 1e-6);
+//  }
 
   class DummyCMA implements CustomerModelAccessor
   {
