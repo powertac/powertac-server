@@ -91,7 +91,7 @@ import org.apache.logging.log4j.Logger;
         }
         else {
           double move = (currentRatio - xRatio);
-          if (move > 1.0 || move < 0.0) {
+          if (move > 1.0 + epsilon || move < 0.0 - epsilon) {
             log.error("Move ratio = {} out of range", move);
           }
           double moveP = population[i] * move;
