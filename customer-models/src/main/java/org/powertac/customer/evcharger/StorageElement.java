@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 
     // Number of active chargers
     // TODO - it's possible this activeChargers value is not used anywhere
-    private double activeChargers = 0.0;
+    //private double activeChargers = 0.0;
 
     // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
     double[] energy = {0.0};
@@ -46,8 +46,13 @@ import org.apache.logging.log4j.Logger;
     // populated constructor
     StorageElement (double activeChargers, double[] energy, double[] population)
     {
+      this(energy, population);
+    }
+
+    StorageElement (double[] energy, double[] population)
+    {
       super();
-      this.activeChargers = activeChargers;
+      //this.activeChargers = activeChargers;
       this.energy = energy;
       this.population = population;
     }
@@ -104,15 +109,15 @@ import org.apache.logging.log4j.Logger;
       }
     }
 
-    double getActiveChargers ()
-    {
-      return activeChargers;
-    }
-
-    void addChargers (double n)
-    {
-      activeChargers += n;
-    }
+//    double getActiveChargers ()
+//    {
+//      return activeChargers;
+//    }
+//
+//    void addChargers (double n)
+//    {
+//      activeChargers += n;
+//    }
 
     double[] getRemainingCommitment ()
     {
@@ -144,7 +149,7 @@ import org.apache.logging.log4j.Logger;
     // returns a new StorageElement with the same contents as an old one
     StorageElement copy ()
     {
-      return new StorageElement(getActiveChargers(),
+      return new StorageElement(//getActiveChargers(),
                                 Arrays.copyOf(energy, energy.length),
                                 Arrays.copyOf(population, population.length));
     }
@@ -158,7 +163,7 @@ import org.apache.logging.log4j.Logger;
         scaledPop[i] = population[i] * scale;
         scaledEnergy[i] = energy[i] * scale;
       }
-      return new StorageElement(getActiveChargers() * scale,
+      return new StorageElement(//getActiveChargers() * scale,
                                 scaledEnergy, scaledPop);
     }
 
@@ -170,7 +175,7 @@ import org.apache.logging.log4j.Logger;
         StorageState.log.error("Attempt to add element of length {} to element of length {}",
                   population.length, element.getPopulation().length);
       }
-      activeChargers += element.getActiveChargers() * scale;
+      //activeChargers += element.getActiveChargers() * scale;
       for (int i = 0; i < population.length; i++) {
         population[i] += element.getPopulation()[i] * scale;
         energy[i] += element.getEnergy()[i] * scale;
@@ -182,7 +187,7 @@ import org.apache.logging.log4j.Logger;
     void scale (double fraction)
     {
       //tranche *= fraction;
-      activeChargers *= fraction;
+      //activeChargers *= fraction;
       //energy *= fraction;
       for (int i = 0; i < population.length; i++) {
         population[i] *= fraction;
@@ -208,7 +213,7 @@ import org.apache.logging.log4j.Logger;
     // Create a String representation
     public String toString ()
     {
-      return String.format("ch%.3f %s %s", activeChargers,
+      return String.format("SE %s %s", //activeChargers,
                            Arrays.toString(population), Arrays.toString(energy));
     }
   }

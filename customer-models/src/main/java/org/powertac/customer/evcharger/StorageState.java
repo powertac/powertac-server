@@ -266,7 +266,7 @@ public class StorageState
       }
 
       // add remaining activations regardless of whether there's demand for this ts
-      se.addChargers(activations);
+      //se.addChargers(activations);
       if (i == nextDe.getHorizon() + timeslot) {
         activations -= nextDe.getNVehicles() * ratio;
         // distribute nextDe population and energy according to distribution
