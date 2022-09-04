@@ -121,27 +121,44 @@ public class StorageState
 
   /**
    * Restores the current state at the start of a sim session.
-   * The record is a list containing the initial timeslot
-   * and a sequence of StorageElement instances.
+   * The record is a list of Strings representing StorageElement instances.
    */
-//  @SuppressWarnings("unchecked")
-  static public StorageState restoreState
-  (double unitCapacity, TariffSubscription sub,
-   int maxHorizon, List<Object> bootRecord)
+  public static StorageState restoreState (double unitCapacity, TariffSubscription sub,
+                                           int maxHorizon, String input)
   {
-    StorageState result =
-            new StorageState(sub, unitCapacity, maxHorizon);
-    int first = (int) bootRecord.get(0);
-    result.setStartIndex(first);
-    for (int index = 1; index < bootRecord.size(); index++) {
-      StorageElement next = (StorageElement) bootRecord.get(index);
-      result.putElement(first + index - 1, next);
-//    List<Object> record = (List<Object>) bootRecord;
-//    int ts = (int) record.get(0);
-//    for (int index = 1; index < record.size(); index++) {
-//      StorageElement element = (StorageElement) record.get(index);
-//      putElement(ts++, element);
+    StorageState result = new StorageState(sub, unitCapacity, maxHorizon);
+    String[] records = input.split("\\], ");
+    log.debug("records.length={}", records.length);
+    if (1 == records.length) {
+      log.debug("first string length = {}", records[0].length());
     }
+    
+    Pattern intro = Pattern.compile("\\[?SE (\\d+) \\[");
+    Matcher m;
+    int arrayLength = 1;
+    //for (Object seInfo : records) {
+    for (int i = 0; i < records.length; i++) {
+      String seInfo = (String) records[i];
+      //System.out.println("i=" + i + ", " + seInfo);
+      int ts;
+      m = intro.matcher((String) seInfo);
+      if (m.lookingAt()) {
+        ts = Integer.valueOf(m.group(1));
+        seInfo = ((String) seInfo).substring(m.end());
+      }
+      else {
+        log.error("StorageElement prefix error {}", seInfo);
+        return null;
+      }
+      StorageElement se = StorageElement.restoreElement(arrayLength++, (String) seInfo);
+      if (null == se) {
+        System.out.println("failed to create SE - " + seInfo);
+        // failed to restore se, should already be a log entry
+        return null;
+      }
+      result.putElement(ts, se);
+    }
+    //System.out.println("End restore");
     return result;
   }
 
@@ -564,14 +581,18 @@ public class StorageState
   /**
    * Gathers and returns a list that represents the current state
    */
-  public List<Object> gatherState (int timeslot)
+
+  public String gatherState (int timeslot)
   {
-    ArrayList<Object> result = new ArrayList<>();
-    //System.out.println("horizon=" + getHorizon(timeslot));
-    result.add(timeslot);
+    String result = "[";
+    log.debug("gatherState({}), horizon={}", timeslot, getHorizon(timeslot));
     for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
-      result.add(getElement(i));
+      StorageElement se = getElement(i);
+      result = result.concat(String.format("SE %d %s %s, ", i,
+                                           Arrays.toString(se.getPopulation()),
+                                           Arrays.toString(se.getEnergy())));
     }
+    log.debug("gatherState() result length = {}", result.length());
     return result;
   }
 

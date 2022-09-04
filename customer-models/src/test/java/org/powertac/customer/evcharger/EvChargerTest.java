@@ -409,7 +409,7 @@ class EvChargerTest
   public void testFirstStepSim ()
   {
     // need to configure first
-    TreeMap<String, String> map = new TreeMap<>();
+    TreeMap<String, Object> map = new TreeMap<>();
     map.put("customer.evcharger.evCharger.population", "1000");
     map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
     map.put("customer.evcharger.evCharger.nominalDemandBias", "0.4");
@@ -417,23 +417,12 @@ class EvChargerTest
             "1.55, 1.46, 1.36, 1.25, 1.16, 1.02, 0.80, 0.51, 0.34, 0.30, 0.32, 0.37, 0.48, 0.62, 0.78, 0.96, 1.13, 1.32, 1.49, 1.60, 1.69, 1.74, 1.73, 1.66");
     map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
     // for this test, we also need to provide a storage record
-    List<Object> record = new ArrayList<>();
-    record.add(359);
-    record.add(new StorageElement(10.0,
-                                  new double[] {0.0},
-                                  new double[] {1.0}));
-    record.add(new StorageElement(9.0,
-                                  new double[] {10.0, 2.0},
-                                  new double[] {2.0, 1.0}));
-    record.add(new StorageElement(6.0,
-                                  new double[] {15.0, 8.0, 1.5},
-                                  new double[] {1.0, 1.0, 1.0}));
-    record.add(new StorageElement(3.0,
-                                  new double[] {22.0, 8.0, 3.5, 3.4},
-                                  new double[] {1.0, 0.5, 0.5, 1.0}));
-    XStream xstream = XMLMessageConverter.getXStream();
-    String recordX = xstream.toXML(record);
-    map.put("customer.evcharger.evCharger.storageRecord", recordX);
+    //List<String> record = new ArrayList<>();
+    String data = String.join(", ", "[SE 359 [1.0] [0.0]",
+                              "SE 360 [2.0, 1.0] [10.0, 2.0]",
+                              "SE 361 [1.0, 1.0, 1.0] [15.0, 8.0, 1.5]",
+                              "SE 362 [1.0, 0.5, 0.5, 1.0] [22.0, 8.0, 3.5, 3.4]]");
+    map.put("customer.evcharger.evCharger.storageRecord", data);
     MapConfiguration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
 
@@ -465,13 +454,9 @@ class EvChargerTest
     List<ArrayList<DemandElement>> demandInfoMean = uut.getDemandInfoMean();
     assertNotNull(demandInfoMean);
     assertEquals(24, demandInfoMean.size());
-    //for (int i = 0; i < demandInfoMean.size(); i++) {
-    //  List<DemandElement> element = demandInfoMean.get(i);
-    //  System.out.println(element.toString());
-    //}
-
     TariffInfo ti = uut.getTariffInfo(evTariff);
     assertEquals(uut.getDefaultCapacityProfile(), ti.getCapacityProfile());
+    System.out.println("endx");
   }
 
   /**
@@ -571,13 +556,6 @@ class EvChargerTest
             new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
-
-    // build up mean demand data
-//    int repeat = 168;
-//    for (int i = 0; i < repeat; i++) {
-//      List<DemandElement> demand = uut.getDemandInfo(now);
-//      now = now.plus(TimeService.HOUR);
-//    }
     
     TariffSpecification spec =
             new TariffSpecification(bob, PowerType.ELECTRIC_VEHICLE)

@@ -1,6 +1,8 @@
 package org.powertac.customer.evcharger;
 
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,6 +59,43 @@ import org.apache.logging.log4j.Logger;
       this.population = population;
     }
 
+    public static StorageElement restoreElement (int length, String data)
+    {
+      // data is "n, n] [n, n] if length == 2"
+      Pattern num = Pattern.compile("(\\d+.\\d+),?\\]? ?");
+      Matcher m;
+      StorageElement se = new StorageElement(length);
+      String remains = data;
+      // population
+      for (int count = 0; count < length; count++) {
+        m = num.matcher(remains);
+        if (m.lookingAt()) {
+          se.population[count] = Double.valueOf(m.group(1));
+          remains = remains.substring(m.end());
+        }
+        else {
+          log.error("Failed to match population value, seeing {}", remains);
+          return null;
+        }
+      }
+      // end of population array
+      remains = remains.substring(1); // skip opening bracket
+      // energy
+       for (int count = 0; count < length; count++) {
+        m = num.matcher(remains);
+        if (m.lookingAt()) {
+          se.energy[count] = Double.valueOf(m.group(1));
+          remains = remains.substring(m.end());
+        }
+        else {
+          log.error("Should be looking at population value, seeing {}", remains);
+          return null;
+        }
+      }
+      //System.out.println("finished " + length);
+      return se;
+    }
+
     // Shrinks energy and population arrays, dropping the final element
     // which is no longer needed
     void collapseArrays ()
@@ -108,16 +147,6 @@ import org.apache.logging.log4j.Logger;
         }
       }
     }
-
-//    double getActiveChargers ()
-//    {
-//      return activeChargers;
-//    }
-//
-//    void addChargers (double n)
-//    {
-//      activeChargers += n;
-//    }
 
     double[] getRemainingCommitment ()
     {
@@ -186,9 +215,6 @@ import org.apache.logging.log4j.Logger;
     // This should not change the population/energy relationship
     void scale (double fraction)
     {
-      //tranche *= fraction;
-      //activeChargers *= fraction;
-      //energy *= fraction;
       for (int i = 0; i < population.length; i++) {
         population[i] *= fraction;
         energy[i] *= fraction;

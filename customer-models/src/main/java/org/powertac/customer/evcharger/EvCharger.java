@@ -80,15 +80,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
           dump = true, description = "Maximum horizon for individual charging demand elements")
   private int maxDemandHorizon = 96; // 4 days?
 
-  @ConfigurableValue(valueType = "XML",
+  @ConfigurableValue(valueType = "String",
           publish = false, dump = false, bootstrapState = true,
-          description = "State of active chargers at end of boot session")
-  private Object storageRecord;
-
-  //@ConfigurableValue(valueType = "XML",
-  //        publish = false, dump = false, bootstrapState = true,
-  //        description = "Collected demand statistics at end of boot session")
-  //private Object demandRecord;
+          description = "Collected demand statistics at end of boot session")
+  private String storageRecord;
 
   // Tariff terms could affect this
   @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = false,
@@ -178,10 +173,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
 
     // set up the tariff information map
-    //subState = new HashMap<>();
     tariffInfo = new HashMap<>();
-
-    //if 
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
@@ -402,11 +394,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       ti.setCapacityProfile(getDefaultCapacityProfile());
       if (null != storageRecord) {
         // sim session;
-        @SuppressWarnings("unchecked")
         StorageState initialSS =
-                StorageState.restoreState(getChargerCapacity(), sub,
-                                          getMaxDemandHorizon(),
-                                          (List<Object>) storageRecord);
+          StorageState.restoreState(getChargerCapacity(), sub,
+                                    getMaxDemandHorizon(), storageRecord);
         setStorageState(sub, initialSS);
       }
       else {
@@ -554,19 +544,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     TariffSubscription sub = subs.get(0);
     StorageState finalState = getStorageState(sub);
+//    storageRecord =
+//            service.getMessageConverter().toXML(finalState.gatherState(timeslot));
     storageRecord =
-            service.getMessageConverter().toXML(finalState.gatherState(timeslot));
-//    if (demandInfoMeanCount % demandInfoMean.size() != 0) {
-//      log.error("demandInfoMeanCount {} not a multiple of profile size {}",
-//                demandInfoMeanCount, defaultProfileSize);
-//    }
-//    int count = demandInfoMeanCount / demandInfoMean.size();
-//    log.info("demandInfoMean count = {} from {}/{}",
-//             count, demandInfoMeanCount, demandInfoMean.size());
-//    ArrayList<Object> demandData = new ArrayList<>();
-//    demandData.add(count);
-//    demandData.add(demandInfoMean);
-//    demandRecord = service.getMessageConverter().toXML(demandData);
+            finalState.gatherState(timeslot);
   }
 
   /**
@@ -595,25 +576,6 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
     return demandInfo;
   }
-
-  // package visibility to support testing
-  // Dead code?
-//  void initDemandInfoMean (int count,
-//                           List<List<Object>> info)
-//  {
-//    // First, we populate the demandInfoMean structure
-//    demandInfoMean = new ArrayList<>();
-//    for (List<Object> des : info) {
-//      ArrayList<DemandElement> row = new ArrayList<>();
-//      //for (DemandElement de : row) {
-//      //  row.add(de);
-//      //}
-//      demandInfoMean.add(row);
-//    }
-//    // Second, we have to reconstruct the demandInfoMeanCounter
-//    demandInfoMeanCounter = new int[demandInfoMean.size()];
-//    Arrays.fill(demandInfoMeanCounter, count);
-//  }
   
   // package visibility to support testing
   void updateDemandInfoMean (List<DemandElement> demandInfo, int hod)
@@ -624,7 +586,6 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       return;
     }
     int count = demandInfoMeanCounter[hod];
-    //double weight = demandInfoMeanWeight[hod];
     
     // We clone the DemandElements so that the modifications to the
     // distributions do not affect the actual demandInfo object on the heap.
