@@ -267,7 +267,7 @@ public class CompetitionSetupService
     // start the logs
     String error = null;
     gameId = game;
-    String sessionType = (null != config) ? "config-" : "boot-";
+    String sessionType = (null != configDump) ? "config-" : "boot-";
     logService.startLog(sessionType + game);
 
     try {
