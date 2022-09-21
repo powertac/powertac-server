@@ -32,7 +32,7 @@ class TariffInfo
   private double[] upRegulationPremium;
   private double[] downRegulationPremium;
 
-  // regulation bias adjust consumption in case regulation
+  // regulation bias adjusts consumption in case regulation
   // has value
   private double regulationBias = 0.1; // 10%
 
@@ -68,6 +68,7 @@ class TariffInfo
     capacityProfile = profile;      
   }
 
+  // Returns the per-charger capacity profile for the current tariff
   CapacityProfile getCapacityProfile ()
   {
     if (null == capacityProfile) {

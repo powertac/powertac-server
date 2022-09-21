@@ -17,17 +17,13 @@ package org.powertac.customer.evcharger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
-import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -91,8 +87,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private double defaultFlexibilityMargin = 0.02; // 2% on both ends
 
   // Default tariff-eval profile, configurable through defaultCapacityData
-  // Values are hourly per-vehicle. Mean hourly value should be between 0.2 and 0.5 kWh,
-  // or a bit less than 4 kWh for a vehicle that drives 20000 km/year and gets around 2.2 kWh/km
+  // Values are hourly per-charger.
   private CapacityProfile defaultCapacityProfile = null;
 
   @ConfigurableValue (valueType = "Double", publish = false,
@@ -101,14 +96,14 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   @ConfigurableValue (valueType = "Double", publish = false,
           description = "Probability customer will ignore tariff publications")
-  private double evalRationality = 0.9;
+  private double evalRationality = 0.8;
 
   @ConfigurableValue (valueType = "Boolean", publish = false,
           description = "If true, then re-evaluate all tariffs in each cycle")
   private boolean evaluateAll = true;
 
   @ConfigurableValue (valueType = "List", dump = false,
-          description = "default expected hourly consumption in kWh/vehicle, comma-separated values")
+          description = "default expected hourly consumption in kWh/charger, comma-separated values")
   private List<String> defaultCapacityData = null;
 
   // for tariffs that do not have weekly TOU rates, we stick with a 24-hour profile.
@@ -177,14 +172,13 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = createTariffEvaluator(this);
-    tariffEvaluator.withInertia(0.5)
-    .withPreferredContractDuration(14)
+    tariffEvaluator.withPreferredContractDuration(14)
     .withChunkSize(minimumChunkSize)
     .withInertia(evalInertia)
     .withRationality(evalRationality)
     .withEvaluateAllTariffs(evaluateAll);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
-    tariffEvaluator.initializeRegulationFactors(-0.1*population, 0.0, 0.1*population);
+    tariffEvaluator.initializeRegulationFactors(-0.1, 0.0, 0.1);
     demandSampler = new DemandSampler();
     demandSampler.initialize(model, getDemandSeed());
   }
@@ -249,11 +243,25 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       double[] dcp = new double[defaultCapacityData.size()];
       int index = 0;
       for (String item : defaultCapacityData) {
-        dcp[index++] = Double.valueOf(item) * getPopulation();
+        dcp[index++] = Double.valueOf(item); //* getPopulation();
       }
       defaultCapacityProfile = new CapacityProfile(dcp, lastSunday());
     }
     return defaultCapacityProfile;
+  }
+
+  /**
+   * Returns the mean hourly capacity per-charger, or the mean value of
+   * the defaultCapacityProfile
+   */
+  public double getMeanDefaultCapacity ()
+  {
+    double sum = 0.0;
+    double[] profile = getDefaultCapacityProfile().getProfile();
+    for (double val : profile) {
+      sum += val;
+    }
+    return sum / profile.length;
   }
 
   // test-support method, package visibility

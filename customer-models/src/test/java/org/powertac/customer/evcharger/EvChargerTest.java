@@ -362,7 +362,7 @@ class EvChargerTest
     assertEquals(8.0, uut.getChargerCapacity(), 1e-6, "correct charger capacity");
     double[] profile = uut.getDefaultCapacityProfile().getProfile();
     assertEquals(24, profile.length, "full profile");
-    assertEquals(1460.0, profile[1], 1e-6, "profile OK");
+    assertEquals(1.46, profile[1], 1e-6, "profile OK");
   }
 
   @Test
@@ -502,13 +502,13 @@ class EvChargerTest
     CapacityProfile cp = uut.getDefaultCapacityProfile();
     double[] dcpn = cp.getProfile();
     assertEquals(24, dcpn.length);
-    assertEquals(3000.0, dcpn[0], 1e-6);
+    assertEquals(3.0, dcpn[0], 1e-6);
     // The getCapacityProfile() method should also return the default until
     // there are multiple tariffs around
     cp = uut.getCapacityProfile(evTariff);
     dcpn = cp.getProfile();
     assertEquals(24, dcpn.length);
-    assertEquals(4000.0, dcpn[7], 1e-6);    
+    assertEquals(4.0, dcpn[7], 1e-6);    
   }
 
   @Test

@@ -320,7 +320,7 @@ public class StorageState
         }
       }
     }
-    if (log.isInfoEnabled()) {
+    if (log.isDebugEnabled()) {
       StringBuffer buf = new StringBuffer();
       int horizon = maxTimeslot - timeslot;
       buf.append(String.format("StorageState [p] [e], h = %d:", horizon));
@@ -336,7 +336,7 @@ public class StorageState
           buf.append(", r").append(Arrays.toString(se.getRatios(unitCapacity)));
         }
       }
-      log.info(buf);
+      log.debug(buf);
     }
   }
 

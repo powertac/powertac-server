@@ -502,7 +502,7 @@ public class TariffEvaluator
           log.error(getName() + ": utility is NaN for tariff "
                     + tariff.getId());
         }
-        log.debug("tariff {}: adjCost={}, default={}, utility={}",
+        log.info("tariff {}: adjCost={}, default={}, utility={}",
                   tariff.getId(), finalCost.costEstimate,
                   defaultEval.costEstimate, utility);
         TariffUtility tu =
@@ -675,7 +675,7 @@ public class TariffEvaluator
     setProfileLength(profile.getProfile().length);
     // NOTE: must call the next function after the previous,
     // since the previous writes inconv. factors.
-    // Always 0 except for AdaptiveCapacityOriginator
+    // Always 0 except for curtailable customers
     double inconv = accessor.getShiftingInconvenienceFactor(tariff);
     double profileCost = helper.estimateCost(tariff,
                                              profile.getProfile(),
