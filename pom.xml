@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-parent</artifactId>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>1.9.0</version>
     <relativePath />
   </parent>
 
@@ -28,7 +28,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
-      <version>1.9.0-SNAPSHOT</version>
+      <version>1.9.0</version>
     </dependency>
 
     <!-- Testing - not inherited from common due to test scope -->
