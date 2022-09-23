@@ -230,10 +230,11 @@ public class TariffEvaluationHelper
     computeAlpha(tariff);
     double dailyUsage = 0.0;
     double result = 0.0;
-    //Instant time = timeService.getCurrentTime();
     Instant time = start;
-    if (null == time)
+    if (null == time) {
       log.error("Time is null!");
+      time = timeService.getCurrentTime();
+    }
     for (int index = 0; index < usage.length; index++) {
       time = time.plus(TimeService.HOUR);
       result += tariff.getUsageCharge(time, usage[index], dailyUsage, this);
@@ -264,10 +265,11 @@ public class TariffEvaluationHelper
   }
 
   // discount regulation using logistic function
+  // note that this is never called in a boot session
   double computeDiscountedReg (Tariff tariff)
   {
     double result = 0.0;
-    double mktPrice = getMarketBootstrapData().getMeanMarketPrice() / -1000.0;
+    double mktPrice = getMarketBootstrapData().getMeanMarketPrice() / -1000.0; // kWh
 
     // Discount with logistic function
     // 1-1/(1+exp(-3*(x-4))) produces 0.95 for upreg rate 3 times mkt price,
