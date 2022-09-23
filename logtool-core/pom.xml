@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-server</artifactId>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>1.9.0</version>
   </parent>
 
 
@@ -27,37 +27,37 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>1.9.0-SNAPSHOT</version>
+      <version>1.9.0</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>default-broker</artifactId>
-      <version>1.9.0-SNAPSHOT</version>
+      <version>1.9.0</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>customer-models</artifactId>
-      <version>1.9.0-SNAPSHOT</version>
+      <version>1.9.0</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>evcustomer</artifactId>
-      <version>1.9.0-SNAPSHOT</version>
+      <version>1.9.0</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>factored-customer</artifactId>
-      <version>1.9.0-SNAPSHOT</version>
+      <version>1.9.0</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
-      <version>1.9.0-SNAPSHOT</version>
+      <version>1.9.0</version>
     </dependency>
 
     <dependency>
@@ -103,7 +103,7 @@
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
     <url>https://github.com/powertac/powertac-server/</url>
-    <tag>HEAD</tag>
+    <tag>powertac-server-1.9.0</tag>
   </scm>
 
 </project>
