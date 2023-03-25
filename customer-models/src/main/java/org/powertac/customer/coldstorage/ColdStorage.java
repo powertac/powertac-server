@@ -65,7 +65,7 @@ implements CustomerModelAccessor
 {
   static private Logger log = LogManager.getLogger(ColdStorage.class.getName());
 
-  // handy contstants
+  // handy constants
   static final double R_CONVERSION = 3.1545 / 1000.0; // kW/m^2-K
   static final double TON_CONVERSION = 3.504; // kW heat
   static final double CP_ICE = 0.564; // kWh/tonne-K
@@ -369,17 +369,17 @@ implements CustomerModelAccessor
   }
 
   // ------------- CustomerModelAccessor methods -----------------
-  private Map<Tariff, TariffInfo> TariffProfiles = null;
+  private Map<Tariff, TariffInfo> tariffProfiles = null;
   double nominalHourlyConsumption = 0.0;
   @Override
   public CapacityProfile getCapacityProfile (Tariff tariff)
   {
     // lazy creation of capacityProfile table
-    if (null == TariffProfiles) {
-      TariffProfiles = new HashMap<Tariff, TariffInfo>();
+    if (null == tariffProfiles) {
+      tariffProfiles = new HashMap<Tariff, TariffInfo>();
     }
     // return existing capacityProfile if it exists
-    TariffInfo info = TariffProfiles.get(tariff);
+    TariffInfo info = tariffProfiles.get(tariff);
     if (null != info) {
       return info.getCapacityProfile();
     }
@@ -395,7 +395,7 @@ implements CustomerModelAccessor
       info.setCapacityProfile(new CapacityProfile(pr, lastSunday()));
     }
     log.debug(getName() + " capacityProfile " + Arrays.toString(info.getCapacityProfile().getProfile()));
-    TariffProfiles.put(tariff, info);
+    tariffProfiles.put(tariff, info);
     return info.getCapacityProfile();
   }
 
@@ -948,5 +948,12 @@ implements CustomerModelAccessor
   public double getShiftingInconvenienceFactor(Tariff tariff) {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  @Override
+  public void notifyCustomer (TariffSubscription oldsub,
+                              TariffSubscription newsub, int population)
+  {
+    // method stub
   }
 }

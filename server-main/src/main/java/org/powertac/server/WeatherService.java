@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 by the original author
+ * Copyright (c) 2011-2022 by the original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,13 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.SimEnd;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
+import org.powertac.logtool.LogtoolContext;
+import org.powertac.logtool.LogtoolCore;
+import org.powertac.logtool.ifc.ObjectReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -66,10 +70,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-
 @Service
-public class WeatherService extends TimeslotPhaseProcessor implements
-    InitializationService
+public class WeatherService extends TimeslotPhaseProcessor
+implements InitializationService
 {
   static private Logger log = LogManager.getLogger(WeatherService.class);
 
@@ -79,20 +82,24 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
   @ConfigurableValue(valueType = "String", bootstrapState = true,
           description = "Location of weather server rest url")
-  private String serverUrl = "http://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
+  private String serverUrl = "https://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
 
   // If network requests should be made asynchronously or not.
-  @ConfigurableValue(valueType = "Boolean", description = "If network calls to weather server should block until finished")
+  @ConfigurableValue(valueType = "Boolean",
+          description = "If network calls to weather server should block until finished")
   private boolean blocking = true;
 
-  @ConfigurableValue(valueType = "String", description = "Location of weather file (XML or state) or URL (state)")
-  private String weatherData = "";
+  @ConfigurableValue(valueType = "String",
+          description = "Location of weather file (XML or state) or URL (state)")
+  private String weatherData = null;
 
   // length of reports and forecasts. Can't really change this
-  @ConfigurableValue(valueType = "Integer", description = "Timeslot interval to make requests")
+  @ConfigurableValue(valueType = "Integer",
+          description = "Timeslot interval to make requests")
   private int weatherReqInterval = 24;
 
-  @ConfigurableValue(valueType = "Integer", description = "Length of forecasts (in hours)")
+  @ConfigurableValue(valueType = "Integer",
+          description = "Length of forecasts (in hours)")
   private int forecastHorizon = 24; // 24 hours
 
   @Autowired
@@ -110,11 +117,17 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   @Autowired
   private ServerConfiguration serverProps;
 
+  @Autowired
+  private LogtoolCore logtool;
+
   // These dates need to be fetched when using not blocking
   private List<ZonedDateTime> aheadDays;
   private ZonedDateTime simulationBaseTime;
   private int daysAhead = 3;
 
+  // if we're extracting from a state log, we cannot create multiple instances
+  // of the StateFileExtractor. So this one is either null or not.
+  private StateFileExtractor sfe = null;
 
   public int getWeatherReqInterval ()
   {
@@ -261,8 +274,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
             ZonedDateTime.ofInstant(competition.getSimulationBaseTime(),
                                     TimeService.UTC);
 
-    if (weatherData != null
-        && (weatherData.endsWith(".xml") || weatherData.endsWith(".state"))) {
+    if (weatherData != null) {
       log.info("read from file in blocking mode");
       blocking = true;
     }
@@ -302,13 +314,17 @@ public class WeatherService extends TimeslotPhaseProcessor implements
           String weatherXml = wxe.extractPartialXml(requestDate);
           data = parseXML(weatherXml);
         }
-        else if (weatherData != null && weatherData.endsWith(".state")) {
+        else if (weatherData != null) {
+          // could be URL, tar, tar.gz, .gz, or uncompressed state log
+          // We cannot run multiple extractors in parallel on the same file;
+          // this essentially negates the "blocking" feature
           currentMethod = "state file";
-          StateFileExtractor sfe = new StateFileExtractor(weatherData);
+          log.info("Reading weather data from {}", weatherData);
+          if (null == sfe)
+            sfe = new StateFileExtractor(weatherData);
           data = sfe.extractData();
         }
-
-        if (data == null) {
+        else {
           currentMethod = "web";
           data = webRequest();
         }
@@ -335,6 +351,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
       String urlString = String.format("%s?weatherDate=%s&weatherLocation=%s",
           getServerUrl(), queryDate, weatherLocation);
+      log.info("Weather request URL {}", urlString);
 
       try {
         // Create a URLConnection object for a URL and send request
@@ -389,11 +406,15 @@ public class WeatherService extends TimeslotPhaseProcessor implements
         xstream.registerConverter(new WeatherForecastConverter());
 
         // Unmarshall the xml input and place it into data container object
+        try {
         if (input.getClass().equals(BufferedReader.class)) {
           data = (Data) xstream.fromXML((BufferedReader) input);
         }
         else if (input.getClass().equals(String.class)) {
           data = (Data) xstream.fromXML((String) input);
+        }
+        } catch (Exception ex) {
+          log.error("Exception {} converting input from {}", ex.toString(), serverUrl);
         }
 
         if (data != null && (data.weatherReports.size() != weatherReqInterval ||
@@ -422,8 +443,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
         weatherReportRepo.add(report);
       }
 
-      log.info(data.getWeatherReports().size()
-          + " WeatherReports fetched from xml response.");
+      log.info(data.getWeatherReports().size() + " WeatherReports fetched");
     }
 
     private void processForecastData (Data data) throws Exception
@@ -524,6 +544,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
   }
 
+  // Deprecated, but cannot be deleted until tests and test data are fixed.
   private class EnergyReport
   {
   }
@@ -695,99 +716,106 @@ public class WeatherService extends TimeslotPhaseProcessor implements
    * It returns $weatherReqInterval reports
    * and $weatherReqInterval forecasts, each with $forecastHorizon predictions
    */
-  private class StateFileExtractor
+  private class StateFileExtractor extends LogtoolContext
   {
-    private URL weatherSource = null;
-    private String report = "org.powertac.common.WeatherReport";
-    private String forecast = "org.powertac.common.WeatherForecastPrediction";
+    private String weatherSource = null;
+    ObjectReader reader;
+    WeatherReport saved = null;
+    boolean initialized = false;
 
     public StateFileExtractor (String weatherData)
     {
-      try {
-        String urlName = weatherData;
-        if (!urlName.contains(":")) {
-          urlName = "file:" + urlName;
-        }
-        weatherSource = new URL(urlName);
-      }
-      catch (Exception ignored) {
-      }
+      if (null == weatherData)
+        // can't do much here
+        return;
+      weatherSource = weatherData;
+    }
+
+    private void initMaybe ()
+    {
+      if (initialized)
+        return;
+      logtool.resetDOR(false);
+      logtool.includeClassname(WeatherReport.class.getName());
+      logtool.includeClassname(WeatherForecastPrediction.class.getName());
+      logtool.includeClassname(WeatherForecast.class.getName());
+      reader = logtool.getObjectReader(weatherSource);
+      initialized = true;
     }
 
     public Data extractData ()
     {
-      int startIndex = timeslotRepo.currentSerialNumber();
+      initMaybe();
+      // We read weather data in "blocks" because that's how it appears in a log.
+      // We assume (and check) that the next weather report has a timeslot that matches
+      // the startIndex.
+      log.info("Extracting weather data from {}", weatherSource);
       if (weatherSource == null) {
+        log.error("Cannot extract weather data from null");
         return null;
       }
-
-      BufferedReader br = null;
-      try {
-        Data data = new Data();
-        br = new BufferedReader(
-            new InputStreamReader(weatherSource.openStream()));
-
-        String line;
-        boolean inRange = false;
-        int timeIndex = startIndex;
-        while ((line = br.readLine()) != null) {
-          if (!line.contains(report) && !line.contains(forecast)) {
-            continue;
-          }
-
-          String[] temp = line.split("::");
-
-          if (line.contains(report)) {
-            int stamp = Integer.parseInt(temp[3]);
-            if (stamp < startIndex) {
-              continue;
-            }
-            else if (stamp >= startIndex + weatherReqInterval) {
-              // should not get here...
-              log.error("Forecast underflow: "
-                  + data.getWeatherForecasts().size());
-              break;
-            }
-            inRange = true;
-
-            data.getWeatherReports().add(
-                new WeatherReport(
-                    timeIndex,
-                    Double.parseDouble(temp[4]), Double.parseDouble(temp[5]),
-                    Double.parseDouble(temp[6]), Double.parseDouble(temp[7])));
-
-            timeIndex += 1;
-          }
-          else if (inRange && line.contains(forecast)) {
-            data.getWeatherForecasts().add(
-                new WeatherForecastPrediction(
-                    Integer.parseInt(temp[3]),
-                    Double.parseDouble(temp[4]), Double.parseDouble(temp[5]),
-                    Double.parseDouble(temp[6]), Double.parseDouble(temp[7])));
-          }
-
-          if (data.getWeatherForecasts().size() ==
-              weatherReqInterval * forecastHorizon) {
-            break;
-          }
-        }
-
-        return data;
-      }
-      catch (Exception e) {
-        e.printStackTrace();
+      
+      // If saved is non-null and not a WeatherReport, we've reached the end of the 
+      // available weather data
+      if (null != saved && saved.getClass() != WeatherReport.class)
         return null;
+      
+      Data data = new Data();
+
+      saved = loadBlock(saved, data);
+      
+      return data;
+    }
+
+    public WeatherReport loadBlock (WeatherReport saved, Data data)
+    {
+      WeatherReport result = null;
+
+      // if we've saved one from the last batch, handle it now
+      if (null != saved) {
+        data.getWeatherReports().add(saved);
       }
-      finally {
-        try {
-          if (br != null) {
-            br.close();
+
+      Object next = reader.getNextObject();
+      if (!(next.getClass() == WeatherReport.class))
+      {
+        if (next.getClass() == SimEnd.class) {
+          // end of file reached
+          try {
+            log.info("SimEnd on weather data, aborting");
+            File abortFile = new File("abort");
+            PrintWriter writer = new PrintWriter(abortFile);
+            writer.println("Out of weather data -- abort");
+            writer.close();
+          } catch (FileNotFoundException fnf) {
+            log.error("Cannot open abort file");
           }
         }
-        catch (IOException ex) {
-          ex.printStackTrace();
+        else {
+          log.error("Bad weather data {}", next);
         }
       }
+      else {
+        // it's the first WeatherReport in this block
+
+        while (next.getClass() == WeatherReport.class) {
+          data.getWeatherReports().add((WeatherReport) next);
+          next = reader.getNextObject();
+        }
+        while (next.getClass() == WeatherForecastPrediction.class) {
+          data.getWeatherForecasts().add((WeatherForecastPrediction) next);
+          next = reader.getNextObject();
+        }
+        // now we have some WeatherForecast instances that we'll ignore
+        while (next.getClass() == WeatherForecast.class) {
+          next = reader.getNextObject();
+        }
+        if (next.getClass() == WeatherReport.class) {
+          // save it for the beginning of the next block
+          result = (WeatherReport) next;
+        }
+      }
+      return result;
     }
   }
 }

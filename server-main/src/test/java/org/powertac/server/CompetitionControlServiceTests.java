@@ -55,7 +55,6 @@ public class CompetitionControlServiceTests
   private CustomerInfo customer1;
   private CustomerInfo customer2;
 
-
   @BeforeEach
   public void setUp () throws Exception
   {

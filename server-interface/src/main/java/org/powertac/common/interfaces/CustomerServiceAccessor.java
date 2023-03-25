@@ -16,6 +16,7 @@
 package org.powertac.common.interfaces;
 
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -76,4 +77,9 @@ public interface CustomerServiceAccessor
    * Returns a reference to a WeatherReportRepo
    */
   public WeatherReportRepo getWeatherReportRepo ();
+
+  /**
+   * Returns the XMLMessageConverter needed to serialize bootstrap state
+   */
+  public XMLMessageConverter getMessageConverter ();
 }

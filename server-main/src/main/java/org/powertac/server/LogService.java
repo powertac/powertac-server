@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011 by the original author
+* Copyright (c) 2011, 2020 by John Collins
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.powertac.server;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.metadata.StateLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ import org.springframework.stereotype.Service;
 /**
  * Support for per-game logging. Two logs are generated: a trace log, and a state log.
  * The trace log is called "hhhxxx.trace" where hhh is the prefix provided as the argument
- * to setPrefix(), and xxx is the id if the Competition instance. Ideally, hhh is the
+ * to setPrefix(), and xxx is the id of the Competition instance. Ideally, hhh is the
  * hostname of the machine running the sim.
  * <p>
  * The contents of the trace are intended to be error, warn, info, or debug messages that
@@ -41,12 +43,11 @@ import org.springframework.stereotype.Service;
  * <pre>  static private Logger stateLog = Logger.getLogger("State");
  * </pre>
  * Entries in the state log are of the form
- * <pre>  type:class:id:op:arg1:...
+ * <pre>  msec:class::id::op::arg1::...
  * </pre>
- * where type is one of [c,u,d] for create, update, delete; id is the identifier of the
- * object, op (used only for update) is the operation, and the args are the arguments for
- * that operation. The logger format will prepend the current offset from the beginning 
- * of the simulation in milliseconds.</p>
+ * where id is the identifier of the
+ * object, op is the operation, and the args are the arguments for
+ * that operation.</p>
  * @author John Collins
  */
 @Service
@@ -54,8 +55,15 @@ public class LogService
 {
   @Autowired
   private StateLogService stateLogService;
+  
+  @Autowired
+  private ServerConfiguration configService;
 
   private String filenamePrefix = "powertac";
+
+  @ConfigurableValue(valueType = "Boolean",
+          description = "if true, then abbreviate package names in the state log")
+  private boolean abbreviateClassnames = false;
   
   public LogService ()
   {
@@ -65,7 +73,9 @@ public class LogService
   /**
    * Sets the filename prefix. This should be set to the hostname
    * or some other distinguishing value.
+   * Note that this method does not appear to be used anywhere other than in unit tests.
    */
+  @Deprecated
   public void setPrefix (String prefix)
   {
     filenamePrefix = prefix;
@@ -87,6 +97,7 @@ public class LogService
 
   public void startLog (String id)
   {
+    configService.configureMe(this);
     try {
       String filename = filenamePrefix;
       if (id != null && id.length() > 0) {
@@ -98,7 +109,8 @@ public class LogService
       System.setProperty("statefile", logDir + "/" + filename + ".state");
       
       ((LoggerContext) LogManager.getContext(false)).reconfigure();
-      stateLogService.init();
+
+      stateLogService.init(abbreviateClassnames);
     }
     catch (Exception ioe) {
       ioe.printStackTrace();

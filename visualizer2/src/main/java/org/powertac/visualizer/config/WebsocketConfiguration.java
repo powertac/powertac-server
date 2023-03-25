@@ -55,7 +55,7 @@ public class WebsocketConfiguration extends AbstractWebSocketMessageBrokerConfig
             })
             .withSockJS()
             .setInterceptors(httpSessionHandshakeInterceptor());
-        registry.addEndpoint("/websocket/push").setAllowedOrigins("*").withSockJS();
+        registry.addEndpoint("/websocket/push").setAllowedOriginPatterns("*").withSockJS();
     }
 
     @Bean

@@ -23,6 +23,7 @@ import org.powertac.common.Timeslot;
  * Data-holder class, instances are used to communicate dynamic information
  * to and transport information back from the step() method of a
  * model component.
+ * --- APPEARS TO BE DEAD CODE ---
  * @author John Collins
  */
 public class StepInfo

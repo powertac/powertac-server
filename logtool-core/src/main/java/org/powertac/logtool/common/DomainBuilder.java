@@ -23,7 +23,6 @@ import org.apache.logging.log4j.LogManager;
 
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.Rate;
 import org.powertac.common.RateCore;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.Timeslot;

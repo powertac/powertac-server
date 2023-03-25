@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-server</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.9.0-SNAPSHOT</version>
   </parent>
 
   <build>
@@ -22,7 +22,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler.version}</version>
         <configuration>
           <compilerArgs>-proc:none</compilerArgs>
         </configuration>
@@ -30,13 +29,11 @@
 
       <!-- Needs AspectJ build -->
       <plugin>
-        <!-- Temporary, see -->
-        <!-- https://github.com/mojohaus/aspectj-maven-plugin/pull/45 -->
-        <!-- <groupId>org.codehaus.mojo</groupId> -->
-        <groupId>com.nickwongdev</groupId>
+        <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
         <configuration>
           <proc>none</proc>
+          <forceAjcCompile>true</forceAjcCompile>
         </configuration>
       </plugin>
     </plugins>

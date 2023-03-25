@@ -22,26 +22,20 @@ import static org.mockito.Mockito.*;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.commons.math3.distribution.NormalDistribution;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.powertac.common.Competition;
-import org.powertac.common.MarketPosition;
-import org.powertac.common.Order;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.WeatherReport;
-import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.ContextService;
 import org.powertac.common.repo.RandomSeedRepo;

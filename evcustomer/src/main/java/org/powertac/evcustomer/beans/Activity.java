@@ -16,18 +16,11 @@
 
 package org.powertac.evcustomer.beans;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections.Predicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.powertac.common.RandomSeed;
 import org.powertac.common.config.ConfigurableValue;
-import org.powertac.evcustomer.customers.EvCustomer;
 
 /**
  * Represents an activity that involves driving a vehicle. Some activities involve

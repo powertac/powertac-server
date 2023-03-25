@@ -48,8 +48,11 @@ public class LogServiceTests
   @BeforeAll
   static public void initialize ()
   {
+    // create an instance of ServerPropertiesService to inject
+    ServerPropertiesService serverProps = new ServerPropertiesService();
     // initialize the log service (config src/test/resources/log4j2-test.xml)
     logService = new LogService();
+    ReflectionTestUtils.setField(logService, "configService", serverProps);
     ReflectionTestUtils.setField(logService, "stateLogService", new StateLogService());
   }
   

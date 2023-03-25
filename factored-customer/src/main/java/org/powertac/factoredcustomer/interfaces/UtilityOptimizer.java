@@ -16,7 +16,6 @@
 
 package org.powertac.factoredcustomer.interfaces;
 
-import org.powertac.common.Timeslot;
 import org.powertac.factoredcustomer.FactoredCustomerService;
 
 

@@ -37,10 +37,16 @@ import org.powertac.common.Order;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherForecast;
+import org.powertac.common.WeatherForecastPrediction;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.ContextService;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherForecastRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -51,8 +57,11 @@ public class CpGencoTest
   private BrokerProxy mockProxy;
 
   private TimeslotRepo timeslotRepo;
+  private WeatherReportRepo mockReportRepo;
+  private WeatherForecastRepo mockForecastRepo;
 
   private CpGenco genco;
+  private Competition comp;
   private Instant start;
   private RandomSeedRepo mockSeedRepo;
   private RandomSeed seed;
@@ -64,7 +73,7 @@ public class CpGencoTest
   @BeforeEach
   public void setUp () throws Exception
   {
-    Competition comp = Competition.newInstance("Genco test").withTimeslotsOpen(4);
+    comp = Competition.newInstance("Genco test").withTimeslotsOpen(4);
     Competition.setCurrent(comp);
     comp.withTimeslotsOpen(4);
     mockProxy = mock(BrokerProxy.class);
@@ -74,6 +83,8 @@ public class CpGencoTest
                                     anyLong(),
                                     anyString())).thenReturn(seed);
     timeslotRepo = new TimeslotRepo();
+    mockReportRepo = mock(WeatherReportRepo.class);
+    mockForecastRepo = mock(WeatherForecastRepo.class);
     genco = new CpGenco("Test");
     start = comp.getSimulationBaseTime().plusMillis(TimeService.DAY);
     timeService = new TimeService();
@@ -83,8 +94,13 @@ public class CpGencoTest
 
   private void init ()
   {
+    ContextService svc = mock(ContextService.class);
+    when(svc.getBean("timeslotRepo")).thenReturn(timeslotRepo);
+    when(svc.getBean("randomSeedRepo")).thenReturn(mockSeedRepo);
+    when(svc.getBean("weatherReportRepo")).thenReturn(mockReportRepo);
+    when(svc.getBean("weatherForecastRepo")).thenReturn(mockForecastRepo);
     when(seed.nextLong()).thenReturn(1l);
-    genco.init(mockProxy, 0, mockSeedRepo, timeslotRepo);
+    genco.init(mockProxy, 0, svc);
   }
 
   /**
@@ -227,6 +243,22 @@ public class CpGencoTest
     assertEquals(0.22, genco.getPSigma(), 1e-6, "correct pSigma");
   }
 
+  // Default weather conditions
+  private void defaultWeather ()
+  {
+    WeatherReport wr = new WeatherReport(0, 15.0, 0.0, 0.0, 0.0);
+    when(mockReportRepo.currentWeatherReport()).thenReturn(wr);
+    List<WeatherForecastPrediction> wfs = new ArrayList<>();
+    for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
+      WeatherForecastPrediction wfp =
+          new WeatherForecastPrediction(i + 1, 14.0 + i, 0.0, 0.0, 0.0);
+      wfs.add(wfp);
+    }
+    WeatherForecast wf = new WeatherForecast(0, wfs);
+    when(mockForecastRepo.currentWeatherForecast()).thenReturn(wf);
+
+  }
+
   /**
    * Test method for {@link org.powertac.genco.CpGenco#generateOrders(org.joda.time.Instant, java.util.List)}.
    */
@@ -235,8 +267,10 @@ public class CpGencoTest
   public void generateFixedOrders ()
   {
     init();
+    defaultWeather();
     genco.withMinQuantity(100.0);
     genco.withPriceInterval(10.0);
+    genco.withMinBidQuantity(4.0);
     // mock the normal distribution
     NormalDistribution mockNorm = mock(NormalDistribution.class);
     ReflectionTestUtils.setField(genco, "normal01", mockNorm);
@@ -263,7 +297,8 @@ public class CpGencoTest
     genco.addMarketPosition(posn2, ts2.getSerialNumber());
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals(72, orderList.size(), "72 orders");
+    //System.out.println(orderList);
+    assertEquals(64, orderList.size(), "64 orders");
   }
 
   @SuppressWarnings("unused")
@@ -271,8 +306,10 @@ public class CpGencoTest
   public void generateVarOrders ()
   {
     init();
+    defaultWeather();
     genco.withMinQuantity(100.0);
     genco.withPriceInterval(10.0);
+    genco.withMinBidQuantity(1.0);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer<Object>() {
@@ -293,5 +330,89 @@ public class CpGencoTest
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
     assertEquals(73, orderList.size(), "73 orders");
+  }
+
+  // test temperature adjustment
+  @Test
+  public void tempAdjustment ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("genco.cpGenco.minQuantity", "300.0");
+    map.put("genco.cpGenco.coolingThreshold", "40.0");
+    map.put("genco.cpGenco.coolingSlope", "10.0");
+    map.put("genco.cpGenco.heatingThreshold", "0.0");
+    map.put("genco.cpGenco.heatingSlope", "5.0");
+    map.put("genco.cpGenco.misoScaleFactor", "0.5");
+    MapConfiguration conf = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(conf);
+    configurator.configureSingleton(genco);
+    assertEquals(0.0, genco.getEmergencyAdjustment(20.0), 1e-6, "no adjustment");
+    assertEquals(0.0, genco.getEmergencyAdjustment(40.0), 1e-6, "no adjustment");
+    assertEquals(5.0, genco.getEmergencyAdjustment(41.0), 1e-6, "cooling adjustment");
+    assertEquals(0.0, genco.getEmergencyAdjustment(0.0), 1e-6, "no adjustment");
+    assertEquals(2.5, genco.getEmergencyAdjustment(-1.0), 1e-6, "heating adjustment");
+  }
+
+  // test extreme cooling adjustment
+  @Test
+  public void extremeCoolingAdjustment ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("genco.cpGenco.minQuantity", "200.0");
+    map.put("genco.cpGenco.coolingThreshold", "35.0");
+    map.put("genco.cpGenco.coolingSlope", "10.0");
+    map.put("genco.cpGenco.misoScaleFactor", "1.0");
+    MapConfiguration conf = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(conf);
+    configurator.configureSingleton(genco);
+    init();
+    Timeslot ts0 = timeslotRepo.makeTimeslot(start);
+    assertEquals(24, timeslotRepo.currentSerialNumber(), "serial # first timeslot");
+    assertEquals(200.0, genco.getMinQuantity(), 1e-6, "correct min quantity");
+    List<WeatherForecastPrediction> wfs = new ArrayList<>();
+    for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
+      WeatherForecastPrediction wfp =
+          new WeatherForecastPrediction(i + 1, 35.0 + i, 0.0, 0.0, 0.0);
+      wfs.add(wfp);
+    }
+    WeatherForecast wf = new WeatherForecast(24, wfs);
+    when(mockForecastRepo.currentWeatherForecast()).thenReturn(wf);
+    assertEquals(200.0, genco.getAdjustedMinQty(25));
+    assertEquals(210.0, genco.getAdjustedMinQty(26));
+    assertEquals(220.0, genco.getAdjustedMinQty(27));
+    assertEquals(230.0, genco.getAdjustedMinQty(28));
+  }
+
+  // test extreme heating adjustment
+  @Test
+  public void extremeHeatingAdjustment ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("genco.cpGenco.minQuantity", "400.0");
+    map.put("genco.cpGenco.heatingThreshold", "0.0");
+    map.put("genco.cpGenco.heatingSlope", "12.0");
+    map.put("genco.cpGenco.misoScaleFactor", "1.0");
+    MapConfiguration conf = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(conf);
+    configurator.configureSingleton(genco);
+    init();
+    Timeslot ts0 = timeslotRepo.makeTimeslot(start);
+    assertEquals(24, timeslotRepo.currentSerialNumber(), "serial # first timeslot");
+    assertEquals(400.0, genco.getMinQuantity(), 1e-6, "correct min quantity");
+    List<WeatherForecastPrediction> wfs = new ArrayList<>();
+    for (int i = 0; i < comp.getTimeslotsOpen(); i += 1) {
+      WeatherForecastPrediction wfp =
+          new WeatherForecastPrediction(i + 1, 0.0 - i, 0.0, 0.0, 0.0);
+      wfs.add(wfp);
+    }
+    WeatherForecast wf = new WeatherForecast(24, wfs);
+    when(mockForecastRepo.currentWeatherForecast()).thenReturn(wf);
+    assertEquals(400.0, genco.getAdjustedMinQty(25));
+    assertEquals(412.0, genco.getAdjustedMinQty(26));
+    assertEquals(424.0, genco.getAdjustedMinQty(27));
+    assertEquals(436.0, genco.getAdjustedMinQty(28));
   }
 }

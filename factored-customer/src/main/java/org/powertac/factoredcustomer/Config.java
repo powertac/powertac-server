@@ -20,7 +20,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.factoredcustomer.interfaces.StructureInstance;
 
 import java.util.ArrayList;

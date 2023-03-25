@@ -32,6 +32,7 @@ import org.powertac.common.CustomerInfo;
 //import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -167,7 +168,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
       return;
     }
 
-    String[] types = { "NS", "RaS", "ReS", "SS" };
+    //String[] types = { "NS", "RaS", "ReS", "SS" };
+    String[] types = { "NS", "SS" };
     String[] shifts = { "Base", "Controllable" };
     Map<String, Integer> houses = new TreeMap<String, Integer>();
     int numberOfVillages =
@@ -175,12 +177,12 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     int nshouses =
       Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
     houses.put("NS", nshouses);
-    int rashouses =
-      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
-    houses.put("RaS", rashouses);
-    int reshouses =
-      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
-    houses.put("ReS", reshouses);
+//    int rashouses =
+//      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+//    houses.put("RaS", rashouses);
+//    int reshouses =
+//      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+//    houses.put("ReS", reshouses);
     int sshouses =
       Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
     houses.put("SS", sshouses);
@@ -326,6 +328,13 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
   @Override
   public TariffMarket getTariffMarket ()
+  {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public XMLMessageConverter getMessageConverter ()
   {
     // TODO Auto-generated method stub
     return null;

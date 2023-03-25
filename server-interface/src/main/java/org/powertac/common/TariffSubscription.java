@@ -18,7 +18,9 @@ package org.powertac.common;
 import java.time.Instant;
 //import org.codehaus.groovy.grails.commons.ApplicationHolder
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,7 +65,11 @@ public class TariffSubscription
    * to this tariff subscription. This needs to be a count, otherwise tiered 
    * rates cannot be applied properly. */
   private int customersCommitted = 0 ;
-  
+
+  /** Arbitrary data needed by population customers who may be divided among multiple
+   * subscriptions and need to keep data on the join. */
+  private Map<String, Object> customerDecorators;
+
   /** List of expiration dates. This is used only if the Tariff has a minDuration,
    *  before which a subscribed Customer cannot back out without a penalty. Each
    *  entry in this list is a pair [expiration-date, customer-count]. New entries
@@ -106,7 +112,7 @@ public class TariffSubscription
 
   /**
    * Alternate constructor for logtool analyzers in which Tariffs cannot
-   * be reconstructed.
+   * be reconstructed. Many features won't work if the Tariff does not exist.
    */
   public TariffSubscription (CustomerInfo customer, long tariffId)
   {
@@ -282,6 +288,30 @@ public class TariffSubscription
 //    regulationAccumulator.setDownRegulationCapacity(regulationAccumulator
 //        .getDownRegulationCapacity() * ratio);
 //  }
+
+  /**
+   * Adds a (name, value) pair to the CustomerDecorators map
+   */
+  public void addCustomerDecorator (String name, Object value)
+  {
+    if (null == customerDecorators) {
+      customerDecorators = new HashMap<>();
+    }
+    customerDecorators.put(name, value);
+  }
+
+  /**
+   * Returns the named customerDecorator, if any
+   */
+  public Object getCustomerDecorator (String name)
+  {
+    if (null == customerDecorators) {
+      return null;
+    }
+    else {
+      return customerDecorators.get(name);
+    }
+  }
 
   /**
    * Handles the subscription switch in case the underlying Tariff has been

@@ -46,6 +46,50 @@
     <constructor-arg value="org.powertac.server.ServerMessageReceiver"/>
   </bean>
 
+  <bean id="timeslotRepo"
+        class="org.powertac.common.repo.TimeslotRepo">
+  </bean>
+
+  <bean id="brokerRepo"
+        class="org.powertac.common.repo.BrokerRepo">
+  </bean>
+
+  <bean id="customerRepo"
+        class="org.powertac.common.repo.CustomerRepo">
+  </bean>
+
+  <bean id="randomSeedRepo"
+        class="org.powertac.common.repo.RandomSeedRepo">
+  </bean>
+
+  <bean id="tariffRepo"
+        class="org.powertac.common.repo.TariffRepo">
+  </bean>
+
+  <bean id="orderbookRepo"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.repo.OrderbookRepo"/>
+  </bean>
+
+  <bean id="domainBuilder"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.logtool.common.DomainBuilder"/>
+  </bean>
+
+  <bean id="domainObjectReader"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.logtool.common.DomainObjectReader"/>
+  </bean>
+
+  <bean id="logtoolCore"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.logtool.LogtoolCore"/>
+  </bean>
+
   <context:annotation-config />
 
   <bean id="taskExecutor"
@@ -66,26 +110,6 @@
 
   <bean id="tournamentSchedulerService"
         class="org.powertac.server.TournamentSchedulerService" >
-  </bean>
-
-  <bean id="timeslotRepo"
-        class="org.powertac.common.repo.TimeslotRepo">
-  </bean>
-
-  <bean id="brokerRepo"
-        class="org.powertac.common.repo.BrokerRepo">
-  </bean>
-
-  <bean id="customerRepo"
-        class="org.powertac.common.repo.CustomerRepo">
-  </bean>
-
-  <bean id="randomSeedRepo"
-        class="org.powertac.common.repo.RandomSeedRepo">
-  </bean>
-
-  <bean id="tariffRepo"
-        class="org.powertac.common.repo.TariffRepo">
   </bean>
 
   <bean id="bootstrapDataRepo"
@@ -130,10 +154,6 @@
 
   <bean id="weatherForecastRepo"
         class="org.powertac.common.repo.WeatherForecastRepo">
-  </bean>
-
-  <bean id="weatherService"
-  	class="org.powertac.server.WeatherService">
   </bean>
 
   <bean id="serverPropertiesService"

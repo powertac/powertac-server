@@ -169,6 +169,7 @@ public class MisoBuyer extends Broker
   private WeatherReportRepo weatherReportRepo;
   private WeatherForecastRepo weatherForecastRepo;
   private RandomSeed tsSeed;
+  private double minOrderQty = 0.0;
 
   // needed for saving bootstrap state
   private TimeslotRepo timeslotRepo;
@@ -226,11 +227,21 @@ public class MisoBuyer extends Broker
         start = posn.getOverallBalance();
       }
       double needed = demand - start;
+      if (Math.abs(needed) < getMinOrderQty())
+        continue;
       Order offer = new Order(this, index, needed, null);
       log.info(getUsername() + " orders " + needed +
                   " ts " + index);
       brokerProxyService.routeMessage(offer);
     }
+  }
+
+  // Lazy accessor for Competition.minimumOrderQuantity
+  private double getMinOrderQty ()
+  {
+    if (minOrderQty == 0.0)
+      minOrderQty = Competition.currentCompetition().getMinimumOrderQuantity();
+    return minOrderQty;
   }
 
   // Computes weather-based demand corrections for each forecast.
@@ -243,6 +254,7 @@ public class MisoBuyer extends Broker
     WeatherReport weather = weatherReportRepo.currentWeatherReport();
     WeatherForecastPrediction[] forecasts = getForecastArray();
     // smooth the current heat and cool sequences
+    // Note that "heat" refers to energy needed for heating
     double thisHeat =
         Math.min(0.0, (weather.getTemperature() - heatThreshold));
     lastHeat = tempAlpha * thisHeat + (1.0 - tempAlpha) * lastHeat;

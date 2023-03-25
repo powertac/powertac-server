@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013 by the original author
+ * Copyright (c) 2012-2021 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,18 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+<<<<<<< HEAD
+=======
+import org.joda.time.Instant;
+import org.powertac.common.RandomSeed;
+>>>>>>> master
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.state.StateLogging;
 import org.powertac.common.xml.PowerTypeConverter;
 import org.powertac.du.DefaultBroker;
 import org.powertac.logtool.LogtoolContext;
@@ -70,7 +76,9 @@ public class DomainObjectReader
   HashMap<String, String> pkgAbbreviations;
   String[] pkgPrefix = {"org.powertac.", ""};
   HashSet<String> ignores;
+  HashSet<String> includesOnly;
   HashSet<Class<?>> noIdTypes;
+  //HashSet<Class<?>> argModTypes;
   PowerTypeConverter ptConverter = new PowerTypeConverter();
 
   // listeners can be the old-style NewObjectListeners, or they can be
@@ -81,12 +89,23 @@ public class DomainObjectReader
   //per-timeslot pause in msec"
   private int timeslotPause = 0;
 
+  // If false, then don't instantiate objects in the current environment
+  private boolean instantiate = true;
+
   /**
    * Default constructor
    */
   public DomainObjectReader ()
   {
     super();
+    reset();
+  }
+
+  /**
+   * Restores the Reader to initial conditions
+   */
+  public void reset ()
+  {
     idMap = new HashMap<Long, Object>();
 
     // Set up the interface defaults
@@ -114,16 +133,25 @@ public class DomainObjectReader
     //ignores.add("org.powertac.common.WeatherForecastPrediction");
     ignores.add("org.powertac.factoredcustomer.DefaultUtilityOptimizer$DummyTariffSubscription");
 
+<<<<<<< HEAD
     // set up the package abbreviations
     pkgAbbreviations = new HashMap<>();
     pkgAbbreviations.put("c.", "common.");
     pkgAbbreviations.put("cm.","common.msg.");
     
+=======
+    // clear the includesOnly set
+    includesOnly = null;
+
+>>>>>>> master
     // set up the no-id list
     noIdTypes = new HashSet<>();
     noIdTypes.add(TimeService.class);
     noIdTypes.add(SimStart.class);
     noIdTypes.add(SimEnd.class);
+
+    // set up the list of types that might need to modify their args
+    //argModTypes.add(TariffSpecification.class);
 
     // set up listener list
     newObjectListeners = new HashMap<Class<?>, ArrayList<NewObjectListener>>();
@@ -141,6 +169,35 @@ public class DomainObjectReader
   public int getTimeslotPause ()
   {
     return timeslotPause;
+  }
+  
+  /**
+   * Adds classname to list of classes to be included by this reader, after first ensuring
+   * that it's not in the ignores list
+   */
+  public void addIncludesOnly (String classname)
+  {
+    if (null == includesOnly) {
+      includesOnly = new HashSet<>();
+      includesOnly.add("org.powertac.common.msg.SimEnd");
+    }
+    if (ignores.contains(classname))
+      ignores.remove(classname);
+    includesOnly.add(classname);
+  }
+
+  /**
+   * Sets the instantiation flag. If true, then objects read from the log are instantiated in the
+   * current running environment. This is the normal case for re-running games.
+   */
+  public void setInstantiate (boolean flag)
+  {
+    instantiate = flag;
+  }
+
+  public boolean getInstantiate ()
+  {
+    return instantiate;
   }
 
   /**
@@ -195,11 +252,13 @@ public class DomainObjectReader
    */
   public Object readObject (String line)
   throws MissingDomainObject
+  // It's not clear that this DOES through MissingDomainObject
   {
     log.debug("readObject(" + line + ")");
     // strip off the msec field
     String body = line.substring(line.indexOf(':') + 1);
     String[] tokens = body.split("::");
+<<<<<<< HEAD
     Class<?> clazz = null;
     String classname = tokens[0];
     // add the package prefix if needed
@@ -220,6 +279,30 @@ public class DomainObjectReader
         clazz = Class.forName(clazzname);
         // found it
         break;
+=======
+    Class<?> clazz;
+    String classname = StateLogging.unabbreviate(tokens[0]);
+    if (ignores.contains(classname)) {
+      log.debug("ignoring " + classname);
+      return null;
+    }
+    else if (null != includesOnly && ! includesOnly.contains(classname)) {
+      log.debug("not including " + classname);
+      return null;
+    }
+    try {
+      clazz = Class.forName(classname);
+    }
+    catch (ClassNotFoundException e) {
+      Class<?> subst = substitutes.get(classname);
+      if (null == subst) {
+        log.warn("class " + classname + " not found");
+        return null;
+      }
+      else {
+        clazz = subst;
+        //log.info("substituting " + clazz.getName() + " for " + classname);
+>>>>>>> master
       }
       catch (ClassNotFoundException e) {
         Class<?> subst = substitutes.get(clazzname);
@@ -256,9 +339,11 @@ public class DomainObjectReader
     }
     String methodName = tokens[2];
     log.debug("methodName=" + methodName);
-    if (methodName.equals("new")) {
+    //hack to fix Issue #1106
+    if (methodName.equals("new")
+            || (clazz == RandomSeed.class && methodName.equals("init"))) {
       // maybe pause before handling TimeslotUpdate msg
-      if (clazz == TimeslotUpdate.class && timeslotPause > 0) {
+      if (instantiate && clazz == TimeslotUpdate.class && timeslotPause > 0) {
         try {
           Thread.sleep(timeslotPause);
         }
@@ -275,7 +360,7 @@ public class DomainObjectReader
           setId(newInst, id);
           idMap.put(id, newInst);
         }
-        log.debug("Created new instance " + id + " of class " + tokens[0]);
+        log.info("Created new instance " + id + " of class " + tokens[0]);
         fireNewObjectEvent(newInst);
       }
       return newInst;
@@ -294,6 +379,7 @@ public class DomainObjectReader
       return newInst;      
     }
     else {
+      // don't call methods if we are not instantiating objects in the current environment
       // other method calls -- object should already exist
       Object inst = idMap.get(id);
       if (null == inst) {
@@ -347,6 +433,8 @@ public class DomainObjectReader
   
   private void updateTime (String time)
   {
+    if (!instantiate)
+      return;
     Instant value = Instant.parse(time);
     timeService.setCurrentTime(value);
     log.debug("time set to " + time);
@@ -390,6 +478,7 @@ public class DomainObjectReader
     }
   }
 
+  // This does not appear to throw MissingDomainObject
   private Object constructInstance (Class<?> clazz, String[] args)
           throws MissingDomainObject
   {
@@ -452,6 +541,18 @@ public class DomainObjectReader
   private Object restoreInstance (Class<?> clazz, String[] args)
           throws MissingDomainObject
   {
+    // 1056 - modify args if needed
+    //Class<?>[] params = {String[].class};
+    try {
+      Method mod = clazz.getDeclaredMethod("modifyLogArgs", String[].class);
+      mod.invoke(null, (Object) args);
+    } catch (NoSuchMethodException nsm) {
+      // class lacks the method, nothing to do here
+    } catch (Exception ex) {
+      log.error("Exception {} modifying log args ({}) for {}",
+                ex.toString(), args, clazz.getCanonicalName());
+    }
+
     String[] fieldNames = schema.get(clazz.getName());
     if (null != fieldNames) {
       // only do this for @Domain classes that are in the recorded schema

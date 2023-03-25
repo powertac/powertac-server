@@ -34,7 +34,11 @@
 **/.classpath
 **/.factorypath
 **/.settings/
+<<<<<<< HEAD
 **/.attach*
+=======
+**/.attach_*
+>>>>>>> master
 
 # IDEA artifacts
 .idea/

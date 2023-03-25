@@ -27,9 +27,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
@@ -50,6 +48,7 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -510,6 +509,13 @@ public class ColdStorageTest
 
     @Override
     public TariffMarket getTariffMarket ()
+    {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public XMLMessageConverter getMessageConverter ()
     {
       // TODO Auto-generated method stub
       return null;

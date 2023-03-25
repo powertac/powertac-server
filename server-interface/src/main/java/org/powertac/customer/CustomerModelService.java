@@ -28,6 +28,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.InitializationService;
@@ -87,6 +88,9 @@ implements InitializationService, BootstrapState, NewTariffListener,
   private TariffSubscriptionRepo tariffSubscriptionRepo;
 
   @Autowired
+  private XMLMessageConverter messageConverter;
+
+  @Autowired
   private TariffMarket tariffMarketService;
 
   // Customer model collection
@@ -111,6 +115,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
     Iterator<AbstractCustomer> modelIterator = loader.iterator();
     while (modelIterator.hasNext()) {
       AbstractCustomer modelEx = modelIterator.next();
+      log.info("Configuring model {}", modelEx.getClass().getSimpleName());
       Collection<?> instances =
           serverConfig.configureInstances(modelEx.getClass());
       for (Object modelObj: instances) {
@@ -124,6 +129,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
           tariffMarketService.subscribeToTariff(tariffMarketService
                                                 .getDefaultTariff(cust.getPowerType()), cust, cust.getPopulation());
           customerRepo.add(cust);
+          model.handleInitialSubscription(tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(cust));
         }
       }
     }
@@ -160,11 +166,13 @@ implements InitializationService, BootstrapState, NewTariffListener,
   @Override
   public void saveBootstrapState ()
   {
-    serverConfig.saveBootstrapState(models);
+    //log.info("SaveBootstrapState");
     for (AbstractCustomer model : models) {
       // some models have to save local state
+      //log.info("Calling saveBootstrapState() on {}", model.getClass().getName());
       model.saveBootstrapState();
     }
+    serverConfig.saveBootstrapState(models);
   }
 
   // ==============================
@@ -223,5 +231,12 @@ implements InitializationService, BootstrapState, NewTariffListener,
   public TariffMarket getTariffMarket ()
   {
     return tariffMarketService;
+  }
+
+  @Override
+  public XMLMessageConverter getMessageConverter ()
+  {
+    // TODO Auto-generated method stub
+    return messageConverter;
   }
 }

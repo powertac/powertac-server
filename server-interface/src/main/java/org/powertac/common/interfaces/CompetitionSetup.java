@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author
+ * Copyright (c) 2011, 2022 by the John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,7 @@ public interface CompetitionSetup
    * name of an output file where the bootstrap dataset will be stored.</li>
    * <li>configFilename is the (optional) name of a server-configuration file;
    * if the name contains a ":" it will be treated as a URL.</li>
-   * <li>gameId is an (optional) game id, the default is a numerical session counter.</li>
-   * <li>logfileSuffix is an (optional) filename suffix for the log output
-   * files; default value is "boot".</li>
+   * <li>gameId is an (optional) game id, the default is "0".</li>
    * <li>seedData is a state log from which random-number seeds will be extracted.</li>
    * <li>weatherData is the (optional) name of a file containing weather data
    * for the simulation. It may be either XMl or a state file.
@@ -51,17 +49,11 @@ public interface CompetitionSetup
    */
   public String bootSession (String bootFilename,
                              String configFilename,
-                             String gameId,
-                             String logfileSuffix,
-                             String seedData,
-                             String weatherData);
+                             String gameId);
 
   public String bootSession (String bootFilename,
                              String configFilename,
                              String gameId,
-                             String logfileSuffix,
-                             String seedData,
-                             String weatherData,
                              String configOutput);
 
   /**
@@ -77,9 +69,7 @@ public interface CompetitionSetup
    * <li>jmsUrl is the URL on which the server should listen for JMS connections.
    * This is required if the server is to interact with brokers on separate
    * machines. If given, all brokers must use this URL to contact the server.
-   * <li>gameId is an (optional) game id, the default is a numerical session counter.</li>
-   * <li>logfileSuffix is an (optional) filename suffix for the log output
-   * files; default value is "sim".</li>
+   * <li>gameId is an (optional) game id, the default is "0".</li>
    * <li>brokerUsernames is a list of Strings giving the usernames of brokers
    * who are expected to log in to the simulation before it starts. If a username
    * is of the form string1/string2, then string1 is the broker's username,
@@ -101,7 +91,6 @@ public interface CompetitionSetup
                             String config,
                             String jmsUrl,
                             String gameId,
-                            String logfileSuffix,
                             List<String> brokerUsernames,
                             String seedData,
                             String weatherData,
@@ -111,7 +100,6 @@ public interface CompetitionSetup
                             String config,
                             String jmsUrl,
                             String gameId,
-                            String logfileSuffix,
                             List<String> brokerUsernames,
                             String seedData,
                             String weatherData,

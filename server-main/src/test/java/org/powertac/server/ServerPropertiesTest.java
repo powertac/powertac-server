@@ -35,21 +35,20 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 /**
  * @author jcollins
  */
-@SpringJUnitConfig(locations = {"classpath:cc-config.xml"})
-@DirtiesContext
-@TestExecutionListeners(listeners = {
-  DependencyInjectionTestExecutionListener.class,
-  DirtiesContextTestExecutionListener.class
-})
+//@SpringJUnitConfig(locations = {"classpath:cc-config.xml"})
+//@DirtiesContext
+//@TestExecutionListeners(listeners = {
+//  DependencyInjectionTestExecutionListener.class,
+//  DirtiesContextTestExecutionListener.class
+//})
 public class ServerPropertiesTest
 {
-
-  @Autowired
   private ServerPropertiesService serverPropertiesService;
   
   @BeforeEach
   public void setUp () throws Exception
   {
+    serverPropertiesService = new ServerPropertiesService();
     serverPropertiesService.recycle();
     serverPropertiesService.allowTestPaths();
   }

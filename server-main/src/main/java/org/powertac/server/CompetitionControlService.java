@@ -16,6 +16,7 @@
 package org.powertac.server;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
@@ -68,6 +69,7 @@ public class CompetitionControlService
   implements CompetitionControl
 {
   static private Logger log = LogManager.getLogger(CompetitionControlService.class);
+  final Level BFAULT = Level.forName("BFAULT", 250);
 
   private Competition competition;
 
@@ -120,7 +122,8 @@ public class CompetitionControlService
 
   private boolean running = false;
 
-  private int timeslotPhaseCount = 4; // # of phases/timeslot
+  // timeslotPhaseCount is set as part of the Spring configuration
+  private int timeslotPhaseCount = 1;
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
 
   private int timeslotCount = 0;
@@ -349,7 +352,6 @@ public class CompetitionControlService
       // instantiate weather reports. All are disabled.
       bootstrapOffset = competition.getBootstrapTimeslotCount()
                           + competition.getBootstrapDiscardedTimeslots();
-      //TODO - Is this needed? We do it again just a few lines below.
       createInitialTimeslots(competition.getSimulationBaseTime(),
                              (bootstrapOffset + 1),
                              0);
@@ -358,7 +360,7 @@ public class CompetitionControlService
 
     // set up the simulation clock
     setTimeParameters();
-    //log.info("start at timeslot " + timeslotRepo.currentTimeslot().getSerialNumber());
+    log.info("start at timeslot " + timeslotRepo.currentTimeslot().getSerialNumber());
     
     // configure plugins, but don't allow them to broadcast to brokers
     brokerProxyService.setDeferredBroadcast(true);
@@ -645,8 +647,8 @@ public class CompetitionControlService
     ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
     for (InitializationService initializer : initializers) {
       if (bootstrapMode) {
-        if (initializer.equals(visualizerProxyService) ||
-            initializer.equals(jmsManagementService)) {
+        if (initializer.equals(visualizerProxyService)) {
+        	//|| initializer.equals(jmsManagementService)) { // not an InitializationService
           log.info("Skipping initialization of " + initializer.toString());
           continue;
         }
@@ -777,6 +779,7 @@ public class CompetitionControlService
   {
     // allow for controlled shutdown
     if (checkAbort()) {
+      log.info("Session aborted");
       stop();
       return;
     }
@@ -795,10 +798,10 @@ public class CompetitionControlService
     // check queue status before sending new messages
     detectAndKillHangingQueues();
 
-    for (int index = 0; index < phaseRegistrations.size(); index++) {
-      log.info("activate phase " + (index + 1));
-      for (TimeslotPhaseProcessor fn : phaseRegistrations.get(index)) {
-        fn.activate(time, index + 1);
+    for (int phase = 1; phase <= timeslotPhaseCount; phase++) {
+      log.info("activate phase " + phase);
+      for (TimeslotPhaseProcessor fn : phaseRegistrations.get(phase - 1)) {
+        fn.activate(time, phase);
       }
     }
     TimeslotComplete msg = new TimeslotComplete(ts);
@@ -821,7 +824,7 @@ public class CompetitionControlService
       for (Broker broker : brokerRepo.list()) {
         if (badQueues.contains(broker.toQueueName())) {
           // disable broker and revoke all its tariffs
-          log.warn("Disabling unresponsive broker " + broker.getUsername());
+          log.log(BFAULT, "Disabling unresponsive broker " + broker.getUsername());
           broker.setEnabled(false);
         }
       }
@@ -895,7 +898,8 @@ public class CompetitionControlService
       // unfortunately, this does not work, so we need to abort the game
       // -- see issue #729
       int missingTicks = next.getSerialNumber() - expectedIndex;
-      log.error("Missed " + missingTicks + " ticks - adjusting");
+      log.error("Missed {} ticks, expected {} but see {}",
+                missingTicks, expectedIndex, next.getSerialNumber());
       stop();
 //      long newStart =
 //              new Date().getTime()
@@ -928,6 +932,7 @@ public class CompetitionControlService
    */
   public void stop ()
   {
+    log.info("sim stop");
     running = false;
   }
 
@@ -937,6 +942,7 @@ public class CompetitionControlService
   @Override
   public void shutDown ()
   {
+    log.info("shutdown");
     running = false;
 
     SimEnd endMsg = new SimEnd();
@@ -950,7 +956,7 @@ public class CompetitionControlService
     }
     jmsManagementService.stop();
     
-    logService.stopLog();
+    //logService.stopLog(); -- see Issue #1138
   }
 
   // ---------------- API contract -------------
@@ -1101,6 +1107,8 @@ public class CompetitionControlService
 
       SimulationClockControl.initialize(parent, timeService);
       clock = SimulationClockControl.getInstance();
+      clock.adjustAgentWindow(competition.getSimulationTimeslotSeconds());
+      
       // wait for start time
       long now = new Date().getTime();
       // start is beginning of boot
@@ -1127,7 +1135,7 @@ public class CompetitionControlService
       running = true;
       clock.scheduleTick();
       while (running) {
-        log.info("Wait for tick " + currentSlot);
+        log.info("Wait for tick {}", currentSlot);
         clock.waitForTick(currentSlot);
         try {
           step();

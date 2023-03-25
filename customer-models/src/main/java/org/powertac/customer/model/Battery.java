@@ -359,4 +359,10 @@ implements CustomerModelAccessor
     return new CapacityProfile (profile,
                                 start);
   }
+
+  @Override
+  public void notifyCustomer (TariffSubscription olds, TariffSubscription news, int pop)
+  {
+    // method stub
+  }
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2014 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 /**
- * General customer-model infrastructure. It may make sense to move this to
- * server-interface at some time.
+ * Utilities that may or may not be in use.
  * 
  * @author John Collins
  */

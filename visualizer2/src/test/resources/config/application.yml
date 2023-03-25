@@ -43,11 +43,14 @@ spring:
             hibernate.hbm2ddl.auto: validate
     mail:
         host: localhost
-    main:
-        allow-bean-definition-overriding: true
     mvc:
         favicon:
             enabled: false
+    main:
+        allow-bean-definition-overriding: true
+        allow-circular-references: true
+    config:
+        use-legacy-processing: true
 
 liquibase:
     contexts: test

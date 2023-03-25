@@ -71,33 +71,33 @@ public class RandomSeedRepoTests
     assertEquals(2, randomSeedRepo.size(), "still two entries");    
   }
 
-//  @Test
-//  public void checkLogfile ()
-//  {
-//    try (BufferedReader input = new BufferedReader(new FileReader("log/test.state"))) {
-//      randomSeedRepo.getRandomSeed("FooTest", 3, "test");
-//      randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
-//      randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
-//
-//      String seedClass = RandomSeed.class.getName();
-//      ArrayList<String> lines = new ArrayList<String>();
-//      String line;
-//      while ((line = input.readLine()) != null) {
-//        lines.add(line);
-//      }
-//      assertTrue(lines.size() >= 3, "at least three lines");
-//      int rsLines = 0;
-//      for (String entry : lines) {
-//        String[] fields = entry.split("::");
-//        if(seedClass.equals(fields[0].split(":")[1]) && fields[3].equals("FooTest"))
-//          rsLines += 1;
-//      }
-//      assertTrue(rsLines == 3, "exactly three RandomSeed lines");
-//    }
-//    catch (IOException ioe) {
-//      fail("IOException reading seedfile:" + ioe.toString());
-//    }
-//  }
+  @Test
+  public void checkLogfile ()
+  {
+    try (BufferedReader input = new BufferedReader(new FileReader("log/test.state"))) {
+      randomSeedRepo.getRandomSeed("FooTest", 3, "test");
+      randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
+      randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
+
+      String seedClass = RandomSeed.class.getName();
+      ArrayList<String> lines = new ArrayList<String>();
+      String line;
+      while ((line = input.readLine()) != null) {
+        lines.add(line);
+      }
+      assertTrue(lines.size() >= 3, "at least three lines");
+      int rsLines = 0;
+      for (String entry : lines) {
+        String[] fields = entry.split("::");
+        if(seedClass.equals(fields[0].split(":")[1]) && fields[3].equals("FooTest"))
+          rsLines += 1;
+      }
+      assertTrue(rsLines == 3, "exactly three RandomSeed lines");
+    }
+    catch (IOException ioe) {
+      fail("IOException reading seedfile:" + ioe.toString());
+    }
+  }
 
   @SuppressWarnings("unused")
   @Test
@@ -110,21 +110,21 @@ public class RandomSeedRepoTests
     randomSeedRepo.recycle();
     assertEquals(0, randomSeedRepo.size(), "empty again");    
   }
-
-  @Test
-  public void testLoadRepo ()
-  {
-    try {
-      randomSeedRepo.loadSeeds(new File("src/test/resources/randomSeedTest.state"));
-    }
-    catch (Exception fnf) {
-      fail(fnf.toString());
-    }
-    assertEquals(0, randomSeedRepo.size(), "two entries");
-    RandomSeed rs1 = randomSeedRepo.getRandomSeed("Foo", 3, "test");
-    assertEquals(-7938709514410200953l, rs1.getValue(), "correct seed value 1");
-    RandomSeed rs2 = randomSeedRepo.getRandomSeed("Bar", 42, "more test");
-    assertEquals(2904941806851623619l, rs2.getValue(), "correct seed value 2");
-    assertEquals(2, randomSeedRepo.size(), "still two entries");
-  }
+//
+//  @Test
+//  public void testLoadRepo ()
+//  {
+//    try {
+//      randomSeedRepo.loadSeeds(new File("src/test/resources/randomSeedTest.state"));
+//    }
+//    catch (Exception fnf) {
+//      fail(fnf.toString());
+//    }
+//    assertEquals(0, randomSeedRepo.size(), "two entries");
+//    RandomSeed rs1 = randomSeedRepo.getRandomSeed("Foo", 3, "test");
+//    assertEquals(-7938709514410200953l, rs1.getValue(), "correct seed value 1");
+//    RandomSeed rs2 = randomSeedRepo.getRandomSeed("Bar", 42, "more test");
+//    assertEquals(2904941806851623619l, rs2.getValue(), "correct seed value 2");
+//    assertEquals(2, randomSeedRepo.size(), "still two entries");
+//  }
 }

@@ -988,6 +988,13 @@ public class EvCustomer
       // TODO Auto-generated method stub
       return 0;
     }
+
+    @Override
+    public void notifyCustomer (TariffSubscription oldsub,
+                                TariffSubscription newsub, int population)
+    {
+      // method stub
+    }
   }
 
   public class ChargeException extends Exception

@@ -40,9 +40,9 @@ public abstract class LogtoolContext
 {
   static Logger log = LogManager.getLogger(LogtoolContext.class);
 
-  ApplicationContext context;
-  LogtoolCore core;
-  DomainObjectReader dor;
+  protected ApplicationContext context;
+  protected LogtoolCore core;
+  protected DomainObjectReader dor;
   
   // Common number formatting in subclasses
   protected DecimalFormat df;
@@ -74,7 +74,7 @@ public abstract class LogtoolContext
   /**
    * Finds all the handleMessage() methods and registers them.
    */
-  private void registerMessageHandlers ()
+  protected void registerMessageHandlers ()
   {
     Class<?> thingClass = this.getClass();
     log.info("Analyzing class {}", thingClass.getName());
@@ -137,6 +137,7 @@ public abstract class LogtoolContext
   protected void cli (String inputFile, Analyzer analyzer)
   {
     LogtoolCore core = getCore();
+    core.recycleRepos();
     core.readStateLog(inputFile, analyzer);
   }
 

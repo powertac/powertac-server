@@ -1,0 +1,10 @@
+80:Domain-schema-version:1.8.0
+81:org.powertac.common.Order:broker,timeslot,MWh,limitPrice
+81:org.powertac.common.msg.BalancingControlEvent:tariffId,kwh,payment,timeslotIndex
+81:org.powertac.common.msg.BalanceReport:timeslotIndex,newImbalance
+81:schema.end
+132:Foo::3::new::
+249:c.RandomSeed::1::init::FooAB::3::test::-7938709514410200953
+249:Bar::9::foobar::some stuff::otherstuff
+249:c.RandomSeed::2::init::BarAB::42::more test::2904941806851623619
+3333:c.Empty::0::junk::garbage::3::4::5

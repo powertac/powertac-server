@@ -502,7 +502,7 @@ public class TariffEvaluator
           log.error(getName() + ": utility is NaN for tariff "
                     + tariff.getId());
         }
-        log.debug("tariff {}: adjCost={}, default={}, utility={}",
+        log.info("tariff {}: adjCost={}, default={}, utility={}",
                   tariff.getId(), finalCost.costEstimate,
                   defaultEval.costEstimate, utility);
         TariffUtility tu =
@@ -675,7 +675,7 @@ public class TariffEvaluator
     setProfileLength(profile.getProfile().length);
     // NOTE: must call the next function after the previous,
     // since the previous writes inconv. factors.
-    // Always 0 except for AdaptiveCapacityOriginator
+    // Always 0 except for curtailable customers
     double inconv = accessor.getShiftingInconvenienceFactor(tariff);
     double profileCost = helper.estimateCost(tariff,
                                              profile.getProfile(),
@@ -695,9 +695,16 @@ public class TariffEvaluator
     return (profileCost + inconv) * scale;
   }
 
-  // tracks additions and deletions for tariff subscriptions
+  // Tracks additions and deletions for tariff subscriptions
+  // This is where we have the old/new pairs for customer notification 
   private void addAllocation (Tariff current, Tariff newTariff, int count)
   {
+    if (count < 0) {
+      // Should not happen
+      log.error("addAllocation called with negative count {}, tariff {} to tariff {}",
+                count, current.getId(), newTariff.getId());
+      return;
+    }
     if (current == newTariff)
       // ignore no-change allocations
       return;
@@ -716,6 +723,11 @@ public class TariffEvaluator
     else
       ac += count;
     allocations.put(newTariff, ac);
+    
+    // Notify customer of the transfer
+    accessor.notifyCustomer(tariffSubscriptionRepo.getSubscription(customerInfo, current),
+                            tariffSubscriptionRepo.getSubscription(customerInfo, newTariff),
+                            count);
   }
   
   // updates subscriptions based on computed allocations

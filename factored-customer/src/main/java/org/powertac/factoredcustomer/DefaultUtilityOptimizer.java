@@ -25,7 +25,6 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
@@ -92,6 +91,7 @@ implements UtilityOptimizer
       TariffEvaluator evaluator =
           createTariffEvaluator(new TariffEvaluationWrapper(bundle))
               .withChunkSize(Math.max(1, bundle.getPopulation() / 1000))
+                // should be a configurable value
               .withTariffSwitchFactor(subStructure.getTariffSwitchFactor())
               .withPreferredContractDuration(subStructure.getExpectedDuration())
               .withInconvenienceWeight(subStructure.getInconvenienceWeight())
@@ -409,6 +409,13 @@ implements UtilityOptimizer
         inconv += capacityOriginator.getShiftingInconvenienceFactor(tariff);
       }
       return inconv;
+    }
+
+    @Override
+    public void notifyCustomer (TariffSubscription oldsub,
+                                TariffSubscription newsub, int population)
+    {
+      //updateSubscriptionSoC(oldsub, newsub, population); 
     }
   }
 

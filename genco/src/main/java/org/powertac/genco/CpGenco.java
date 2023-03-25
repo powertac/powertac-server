@@ -25,12 +25,18 @@ import org.powertac.common.MarketPosition;
 import org.powertac.common.Order;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherForecast;
+import org.powertac.common.WeatherForecastPrediction;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.ContextService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherForecastRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -60,15 +66,26 @@ public class CpGenco extends Broker
 {
   static private Logger log = LogManager.getLogger(CpGenco.class.getName());
 
+  // Needed services
+  private WeatherReportRepo weatherReportRepo;
+  private WeatherForecastRepo weatherForecastRepo;
+  private RandomSeedRepo randomSeedRepo;
+
+  // needed for saving bootstrap state
+  private TimeslotRepo timeslotRepo;
+  
   /** Price and quantity variability. The value is the ratio of sigma to mean */
   private double pSigma = 0.1;
   private double qSigma = 0.1;
 
-  /** Price interval between bids */
+  /** Nominal price interval between bids */
   private double priceInterval = 4.0;
 
   /** Minimum total offered quantity in MWh */
   private double minQuantity = 120.0;
+
+  /** Minimum quantity in MWh for individual orders */
+  private double minBidQuantity = 15.0;
 
   /** curve generating coefficients as a comma-separated list */
   private List<String> coefficients = Arrays.asList(".007", ".1", "16.0");
@@ -87,11 +104,18 @@ public class CpGenco extends Broker
   private double rwcSigma = 0.005;
   private double rwcOffset = 0.002;
 
+  /** extreme cooling and heating load thresholds and slopes */
+  @ConfigurableValue(valueType = "Double", dump=false,
+          description = "Scale factor from MisoBuyer")
+  private double misoScaleFactor = 0.049; // scale
+
+  private double coolingThreshold = 35.0;
+  private double coolingSlope = 1200.0;
+  private double heatingThreshold = 0.0;
+  private double heatingSlope = 400.0;
+
   protected BrokerProxy brokerProxyService;
   protected RandomSeed seed;
-
-  // needed for saving bootstrap state
-  private TimeslotRepo timeslotRepo;
 
   private NormalDistribution normal01;
   private QuadraticFunction function = new QuadraticFunction();
@@ -102,12 +126,16 @@ public class CpGenco extends Broker
   }
 
   public void init (BrokerProxy proxy, int seedId,
-                    RandomSeedRepo randomSeedRepo,
-                    TimeslotRepo timeslotRepo)
+                    ContextService context)
   {
     log.info("init(" + seedId + ") " + getUsername());
     this.brokerProxyService = proxy;
-    this.timeslotRepo = timeslotRepo;
+    this.timeslotRepo = (TimeslotRepo)context.getBean("timeslotRepo");
+    this.randomSeedRepo = (RandomSeedRepo)context.getBean("randomSeedRepo");
+    this.weatherReportRepo =
+            (WeatherReportRepo)context.getBean("weatherReportRepo");
+    this.weatherForecastRepo =
+            (WeatherForecastRepo)context.getBean("weatherForecastRepo");
     // set up the random generator
     this.seed =
       randomSeedRepo.getRandomSeed(CpGenco.class.getName(), seedId, "bid");
@@ -136,12 +164,13 @@ public class CpGenco extends Broker
         start = -posn.getOverallBalance();
       }
       // make offers up to minQuantity
-      while (start < minQuantity) {
+      double minQtyForSlot = getAdjustedMinQty(slot.getSerialNumber());
+      while (start < minQtyForSlot) {
         log.debug("start qty = " + start);
         double[] ran = normal01.sample(2);
         double price = function.getY(start);
         price += ran[0] * getPSigma();
-        double dx = function.getDeltaX(start);
+        double dx = Math.max(function.getDeltaX(start), getMinBidQuantity());
         double std = dx * getQSigma();
         dx = Math.max(0.0, ran[1] * std + dx); // don't go backward
         Order offer = new Order(this, slot.getSerialNumber(), -dx, price);
@@ -180,6 +209,43 @@ public class CpGenco extends Broker
   {
     log.info("Coefficients for ts " + serialNumber
              + ": [" + ds[0] + ", " + ds[1] + ", " + ds[2] + "]");
+  }
+  
+  // Adjust the min quantity to deal with emergency cooling or heating load
+  // in extreme temperatures
+  int lastTimeslot = -1;
+  WeatherForecast currentForecast = null;
+  double getAdjustedMinQty (int timeslotIndex)
+  {
+    int currentTimeslot = timeslotRepo.currentSerialNumber();
+    if (currentTimeslot > lastTimeslot) {
+      // update lastTimeslot, retrieve new weather forecast
+      lastTimeslot = currentTimeslot;
+      currentForecast = weatherForecastRepo.currentWeatherForecast();
+    }
+    // use the correct forecast
+    WeatherForecastPrediction prediction =
+            currentForecast.getPredictions().get(timeslotIndex - currentTimeslot - 1);
+    double temp = prediction.getTemperature();
+    double adj = getEmergencyAdjustment(temp);
+    if (adj != 0.0) {
+      log.info("Emergency capacity adjustment {} at temp {}", adj, temp);
+    }
+    return getMinQuantity() + adj;
+  }
+  
+  double getEmergencyAdjustment (double temperature)
+  {
+    double result = 0.0;
+    if (temperature > getCoolingThreshold()) {
+      // cooling emergency
+      result = (temperature - getCoolingThreshold()) * getCoolingSlope();
+    }
+    else if (temperature < getHeatingThreshold()) {
+      // heating emergency
+      result = (getHeatingThreshold() - temperature) * getHeatingSlope();
+    }
+    return result;
   }
 
   // String to array conversion
@@ -418,16 +484,37 @@ public class CpGenco extends Broker
    * Minimum total quantity to offer. The generation function will be run
    * until it hits this value.
    */
+  public double getMinBidQuantity ()
+  {
+    return minBidQuantity;
+  }
+
+  /**
+   * Fluent setter for minimum total offer quantity.
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "minimum quantity in MWh for individual Offers")
+  @StateChange
+  public CpGenco withMinBidQuantity (double qty)
+  {
+    this.minBidQuantity = qty;
+    return this;
+  }
+
+  /**
+   * Minimum total quantity to offer. The generation function will be run
+   * until it hits this value.
+   */
   public double getMinQuantity ()
   {
     return minQuantity;
   }
 
   /**
-   * Fluent setter for minimum total quantity.
+   * Fluent setter for minimum total offer quantity.
    */
   @ConfigurableValue(valueType = "Double",
-      description = "minimum leadtime for first commitment, in hours")
+      description = "minimum total quantity to be offered in each timeslot")
   @StateChange
   public CpGenco withMinQuantity (double qty)
   {
@@ -461,6 +548,90 @@ public class CpGenco extends Broker
   public double getKneeSlope()
   {
     return kneeSlope;
+  }
+
+  /**
+   * Capacity adjustment threshold for extreme cooling load
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "emergency threshold for extreme cooling load")
+  @StateChange
+  public CpGenco withCoolingThreshold (double temp)
+  {
+    this.coolingThreshold = temp;
+    return this;
+  }
+  
+  /**
+   * Threshold temperature above which total capacity must be adjusted to deal
+   * with extreme cooling load. 
+   */
+  public double getCoolingThreshold ()
+  {
+    return coolingThreshold;
+  }
+
+  /**
+   * Capacity adjustment coefficient for extreme cooling load.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "per-degree adjustment for extreme heat")
+  @StateChange
+  public CpGenco withCoolingSlope (double slope)
+  {
+    this.coolingSlope = slope;
+    return this;
+  }
+  
+  /**
+   * Per-degree increase in total capacity needed to deal
+   * with extreme cooling load. 
+   */
+  public double getCoolingSlope ()
+  {
+    return coolingSlope * misoScaleFactor;
+  }
+
+  /**
+   * Capacity adjustment threshold for extreme heating load.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "emergency threshold for extreme heating load")
+  @StateChange
+  public CpGenco withHeatingThreshold (double temp)
+  {
+    this.heatingThreshold = temp;
+    return this;
+  }
+  
+  /**
+   * Threshold temperature below which total capacity must be adjusted to deal
+   * with extreme heating load. 
+   */
+  public double getHeatingThreshold ()
+  {
+    return heatingThreshold;
+  }
+
+  /**
+   * Capacity adjustment coefficient for extreme heating load.
+   */
+  @ConfigurableValue(valueType = "Double",
+          description = "per-degree adjustment for extreme cold")
+  @StateChange
+  public CpGenco withHeatingSlope (double slope)
+  {
+    this.heatingSlope = slope;
+    return this;
+  }
+  
+  /**
+   * Per-degree increase in total capacity needed to deal
+   * with extreme cooling load. 
+   */
+  public double getHeatingSlope ()
+  {
+    return heatingSlope * misoScaleFactor;
   }
 
   /**
