@@ -225,7 +225,7 @@ public class WeatherServiceTest
     assertEquals(2, weatherReportRepo.allWeatherReports().size());
 
     // Check that the 2 timeslots are different in the repo
-<<<<<<< HEAD
+
     List<WeatherReport> reports = weatherReportRepo.allWeatherReports();
     assertEquals(reports.size(), 2, "correct size");
     assertEquals(0, reports.get(0).getTimeslotIndex(), "index 0");
@@ -234,11 +234,11 @@ public class WeatherServiceTest
     //assertNotEquals(reports.get(0).getTimeslotIndex(),
     //                reports.get(1).getTimeslotIndex(),
     //                "different index values");
-=======
+
     assertFalse((weatherReportRepo.allWeatherReports().get(0).getTimeslotIndex() ==
             weatherReportRepo.allWeatherReports().get(1).getTimeslotIndex()),
             "different timeslots");
->>>>>>> master
+
   }
 
   @Test
@@ -331,7 +331,7 @@ public class WeatherServiceTest
     for (int i = 0; i < 23; i++) {
       timeService.setCurrentTime(next);
       weatherService.activate(next, 1);
-      next = next.plus(comp.getTimeslotDuration());
+      next = next.plusMillis(comp.getTimeslotDuration());
       assertEquals(24, weatherReportRepo.count());
     }
     timeService.setCurrentTime(next);

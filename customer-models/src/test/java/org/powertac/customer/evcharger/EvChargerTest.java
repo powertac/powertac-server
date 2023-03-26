@@ -18,11 +18,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.TreeMap;
+import java.time.ZonedDateTime;
+//import java.time.DateTimeZone;
+import java.time.Instant;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -109,7 +109,7 @@ class EvChargerTest
     timeService = new TimeService();
     timeService.setCurrentTime(competition.getSimulationBaseTime());
                                //.plus(TimeService.HOUR * 7));
-    start = timeService.getCurrentTime().plus(TimeService.HOUR);
+    start = timeService.getCurrentTime().plusMillis(TimeService.HOUR);
     tariffSubscriptionRepo = new TariffSubscriptionRepo();
     tariffRepo = new TariffRepo();
     ReflectionTestUtils.setField(tariffSubscriptionRepo,
@@ -232,8 +232,8 @@ class EvChargerTest
     uut.initialize();
 
     // test at 18:00
-    DateTime currentTime = timeService.getCurrentDateTime();
-    int hod = currentTime.getHourOfDay();
+    ZonedDateTime currentTime = timeService.getCurrentDateTime();
+    int hod = currentTime.getHour();
     assertEquals(0, hod);
 
     // Check that demandInfoMean is empty by default.
@@ -352,8 +352,8 @@ class EvChargerTest
     config.setConfiguration(mapConfig);
     config.configureSingleton(uut);
 
-    DateTime now =
-            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+            ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
 
@@ -376,8 +376,8 @@ class EvChargerTest
     uut.handleInitialSubscription(tariffSubscriptionRepo
                                   .findActiveSubscriptionsForCustomer(uut.getCustomerInfo()));
 
-    DateTime now =
-            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+            ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     timeService.setCurrentTime(now.toInstant());
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
@@ -422,8 +422,8 @@ class EvChargerTest
     config.configureSingleton(uut);
 
     uut.initialize();
-    DateTime now =
-            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+            ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     timeService.setCurrentTime(now.toInstant());
 
     // default subscription happens in CustomerModelService
@@ -487,8 +487,8 @@ class EvChargerTest
     config.configureSingleton(uut);
     uut.initialize();
 
-    DateTime now =
-            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+            ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
 
@@ -545,8 +545,8 @@ class EvChargerTest
     ReflectionTestUtils.setField(te, "tariffSubscriptionRepo", tariffSubscriptionRepo);
     ReflectionTestUtils.setField(te, "tariffMarket", tariffMarket);
 
-    DateTime now =
-            new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+            ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, TimeService.UTC);
     when(mockTimeslotRepo.currentTimeslot())
     .thenReturn(new Timeslot(0, now.toInstant()));
     

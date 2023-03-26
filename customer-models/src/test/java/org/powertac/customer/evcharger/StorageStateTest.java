@@ -6,13 +6,13 @@ package org.powertac.customer.evcharger;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.time.Instant;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -75,8 +75,8 @@ class StorageStateTest
     competition = Competition.newInstance("storage-state-test");
     timeService = new TimeService();
     timeService.setCurrentTime(competition.getSimulationBaseTime()
-                               .plus(TimeService.HOUR * 7));
-    start = timeService.getCurrentTime().plus(TimeService.HOUR);
+                               .plusMillis(TimeService.HOUR * 7));
+    start = timeService.getCurrentTime().plusMillis(TimeService.HOUR);
     tariffSubscriptionRepo = new TariffSubscriptionRepo();
     tariffRepo = mock(TariffRepo.class);
     ReflectionTestUtils.setField(tariffSubscriptionRepo,

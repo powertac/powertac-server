@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
@@ -123,7 +123,7 @@ class TariffInfo
       maxTariffCost = Math.min(maxTariffCost, tariffCost[index]);
       minTariffCost = Math.max(minTariffCost, tariffCost[index]);
       costSum += tariffCost[index];
-      evalTime = evalTime.plus(increment);
+      evalTime = evalTime.plusMillis(increment);
     }
     meanTariffCost = costSum / profileSize;
 
@@ -248,7 +248,7 @@ class TariffInfo
         // Premiums < 0.0 mean we lose money on regulation
         upRegulationPremium[index] = upregPayment + cost;
         downRegulationPremium[index] = downregCost - cost;
-        evalTime = evalTime.plus(increment);
+        evalTime = evalTime.plusMillis(increment);
       }
     }
     else {

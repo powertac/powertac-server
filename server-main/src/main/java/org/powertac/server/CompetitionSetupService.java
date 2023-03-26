@@ -466,7 +466,7 @@ public class CompetitionSetupService
   private void loadStartTime (Competition comp)
   {
     serverProps.setProperty("common.competition.simulationBaseTime",
-                            comp.getSimulationBaseTime().getMillis());
+                            comp.getSimulationBaseTime().toEpochMilli());
   }
 
   // Sets game-length parameters from seed data

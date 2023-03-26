@@ -34,11 +34,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-<<<<<<< HEAD
-=======
-import org.joda.time.Instant;
 import org.powertac.common.RandomSeed;
->>>>>>> master
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalanceReport;
@@ -133,17 +129,14 @@ public class DomainObjectReader
     //ignores.add("org.powertac.common.WeatherForecastPrediction");
     ignores.add("org.powertac.factoredcustomer.DefaultUtilityOptimizer$DummyTariffSubscription");
 
-<<<<<<< HEAD
     // set up the package abbreviations
     pkgAbbreviations = new HashMap<>();
     pkgAbbreviations.put("c.", "common.");
     pkgAbbreviations.put("cm.","common.msg.");
-    
-=======
+
     // clear the includesOnly set
     includesOnly = null;
 
->>>>>>> master
     // set up the no-id list
     noIdTypes = new HashSet<>();
     noIdTypes.add(TimeService.class);
@@ -258,28 +251,6 @@ public class DomainObjectReader
     // strip off the msec field
     String body = line.substring(line.indexOf(':') + 1);
     String[] tokens = body.split("::");
-<<<<<<< HEAD
-    Class<?> clazz = null;
-    String classname = tokens[0];
-    // add the package prefix if needed
-    for (Map.Entry<String, String> entry : pkgAbbreviations.entrySet()) {
-      if (classname.startsWith(entry.getKey())) {
-        classname = classname.substring(entry.getKey().length());
-        classname = entry.getValue() + classname;
-      }
-    }
-    // look for classes starting with one of the top-level prefix values
-    for (String prefix : pkgPrefix) {
-      String clazzname = prefix + classname;
-      if (ignores.contains(clazzname)) {
-        //log.info("ignoring " + tokens[0]);
-        return null;
-      }
-      try {
-        clazz = Class.forName(clazzname);
-        // found it
-        break;
-=======
     Class<?> clazz;
     String classname = StateLogging.unabbreviate(tokens[0]);
     if (ignores.contains(classname)) {
@@ -302,15 +273,6 @@ public class DomainObjectReader
       else {
         clazz = subst;
         //log.info("substituting " + clazz.getName() + " for " + classname);
->>>>>>> master
-      }
-      catch (ClassNotFoundException e) {
-        Class<?> subst = substitutes.get(clazzname);
-        if (null != subst) {
-          clazz = subst;
-          // found a substitute
-          break;
-        }
       }
     }
     // if clazz is still null, then we've not matched the classname
