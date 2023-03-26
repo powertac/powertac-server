@@ -34,11 +34,7 @@
 **/.classpath
 **/.factorypath
 **/.settings/
-<<<<<<< HEAD
-**/.attach*
-=======
 **/.attach_*
->>>>>>> master
 
 # IDEA artifacts
 .idea/
@@ -52,5 +48,5 @@
 **/.DS_Store
 **/Thumbs.db
 **/Desktop.ini
-
-
+**/#.*
+**/.#.*
