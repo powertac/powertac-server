@@ -417,7 +417,12 @@ implements BalancingMarket, SettlementContext, InitializationService
 
     double add (double addend)
     {
-      value += addend;
+      if (Double.valueOf(addend).isNaN()) {
+        log.error("addend is NaN");
+      }
+      else {
+        value += addend;
+      }
       return value;
     }
 
