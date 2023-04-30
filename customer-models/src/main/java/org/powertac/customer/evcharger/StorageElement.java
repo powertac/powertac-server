@@ -1,6 +1,11 @@
 package org.powertac.customer.evcharger;
 
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /** ---------------------------------------------------------------------------------------
    * Mutable element of the StorageState forward capacity vector for the EV Charger model.
@@ -17,8 +22,12 @@ import java.util.Arrays;
    */
   class StorageElement // package visibility
   {
+    static Logger log =
+            LogManager.getLogger(StorageElement.class.getName());
+
     // Number of active chargers
-    private double activeChargers = 0.0;
+    // TODO - it's possible this activeChargers value is not used anywhere
+    //private double activeChargers = 0.0;
 
     // Unsatisfied demand remaining in vehicles that will disconnect in this timeslot
     double[] energy = {0.0};
@@ -26,8 +35,7 @@ import java.util.Arrays;
     // Population allocated to energy requirement breakdown
     private double[] population = {0.0};
 
-    // commitment from previous timeslot, needed to distribute regulation
-    //private double previousCommitment = 0.0;
+    private double epsilon = 1e-8;
 
     // default constructor
     StorageElement (int arrayLength)
@@ -40,25 +48,53 @@ import java.util.Arrays;
     // populated constructor
     StorageElement (double activeChargers, double[] energy, double[] population)
     {
+      this(energy, population);
+    }
+
+    StorageElement (double[] energy, double[] population)
+    {
       super();
-      this.activeChargers = activeChargers;
+      //this.activeChargers = activeChargers;
       this.energy = energy;
       this.population = population;
     }
 
-//    void extendArrays (int newLength)
-//    {
-//      if (population.length < newLength) {
-//        double[] newPop = new double[newLength];
-//        double[] newEnergy = new double[newLength];
-//        for (int i = 0; i < population.length; i++) {
-//          newPop[i] = population[i];
-//          newEnergy[i] = energy[i];
-//        }
-//        population = newPop;
-//        energy = newEnergy;
-//      }
-//    }
+    public static StorageElement restoreElement (int length, String data)
+    {
+      // data is "n, n] [n, n] if length == 2"
+      Pattern num = Pattern.compile("(\\d+.\\d+),?\\]? ?");
+      Matcher m;
+      StorageElement se = new StorageElement(length);
+      String remains = data;
+      // population
+      for (int count = 0; count < length; count++) {
+        m = num.matcher(remains);
+        if (m.lookingAt()) {
+          se.population[count] = Double.valueOf(m.group(1));
+          remains = remains.substring(m.end());
+        }
+        else {
+          log.error("Failed to match population value, seeing {}", remains);
+          return null;
+        }
+      }
+      // end of population array
+      remains = remains.substring(1); // skip opening bracket
+      // energy
+       for (int count = 0; count < length; count++) {
+        m = num.matcher(remains);
+        if (m.lookingAt()) {
+          se.energy[count] = Double.valueOf(m.group(1));
+          remains = remains.substring(m.end());
+        }
+        else {
+          log.error("Should be looking at population value, seeing {}", remains);
+          return null;
+        }
+      }
+      //System.out.println("finished " + length);
+      return se;
+    }
 
     // Shrinks energy and population arrays, dropping the final element
     // which is no longer needed
@@ -69,20 +105,47 @@ import java.util.Arrays;
         // nothing to do here
         return;
       }
-      //population[len - 2] += population[len - 1];
       population = Arrays.copyOf(population, len - 1);
-      //energy[len - 2] += energy[len - 1];
       energy = Arrays.copyOf(energy, len - 1);
     }
 
-    double getActiveChargers ()
+    // Moves energy and population to smaller indices as needed to preserve
+    // hourly constraints
+    void rebalance (double chargerCapacity)
     {
-      return activeChargers;
-    }
-
-    void addChargers (double n)
-    {
-      activeChargers += n;
+      // This only works if there are multiple groups
+      if (1 == population.length)
+        return;
+      // Each group i should have energy ratio <= (len - i - 1) + 0.5
+      for (int i = energy.length - 1; i > 0; i--) {
+        //note that we are not moving energy and population above index 0
+        //first, find the surplus in this timeslot
+        double xRatio = (energy.length - 1 - i) + 0.5; // current cell
+        if (population[i] < epsilon) {
+          // clear this one out
+          population[i] = 0.0;
+          energy[i] = 0.0;
+          continue;
+        }
+        double chunk = population[i] * chargerCapacity;
+        double currentRatio = 0.0;
+        currentRatio = energy[i] / chunk;
+        if (currentRatio <= xRatio) {
+          continue;
+        }
+        else {
+          double move = (currentRatio - xRatio);
+          if (move > 1.0 + epsilon || move < 0.0 - epsilon) {
+            log.error("Move ratio = {} out of range", move);
+          }
+          double moveP = population[i] * move;
+          population[i] -= moveP;
+          population[i - 1] += moveP;
+          double moveE = energy[i] - population[i] * chargerCapacity * xRatio;
+          energy[i] -= moveE;
+          energy[i - 1] += moveE;
+        }
+      }
     }
 
     double[] getRemainingCommitment ()
@@ -115,7 +178,7 @@ import java.util.Arrays;
     // returns a new StorageElement with the same contents as an old one
     StorageElement copy ()
     {
-      return new StorageElement(getActiveChargers(),
+      return new StorageElement(//getActiveChargers(),
                                 Arrays.copyOf(energy, energy.length),
                                 Arrays.copyOf(population, population.length));
     }
@@ -129,7 +192,7 @@ import java.util.Arrays;
         scaledPop[i] = population[i] * scale;
         scaledEnergy[i] = energy[i] * scale;
       }
-      return new StorageElement(getActiveChargers() * scale,
+      return new StorageElement(//getActiveChargers() * scale,
                                 scaledEnergy, scaledPop);
     }
 
@@ -141,7 +204,7 @@ import java.util.Arrays;
         StorageState.log.error("Attempt to add element of length {} to element of length {}",
                   population.length, element.getPopulation().length);
       }
-      activeChargers += element.getActiveChargers() * scale;
+      //activeChargers += element.getActiveChargers() * scale;
       for (int i = 0; i < population.length; i++) {
         population[i] += element.getPopulation()[i] * scale;
         energy[i] += element.getEnergy()[i] * scale;
@@ -152,19 +215,31 @@ import java.util.Arrays;
     // This should not change the population/energy relationship
     void scale (double fraction)
     {
-      //tranche *= fraction;
-      activeChargers *= fraction;
-      //energy *= fraction;
       for (int i = 0; i < population.length; i++) {
         population[i] *= fraction;
         energy[i] *= fraction;
       }
     }
 
+    // Returns the charger-hours needed for each cohort
+    double[] getRatios (double chargerCapacity)
+    {
+      double[] result = new double[population.length];
+      for (int i = 0; i < result.length; i++) {
+        if (population[i] < 1e-9) {
+          result[i] = 0.0;
+        }
+        else {
+          result[i] = energy[i] / chargerCapacity / population[i];
+        }
+      }
+      return result;
+    }
+
     // Create a String representation
     public String toString ()
     {
-      return String.format("ch%.3f %s %s", activeChargers,
+      return String.format("SE %s %s", //activeChargers,
                            Arrays.toString(population), Arrays.toString(energy));
     }
   }

@@ -322,6 +322,7 @@ public class CompetitionSetupService
     catch (ConfigurationException e) {
       error = "Error setting configuration";
     }
+    logService.stopLog();
     return error;
   }
 
@@ -405,6 +406,7 @@ public class CompetitionSetupService
     catch (ConfigurationException e) {
       error = "Error setting configuration " + config;
     }
+    logService.stopLog();
     return error;
   }
 
@@ -536,6 +538,12 @@ public class CompetitionSetupService
       }
     };
     session.start();
+    try {
+      session.join();
+    }
+    catch (InterruptedException e) {
+      log.error("Unexpected", e);;
+    }
   }
 
   // Runs a simulation session
@@ -570,6 +578,12 @@ public class CompetitionSetupService
       }
     };
     session.start();
+    try {
+      session.join();
+    }
+    catch (InterruptedException e) {
+      log.error("Unexpected", e);;
+    }
   }
 
   // copied to BootstrapDataRepo
@@ -748,6 +762,7 @@ public class CompetitionSetupService
     List<BootstrapState> collectors =
         SpringApplicationContext.listBeansOfType(BootstrapState.class);
     for (BootstrapState collector : collectors) {
+      log.info("Calling saveBootstrapState() on collector {}", collector.getClass().getName());
       collector.saveBootstrapState();
     }
     Properties result = serverProps.getBootstrapState();

@@ -168,7 +168,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
       return;
     }
 
-    String[] types = { "NS", "RaS", "ReS", "SS" };
+    //String[] types = { "NS", "RaS", "ReS", "SS" };
+    String[] types = { "NS", "SS" };
     String[] shifts = { "Base", "Controllable" };
     Map<String, Integer> houses = new TreeMap<String, Integer>();
     int numberOfVillages =
@@ -176,12 +177,12 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     int nshouses =
       Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
     houses.put("NS", nshouses);
-    int rashouses =
-      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
-    houses.put("RaS", rashouses);
-    int reshouses =
-      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
-    houses.put("ReS", reshouses);
+//    int rashouses =
+//      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+//    houses.put("RaS", rashouses);
+//    int reshouses =
+//      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+//    houses.put("ReS", reshouses);
     int sshouses =
       Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
     houses.put("SS", sshouses);

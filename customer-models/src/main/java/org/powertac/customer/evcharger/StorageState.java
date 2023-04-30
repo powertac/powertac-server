@@ -23,8 +23,11 @@ import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.TariffSubscription;
 import org.powertac.util.RingArray;
+
+import cern.colt.Arrays;
 
 /**
  * Records the current state of a population of EV chargers subscribed to a
@@ -52,35 +55,111 @@ public class StorageState
   // The TariffSubscription associated with this instance
   private TariffSubscription mySub;
 
-  // Capacity vector for the four days
+  // Capacity vector covers four days
   // This is a hard limit for the capacity lookahead
   private int ringArraySize = 96;
+  private int startIndex = 0;
   private RingArray<StorageElement> capacityVector;
 
   // Capacity in kW of individual population units
   private double unitCapacity = 0.0;
+  private double epsilon = 1e-9;
 
   // Cached values for current timeslot
-  //private int cacheTimeslot = -1;
-  //private double epsilon = 0.001;
-  //private double minDemand = 0.0;
-  //private double maxDemand = 0.0;
-  //private double nominalDemand = 0.0;
+  private double currentMin = 0.0;
+  private double currentUsage = 0.0;
   
-  // default constructor, used to create a dummy instance
+  /**
+   * Default constructor, used to create a dummy instance.
+   * The unitCapacity is the charger capacity in kW.
+   * We ignore for now the inefficiency of the charger, which is
+   * typically in the 85%-95% range.
+   */
   public StorageState (double unitCapacity)
   {
     super();
     this.unitCapacity = unitCapacity;
   }
 
-  // normal constructor records the subscription it decorates
+  /**
+   * Normal constructor records the subscription it decorates,
+   * specifies the maximum time (in timeslots) that we track. This is the
+   * maximum interval a user can specify when plugging in, and should cover
+   * the large majority of actual cases.
+   */
   public StorageState (TariffSubscription sub, double unitCapacity, int maxHorizon)
   {
     this(unitCapacity);
     mySub = sub;
     ringArraySize = maxHorizon;
-    capacityVector = new RingArray<> (ringArraySize);
+    capacityVector = new RingArray<>(ringArraySize);
+  }
+
+  /**
+   * Private copy constructor, access using the copy() method
+   */
+  private StorageState (StorageState original)
+  {
+    this(original.unitCapacity);
+    this.mySub = original.mySub;
+    this.ringArraySize = original.ringArraySize;
+    this.capacityVector = new RingArray<>(this.ringArraySize);
+    this.startIndex = original.startIndex;
+    for (int i = startIndex; i < startIndex
+            + original.capacityVector.getActiveLength(startIndex); i++) {
+      this.capacityVector.set(i, original.capacityVector.get(i).copy());
+    }
+  }
+
+  /**
+   * Returns a copy without sharing structure
+   */
+  public StorageState copy()
+  {
+    return new StorageState(this);
+  }
+
+  /**
+   * Restores the current state at the start of a sim session.
+   * The record is a list of Strings representing StorageElement instances.
+   */
+  public static StorageState restoreState (double unitCapacity, TariffSubscription sub,
+                                           int maxHorizon, String input)
+  {
+    StorageState result = new StorageState(sub, unitCapacity, maxHorizon);
+    String[] records = input.split("\\], ");
+    log.debug("records.length={}", records.length);
+    if (1 == records.length) {
+      log.debug("first string length = {}", records[0].length());
+    }
+    
+    Pattern intro = Pattern.compile("\\[?SE (\\d+) \\[");
+    Matcher m;
+    int arrayLength = 1;
+    //for (Object seInfo : records) {
+    for (int i = 0; i < records.length; i++) {
+      String seInfo = (String) records[i];
+      //System.out.println("i=" + i + ", " + seInfo);
+      int ts;
+      m = intro.matcher((String) seInfo);
+      if (m.lookingAt()) {
+        ts = Integer.valueOf(m.group(1));
+        seInfo = ((String) seInfo).substring(m.end());
+      }
+      else {
+        log.error("StorageElement prefix error {}", seInfo);
+        return null;
+      }
+      StorageElement se = StorageElement.restoreElement(arrayLength++, (String) seInfo);
+      if (null == se) {
+        System.out.println("failed to create SE - " + seInfo);
+        // failed to restore se, should already be a log entry
+        return null;
+      }
+      result.putElement(ts, se);
+    }
+    //System.out.println("End restore");
+    return result;
   }
 
   /**
@@ -143,12 +222,12 @@ public class StorageState
   // called to scale back values in a state that's losing customers
   private void scaleState(int timeslot, StorageState old, double fraction)
   {
-    if (fraction > 1.0) {
+    if (fraction > (1.0 + epsilon)) {
       // Should not happen
       log.error("updateState called with fraction > 1");
       return;
     }
-    else if (fraction < 0.0) {
+    else if (fraction < -epsilon) {
       log.error("updateState called with negative fraction");
       return;
     }
@@ -176,6 +255,7 @@ public class StorageState
     // We first must clear out the portion of the ring beyond the current max index
     // that we might want to use.
     capacityVector.clean(timeslot);
+    setStartIndex(timeslot);
 
     // All the vehicles in newDemand start charging now, so we first have to find
     // the total activations for the current timeslot
@@ -201,13 +281,9 @@ public class StorageState
         se = new StorageElement(i - timeslot + 1);
         putElement(i, se);
       }
-      
-      // now we fill out the population and energy arrays
-      // the population array is proportional
-      //int horizon = maxTimeslot - i;
 
       // add remaining activations regardless of whether there's demand for this ts
-      se.addChargers(activations);
+      //se.addChargers(activations);
       if (i == nextDe.getHorizon() + timeslot) {
         activations -= nextDe.getNVehicles() * ratio;
         // distribute nextDe population and energy according to distribution
@@ -217,10 +293,23 @@ public class StorageState
 
         int nValues = (int) Math.round(Math.min(arrayLength, allocations.length));
         for (int ix = 0; ix < nValues; ix++) {
+          if (Double.isNaN(allocations[ix])) {
+            log.error("NaN demand ts {}, h {}, i {}",
+                      timeslot, nextDe.getHorizon(), ix);
+            continue;
+          }
+          else if (allocations[ix] < epsilon) {
+            continue;
+          }
           pop[ix] = nextDe.getNVehicles() * allocations[ix] * ratio;
           energy[ix] = getUnitCapacity() * pop[ix] * (arrayLength - ix - 0.5);
         }
-        //se.extendArrays(allocations.length);
+        if (allocations.length > se.getEnergy().length) {
+          // Should never happen
+          log.error("ts {} h {}, se array length {} should be {}",
+                    timeslot, i - timeslot,
+                    se.getEnergy().length, allocations.length);
+        }
         se.addCommitments(pop, energy);
         if (elements.hasNext()) {
           // go again if we haven't finished the list
@@ -238,7 +327,14 @@ public class StorageState
       for (int i = 0; i < (int) Math.min(6,  horizon); i++) {
         buf.append("\n   ");
         StorageElement se = getElement(timeslot + i);
-        buf.append(se.toString());
+        if (null == se) {
+          log.error("Null StorageElement at {} of {}",
+                    timeslot, maxTimeslot);
+        }
+        else {
+          buf.append(se.toString());
+          buf.append(", r").append(Arrays.toString(se.getRatios(unitCapacity)));
+        }
       }
       log.info(buf);
     }
@@ -256,14 +352,18 @@ public class StorageState
    * usage for the customer.
    */
   public void distributeUsage(int timeslot, double capacity)
-  // TODO - deal with the fact that usage can cause the max-index cell to
-  // become zero. Do we need to deal with this somehow?
   {
+    // set up cached values to handle regulation
+    currentUsage = capacity;
+    double[] minMax = getMinMax(timeslot);
+    currentMin = minMax[0];
+
     double remainingCapacity = capacity;
     // Start by finishing off the current timeslot
     StorageElement target = getElement(timeslot);
     if (null == target) {
       // can't do much here
+      log.warn("No StorageElement at ts {}", timeslot);
       return;
     }
     // this one should have only one bundle
@@ -277,16 +377,17 @@ public class StorageState
     }
     else {
       remainingCapacity -=
-              energy[energy.length - 1];
+              energy[0];
       energy[0] = 0.0;
     }
 
-    // Next, we have to run the critical chargers in all future timeslots
+    // Next, we have to run the critical chargers in the remaining timeslots
     for (int ts = timeslot + 1;
             ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       target = getElement(ts);
       double[] pop = target.getPopulation();
-      double usage = unitCapacity * pop[0];
+      energy = target.getEnergy();
+      double usage = Math.min(unitCapacity * pop[0], energy[0]);
       target.energy[0] -= usage;
       remainingCapacity -= usage;
     }
@@ -299,63 +400,33 @@ public class StorageState
             ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       target = getElement(ts);
       for (int p = 1; p < target.getPopulation().length; p++) {
-        double pop = target.getPopulation()[p];
-        double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[p]);
+        double hrEnergy = Math.min(target.getPopulation()[p] * getUnitCapacity(),
+                                   target.getEnergy()[p]);
         remainingDemand += hrEnergy;
       }
     }
 
-    // We now know how much we could use, and how much we have
-    // The task now is to spread out the actual capacity evenly across all
+    // We now know how much we could use and how much we have.
+    // We spread out the actual capacity evenly across all
     // the remaining chargers
-    double capacityRatio = remainingCapacity / remainingDemand;
-    for (int ts = timeslot + 1;
-            ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
-      target = getElement(ts);
-      for (int e = 1; e < target.getEnergy().length; e++) {
-        double pop = target.getPopulation()[e];
-        double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[e]);
-        // here's where we allocate energy
-        target.getEnergy()[e] -= hrEnergy * capacityRatio;
+    if (0.0 == remainingDemand) {
+      if (Math.abs(remainingCapacity) > epsilon) {
+        log.error("Remaining capacity = {} with remainingDemand = 0.0",
+                  remainingCapacity);
       }
     }
-
-    // Now the first timeslot is complete, we need to collapse the remainder
-    // by reducing their array lengths by one
-    //collapseElements(timeslot);
-
-    // Finally we re-balance all the remaining timeslots just in case ratio < 1.0
-    //if (capacityRatio < 1.0)
-    //  rebalanceUp(timeslot);
-  }
-
-  /**
-   * Closes out a timeslot by reducing the length of all the population and
-   * energy arrays by 1. This should work because the last index now needs at most
-   * one hour to complete charging, as does the previous index. This must be done
-   * before re-balancing.
-   */
-  public void collapseElements (int timeslot)
-  {
-    // we can ignore the first timeslot, it should already be closed out and
-    // won't be re-visited
-    for (int ts = timeslot;
-            ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
-      StorageElement target = getElement(ts);
-      // last index, if not already complete, must be folded into the previous index
-      int lastIndex = target.getEnergy().length - 1;
-      if (target.getEnergy()[lastIndex] < -0.001) {
-        // very strange
-        log.error("negative demand {} timeslot {}", target.getEnergy()[lastIndex], ts);
-        target.getEnergy()[lastIndex] = 0.0;
-        target.getPopulation()[lastIndex] = 0.0;
+    else {
+      double capacityRatio = remainingCapacity / remainingDemand;
+      for (int ts = timeslot + 1;
+              ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
+        target = getElement(ts);
+        for (int e = 1; e < target.getEnergy().length; e++) {
+          double hrEnergy = Math.min(target.getPopulation()[e] * getUnitCapacity(),
+                                     target.getEnergy()[e]);
+          // here's where we allocate energy
+          target.getEnergy()[e] -= hrEnergy * capacityRatio;
+        }
       }
-      else if (target.getEnergy()[lastIndex] > 0.0) {
-        // move this up to the previous index along with its population
-        target.getEnergy()[lastIndex - 1] += target.getEnergy()[lastIndex];
-        target.getPopulation()[lastIndex - 1] += target.getPopulation()[lastIndex];
-      }
-      target.collapseArrays();
     }
   }
 
@@ -364,48 +435,97 @@ public class StorageState
    * Note that a positive number means up-regulation, in which case we need to
    * replace that much energy.
    * 
-   * NOTE: We must do this before distributing demand because the regulation only
+   * NOTE: We must do this before collapsing elements and rebalancing,
+   * and before distributing demand because the regulation only
    * applies to the vehicles that were plugged in during the last timeslot when we
    * reported the regulation capacity. We can ignore any commitment in the previous
    * timeslot because we assume that's already been met and those vehicles will
-   * already be unplugged. 
+   * already be unplugged.
+   * 
+   * Returns the residue in kWh that could not be accommodated.
+   * Return value should always be zero.
    */
-  public void distributeRegulation (int timeslot, double regulation)
+  public double distributeRegulation (int timeslot, double regulation)
   {
     // Regulation applies to all StorageElements in this and all future
     // timeslots. The first column is never regulated.
-    if (0.0 == regulation) {
-      return;
+    if (Math.abs(regulation) < epsilon) {
+      return 0.0;
     }
 
-    // up-regulation adds demand, down-regulation reduces demand
-    // in regulated cohorts
-    double remainingDemand = 0.0;
+    double result = 0.0;
+    // First, we know how much regulation capacity was reported
+    // and how much was used
+    // Reported capacity was the amount by which
+    // discretionary usage could be cut in the last timeslot.
+    // We want a ratio to be applied to every group in every cohort.
+    if (Math.abs(currentUsage - currentMin) < epsilon) {
+      // cannot do up-regulation in this case
+      if (regulation > 0.0) {
+        log.error("up-regulation {} requested in ts {}, no available capacity",
+                  regulation, timeslot);        
+        return result;
+      }
+      // TODO - apply down-regulation in this case
+      log.warn("ts {} request for down-regulation from min usage not implemented");
+      return result;
+    }
+    double ratio = (currentUsage + regulation - currentMin)
+            / (currentUsage - currentMin);
+    log.info("Regulation {}, currentUsage={}, currentMin={}, ratio={}",
+             regulation, currentUsage, currentMin, ratio);
+    // Usage has already been reported, but collapse/rebalance has not happened
     for (int ts = timeslot;
-            ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
+            ts < timeslot + capacityVector.getActiveLength(timeslot);
+            ts++) {
       StorageElement target = getElement(ts);
-      for (int p = 1; p < target.getPopulation().length; p++) {
-        // skip the first index because it's not regulated.
-        double pop = target.getPopulation()[p];
-        double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[p]);
-        remainingDemand += hrEnergy;
+      // we need to increase or decrease discretionary usage by ratio
+      // note that usage in the first group is not discretionary
+      double[] pop = target.getPopulation();
+      double[] energy = target.getEnergy();
+      for (int i = 1; i < pop.length; i++) {
+        double minMultiplier = Math.max(pop.length -i - 0.5, 0.0);
+        double minE = minMultiplier * pop[i] * getUnitCapacity(); // min remaining demand
+        double du = energy[i] - minE; // discretionary usage
+        double dr = du * ratio;       // regulated usage
+        energy[i] = minE + dr;
+        result += (du - dr); // positive for up-reg, negative for down-reg
       }
     }
-    // We now compute the ratio by which demand must be reduced in each
-    // regulated cell. Ratio is positive for down-reg, negative for up-reg
-    double regulationRatio = -regulation/remainingDemand;
+    return regulation - result;
+  }
+
+  /**
+   * Closes out a timeslot by reducing the length of all the population and
+   * energy arrays by 1. This should work because the last index now needs at most
+   * one hour to complete charging, as does the previous index. This must be done
+   * in the timeslot following demand and usage distribution, and before re-balancing.
+   */
+  public void collapseElements (int timeslot)
+  {
     for (int ts = timeslot;
             ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       StorageElement target = getElement(ts);
-      for (int p = 1; p < target.getPopulation().length; p++) {
-        double pop = target.getPopulation()[p];
-        double hrEnergy = Math.min(pop * getUnitCapacity(), target.getEnergy()[p]);
-        target.getEnergy()[p] -= hrEnergy * regulationRatio;
+      // last index, if not already complete, must be folded into the previous index
+      int lastIndex = target.getEnergy().length - 1;
+      if (target.getEnergy()[lastIndex] < -epsilon) {
+        // very strange
+        log.error("negative demand {} timeslot {}", target.getEnergy()[lastIndex], ts);
+        target.getEnergy()[lastIndex] = 0.0;
+        target.getPopulation()[lastIndex] = 0.0;
       }
+      else if (target.getEnergy()[lastIndex] > epsilon) {
+        // Move remaining demand and population in the last index
+        // up to the previous index
+        target.getEnergy()[lastIndex - 1] += target.getEnergy()[lastIndex];
+        target.getPopulation()[lastIndex - 1] += target.getPopulation()[lastIndex];
+      }
+      target.collapseArrays();
     }
   }
 
-  // Shifts portions of the population toward higher-demand cohorts in case
+  // Shifts portions of the population in each future timeslot toward
+  // higher-demand groups in case
   // less than the full demand was satisfied in the previous timeslot. This must
   // be done after distributing regulation and collapsing arrays in the current timeslot,
   // and before distributing demand and usage.
@@ -414,78 +534,14 @@ public class StorageState
     // At this point, demand for the first cohort should be reduced by a full
     // charger-hour, but other cohorts may not be, so we need to move a portion
     // of each of the remaining cohorts up to the next higher-demand (lower index)
-    // cohort.
+    // population.
     for (int ts = timeslot + 1;
             ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       // we skip the first StorageElement, which should be fully satisfied
       StorageElement target = getElement(ts);
-      // each cohort should need n-.5 charger-hours
-      double[] energy = target.getEnergy();
-      double[] pop = target.getPopulation();
-      for (int i = 1; i < energy.length; i++) {
-        double chunk = getUnitCapacity() * pop[i];
-        double ratio =
-                (energy[i] - (chunk * (energy.length - i - 1))) / chunk;
-        if (ratio > 0.5) {
-          if (ratio > 1.5) {
-            // sanity check -- should not happen
-            log.error("Ratio {} > 1.0 in ts {} entry {}", ratio, ts, i);
-            ratio = 1.0;
-          }
-          // need to get ratio down to 0.5 by moving population & energy left
-          // ratio = 1.5 -> move 100% left
-          double move = ratio - 0.5;
-          //double qty = Math.min(chunk, energy[i]);
-          //pop[i - 1] += pop[i] * move;
-          //energy[i - 1] += qty * move;
-          //pop[i] -= pop[i] * move;
-          //energy[i] -= qty * move;
-          double mp = pop[i] * move;
-          pop[i - 1] += mp;
-          energy[i - 1] =
-                  pop[i - 1] * getUnitCapacity() * (0.5 + energy.length - i);
-          pop[i] -= mp;
-          energy[i] =
-                  pop[i] * getUnitCapacity() * (0.5 + energy.length - i - 1);
-        }
-      }
+      target.rebalance(unitCapacity);
     }
   }
-
-//  // Shifts portions of the population toward lower-demand cohorts in case
-//  // regulation satisfied additional demand in the previous timeslot.
-//  void rebalanceDown (int timeslot)
-//  {            
-//    // At this point, demand for the first cohort should be reduced by a full
-//    // charger-hour, but other cohorts may not be, so we need to move a portion
-//    // of each of the remaining cohorts up to the next higher-demand (lower index)
-//    // cohort.
-//    for (int ts = timeslot + 1;
-//            ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
-//      // we skip the first StorageElement, which should be fully satisfied
-//      StorageElement target = getElement(ts);
-//      // each cohort should need n-.5 charger-hours
-//      double[] energy = target.getEnergy();
-//      double[] pop = target.getPopulation();
-//      // iterate backward through the energy array
-//      for (int i = energy.length - 2; i > 0; i--) {
-//        double chunk = getUnitCapacity() * pop[i];
-//        double ratio =
-//                (energy[i] - (chunk * (energy.length - i - 1))) / chunk;
-//        if (ratio < 0.5) {
-//          // need to get ratio up to 0.5 by moving population right
-//          double move = 0.5 - ratio;
-//          double mp = pop[i] * move;
-//          pop[i + 1] += mp;
-//          energy[i + 1] =
-//                  pop[i + 1] * getUnitCapacity() * (0.5 + energy.length - i - 2);
-//          pop[i] -= mp;
-//          energy[i] =
-//                  pop[i] * getUnitCapacity() * (0.5 + energy.length - i - 1);
-//        }
-//      }
-//    }
-//  }
 
   /**
    * Computes the minimum, maximum, and nominal demand
@@ -525,35 +581,19 @@ public class StorageState
   /**
    * Gathers and returns a list that represents the current state
    */
-  public List gatherState (int timeslot)
-  {
-    double precision = 1000000.0; //six decimal places
-    @SuppressWarnings("rawtypes")
-    ArrayList<Object> result = new ArrayList<>();
-    //System.out.println("horizon=" + getHorizon(timeslot));
-    result.add(timeslot);
-    for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
-      result.add(getElement(i));
-    }
-    return result;
-  }
 
-  /**
-   * Restores the current state at the start of a sim session.
-   * The record is a string produced by running toString() on a nested list,
-   * so here we must parse the string.
-   */
-  @SuppressWarnings("unchecked")
-  public void restoreState (int timeslot, List<Object> bootRecord)
+  public String gatherState (int timeslot)
   {
-    // This is easy using XStream.
-    int arrayLength = 1;
-    //while (!complete) {
-    int ts = (int) bootRecord.get(0);
-    for (int index = 1; index < bootRecord.size(); index++) {
-      StorageElement element = (StorageElement) bootRecord.get(index);
-      putElement(ts++, element);
+    String result = "[";
+    log.debug("gatherState({}), horizon={}", timeslot, getHorizon(timeslot));
+    for (int i = timeslot; i < timeslot + getHorizon(timeslot); i++) {
+      StorageElement se = getElement(i);
+      result = result.concat(String.format("SE %d %s %s, ", i,
+                                           Arrays.toString(se.getPopulation()),
+                                           Arrays.toString(se.getEnergy())));
     }
+    log.debug("gatherState() result length = {}", result.length());
+    return result;
   }
 
   // Returns the subscription attached to this SS
@@ -580,7 +620,7 @@ public class StorageState
 
   StorageState withUnitCapacity (double capacity)
   {
-    if (unitCapacity < 0.0) {
+    if (unitCapacity < -epsilon) {
       log.error("Invalid unit capacity {}", capacity);
     }
     else {
@@ -615,5 +655,16 @@ public class StorageState
   private void putElement (int index, StorageElement se)
   {
     capacityVector.set(index, se);
+  }
+
+  // returns the current start index for the capacity array
+  int getStartIndex ()
+  {
+    return startIndex;
+  }
+
+  void setStartIndex (int index)
+  {
+    startIndex = index;
   }
 }

@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.Competition;
@@ -13,6 +15,7 @@ import org.powertac.common.TimeService;
 
 class TariffInfo
 {
+  static private Logger log = LogManager.getLogger(TariffInfo.class.getName());
   private final EvCharger evCharger;
   private Tariff tariff;
   private int profileSize;
@@ -42,13 +45,17 @@ class TariffInfo
       // use a weekly profile
       profileSize = 
               (int) (TimeService.WEEK
-                      / Competition.currentCompetition().getTimeslotDuration()); 
+                      / Competition.currentCompetition().getTimeslotDuration());
+      log.info("Weekly profile size: {}", profileSize);
     }
     else {
       profileSize = 
               (int) (TimeService.DAY
                       / Competition.currentCompetition().getTimeslotDuration()); 
+      log.info("Daily profile size: {}", profileSize);
     }
+    upRegulationPremium = new double[profileSize];
+    downRegulationPremium = new double[profileSize];
   }
 
   Tariff getTariff ()
@@ -67,10 +74,7 @@ class TariffInfo
       // need to create the profile
       if ((!isTOU()) && (!isVariableRate())) {
         // Simplest case
-        meanTariffCost = tariff.getUsageCharge(1.0, 0.0, false);
-        minTariffCost = meanTariffCost;
-        maxTariffCost = meanTariffCost;
-        setCapacityProfile(evCharger.getDefaultCapacityProfile());
+        generateSimpleProfile();
       }
       else if (isTOU()) {
         generateTouProfile();          
@@ -85,12 +89,26 @@ class TariffInfo
     return capacityProfile;
   }
 
+  protected void generateSimpleProfile ()
+  {
+    meanTariffCost = tariff.getUsageCharge(1.0, 0.0, false);
+    minTariffCost = meanTariffCost;
+    maxTariffCost = meanTariffCost;
+    setCapacityProfile(evCharger.getDefaultCapacityProfile());
+  }
+
   // For a TOU tariff, we have to create a StorageState
   // and run a full day of demand, then run the
   // prototype DemandInfo sequence and collect
   // data until our DemandProfile is complete.
+  // Values in the demandProfile are per-member
   void generateTouProfile ()
   {
+    if (0 == profileSize) {
+      log.error("zero profile size");
+      generateSimpleProfile();
+      return;
+    }
     // we first need to understand the value of flexibility
     computeRegulationPremium();
     Instant lastSunday = evCharger.lastSunday();
@@ -98,6 +116,7 @@ class TariffInfo
     tariffCost = new double[profileSize];
     double costSum = 0.0;
     long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
+    // collect per-kWh cost for each ts in the profile
     for (int index = 0; index < profileSize; index++) {
       tariffCost[index] = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
       maxTariffCost = Math.min(maxTariffCost, tariffCost[index]);
@@ -114,42 +133,54 @@ class TariffInfo
                                        evCharger.getMaxDemandHorizon())
             .withUnitCapacity(evCharger.getChargerCapacity());
     List<ArrayList<DemandElement>> demandInfo = evCharger.getDemandInfoMean();
-    evalTime = lastSunday;
+    if (0 == demandInfo.size()) {
+      log.error("empty demandInfo");
+      generateSimpleProfile();
+      return;
+    }
+    //evalTime = lastSunday;
     // we first run a full day to seed the SS
-    for (int hour = 0; hour < demandInfo.size(); hour++) {
-      List<DemandElement> demand = demandInfo.get(hour);
-      ss.distributeDemand(hour, demand, 1.0);
-      double[] limits = ss.getMinMax(hour);
+    int timeslot = 0;
+    while (timeslot < demandInfo.size()) {
+      List<DemandElement> demand = demandInfo.get(timeslot);
+      ss.distributeDemand(timeslot, demand, 1.0);
+      double[] limits = ss.getMinMax(timeslot);
       // determine usage, but don't record
-      double usage = determineUsage(hour, limits);
-      ss.distributeUsage(hour, usage);
+      double usage = determineUsage(timeslot, limits);
+      ss.distributeUsage(timeslot, usage);
       // normally these steps happen after distributing regulation
-      ss.collapseElements(hour + 1);
-      ss.rebalance(hour + 1);
-      evalTime = evalTime.plus(increment);        
+      ss.collapseElements(timeslot + 1);
+      ss.rebalance(timeslot + 1);
+      //evalTime = evalTime.plus(increment);
+      timeslot += 1;
     }
     // now do the same thing to fill up the profile array
     // handle the case where the profile array is larger than the demandInfo map
     int repeat = 1;
-    if (profileSize > demandInfo.size())
+    if (profileSize > demandInfo.size()) {
       repeat = (int) Math.ceil(((double) profileSize)
                                / ((double) demandInfo.size()));
+    }
     double[] profileData = new double[demandInfo.size() * repeat];
-    evalTime = lastSunday;
+    //evalTime = lastSunday;
+    int tsOffset = timeslot; // 0-based index for profile data
     for (int i = 0; i < repeat; i++) {
       // add a demandInfo.size block to the profile
       for (int hour = 0; hour < demandInfo.size(); hour++) {
+        // Here we use hour for accessing demandInfo,
+        // and (timeslot-tsOffset) for accessing profile data
         List<DemandElement> demand = demandInfo.get(hour);
-        ss.distributeDemand(hour, demand, 1.0);
-        double[] limits = ss.getMinMax(hour);
-        double usage = determineUsage(hour, limits);
+        ss.distributeDemand(timeslot, demand, 1.0);
+        double[] limits = ss.getMinMax(timeslot);
+        double usage = determineUsage(timeslot - tsOffset, limits);
         // record usage
-        profileData[i * demandInfo.size() + hour] = usage;
-        ss.distributeUsage(hour, usage);
+        profileData[timeslot - tsOffset] = usage;
+        ss.distributeUsage(timeslot, usage);
         // clean up for next timeslot
-        ss.collapseElements(hour + 1);
-        ss.rebalance(hour + 1);
-        evalTime = evalTime.plus(increment);
+        ss.collapseElements(timeslot + 1);
+        ss.rebalance(timeslot + 1);
+        //evalTime = evalTime.plus(increment);
+        timeslot += 1;
       }
     }
     capacityProfile = new CapacityProfile(profileData, lastSunday);
