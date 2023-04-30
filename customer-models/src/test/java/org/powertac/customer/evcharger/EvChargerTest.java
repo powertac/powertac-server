@@ -210,6 +210,39 @@ class EvChargerTest
     ReflectionTestUtils.setField(sub, "tariffMarketService", tariffMarket);
     ReflectionTestUtils.setField(sub, "accountingService", accountingService);
   }
+  
+  @Test
+  public void testDemandElementMeanCounterForBootstrapSession ()
+  {
+    uut = new EvCharger("residential_ev");
+    uut.setServiceAccessor(serviceAccessor);
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.evcharger.evCharger.model", "residential_ev_1.xml");
+    MapConfiguration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(uut);
+
+    uut.initialize();
+
+    DateTime currentTime = timeService.getCurrentDateTime();
+
+    // A bootstrap session is full 14 days (= 15 times 24 timeslots)
+    for (int day = 0; day < 15; day++) {
+      for (int timeslot = 0; timeslot < 24; timeslot++) {
+        uut.getDemandInfo(currentTime.plusHours(timeslot + day * 24));
+      }
+    }
+
+    int[] demandInfoMeanCounter =
+      (int[]) ReflectionTestUtils.getField(uut, "demandInfoMeanCounter");
+    assertEquals(24, demandInfoMeanCounter.length);
+    for (int i = 0; i < demandInfoMeanCounter.length; i++) {
+      assertEquals(15, demandInfoMeanCounter[i]);
+    }
+
+    assertEquals(360, (int) ReflectionTestUtils
+            .getField(uut, "demandInfoMeanCount"));
+  }
 
   private void setConfig()
   {
@@ -266,6 +299,7 @@ class EvChargerTest
     assertEquals(meanVehicles, demandMean.get(0).getNVehicles());
 
     for (int i = 0; i < Math.min(demand1.size(), demand2.size()); i++) {
+      // Check energy histograms
       double[] hist1 = demand1.get(i).getdistribution();
       double[] hist2 = demand2.get(i).getdistribution();
       double[] histMean = demandMean.get(i).getdistribution();
@@ -283,6 +317,11 @@ class EvChargerTest
         assertEquals(histMean[j],
                      (hist1[j] * w1 + hist2[j] * w2) / w1 + w2);
       }
+      // Check vehicle count
+      double vehicle1 = demand1.get(i).getNVehicles();
+      double vehicle2 = demand2.get(i).getNVehicles();
+      double vehicleMean = demandMean2.get(i).getNVehicles();
+      assertEquals((vehicle1 + vehicle2) / 2, vehicleMean);
     }
 
     // Check that the means are correctly calculated for three demands.
@@ -293,6 +332,7 @@ class EvChargerTest
     for (int i = 0; i < Math
             .min(demand3.size(),
                  Math.min(demand1.size(), demand2.size())); i++) {
+      // Check energy histograms
       double[] hist1 = demand1.get(i).getdistribution();
       double[] hist2 = demand2.get(i).getdistribution();
       double[] hist3 = demand3.get(i).getdistribution();
@@ -306,10 +346,15 @@ class EvChargerTest
                    demand2.get(i).getHorizon());
       assertEquals(demandMean3.get(i).getHorizon(),
                    demand3.get(i).getHorizon());
-      // needs to be updated for weighted means
-      //for (int j = 0; j < hist1.length; j++) {
-      //  assertEquals((hist1[j] + hist2[j] + hist3[j]) / 3, histMean[j]);
-      //}
+      for (int j = 0; j < hist1.length; j++) {
+        assertEquals((hist1[j] + hist2[j] + hist3[j]) / 3, histMean[j]);
+      }
+      // Check vehicle count
+      double vehicle1 = demand1.get(i).getNVehicles();
+      double vehicle2 = demand2.get(i).getNVehicles();
+      double vehicle3 = demand3.get(i).getNVehicles();
+      double vehicleMean = demandMean2.get(i).getNVehicles();
+      assertEquals((vehicle1 + vehicle2 + vehicle3) / 3, vehicleMean);
     }
 
     // Check that the demandInfoMean is extended for new hours.
