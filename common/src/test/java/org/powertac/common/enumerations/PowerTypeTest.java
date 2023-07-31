@@ -99,6 +99,23 @@ public class PowerTypeTest
     //assertEquals(PowerType.STORAGE, PowerType.PUMPED_STORAGE_PRODUCTION.getGenericType());
     assertEquals(PowerType.STORAGE, PowerType.STORAGE.getGenericType());
   }
+  
+  /**
+   * Test the "can-use" functionality
+   */
+  @Test
+  public void testCanUse ()
+  {
+    assertTrue(PowerType.INTERRUPTIBLE_CONSUMPTION.canUse(PowerType.CONSUMPTION));
+    assertFalse(PowerType.CONSUMPTION.canUse(PowerType.INTERRUPTIBLE_CONSUMPTION));
+    assertTrue(PowerType.BATTERY_STORAGE.canUse(PowerType.STORAGE));
+    assertFalse(PowerType.STORAGE.canUse(PowerType.BATTERY_STORAGE));
+    assertTrue(PowerType.ELECTRIC_VEHICLE.canUse(PowerType.CONSUMPTION));
+    assertTrue(PowerType.ELECTRIC_VEHICLE.canUse(PowerType.STORAGE));
+    assertTrue(PowerType.ELECTRIC_VEHICLE.canUse(PowerType.INTERRUPTIBLE_CONSUMPTION));
+    assertFalse(PowerType.ELECTRIC_VEHICLE.canUse(PowerType.BATTERY_STORAGE));
+    assertFalse(PowerType.ELECTRIC_VEHICLE.canUse(PowerType.THERMAL_STORAGE_CONSUMPTION));
+  }
 
   /**
    * Test method for {@link org.powertac.common.enumerations.PowerType#toString()}.
