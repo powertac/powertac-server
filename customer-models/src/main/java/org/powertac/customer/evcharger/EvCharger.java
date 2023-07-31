@@ -552,10 +552,13 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     TariffSubscription sub = subs.get(0);
     StorageState finalState = getStorageState(sub);
-//    storageRecord =
-//            service.getMessageConverter().toXML(finalState.gatherState(timeslot));
-    storageRecord =
+    if (null == finalState) {
+      log.error("saveBootstrapState() null finalState");
+    }
+    else {
+      storageRecord =
             finalState.gatherState(timeslot);
+    }
   }
 
   /**
