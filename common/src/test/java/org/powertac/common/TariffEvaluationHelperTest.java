@@ -144,7 +144,7 @@ public class TariffEvaluationHelperTest
     tariff.init();
     HourlyCharge hc = new HourlyCharge(start, -0.18);
     tariff.addHourlyCharge(hc, r.getId());
-    tariff.getUsageCharge(10000.0, 0.0, true);
+    tariff.getUsageCharge(10000.0, true);
 
     // alpha = 0.75
     teh.init(.6, .4, .5, 10000.0);
@@ -185,7 +185,7 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    tariff.getUsageCharge(10000.0, 0.0, true);
+    tariff.getUsageCharge(10000.0, true);
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
@@ -204,7 +204,7 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    tariff.getUsageCharge(10000.0, 0.0, true);
+    tariff.getUsageCharge(10000.0, true);
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,
@@ -252,7 +252,7 @@ public class TariffEvaluationHelperTest
     tariff.init();
     HourlyCharge hc = new HourlyCharge(start, -0.18);
     tariff.addHourlyCharge(hc, r.getId());
-    tariff.getUsageCharge(10000.0, 0.0, true);
+    tariff.getUsageCharge(10000.0, true);
 
     // estimate with no hourly charges
     teh.init(.6, .4, .5, 10000.0);
@@ -417,7 +417,7 @@ public class TariffEvaluationHelperTest
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
     Competition.currentCompetition().setMarketBootstrapData(mbd);
-    tariff.getUsageCharge(10000.0, 0.0, true);
+    tariff.getUsageCharge(10000.0, true);
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
@@ -444,12 +444,12 @@ public class TariffEvaluationHelperTest
     // mean market price = .032
     // up-regulation price 0.2 ratio is 6.25: discount = .00117
     // down-regulation price -0.04 ratio should be 1.0
-    double result = tariff.getUsageCharge(10000.0, 0.0, true);
+    double result = tariff.getUsageCharge(10000.0, true);
     assertEquals(10000.0 * -0.1, result, 1.0e-6, "correct usage charge");
 
     teh.init(.6, .4, .5, 10000.0);
     teh.initializeRegulationFactors(-2.0, 0.0, 1.0);
-    assertEquals(0.1, tariff.getRegulationCharge(-1.0, 0.0, false), 1e-6);
+    assertEquals(0.1, tariff.getRegulationCharge(-1.0, false), 1e-6);
     double[] usage = {100.0, 200.0};
     result = teh.estimateCost(tariff, usage, start);
     double up = 0.97865; // approx. discount

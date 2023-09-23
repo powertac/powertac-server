@@ -70,6 +70,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  * that would have been produced or consumed in the absence of the external
  * control.</p>
  * <p>
+ * ### Tiered rates are no longer supported!
  * If a non-zero <code>tierThreshold</code> is given, then the rate applies only after
  * daily consumption/production exceeds the threshold; to achieve a tiered
  * structure, there needs to be at least one <code>Rate</code> with a 
@@ -77,7 +78,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  * for each threshold beyond zero. Tier thresholds must be positive for
  * consumption tariffs, negative for production tariffs. For the purpose of
  * determining tier applicability, production and consumption tracking is
- * reset at midnight every day, in the TariffSubscription.</p>
+ * reset at midnight every day, in the TariffSubscription. ###</p>
  * <p>
  * Time-of-use and day-of-week Rates can be specified with
  * <code>dailyBegin</code> / <code>dailyEnd</code> and 
@@ -101,6 +102,9 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  * &nbsp;&nbsp;int dailyBegin, int dailyEnd, double tierThreshold,<br>
  * &nbsp;&nbsp;boolean fixed, double minValue, double maxValue,<br>
  * &nbsp;&nbsp;long noticeInterval, double expectedMean, double maxCurtailment)</code>
+ * 
+ * Note that as of #1152 the tierThreshold value is no longer used, 
+ * but is retained for backwardgit compatibility.
  * 
  * @author John Collins
  */
@@ -630,12 +634,14 @@ public class Rate extends RateCore
    */
   public boolean applies (double usage, AbstractInstant when)
   {
-    if (usage >= tierThreshold) {
-      return applies(when);
-    }
-    else {
-      return false;
-    }
+    return applies(when);
+//  #1152 -- Disable tiered rate feature
+//    if (usage >= tierThreshold) {
+//      return applies(when);
+//    }
+//    else {
+//      return false;
+//    }
   }
 
   /**
@@ -756,17 +762,17 @@ public class Rate extends RateCore
       log.log(BFAULT, "Curtailment ratio " + maxCurtailment + " out of range");
       return false;
     }
-    // tier tests
-    if (Double.isNaN(tierThreshold)
-        || (powerType.isConsumption() && tierThreshold < 0.0)) {
-      log.log(BFAULT, "Negative tier threshold for consumption rate");
-      return false;
-    }
-    if (Double.isNaN(tierThreshold)
-        || (powerType.isProduction() && tierThreshold > 0.0)) {
-      log.log(BFAULT, "Positive tier threshold for production rate");
-      return false;
-    }
+    // tier tests -- eliminated in i1152 
+//    if (Double.isNaN(tierThreshold)
+//        || (powerType.isConsumption() && tierThreshold < 0.0)) {
+//      log.log(BFAULT, "Negative tier threshold for consumption rate");
+//      return false;
+//    }
+//    if (Double.isNaN(tierThreshold)
+//        || (powerType.isProduction() && tierThreshold > 0.0)) {
+//      log.log(BFAULT, "Positive tier threshold for production rate");
+//      return false;
+//    }
     // range check on begin/end values
     if ((dailyBegin != NO_TIME && dailyBegin < MIN_HOUR) ||
         dailyBegin > MAX_HOUR) {
@@ -840,9 +846,10 @@ public class Rate extends RateCore
     if (dailyBegin >= 0) {
       result += (", " + dailyBegin + ":00 -- " + dailyEnd + ":00");
     }
-    if (tierThreshold > 0.0) {
-      result += (", usage > " + tierThreshold);
-    }
+//  Unsupported as of #1152
+//    if (tierThreshold > 0.0) {
+//      result += (", usage > " + tierThreshold);
+//    }
     return result;
   }
   

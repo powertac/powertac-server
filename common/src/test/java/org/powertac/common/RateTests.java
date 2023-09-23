@@ -213,20 +213,19 @@ public class RateTests
   }
   
   // Test a rate that applies between 6:00 and 8:00,
-  // tierThreshold = 100
+  // tierThreshold = 100 -- no longer used as of #1152
   @Test
   public void testDailyRateT1()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,7,0, 0, 0, DateTimeZone.UTC));
     Rate r = new Rate().withValue(0.121) 
         .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
-        .withTierThreshold(100.0);
+        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
-    assertFalse(r.applies(99.0), "Does not apply at 99");
+    assertTrue(r.applies(99.0), "Does not apply at 99");
     assertTrue(r.applies(100.0, new DateTime(2012, 2, 2, 6, 0, 0, 0, DateTimeZone.UTC)), "Applies at 6:00, 100");
-    assertFalse(r.applies(80.0, new DateTime(2012, 3, 3, 7, 0, 0, 0, DateTimeZone.UTC)), "Does not apply at 7:00, 80");
+    assertTrue(r.applies(80.0, new DateTime(2012, 3, 3, 7, 0, 0, 0, DateTimeZone.UTC)), "Does not apply at 7:00, 80");
   }
   
   // Validity test: curtailment - note that it's supposed to be impossible to
@@ -252,32 +251,33 @@ public class RateTests
   }
   
   // Validity test: CONSUMPTION tier value
-  @Test
-  public void testTierCons ()
-  {
-    Rate r = new Rate().withValue(-0.121) 
-            .withTierThreshold(-1.0);
-    TariffSpecification spec = new TariffSpecification(null, PowerType.INTERRUPTIBLE_CONSUMPTION);
-    assertFalse(r.isValid(spec), "tier theshold invalid");
-    r.withTierThreshold(0.0);
-    assertTrue(r.isValid(spec), "tier theshold valid");    
-    r.withTierThreshold(100000.0);
-    assertTrue(r.isValid(spec), "tier theshold valid");    
-  }
+  // no longer supported as of #1152
+//  @Test
+//  public void testTierCons ()
+//  {
+//    Rate r = new Rate().withValue(-0.121) 
+//            .withTierThreshold(-1.0);
+//    TariffSpecification spec = new TariffSpecification(null, PowerType.INTERRUPTIBLE_CONSUMPTION);
+//    assertFalse(r.isValid(spec), "tier theshold invalid");
+//    r.withTierThreshold(0.0);
+//    assertTrue(r.isValid(spec), "tier theshold valid");    
+//    r.withTierThreshold(100000.0);
+//    assertTrue(r.isValid(spec), "tier theshold valid");    
+//  }
   
   // Validity test: PRODUCTION tier value
-  @Test
-  public void testTierProd ()
-  {
-    Rate r = new Rate().withValue(0.121) 
-            .withTierThreshold(1.0);
-    TariffSpecification spec = new TariffSpecification(null, PowerType.SOLAR_PRODUCTION);
-    assertFalse(r.isValid(spec), "tier theshold invalid");
-    r.withTierThreshold(0.0);
-    assertTrue(r.isValid(spec), "tier theshold valid");    
-    r.withTierThreshold(-100000.0);
-    assertTrue(r.isValid(spec), "tier theshold valid");    
-  }
+//  @Test
+//  public void testTierProd ()
+//  {
+//    Rate r = new Rate().withValue(0.121) 
+//            .withTierThreshold(1.0);
+//    TariffSpecification spec = new TariffSpecification(null, PowerType.SOLAR_PRODUCTION);
+//    assertFalse(r.isValid(spec), "tier theshold invalid");
+//    r.withTierThreshold(0.0);
+//    assertTrue(r.isValid(spec), "tier theshold valid");    
+//    r.withTierThreshold(-100000.0);
+//    assertTrue(r.isValid(spec), "tier theshold valid");    
+//  }
   
   // Validity test: maxValue, expectedMean, consumption
   @Test

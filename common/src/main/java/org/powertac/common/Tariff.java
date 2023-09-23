@@ -113,10 +113,10 @@ public class Tariff
   // local rate id map to support updates of hourly rates
   private HashMap<Long, Rate> rateIdMap;
 
-  // map is an array, indexed by tier-threshold and hour-in-day/week
-  private TreeSet< Double > tiers;
-  private int tierSign = 1; // -1 for negative tiers
-  private Rate[][] rateMap;
+  // map is an array, indexed by hour-in-day/week
+  //private TreeSet< Double > tiers;
+  //private int tierSign = 1; // -1 for negative tiers
+  private Rate[] rateMap;
   private RegulationRate regulationRate;
   //private MarketBootstrapData marketBootstrapData;
 
@@ -143,7 +143,7 @@ public class Tariff
         regulationRate = r;
       }
     }
-    tiers = new TreeSet<Double>();
+    //tiers = new TreeSet<Double>();
   }
 
   /**
@@ -287,7 +287,8 @@ public class Tariff
    * Returns the maximum interruptible quantity in kwh for this tariff in 
    * the current timeslot, for the specified proposed and cumulative usage.
    */
-  public double getMaxUpRegulation (double kwh, double cumulativeUsage)
+//  public double getMaxUpRegulation (double kwh, double cumulativeUsage)
+  public double getMaxUpRegulation (double kwh)
   {
     // first, make sure this is an interruptible power type
     // TODO - what about storage types?
@@ -297,23 +298,23 @@ public class Tariff
     // Next, we need to explore the rate structure. This starts with
     // the time index
     int di = getTimeIndex(timeService.getCurrentTime());
-        
+
     // Then work out the tier index. Keep in mind that the kwh value could
     // cross a tier boundary
-    if (tiers.size() == 1) {
-      Rate rate = rateMap[0][di];
+    //if (tiers.size() == 1) {
+      Rate rate = rateMap[di];
       return kwh * rate.getMaxCurtailment();
-    }
-    else {
-      double result = 0.0;
-      List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
-      // TODO this calculation is not quite right unless curtailment is only
-      // on top tier.
-      for (RateKwh rk : rkList) {
-        result += rk.kwh * rk.rate.getMaxCurtailment();
-      }
-      return result;
-    }
+    //}
+//    else {
+//      double result = 0.0;
+//      List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
+//      // TODO this calculation is not quite right unless curtailment is only
+//      // on top tier.
+//      for (RateKwh rk : rkList) {
+//        result += rk.kwh * rk.rate.getMaxCurtailment();
+//      }
+//      return result;
+//    }
 
   }
 
@@ -327,11 +328,11 @@ public class Tariff
    * If the recordUsage parameter is true, then the usage and price will be
    * recorded to update the realizedPrice.</p>
    */
-  public double getUsageCharge (double kwh, double cumulativeUsage,
+  public double getUsageCharge (double kwh, //double cumulativeUsage,
                                 boolean recordUsage)
   {
     double amt =
-      getUsageCharge(timeService.getCurrentTime(), kwh, cumulativeUsage);
+      getUsageCharge(timeService.getCurrentTime(), kwh); //, cumulativeUsage);
     if (recordUsage) {
       totalUsage += kwh;
       totalCost += amt;
@@ -352,13 +353,14 @@ public class Tariff
    * the ratios (to the energy prices in the tariff) specified by the max
    * ratios in the tariff market.
    */
-  public double getRegulationCharge (double kwh, double cumulativeUsage,
+  public double getRegulationCharge (double kwh, // double cumulativeUsage,
                                      boolean recordUsage)
   {
     if (null == regulationRate) {
       // TODO: not clear that this produces correct sign when used for
       // down-regulation on a production tariff. Need a test case.
-      return getUsageCharge(kwh, cumulativeUsage, recordUsage);
+      //return getUsageCharge(kwh, cumulativeUsage, recordUsage);
+      return getUsageCharge(kwh, recordUsage);
     }
 
     if (kwh < 0.0) {
@@ -432,10 +434,10 @@ public class Tariff
    * probing the rate tier structure. Do not use this method for billing,
    * because it does not update the realized-price data.
    */
-  public double getUsageCharge (Instant when,
-                                double kwh, double cumulativeUsage)
+  public double getUsageCharge (Instant when, double kwh) //, double cumulativeUsage)
   {
-    return getUsageCharge(when, kwh, cumulativeUsage, null);
+    //return getUsageCharge(when, kwh, cumulativeUsage, null);
+    return getUsageCharge(when, kwh, null);
   }
 
   /**
@@ -443,10 +445,15 @@ public class Tariff
    * adjusted by the given TariffEvaluationHelper.
    */
   public double getUsageCharge (Instant when,
-                                double kwh, double cumulativeUsage,
+                                double kwh, // double cumulativeUsage,
                                 TariffEvaluationHelper helper)
   {
     double result = 0.0;
+    // Some unit tests need to not crash if a Tariff has not been analyzed
+    if (!isAnalyzed()) {
+      log.error("unitialized tariff {}", getId());
+      return 0.0;
+    }
     // first, get the time index
     int di = getTimeIndex(when);
     
@@ -458,26 +465,18 @@ public class Tariff
 
     // Then work out the tier index. Keep in mind that the kwh value could
     // cross a tier boundary
-    if (tiers == null || tiers.size() < 1) {
-      log.error("uninitialized tariff " + getId());
-      return 0.0;
-    }
-    else {
+//    if (tiers == null || tiers.size() < 1) {
+//      log.error("uninitialized tariff " + getId());
+//      return 0.0;
+//    }
+//    else {
       // Find the regulation adjustment, if any
-      if (tiers.size() == 1) {
-        Rate rate = findRate(0, di);
+//      if (tiers.size() == 1) {
+//        Rate rate = findRate(0, di);
+        Rate rate = findRate(di);
         double perKWh = rate.getValue(when, helper);
         result = regulatedKWh(kwh, helper) * perKWh;
-      }
-      else {
-        List<RateKwh> rkList =
-            getRateKwhList(di, regulatedKWh(kwh, helper), cumulativeUsage);
-        for (RateKwh rk: rkList) {
-          double perKWh = rk.rate.getValue(when, helper);
-          result += rk.kwh * perKWh;
-        }
-      }
-    }
+//    }
     return sign * result;
   }
 
@@ -535,18 +534,18 @@ public class Tariff
    */
   public boolean isCovered ()
   {
-    for (int tier = 0; tier < tiers.size(); tier++) {
+    //for (int tier = 0; tier < tiers.size(); tier++) {
       for (int hour = 0; hour < (isWeekly? 24 * 7: 24); hour++) {
         //def cell = rateMap[tier][hour]
         //println "cell: ${cell}"
         //if (cell == null) {
         //  return false
         //}
-        if (rateMap[tier][hour] == null) {
+        if (rateMap[hour] == null) {
           return false;
         }
       }
-    }
+    //}
     return true;
   }
 
@@ -699,9 +698,9 @@ public class Tariff
   {
     // Start by computing tier indices, and array width
     HashMap<Double, Integer> tierIndexMap = new HashMap<Double, Integer>();
-    if (tariffSpec.getPowerType().isProduction())
-      tierSign = -1; // tiers for production tariffs are negative
-    tiers.add(0.0 * tierSign);
+//    if (tariffSpec.getPowerType().isProduction())
+//      tierSign = -1; // tiers for production tariffs are negative
+//    tiers.add(0.0 * tierSign);
     int weekMultiplier = 1;
     for (Rate rate : tariffSpec.getRates()) {
       rate.setTimeService(timeService);
@@ -709,18 +708,18 @@ public class Tariff
         isWeekly = true;
         weekMultiplier = 7;
       }
-      if (rate.getTierThreshold() * tierSign > 0.0) {
-        tiers.add(rate.getTierThreshold() * tierSign);
-      }
+//      if (rate.getTierThreshold() * tierSign > 0.0) {
+//        tiers.add(rate.getTierThreshold() * tierSign);
+//      }
     }
-    log.info("tariff " + specId + ", tiers: " + tiers);
+//    log.info("tariff " + specId + ", tiers: " + tiers);
 
     // Next, fill in the tierIndexMap, which maps tier thresholds to
     // array indices. Remember that there's always a 0.0 tier.
-    int tidx = 0;
-    for (double threshold : tiers) {
-      tierIndexMap.put(threshold, tidx++);
-    }
+//    int tidx = 0;
+//    for (double threshold : tiers) {
+//      tierIndexMap.put(threshold, tidx++);
+//    }
 
     // Now we can compute the sort keys. Note that the lowest-priority
     // rates will sort first.
@@ -734,16 +733,17 @@ public class Tariff
         // The first day is 1, otherwise we would have to add 1 here
         value += rate.getWeeklyBegin() * 24;
       }
-      if (rate.getTierThreshold() * tierSign > 0.0) {
-        // TODO is this correct? Should the 7 apply only for a weekly rate?
-        value += tierIndexMap.get(rate.getTierThreshold() * tierSign) * 24 * weekMultiplier;
-      }
+//      if (rate.getTierThreshold() * tierSign > 0.0) {
+//        // TODO is this correct? Should the 7 apply only for a weekly rate?
+//        value += tierIndexMap.get(rate.getTierThreshold() * tierSign) * 24 * weekMultiplier;
+//      }
       log.debug("inserting " + value + ", " + rate.getId());
       annotatedRates.put(value, rate);
     }
 
     // Next, we create the rateMap
-    rateMap = new Rate[tierIndexMap.size()][weekMultiplier * 24];
+//    rateMap = new Rate[tierIndexMap.size()][weekMultiplier * 24];
+    rateMap = new Rate[weekMultiplier * 24];
 
     // Finally, we step through the sorted Rates and fill in the
     // array. For each Rate, we add it to the array everywhere it
@@ -751,7 +751,7 @@ public class Tariff
     // already been entered.
     for (Map.Entry<Integer, Rate> entry : annotatedRates.entrySet()) {
       Rate rate = entry.getValue();
-      int ti = tierIndexMap.get(rate.getTierThreshold() * tierSign);
+//      int ti = tierIndexMap.get(rate.getTierThreshold() * tierSign);
       int day1 = 0;
       int dayn = 0;
       if (isWeekly) {
@@ -778,11 +778,11 @@ public class Tariff
       for (int day = (dayn < day1? 0 : day1); day <= dayn; day++) {
         // handle daily wrap-arounds
         for (int hour = (hrn < hr1? 0 : hr1); hour <= hrn; hour++) {
-          rateMap[ti][hour + day * 24] = rate;
+          rateMap[hour + day * 24] = rate;
         }
         if (hrn < hr1) {
           for (int hour = hr1; hour <= 23; hour++) {
-            rateMap[ti][hour + (day * 24)] = rate;
+            rateMap[hour + (day * 24)] = rate;
           }
         }
       }
@@ -791,11 +791,11 @@ public class Tariff
         for (int day = day1; day <= 6; day++) {
           // handle daily wrap-arounds
           for (int hour = (hrn < hr1? 0 : hr1); hour <= hrn; hour++) {
-            rateMap[ti][hour + day * 24] = rate;
+            rateMap[hour + day * 24] = rate;
           }
           if (hrn < hr1) {
             for (int hour = hr1; hour <= 23; hour++) {
-              rateMap[ti][hour + (day * 24)] = rate;
+              rateMap[hour + (day * 24)] = rate;
             }
           }
         }
@@ -804,55 +804,64 @@ public class Tariff
     analyzed = true;
   }
 
-  private List<RateKwh> getRateKwhList (int timeIndex,
-                                        double kwh, 
-                                        double cumulativeUsage)
-  {
-    List<RateKwh> result = new ArrayList<RateKwh>();
-    double remainingAmount = kwh * tierSign;
-    double accumulatedAmount = cumulativeUsage * tierSign;
-    ArrayList<Double> tierList = new ArrayList<Double>(tiers);
-    int ti = 0; // tier index
-    while (remainingAmount > 0.0) {
-      if (tierList.size() > ti + 1) {
-        // still tiers remaining
-        if (accumulatedAmount >= tierList.get(ti+1)) {
-          log.debug("accumulatedAmount " + accumulatedAmount
-                    + " above threshold " + (ti+1) + ":" + (tierList.get(ti+1)));
-          ti += 1;
-        }
-        else if (remainingAmount + accumulatedAmount > tierList.get(ti+1)) {
-          double amt = tierList.get(ti+1) - accumulatedAmount;
-          log.debug("split off " + amt + " below " + tierList.get(ti+1));
-          //result += amt * rateValue(ti++, timeIndex, when);
-          result.add(new RateKwh(rateMap[ti++][timeIndex], amt * tierSign));
-          remainingAmount -= amt;
-          accumulatedAmount += amt;
-        }
-        else {
-          // it all fits in the current tier
-          log.debug("amount " + remainingAmount + " fits in tier " + ti);
-          //result += remainingAmount * rateValue(ti, timeIndex, when);
-          result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount * tierSign));
-          remainingAmount = 0.0;
-        }
-      }
-      else {
-        // last tier
-        log.debug("remainder " + remainingAmount + " fits in top tier");
-        //result += remainingAmount * rateValue(ti, timeIndex, when);
-        result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount * tierSign));
-        remainingAmount = 0.0;
-      }
-    }
-    return result;
-  }
+//  private List<RateKwh> getRateKwhList (int timeIndex,
+//                                        double kwh, 
+//                                        double cumulativeUsage)
+//  {
+//    List<RateKwh> result = new ArrayList<RateKwh>();
+//    double remainingAmount = kwh; // * tierSign;
+////    double accumulatedAmount = cumulativeUsage * tierSign;
+//    ArrayList<Double> tierList = new ArrayList<Double>(tiers);
+//    int ti = 0; // tier index
+//    while (remainingAmount > 0.0) {
+//      if (tierList.size() > ti + 1) {
+//        // still tiers remaining
+//        if (accumulatedAmount >= tierList.get(ti+1)) {
+//          log.debug("accumulatedAmount " + accumulatedAmount
+//                    + " above threshold " + (ti+1) + ":" + (tierList.get(ti+1)));
+//          ti += 1;
+//        }
+//        else if (remainingAmount + accumulatedAmount > tierList.get(ti+1)) {
+//          double amt = tierList.get(ti+1) - accumulatedAmount;
+//          log.debug("split off " + amt + " below " + tierList.get(ti+1));
+//          //result += amt * rateValue(ti++, timeIndex, when);
+//          result.add(new RateKwh(rateMap[ti++][timeIndex], amt * tierSign));
+//          remainingAmount -= amt;
+//          accumulatedAmount += amt;
+//        }
+//        else {
+//          // it all fits in the current tier
+//          log.debug("amount " + remainingAmount + " fits in tier " + ti);
+//          //result += remainingAmount * rateValue(ti, timeIndex, when);
+//          result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount * tierSign));
+//          remainingAmount = 0.0;
+//        }
+//      }
+//      else {
+//        // last tier
+//        log.debug("remainder " + remainingAmount + " fits in top tier");
+//        //result += remainingAmount * rateValue(ti, timeIndex, when);
+//        result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount * tierSign));
+//        remainingAmount = 0.0;
+//      }
+//    }
+//    return result;
+//  }
 
-  private Rate findRate (int tierIndex, int timeIndex)
+//  private Rate findRate (int tierIndex, int timeIndex)
+//  {
+//    Rate rate = rateMap[tierIndex][timeIndex];
+//    if (rate == null) {
+//      log.error("could not find rate for tier " + tierIndex + ", ti " + timeIndex);
+//    }
+//    return rate;
+//  }
+
+  private Rate findRate (int timeIndex)
   {
-    Rate rate = rateMap[tierIndex][timeIndex];
+    Rate rate = rateMap[timeIndex];
     if (rate == null) {
-      log.error("could not find rate for tier " + tierIndex + ", ti " + timeIndex);
+      log.error("could not find rate for ti " + timeIndex);
     }
     return rate;
   }
@@ -865,7 +874,7 @@ public class Tariff
     return analyzed;
   }
 
-  double computeMeanConsumptionPrice (Rate[][] map)
+  double computeMeanConsumptionPrice (Rate[] map)
   {
     if (!analyzed) {
       log.error("Tariff not analyzed, cannot compute mean consumption price");
@@ -876,10 +885,10 @@ public class Tariff
       mult = productionMargin;
     double sum = 0.0;
     int count = 0;
-    for (int i = 0; i < map[0].length; i++) {
+    for (int i = 0; i < map.length; i++) {
       // ignore higher tiers for now
       count += 1;
-      Rate rate = map[0][i];
+      Rate rate = map[i];
       if (rate.isFixed())
         sum += rate.getMinValue();
       else
@@ -899,16 +908,16 @@ public class Tariff
    * the ordered set of rates and quantities needed to determine price or
    * curtailable energy at a particular point in time for a tiered-rate tariff.
    */
-  class RateKwh
-  {
-    Rate rate;
-    double kwh;
-    
-    RateKwh (Rate rate, double kwh)
-    {
-      super();
-      this.rate = rate;
-      this.kwh = kwh;
-    }
-  }
+//  class RateKwh
+//  {
+//    Rate rate;
+//    double kwh;
+//    
+//    RateKwh (Rate rate, double kwh)
+//    {
+//      super();
+//      this.rate = rate;
+//      this.kwh = kwh;
+//    }
+//  }
 }

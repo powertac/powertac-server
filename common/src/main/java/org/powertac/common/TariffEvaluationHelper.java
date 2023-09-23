@@ -228,7 +228,7 @@ public class TariffEvaluationHelper
     init();
     this.tariff = tariff;
     computeAlpha(tariff);
-    double dailyUsage = 0.0;
+    //double dailyUsage = 0.0;
     double result = 0.0;
     Instant time = start;
     if (null == time) {
@@ -237,16 +237,16 @@ public class TariffEvaluationHelper
     }
     for (int index = 0; index < usage.length; index++) {
       time = time.plus(TimeService.HOUR);
-      result += tariff.getUsageCharge(time, usage[index], dailyUsage, this);
+      result += tariff.getUsageCharge(time, usage[index], this);
       if (includePeriodicCharge)
         result += tariff.getPeriodicPayment() / 24.0;
-      if (time.toDateTime().getHourOfDay() == 0) {
-        //reset the daily usage counter
-        dailyUsage = 0.0;
-      }
-      else {
-        dailyUsage += usage[index];
-      }
+//      if (time.toDateTime().getHourOfDay() == 0) {
+//        //reset the daily usage counter
+//        dailyUsage = 0.0;
+//      }
+//      else {
+//        dailyUsage += usage[index];
+//      }
     }
     // Account for regulation. In general, customers get paid (+) for up-reg
     // and must pay (-) for down. Also, in general, the amounts are positive
@@ -274,15 +274,15 @@ public class TariffEvaluationHelper
     // Discount with logistic function
     // 1-1/(1+exp(-3*(x-4))) produces 0.95 for upreg rate 3 times mkt price,
     // 0.5 for rate 4 time mean mkt price
-    double upregPrice = tariff.getRegulationCharge(-1.0, 0.0, false); 
+    double upregPrice = tariff.getRegulationCharge(-1.0, false); 
     double upregPriceRatio = upregPrice / mktPrice;
     double upregDiscount = upRegulationDiscount(upregPriceRatio);
     double upreg = (expCurtail + expDischarge);
-    result += upregDiscount * tariff.getRegulationCharge(upreg, 0.0, false);
-    double downregPrice = tariff.getRegulationCharge(1.0, 0.0, false); 
+    result += upregDiscount * tariff.getRegulationCharge(upreg, false);
+    double downregPrice = tariff.getRegulationCharge(1.0, false); 
     double downregPriceRatio = 2.0 + downregPrice / mktPrice;
     double downregDiscount = downRegulationDiscount(downregPriceRatio);
-    result += downregDiscount * tariff.getRegulationCharge(expDown, 0.0, false);
+    result += downregDiscount * tariff.getRegulationCharge(expDown, false);
     log.info("mp {}, upregRatio {}, upreg discount {}, downregRatio {}, downreg discount {}",
              mktPrice, upregPriceRatio, upregDiscount,
              downregPriceRatio, downregDiscount);
@@ -313,8 +313,8 @@ public class TariffEvaluationHelper
   {
     double result = 0.0;
     double upreg = expCurtail + expDischarge;
-    result += tariff.getRegulationCharge(upreg, 0.0, false);
-    result += tariff.getRegulationCharge(expDown, 0.0, false);
+    result += tariff.getRegulationCharge(upreg, false);
+    result += tariff.getRegulationCharge(expDown, false);
     return result;
   }
 
@@ -365,21 +365,21 @@ public class TariffEvaluationHelper
     init();
     this.tariff = tariff;
     computeAlpha(tariff);
-    double dailyUsage = 0.0;
+//    double dailyUsage = 0.0;
     double[] result = new double[usage.length];
     Instant time = timeService.getCurrentTime();
     for (int index = 0; index < usage.length; index++) {
       time = time.plus(TimeService.HOUR);
-      result[index] = tariff.getUsageCharge(time, usage[index], dailyUsage, this);
+      result[index] = tariff.getUsageCharge(time, usage[index], this);
       if (includePeriodicCharge)
         result[index] += tariff.getPeriodicPayment() / 24.0;
-      if (timeService.getHourOfDay() == 0) {
-        //reset the daily usage counter
-        dailyUsage = 0.0;
-      }
-      else {
-        dailyUsage += usage[index];
-      }
+//      if (timeService.getHourOfDay() == 0) {
+//        //reset the daily usage counter
+//        dailyUsage = 0.0;
+//      }
+//      else {
+//        dailyUsage += usage[index];
+//      }
     }
     return result;    
   }
