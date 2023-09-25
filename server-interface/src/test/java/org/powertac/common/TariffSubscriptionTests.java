@@ -107,12 +107,13 @@ public class TariffSubscriptionTests
     assertEquals(0, sub.getCustomersCommitted(), "no customers committed");
   }
 
-  @Test
-  public void testGetTotalUsage ()
-  {
-    TariffSubscription sub = new TariffSubscription(customer, tariff);
-    assertEquals(0.0, sub.getTotalUsage(), 1e-6, "correct initially");
-  }
+//  @Test
+//  public void testGetTotalUsage ()
+//  {
+//    TariffSubscription sub = new TariffSubscription(customer, tariff);
+//    assertEquals(0.0, //sub.getTotalUsage(),
+//                 1e-6, "correct initially");
+//  }
 
   @Test
   public void testSubscribe ()
@@ -267,7 +268,7 @@ public class TariffSubscriptionTests
                                                 eq(tariff), eq(customer), eq(33), eq(-330.0), 
                                                 chargeArg.capture());
     assertEquals(330.0 * 0.11, chargeArg.getValue(), 1e-6, "correct charge");
-    assertEquals(10.0, sub.getTotalUsage(), 1e-6, "correct total");
+    //assertEquals(10.0, sub.getTotalUsage(), 1e-6, "correct total");
   }
 
   @Test
@@ -284,7 +285,7 @@ public class TariffSubscriptionTests
                                                 eq(tariff), eq(customer), eq(33), eq(-330.0), 
                                                 chargeArg.capture());
     assertEquals(330.0 * 0.11, chargeArg.getValue(), 1e-6, "correct charge");
-    assertEquals(10.0, sub.getTotalUsage(), 1e-6, "correct total");
+    //assertEquals(10.0, sub.getTotalUsage(), 1e-6, "correct total");
     verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.PERIODIC),
                                                 eq(tariff), eq(customer), eq(33), eq(0.0), 
                                                 chargeArg.capture());

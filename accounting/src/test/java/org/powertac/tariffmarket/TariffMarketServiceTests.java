@@ -569,8 +569,8 @@ public class TariffMarketServiceTests
     assertEquals(TariffStatus.Status.success, vrs.getStatus(), "success vru");
     assertEquals(start, timeService.getCurrentTime(), "correct current time");
     
-    assertEquals(-0.07, tf2.getUsageCharge(lastHr, 1.0, 0.0), 1e-6, "Correct rate at 11:00");
-    assertEquals(-0.09, tf2.getUsageCharge(start, 1.0, 0.0), 1e-6, "Correct rate at 12:00");
+    assertEquals(-0.07, tf2.getUsageCharge(lastHr, 1.0), 1e-6, "Correct rate at 11:00");
+    assertEquals(-0.09, tf2.getUsageCharge(start, 1.0), 1e-6, "Correct rate at 12:00");
 
     // make sure both tariffs are on the output list
     // TODO - this should be replaced with a check on an output channel.

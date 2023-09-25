@@ -348,10 +348,10 @@ public class OfficeComplexControllableCapacitiesTests
             .getOfficeComplexList())
       for (CustomerInfo customerInfo: customer.getCustomerInfos())
         assertFalse(tariffSubscriptionRepo
-                            .findActiveSubscriptionsForCustomer(customerInfo) == null
-                            || tariffSubscriptionRepo
-                                    .findActiveSubscriptionsForCustomer(customerInfo)
-                                    .get(0).getTotalUsage() < 0,
+                            .findActiveSubscriptionsForCustomer(customerInfo) == null,
+//                            || tariffSubscriptionRepo
+//                                    .findActiveSubscriptionsForCustomer(customerInfo)
+//                                    .get(0).getTotalUsage() < 0,
                 "Household consumed power for each customerInfo");
 
     assertEquals(8 * officeComplexCustomerService.getOfficeComplexList().size(),

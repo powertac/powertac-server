@@ -453,8 +453,8 @@ class DefaultCapacityOriginator implements CapacityOriginator
     double chargeForBase =
         subscription.getTariff().getUsageCharge(
             timeslotRepo.getTimeForIndex(timeslot),
-            baseCapacity,
-            subscription.getTotalUsage());
+            baseCapacity); //,
+//            subscription.getTotalUsage());
     double rateForBase = chargeForBase / baseCapacity;
 
     double benchmarkRate =

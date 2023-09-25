@@ -245,13 +245,13 @@ public class AccountingServiceTests
   {
     initializeService();
     accountingService.addTariffTransaction(TariffTransaction.Type.SIGNUP,
-      tariffB1, customerInfo1, 2, 0.0, 42.1);
+                                           tariffB1, customerInfo1, 2, 0.0, 42.1);
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
-      tariffB1, customerInfo2, 7, -77.0, 7.7);
+                                           tariffB1, customerInfo1, 7, -77.0, 7.7);
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
+                                           tariffB1, customerInfo2, 7, -10.0, 2.0);
     accountingService.addRegulationTransaction(tariffB1, customerInfo1,
                                                2, 10.0, -2.5);
-    accountingService.addRegulationTransaction(tariffB1, customerInfo2,
-                                               7, -10.0, 2.0);
     assertEquals(4, accountingService.getPendingTransactions().size(), "correct number in list");
     assertEquals(4, accountingService.getPendingTariffTransactions().size(), "correct number in ttx list");
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
@@ -281,15 +281,15 @@ public class AccountingServiceTests
     assertNotNull(ttx, "second ttx not null");
     TariffTransaction ttx1 = (TariffTransaction)consumes.get(1);
     assertNotNull(ttx1, "third ttx not null");
-    if (ttx.isRegulation()) {
+    if (ttx.getCustomerInfo() == customerInfo2) {
       // swap
       ttx = ttx1;
       ttx1 = (TariffTransaction)consumes.get(0);
     }
-    assertEquals(-77.0, ttx.getKWh(), 1e-6, "correct amount 1");
+    assertEquals(-67.0, ttx.getKWh(), 1e-6, "correct amount 1");
     assertFalse(ttx.isRegulation(), "not regulation");
     assertEquals(-10.0, ttx1.getKWh(), 1e-6, "correct amount 2");
-    assertTrue(ttx1.isRegulation(), "regulation");
+    assertFalse(ttx1.isRegulation(), "regulation");
     List<BrokerTransaction> produces = filter(pending,
                                               new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {

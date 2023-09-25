@@ -881,17 +881,17 @@ implements CustomerModelAccessor
         return prices;
       double nhc = getNominalHourlyConsumption();
       prices = new double[profileSize];
-      double cumulativeUsage = 0.0;
+//    double cumulativeUsage = 0.0;
       Instant start =
           service.getTimeslotRepo().currentTimeslot().getStartInstant();
       for (int i = 0; i < profileSize; i++) {
         Instant when = start.plus(i * TimeService.HOUR);
-        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
-          cumulativeUsage = 0.0;
-        }
+//        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
+//          cumulativeUsage = 0.0;
+//        }
         prices[i] =
-            tariff.getUsageCharge(when, nhc, cumulativeUsage) / nhc;
-        cumulativeUsage += nhc;
+            tariff.getUsageCharge(when, nhc) / nhc;
+        //cumulativeUsage += nhc;
       }
       return prices;
     }

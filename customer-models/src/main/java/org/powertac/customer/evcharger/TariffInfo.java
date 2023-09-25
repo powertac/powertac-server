@@ -92,7 +92,7 @@ class TariffInfo
 
   protected void generateSimpleProfile ()
   {
-    meanTariffCost = tariff.getUsageCharge(1.0, 0.0, false);
+    meanTariffCost = tariff.getUsageCharge(1.0, false);
     minTariffCost = meanTariffCost;
     maxTariffCost = meanTariffCost;
     setCapacityProfile(evCharger.getDefaultCapacityProfile());
@@ -119,7 +119,7 @@ class TariffInfo
     long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
     // collect per-kWh cost for each ts in the profile
     for (int index = 0; index < profileSize; index++) {
-      tariffCost[index] = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
+      tariffCost[index] = getTariff().getUsageCharge(evalTime, 1.0); // neg value
       maxTariffCost = Math.min(maxTariffCost, tariffCost[index]);
       minTariffCost = Math.max(minTariffCost, tariffCost[index]);
       costSum += tariffCost[index];
@@ -239,12 +239,12 @@ class TariffInfo
   {
     if (tariff.hasRegulationRate()) {
       // We expect the upregPayment to be positive (customer gets paid).
-      double upregPayment = getTariff().getRegulationCharge(-1.0, 0.0, false); // up-reg +
-      double downregCost = getTariff().getRegulationCharge(1.0,  0.0, false); // down-reg -
+      double upregPayment = getTariff().getRegulationCharge(-1.0, false); // up-reg +
+      double downregCost = getTariff().getRegulationCharge(1.0, false); // down-reg -
       Instant evalTime = evCharger.lastSunday();
       long increment = Competition.currentCompetition().getTimeslotDuration(); // millis
       for (int index = 0; index < profileSize; index++) {
-        double cost = getTariff().getUsageCharge(evalTime, 1.0, 0.0); // neg value
+        double cost = getTariff().getUsageCharge(evalTime, 1.0); // neg value
         // Premiums < 0.0 mean we lose money on regulation
         upRegulationPremium[index] = upregPayment + cost;
         downRegulationPremium[index] = downregCost - cost;

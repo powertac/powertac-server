@@ -102,7 +102,7 @@ implements UtilityOptimizer
           subStructure.getRealizedPriceWeight(),
           subStructure.getTariffVolumeThreshold());
       evaluator.initializeInconvenienceFactors(subStructure.getTouFactor(),
-          subStructure.getTieredRateFactor(),
+          //subStructure.getTieredRateFactor(),
           subStructure.getVariablePricingFactor(),
           subStructure.getInterruptibilityFactor());
       evaluator.initializeRegulationFactors(subStructure.getExpUpRegulation(),
@@ -264,8 +264,7 @@ implements UtilityOptimizer
         if (Config.getInstance().isUsageChargesLogging()) {
           double charge =
               subscription.getTariff().getUsageCharge(currCapacity,
-                  subscription
-                      .getTotalUsage(),
+//                  subscription.getTotalUsage(),
                   false);
           totalUsageCharge += charge;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 by the original author or authors.
+ * Copyright (c) 2011-2023 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,7 @@ public class TariffSubscription
   private long tariffId;
 
   /** Total number of customers within a customer model that are committed 
-   * to this tariff subscription. This needs to be a count, otherwise tiered 
-   * rates cannot be applied properly. */
+   * to this tariff subscription. */
   private int customersCommitted = 0 ;
 
   /** Arbitrary data needed by population customers who may be divided among multiple
@@ -79,8 +78,9 @@ public class TariffSubscription
   private List<ExpirationRecord> expirations;
 
   /** Total usage so far in the current day, needed to compute charges for
-   *  tiered rates. */
-  private double totalUsage = 0.0;
+   *  tiered rates.
+   *  ** Not needed as of #1152 */
+  //private double totalUsage = 0.0;
   
   /** Count of customers who will not be subscribers in the next timeslot */
   private int pendingUnsubscribeCount = 0; 
@@ -154,10 +154,10 @@ public class TariffSubscription
     customersCommitted = value;
   }
 
-  public double getTotalUsage ()
-  {
-    return totalUsage;
-  }
+//  public double getTotalUsage ()
+//  {
+//    return totalUsage;
+//  }
 
   // ============================ Customer API ===============================
 
@@ -375,7 +375,7 @@ public class TariffSubscription
     // do economic control first
     double kWhPerMember = kwh / customersCommitted;
     double actualKwh =
-      (kWhPerMember - getEconomicRegulation(kWhPerMember, totalUsage))
+      (kWhPerMember - getEconomicRegulation(kWhPerMember))
           * customersCommitted;
     log.info("usePower " + kwh + ", actual " + actualKwh + 
              ", customer=" + customer.getName());
@@ -384,12 +384,12 @@ public class TariffSubscription
         actualKwh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
     getAccounting().addTariffTransaction(txType, tariff,
         customer, customersCommitted, -actualKwh,
-        customersCommitted * -tariff.getUsageCharge(actualKwh / customersCommitted, totalUsage, true));
-    if (getTimeService().getHourOfDay() == 0) {
-      //reset the daily usage counter
-      totalUsage = 0.0;
-    }
-    totalUsage += actualKwh / customersCommitted;
+        customersCommitted * -tariff.getUsageCharge(actualKwh / customersCommitted, true));
+//    if (getTimeService().getHourOfDay() == 0) {
+//      //reset the daily usage counter
+//      totalUsage = 0.0;
+//    }
+//    totalUsage += actualKwh / customersCommitted;
     // generate the periodic payment if necessary
     if (tariff.getPeriodicPayment() != 0.0) {
       getAccounting().addTariffTransaction(TariffTransaction.Type.PERIODIC,
@@ -514,7 +514,7 @@ public class TariffSubscription
    * once in each timeslot; this scheme makes one call every time the customer
    * uses power.
    */
-  double getEconomicRegulation (double proposedUsage, double cumulativeUsage)
+  double getEconomicRegulation (double proposedUsage) //, double cumulativeUsage)
   {
     // reset the regulation qty here
     setRegulation(0.0);
@@ -550,7 +550,7 @@ public class TariffSubscription
     else {
       // find the minimum of what's asked for and what's allowed.
       double proposedUpRegulation = proposedUsage * pendingRegulationRatio;
-      double mur = tariff.getMaxUpRegulation(proposedUsage, cumulativeUsage);
+      double mur = tariff.getMaxUpRegulation(proposedUsage); //, cumulativeUsage);
       result = Math.min(proposedUpRegulation, mur);
       log.debug("proposedUpRegulation=" + proposedUpRegulation
                 + ", maxUpRegulation=" + mur);
@@ -592,8 +592,8 @@ public class TariffSubscription
     getAccounting().addRegulationTransaction(tariff,
         customer, customersCommitted, kwh,
         customersCommitted *
-          -tariff.getRegulationCharge(-kwh / customersCommitted, 
-                                     totalUsage, true));
+          -tariff.getRegulationCharge(-kwh / customersCommitted, //totalUsage,
+                                      true));
     double kWhPerMember = kwh / customersCommitted; 
     addRegulation(kWhPerMember);
     if (kWhPerMember >= 0.0) {
@@ -605,7 +605,7 @@ public class TariffSubscription
       regulationAccumulator.setDownRegulationCapacity(regulationAccumulator
           .getDownRegulationCapacity() - kWhPerMember);
     }
-    totalUsage -= kWhPerMember;
+//    totalUsage -= kWhPerMember;
   }
 
   /**

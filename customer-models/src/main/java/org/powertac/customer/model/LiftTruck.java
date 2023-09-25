@@ -1511,7 +1511,7 @@ implements CustomerModelAccessor
           // fill in objective function
           // cost/kWh based on assumption that shift need is evenly distributed
           double kwhPerTs = kwh / needs[i].getDuration();
-          double cost = tariff.getUsageCharge(time, kwhPerTs, kwh) / kwhPerTs;
+          double cost = tariff.getUsageCharge(time, kwhPerTs) / kwhPerTs;
           if (Double.isNaN(cost)) {
             log.warn("cost NaN for truck {}", name);
             cost = 0.0;

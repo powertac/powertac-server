@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 by the original author
+ * Copyright (c) 2013-2023 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class TariffEvaluator
   // inconvenience factors
   private double touFactorCap = 0.0;// disabling touFactor since it's incorrect
   private double touFactor = Math.min(0.2, touFactorCap); // 0.2;
-  private double tieredRateFactor = 0.1;
+  //private double tieredRateFactor = 0.1; // no longer used as of #1152
   private double variablePricingFactor = 0.5;
   private double interruptibilityFactor = 0.2;
 
@@ -137,13 +137,23 @@ public class TariffEvaluator
    * These are not normalized; it is up to the customer model to normalize the
    * per-tariff and cross-tariff factors as appropriate
    */
+  @Deprecated
   public void initializeInconvenienceFactors (double touFactor,
                                               double tieredRateFactor,
                                               double variablePricingFactor,
                                               double interruptibilityFactor)
   {
     this.touFactor = Math.min(touFactor, touFactorCap); //touFactor;
-    this.tieredRateFactor = tieredRateFactor;
+    //this.tieredRateFactor = tieredRateFactor;
+    this.variablePricingFactor = variablePricingFactor;
+    this.interruptibilityFactor = interruptibilityFactor;
+  }
+
+  public void initializeInconvenienceFactors (double touFactor,
+                                              double variablePricingFactor,
+                                              double interruptibilityFactor)
+  {
+    this.touFactor = Math.min(touFactor, touFactorCap); //touFactor;
     this.variablePricingFactor = variablePricingFactor;
     this.interruptibilityFactor = interruptibilityFactor;
   }
@@ -773,11 +783,12 @@ public class TariffEvaluator
 
   /**
    * Returns inconvenience of tiered rate.
+   * Removed as of #1152
    */
-  public double getTieredRateFactor ()
-  {
-    return tieredRateFactor;
-  }
+//  public double getTieredRateFactor ()
+//  {
+//    return tieredRateFactor;
+//  }
 
   /**
    * Returns inconvenience of variable pricing.
@@ -808,8 +819,9 @@ public class TariffEvaluator
 
     // Tiered tariffs have multiple Rates, at least one having
     // a non-zero tier threshold.
-    if (tariff.isTiered())
-      result += tieredRateFactor;
+    // No longer supported as of #1152
+//    if (tariff.isTiered())
+//      result += tieredRateFactor;
 
     // Variable-rate tariffs have at least one non-fixed Rate
     if (tariff.isVariableRate())

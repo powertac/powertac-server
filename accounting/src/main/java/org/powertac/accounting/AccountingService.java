@@ -80,6 +80,10 @@ public class AccountingService
   private double totalConsumption;
   private double totalProduction;
 
+  // Keep usage-related tariff transactions around to allow for corrections due
+  // to regulation processing
+  private HashMap<String, TariffTransaction> usageTransactions;
+
   private HashMap<Timeslot, ArrayList<MarketTransaction>>
       pendingMarketTransactions;
 
@@ -101,15 +105,16 @@ public class AccountingService
   public AccountingService ()
   {
     super();
-    pendingTransactions = new ArrayList<BrokerTransaction>();
-    pendingMarketTransactions =
-            new HashMap<Timeslot, ArrayList<MarketTransaction>>();
+    pendingTransactions = new ArrayList<>();
+    pendingMarketTransactions = new HashMap<>();
+    usageTransactions = new HashMap<>();
   }
 
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
     pendingTransactions.clear();
+    usageTransactions.clear();
     pendingMarketTransactions.clear();
     super.init();
     bankInterest = null;
@@ -170,7 +175,13 @@ public class AccountingService
                                             kWh, charge);
     if (null == ttx.getTariffSpec())
       log.error("Null tariff spec in addTariffTx()");
-    pendingTransactions.add(ttx);
+    if (txType == TariffTransaction.Type.CONSUME
+            || txType == TariffTransaction.Type.PRODUCE) {
+      String tc = TariffCustomer(tariff, customer);
+      usageTransactions.put(tc, ttx);
+    }
+    else
+      pendingTransactions.add(ttx);
     return ttx;
   }
 
@@ -179,9 +190,22 @@ public class AccountingService
   addRegulationTransaction (Tariff tariff, CustomerInfo customer,
                             int customerCount, double kWh, double charge)
   {
-    TariffTransaction.Type txType = TariffTransaction.Type.CONSUME;
-    if (kWh > 0.0)
-      txType = TariffTransaction.Type.PRODUCE;
+    TariffTransaction.Type txType;
+    // We need to update the original TariffTransaction just in case the sign of the kWn
+    // value is opposite the sign of the original
+    String tfKey = TariffCustomer(tariff, customer);
+    TariffTransaction original =
+            usageTransactions.get(tfKey);
+    double ratio = 1.0 - (-kWh / original.getKWh());
+    if (ratio > 0.0 && ratio < 1.0) {
+      original.updateValues(ratio);
+    }
+    if (kWh > 0.0) {
+      txType = TariffTransaction.Type.PRODUCE;      
+    }
+    else {
+      txType = TariffTransaction.Type.CONSUME;
+    }
     TariffTransaction ttx =
         txFactory.makeTariffTransaction(tariff.getBroker(), txType, 
                                         tariffRepo.findSpecificationById(tariff.getSpecId()),
@@ -189,7 +213,7 @@ public class AccountingService
                                         kWh, charge, true);
     if (null == ttx.getTariffSpec())
       log.error("Null tariff spec in addTariffTx()");
-    pendingTransactions.add(ttx);
+    usageTransactions.put(tfKey.concat("reg"), ttx);
     return ttx;
   }
 
@@ -249,7 +273,7 @@ public class AccountingService
   public synchronized double getCurrentNetLoad (Broker broker) 
   {
     double netLoad = 0.0;
-    for (BrokerTransaction btx : pendingTransactions) {
+    for (BrokerTransaction btx : usageTransactions.values()) {
       if (btx instanceof TariffTransaction) {
         TariffTransaction ttx = (TariffTransaction)btx;
         if (ttx.getBroker().getUsername().equals(broker.getUsername())) {
@@ -273,7 +297,7 @@ public class AccountingService
   {
     HashMap<Broker, Map<Type, Double>> result =
             new HashMap<Broker, Map<Type, Double>>();
-    for (BrokerTransaction btx : pendingTransactions) {
+    for (BrokerTransaction btx : usageTransactions.values()) {
       if (btx instanceof TariffTransaction) {
         TariffTransaction ttx = (TariffTransaction)btx;
         Broker broker = ttx.getBroker();
@@ -387,7 +411,9 @@ public class AccountingService
   {
     ArrayList<BrokerTransaction> result = 
       new ArrayList<BrokerTransaction>(pendingTransactions);
+    result.addAll(usageTransactions.values());
     pendingTransactions.clear();
+    usageTransactions.clear();
     return result;
   }
 
@@ -505,9 +531,11 @@ public class AccountingService
   }
   
   /**
-   * Returns the current list of pending tariff transactions. This will be
+   * Returns the current list of pending tariff transactions from both the
+   * pendingTransactions and usageTransactions lists. This will be
    * non-empty only after the customer model has run and before accounting
    * has run in the current timeslot.
+   * Note that this does NOT clear the list; for that, use getPendingTransactionList().
    */
   @Override
   public synchronized List<TariffTransaction> getPendingTariffTransactions ()
@@ -517,13 +545,17 @@ public class AccountingService
       if (tx instanceof TariffTransaction)
         result.add((TariffTransaction)tx);
     }
+    result.addAll(usageTransactions.values());
     return result;
   }
 
   // test support
   List<BrokerTransaction> getPendingTransactions ()
   {
-    return pendingTransactions;
+    ArrayList<BrokerTransaction> result = new ArrayList<>();
+    result.addAll(pendingTransactions);
+    result.addAll(usageTransactions.values());
+    return result;
   }
 
   /**
@@ -555,4 +587,31 @@ public class AccountingService
   {
     bankInterest = interest;
   }
+
+  private String TariffCustomer (Tariff ta, CustomerInfo ci)
+  {
+    return ((Long)ta.getId()).toString().concat(((Long)ci.getId()).toString());
+  }
+
+//    @Override
+//    public boolean equals (Object other)
+//    {
+//      if (other == this)
+//        return true;
+//      if (! (other instanceof TariffCustomer))
+//        return false;
+//      return (getTariff() == ((TariffCustomer)other).getTariff()
+//              && getCustomer() == ((TariffCustomer)other).getCustomer());
+//    }
+//
+//    long getTariff()
+//    {
+//      return tariff;
+//    }
+//
+//    long getCustomer ()
+//    {
+//      return customer;
+//    }
+//  }
 }

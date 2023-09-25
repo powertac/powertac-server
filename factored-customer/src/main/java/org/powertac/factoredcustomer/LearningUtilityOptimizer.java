@@ -293,7 +293,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
               subscription);
       timeslotCharge +=
           subscription.getTariff().getUsageCharge(getTimeslotRepo().getTimeForIndex(timeslot),
-              subTimeslotUsage, 0.0); // TODO: why cumulative usage is 0?
+              subTimeslotUsage);
       totalCharge += timeslotCharge;
       timeslot += 1;
     }
