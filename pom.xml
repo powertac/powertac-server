@@ -60,7 +60,7 @@
     <module>officecomplex-customer</module>
     <module>logtool-core</module>
     <module>server-main</module>
-    <module>visualizer2</module>
+    <!-- <module>visualizer2</module> -->
   </modules>
 
 
