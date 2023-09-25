@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 by John Collins.
+ * Copyright (c) 2016 - 2023 by John Collins.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,35 @@ public class TariffTransactionTests
     assertEquals(TariffTransaction.Type.PUBLISH, ttx.getTxType(), "type");
     assertEquals(b1, ttx.getBroker(), "broker");
     assertFalse(ttx.isRegulation(), "not reg");
+  }
+
+  // test updateValues()
+  @Test
+  public void testUpdateValuesConUp ()
+  {
+    TariffTransaction ttx = new TariffTransaction(b1, 2, TariffTransaction.Type.CONSUME,
+                                                  spec, customer, 42, -420.0, 42.0, false);
+    assertEquals(-420.0, ttx.getKWh());
+    assertEquals(42.0, ttx.getCharge());
+    assertFalse(ttx.updateValues(1.01));
+    assertEquals(-420.0, ttx.getKWh());
+    assertEquals(42.0, ttx.getCharge());
+    assertFalse(ttx.updateValues(-0.01));
+    assertTrue(ttx.updateValues(0.9));
+    assertEquals(-378.0, ttx.getKWh(), 1e-6);
+    assertEquals(37.8, ttx.getCharge(), 1e-6);
+  }
+
+  @Test
+  public void testUpdateValuesProDown ()
+  {
+    TariffTransaction ttx = new TariffTransaction(b1, 2, TariffTransaction.Type.PRODUCE,
+                                                  spec, customer, 42, 220.0, -42.0, false);
+    assertEquals(220.0, ttx.getKWh());
+    assertEquals(-42.0, ttx.getCharge());
+    assertTrue(ttx.updateValues(0.8));
+    assertEquals(176.0, ttx.getKWh(), 1e-6);
+    assertEquals(-33.6, ttx.getCharge(), 1e-6);
   }
 
   @Test

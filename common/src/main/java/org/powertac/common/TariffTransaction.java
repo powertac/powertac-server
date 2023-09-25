@@ -157,6 +157,23 @@ public class TariffTransaction extends BrokerTransaction
   }
 
   /**
+   * Reduces the magnitude of kWh and charge values for PRODUCE and CONSUME transactions
+   * to account for regulation. The ratio value is constrained to be 0.0 <= ratio <= 1.0.
+   * Return value is false just in case the ratio constraint is violated.
+   */
+  public boolean updateValues (double ratio)
+  {
+    if (! (txType == Type.CONSUME || txType == Type.PRODUCE))
+      return false;
+    if (ratio < 0.0 || ratio > 1.0) {
+      return false;
+    }
+    kWh = kWh * ratio;
+    charge = charge * ratio;
+    return true;
+  }
+
+  /**
    * True just in case this is transaction reports exercise of regulation
    * capacity.
    */

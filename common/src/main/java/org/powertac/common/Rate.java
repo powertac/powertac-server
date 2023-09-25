@@ -104,7 +104,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
  * &nbsp;&nbsp;long noticeInterval, double expectedMean, double maxCurtailment)</code>
  * 
  * Note that as of #1152 the tierThreshold value is no longer used, 
- * but is retained for backwardgit compatibility.
+ * but is retained for backward compatibility.
  * 
  * @author John Collins
  */
