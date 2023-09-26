@@ -198,6 +198,8 @@ public class AccountingService
             usageTransactions.get(tfKey);
     double ratio = 1.0 - (-kWh / original.getKWh());
     if (ratio > 0.0 && ratio < 1.0) {
+      log.info("reducing usage of {}, tariff {} by {}%",
+               customer.getName(), tariff.getId(), (1.0 - ratio) * 100.0);
       original.updateValues(ratio);
     }
     if (kWh > 0.0) {
