@@ -18,6 +18,7 @@ package org.powertac.common;
 
 import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
 
@@ -161,6 +162,7 @@ public class TariffTransaction extends BrokerTransaction
    * to account for regulation. The ratio value is constrained to be 0.0 <= ratio <= 1.0.
    * Return value is false just in case the ratio constraint is violated.
    */
+  @StateChange
   public boolean updateValues (double ratio)
   {
     if (! (txType == Type.CONSUME || txType == Type.PRODUCE))
