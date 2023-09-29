@@ -143,10 +143,11 @@ public class TariffEvaluator
                                               double variablePricingFactor,
                                               double interruptibilityFactor)
   {
-    this.touFactor = Math.min(touFactor, touFactorCap); //touFactor;
+    initializeInconvenienceFactors(touFactor, variablePricingFactor, interruptibilityFactor);
+    //this.touFactor = Math.min(touFactor, touFactorCap); //touFactor;
     //this.tieredRateFactor = tieredRateFactor;
-    this.variablePricingFactor = variablePricingFactor;
-    this.interruptibilityFactor = interruptibilityFactor;
+    //this.variablePricingFactor = variablePricingFactor;
+    //this.interruptibilityFactor = interruptibilityFactor;
   }
 
   public void initializeInconvenienceFactors (double touFactor,

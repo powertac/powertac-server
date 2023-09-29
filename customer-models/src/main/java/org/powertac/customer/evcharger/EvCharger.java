@@ -95,6 +95,14 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private double evalInertia = 0.9;
 
   @ConfigurableValue (valueType = "Double", publish = false,
+          description = "Expected up-regulation ratio")
+  private double evalUpreg = -0.3;
+
+  @ConfigurableValue (valueType = "Double", publish = false,
+          description = "Expected down-regulation ratio")
+  private double evalDownreg = 0.3;
+
+  @ConfigurableValue (valueType = "Double", publish = false,
           description = "Probability customer will ignore tariff publications")
   private double evalRationality = 0.8;
 
@@ -155,7 +163,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     info.withPowerType(powerType)
       .withCustomerClass(CustomerClass.SMALL)
       .withUpRegulationKW(-100.0)
-      .withDownRegulationKW(100.0);
+      .withDownRegulationKW(100.0)
+      .withMultiContracting(true);
     addCustomerInfo(info);
     ensureSeeds();
 
@@ -177,8 +186,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     .withInertia(evalInertia)
     .withRationality(evalRationality)
     .withEvaluateAllTariffs(evaluateAll);
-    tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
-    tariffEvaluator.initializeRegulationFactors(-0.1, 0.0, 0.1);
+    // no problem with tou or interruptible rates, not ready for variable rates
+    tariffEvaluator.initializeInconvenienceFactors(0.0, 0.4, 0.0);
+    tariffEvaluator.initializeRegulationFactors(evalUpreg, 0.0, evalDownreg);
     demandSampler = new DemandSampler();
     demandSampler.initialize(model, getDemandSeed());
   }

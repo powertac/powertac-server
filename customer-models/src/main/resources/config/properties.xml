@@ -97,9 +97,11 @@
         <model>residential_ev_1.xml</model>
         <defaultProfileSize>24</defaultProfileSize>
         <!--  tariff eval parameters -->
-        <evalInertia>0.9</evalInertia>
+        <evalInertia>0.8</evalInertia>
+        <evalUpreg>-0.3</evalUpreg>
+        <evalDownreg>0.3</evalDownreg>
         <minimumChunkSize>50</minimumChunkSize>
-        <evalRationality>0.92</evalRationality>
+        <evalRationality>0.9</evalRationality>
         <evaluateAll>true</evaluateAll>
       </residential_ev>
     </evCharger>
