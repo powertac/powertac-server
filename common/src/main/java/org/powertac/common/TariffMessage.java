@@ -45,6 +45,9 @@ implements ValidatableMessage
 
   public long getId ()
   {
+    // handle config cases that don't set ID
+    if (0l == id)
+      id = IdGenerator.createId();
     return id;
   }
 

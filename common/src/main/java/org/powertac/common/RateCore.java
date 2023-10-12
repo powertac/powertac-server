@@ -37,6 +37,10 @@ public class RateCore extends XStreamStateLoggable
    */
   public long getId ()
   {
+    if (id == 0l) {
+      // handle creation from configuration
+      id = IdGenerator.createId();
+    }
     return id;
   }
 

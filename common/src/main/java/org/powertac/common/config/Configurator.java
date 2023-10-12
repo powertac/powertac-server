@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -294,11 +295,21 @@ public class Configurator
     }
     Set<String> existingNames = createdInstances.get(type);
     List<Object> rawNames = subset.getList("instances");
-    List<String> names =
+    // Make sure the list got pulled apart
+    List<String> names;
+    if (rawNames.size() == 1) {
+      names = new ArrayList<>();
+      String[] items = ((String)(rawNames.get(0))).split(",");
+      names = Arrays.asList(items);
+    }
+    else {
+      // assume there are multiple names
+    names =
         rawNames.stream()
           .map(n -> n.toString())
           .filter(n -> !n.isEmpty())
           .collect(Collectors.toList());
+    }
     if (names.size() == 0) {
       log.warn("No instance names specified for class " + classname);
       return names;
