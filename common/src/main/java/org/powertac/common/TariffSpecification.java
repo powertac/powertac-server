@@ -203,11 +203,11 @@ public class TariffSpecification extends TariffMessage
     return this;
   }
 
-  @Override
-  public long getId ()
-  {
-    return id;
-  }
+//  @Override
+//  public long getId ()
+//  {
+//    return id;
+//  }
 
   @Override
   public Broker getBroker ()

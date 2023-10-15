@@ -62,7 +62,7 @@ public class XMLMessageConverter
 
   public static final XStream getXStream() {
       XStream xstream = new XStream();
-      XStream.setupDefaultSecurity(xstream); // TODO Remove with XStream 1.5
+      //XStream.setupDefaultSecurity(xstream); // TODO Remove with XStream 1.5
       xstream.allowTypesByWildcard(new String[] {"org.powertac.**"});
       return xstream;
   }

@@ -137,7 +137,7 @@ implements ApplicationContextAware
       PropertiesConfiguration pconfig = new PropertiesConfiguration();
       pconfig.read(new FileReader(userConfig));
       config.addConfiguration(pconfig);
-      log.debug("setUserConfig " + userConfig.getName());
+      log.info("setUserConfig " + userConfig.getName());
     }
     catch (ConfigurationException e) {
       log.error("Config error loading " + userConfig + ": " + e.toString());

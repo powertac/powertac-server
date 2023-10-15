@@ -54,6 +54,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.util.Predicate;
+import org.powertac.common.TariffSpecification; // needed for broker config
+
 
 /**
  * Fills in configured values from configuration source based on 
@@ -92,6 +94,9 @@ public class Configurator
   static private Logger log = LogManager.getLogger(Configurator.class);
 
   private Configuration config;
+
+  //@SuppressWarnings("unused")
+  //private TariffSpecification tariffSpec;
 
   // For each class we have encountered, we keep a mapping between the
   // property names represented by the configurable setter methods 
@@ -304,11 +309,10 @@ public class Configurator
     }
     else {
       // assume there are multiple names
-    names =
-        rawNames.stream()
-          .map(n -> n.toString())
-          .filter(n -> !n.isEmpty())
-          .collect(Collectors.toList());
+      names = rawNames.stream()
+              .map(n -> n.toString())
+              .filter(n -> !n.isEmpty())
+              .collect(Collectors.toList());
     }
     if (names.size() == 0) {
       log.warn("No instance names specified for class " + classname);
@@ -320,10 +324,12 @@ public class Configurator
     // configure it.
     LinkedHashMap<String, Object> itemMap = new LinkedHashMap<String, Object>();
     for (String name : names) {
+      log.debug("configuring {} {}", type.getName(), name);
       existingNames.add(name);
       try {
         Constructor<?> constructor = type.getConstructor(String.class);
         Object item = constructor.newInstance(name);
+        log.debug("created {} {}", classname, name);
         itemMap.put(name, item);
       }
       catch (Exception e) {
@@ -606,6 +612,7 @@ public class Configurator
     ConfigurableValue cv = cp.cv;
     String type = cv.valueType();
     try { // lots of exceptions possible here
+      log.debug("Configure {}, key={}, cp={}", thing.getClass().getName(), key, cp.toString());
       Object defaultValue = null;
       if (cp.field != null) {
         // handle configurable field
@@ -618,6 +625,8 @@ public class Configurator
         if (cp.getter != null)
           defaultValue = cp.getter.invoke(thing);
         Object configValue = extractConfigValue(conf, key, type, defaultValue);
+        log.debug("Configuring {}, key {} type {} default {}",
+                  thing.getClass().getName(), key, type, defaultValue);
         cp.setter.invoke(thing, configValue);
       }
       else {
