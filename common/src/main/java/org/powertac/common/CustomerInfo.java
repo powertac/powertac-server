@@ -256,7 +256,9 @@ public class CustomerInfo //implements Serializable
    * Value is zero for thermal storage or no storage,
    * and negative for a battery
    * (because energy is flowing away from the customer).
+   * **NOTE** - this value is not used
    */
+  @Deprecated
   public double getUpRegulationKW ()
   {
     return upRegulationKW;
@@ -265,8 +267,10 @@ public class CustomerInfo //implements Serializable
   /**
    * Fluent setter for up-regulation kW. Intended to be called only by the
    * customer model itself. Must be non-positive.
+   * 
    */
   @StateChange
+  @Deprecated
   public CustomerInfo withUpRegulationKW (double value)
   {
     if (value > 0.0)
@@ -284,6 +288,7 @@ public class CustomerInfo //implements Serializable
    * A positive value represents charging a battery or dumping heat
    * (or cold) into some type of thermal storage system.
    */
+  @Deprecated
   public double getDownRegulationKW ()
   {
     return downRegulationKW;
@@ -294,6 +299,7 @@ public class CustomerInfo //implements Serializable
    * customer model itself. Must be non-negative.
    */
   @StateChange
+  @Deprecated
   public CustomerInfo withDownRegulationKW (double value)
   {
     if (value < 0.0)
