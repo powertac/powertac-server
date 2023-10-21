@@ -266,7 +266,7 @@ public class DefaultBrokerServiceTests
         foundStorage = true;
         assertEquals(face, spec.getBroker(), "correct issuer");
         List<RegulationRate> rrates = spec.getRegulationRates();
-        assertEquals(1, rrates.size(), "just one rate");
+        assertEquals(0, rrates.size(), "no regulation rates");
         List<Rate> rates = spec.getRates();
         assertEquals(1, rates.size(), "one normal rate");
       }

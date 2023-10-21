@@ -103,7 +103,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private double evalDownreg = 0.3;
 
   @ConfigurableValue (valueType = "Double", publish = false,
-          description = "Probability customer will ignore tariff publications")
+          description = "Influence of utility on tariff choice")
   private double evalRationality = 0.8;
 
   @ConfigurableValue (valueType = "Boolean", publish = false,

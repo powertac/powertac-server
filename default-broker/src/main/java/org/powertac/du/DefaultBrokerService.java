@@ -187,12 +187,12 @@ public class DefaultBrokerService
     customerSubscriptions.put(defaultProduction, new LinkedHashMap<>());
 
     TariffSpecification defaultStorage = new TariffSpecification(face, PowerType.STORAGE)
-        .addRate(new Rate().withValue(defaultConsumptionRate))
-        .addRate(new RegulationRate()
-           .withUpRegulationPayment(getStorageTariffValue() *
-                                    (1.0 + getStorageTariffMargin()))
-           .withDownRegulationPayment(- getStorageTariffValue() *
-                                      (1.0 - getStorageTariffMargin())));
+        .addRate(new Rate().withValue(defaultConsumptionRate));
+//        .addRate(new RegulationRate()
+//           .withUpRegulationPayment(getStorageTariffValue() *
+//                                    (1.0 + getStorageTariffMargin()))
+//           .withDownRegulationPayment(- getStorageTariffValue() *
+//                                      (1.0 - getStorageTariffMargin())));
     tariffMarketService.setDefaultTariff(defaultStorage);
     customerSubscriptions.put(defaultStorage, new LinkedHashMap<>());
 
