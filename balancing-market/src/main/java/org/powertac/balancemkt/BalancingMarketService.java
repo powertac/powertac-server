@@ -161,7 +161,7 @@ implements BalancingMarket, SettlementContext, InitializationService
 
     // create the BalanceReport to carry the total imbalance
     Timeslot current = timeslotRepo.currentTimeslot();
-    DoubleWrapper sum = makeDoubleWrapper();
+    TotalImbalance sum = makeTotalImbalance();
 
     // Run the balancing market
     // Transactions are posted to the Accounting Service and Brokers are
@@ -182,7 +182,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * @return List of ChargeInfo instances
    */
   public Map<Broker, ChargeInfo> balanceTimeslot (List<Broker> brokerList,
-                                                  DoubleWrapper report)
+                                                  TotalImbalance report)
   {
     Map<Broker, ChargeInfo> chargeInfoMap = new LinkedHashMap<>();
 
@@ -406,11 +406,11 @@ implements BalancingMarket, SettlementContext, InitializationService
    * Mutable double to support computation of total imbalance
    * @author jcollins
    */
-  class DoubleWrapper
+  class TotalImbalance
   {
     double value = 0.0;
 
-    DoubleWrapper()
+    TotalImbalance()
     {
       super();
     }
@@ -428,9 +428,9 @@ implements BalancingMarket, SettlementContext, InitializationService
   }
 
   // needed for testing
-  DoubleWrapper makeDoubleWrapper()
+  TotalImbalance makeTotalImbalance()
   {
-    return new DoubleWrapper();
+    return new TotalImbalance();
   }
 
 }
