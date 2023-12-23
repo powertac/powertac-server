@@ -46,11 +46,11 @@ public class BalancingTransaction extends BrokerTransaction
     this.charge = charge;
   }
 
-  @Deprecated
-  public double getQuantity ()
-  {
-    return kWh;
-  }
+//  @Deprecated
+//  public double getQuantity ()
+//  {
+//    return kWh;
+//  }
   
   /**
    * Returns the total size of the imbalance in kWH, positive for surplus and

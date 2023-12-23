@@ -343,10 +343,7 @@ public class Tariff
   /**
    * Returns the usage charge for regulation usage/or production. If this
    * tariff has a RegulationRate, then that will determine the charge;
-   * otherwise the call will be delegated to getUsageCharge(). 
-   * Regulation usage does not contribute to cumulative usage, since it's
-   * assumed to balance out over time. TODO: is this reasonable?
-   * Note that
+   * otherwise the call will be delegated to getUsageCharge(). Note that
    * negative values for kwh represent up-regulation, while positive values
    * represent down-regulation.
    * Also note that regulation amounts are truncated if the payments exceed
@@ -359,16 +356,15 @@ public class Tariff
     if (null == regulationRate) {
       // TODO: not clear that this produces correct sign when used for
       // down-regulation on a production tariff. Need a test case.
-      //return getUsageCharge(kwh, cumulativeUsage, recordUsage);
       return getUsageCharge(kwh, recordUsage);
     }
 
     if (kwh < 0.0) {
-      // up-regulation: pos * pos
+      // up-regulation, customer is being paid: pos * pos
       return -kwh * regulationRate.getUpRegulationPayment();
     }
     else if (kwh > 0.0) {
-      // down-regulation pos * neg
+      // down-regulation pos * neg, customer pays
       return kwh * regulationRate.getDownRegulationPayment();
     }
     else
