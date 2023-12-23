@@ -286,7 +286,7 @@ public class AccountingServiceTests
       ttx = ttx1;
       ttx1 = (TariffTransaction)consumes.get(0);
     }
-    assertEquals(-67.0, ttx.getKWh(), 1e-6, "correct amount 1");
+    assertEquals(-77.0, ttx.getKWh(), 1e-6, "correct amount 1");
     assertFalse(ttx.isRegulation(), "not regulation");
     assertEquals(-10.0, ttx1.getKWh(), 1e-6, "correct amount 2");
     assertFalse(ttx1.isRegulation(), "regulation");

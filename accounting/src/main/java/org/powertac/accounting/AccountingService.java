@@ -191,17 +191,7 @@ public class AccountingService
                             int customerCount, double kWh, double charge)
   {
     TariffTransaction.Type txType;
-    // We need to update the original TariffTransaction just in case the sign of the kWn
-    // value is opposite the sign of the original
     String tfKey = TariffCustomer(tariff, customer);
-    TariffTransaction original =
-            usageTransactions.get(tfKey);
-    double ratio = 1.0 - (-kWh / original.getKWh());
-    if (ratio > 0.0 && ratio < 1.0) {
-      log.info("reducing usage of {}, tariff {} by {}%",
-               customer.getName(), tariff.getId(), (1.0 - ratio) * 100.0);
-      original.updateValues(ratio);
-    }
     if (kWh > 0.0) {
       txType = TariffTransaction.Type.PRODUCE;      
     }
@@ -594,26 +584,4 @@ public class AccountingService
   {
     return ((Long)ta.getId()).toString().concat(((Long)ci.getId()).toString());
   }
-
-//    @Override
-//    public boolean equals (Object other)
-//    {
-//      if (other == this)
-//        return true;
-//      if (! (other instanceof TariffCustomer))
-//        return false;
-//      return (getTariff() == ((TariffCustomer)other).getTariff()
-//              && getCustomer() == ((TariffCustomer)other).getCustomer());
-//    }
-//
-//    long getTariff()
-//    {
-//      return tariff;
-//    }
-//
-//    long getCustomer ()
-//    {
-//      return customer;
-//    }
-//  }
 }

@@ -224,12 +224,12 @@ public class CapacityControlServiceTest
     sub2.usePower(300);
     BalancingOrder order = new BalancingOrder(broker, specRR, 1.0, 0.1);
     RegulationAccumulator cap = capacityControl.getRegulationCapacity(order); 
-    assertEquals(700.0, cap.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
-    assertEquals(-370.0, cap.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
+    assertEquals(5.0, cap.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(-2.6, cap.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
   }
 
   /**
-   * Up-regulation test
+   * Up-regulation test, no regulation rate
    */
   @Test
   public void testExerciseBalancingControlUp ()
@@ -277,29 +277,30 @@ public class CapacityControlServiceTest
     assertEquals(11.0, bce.getPayment(), 1e-6, "correct payment");
     assertEquals(0, bce.getTimeslotIndex(), "correct timeslot");
     // Check regulation
-    assertEquals(40.0/100.0, sub1.getRegulation(), 1e-6, "correct regulation sub1");
-    assertEquals(60.0/200.0, sub2.getRegulation(), 1e-6, "correct regulation sub2");
+    assertEquals(-40.0, sub1.getRegulation(), 1e-6, "correct regulation sub1");
+    assertEquals(-60.0, sub2.getRegulation(), 1e-6, "correct regulation sub2");
     // check tariff transactions
     assertEquals(2, answers.size(), "correct # of calls");
     Object[] args = answers.get(customer1);
     assertNotNull(args, "customer1 included");
     assertEquals(5, args.length, "correct arg count");
     assertEquals(tariff, (Tariff) args[0], "correct tariff");
+    // customer provided 40, is paid 4.4
     assertEquals(40.0, (Double) args[3], 1e-6, "correct kwh");
-    assertEquals(-4.4, (Double) args[4], 1e-6, "correct charge");
+    assertEquals(4.4, (Double) args[4], 1e-6, "correct charge");
     
     args = answers.get(customer2);
     assertNotNull(args, "customer2 included");
     assertEquals(5, args.length, "correct arg count");
     assertEquals(tariff, (Tariff) args[0], "correct tariff");
     assertEquals(60.0, (Double) args[3], 1e-6, "correct kwh");
-    assertEquals(-6.6, (Double) args[4], 1e-6, "correct charge");
+    assertEquals(6.6, (Double) args[4], 1e-6, "correct charge");
     // check for postBalancingControl()
     verify(mockAccounting).postBalancingControl(bce);
   }
 
   /**
-   * Up-regulation test
+   * down-regulation test
    */
   @Test
   public void testExerciseBalancingControlDown ()
@@ -314,17 +315,17 @@ public class CapacityControlServiceTest
     TariffSubscription sub1 =
         tariffSubscriptionRepo.getSubscription(customer1, tariffRR1);
     sub1.subscribe(100);
-    sub1.setRegulationCapacity(new RegulationCapacity(sub1, 3.0, -1.5));
     sub1.usePower(200); // avail down-regulation is -150
+    sub1.setRegulationCapacity(new RegulationCapacity(sub1, 100.0, -150.0));
     TariffSubscription sub2 =
         tariffSubscriptionRepo.getSubscription(customer2, tariffRR1);
     sub2.subscribe(200);
-    sub2.setRegulationCapacity(new RegulationCapacity(sub2, 2.0, -1.1));
     sub2.usePower(300); // avail down-regulation is -220
+    sub2.setRegulationCapacity(new RegulationCapacity(sub2, 100.0, -220.0));
     
-    BalancingOrder order = new BalancingOrder(broker, specRR1, -1.0, -0.04);
+    BalancingOrder order = new BalancingOrder(broker, specRR1, -0.2, -0.04);
     RegulationAccumulator cap = capacityControl.getRegulationCapacity(order); 
-    assertEquals(700.0, cap.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
+    assertEquals(200.0, cap.getUpRegulationCapacity(), 1e-6, "correct up-regulation");
     assertEquals(-370.0, cap.getDownRegulationCapacity(), 1e-6, "correct down-regulation");
 
     // exercise the control
@@ -332,53 +333,56 @@ public class CapacityControlServiceTest
     reset(mockAccounting);
     final HashMap<CustomerInfo, Object[]> answers =
         new HashMap<CustomerInfo, Object[]>();
-        when(mockAccounting.addRegulationTransaction(any(Tariff.class),
+    when(mockAccounting.addRegulationTransaction(any(Tariff.class),
                                                  any(CustomerInfo.class),
                                                  anyInt(),
                                                  anyDouble(),
                                                  anyDouble()))
-                                                 .thenAnswer(new Answer<Object>() {
-                                                   @Override
-                                                   public Object answer(InvocationOnMock invocation) {
-                                                     Object[] args = invocation.getArguments();
-                                                     CustomerInfo customer = (CustomerInfo)args[1];
-                                                     answers.put(customer, args);
-                                                     return null;
-                                                   }
-                                                 });
+    .thenAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        CustomerInfo customer = (CustomerInfo)args[1];
+        answers.put(customer, args);
+        return null;
+      }
+    });
 
-        capacityControl.exerciseBalancingControl(order, -100.0, -6.0);
-        // check the outgoing message
-        assertEquals(1, msgs.size(), "one message");
-        assertTrue(msgs.get(0) instanceof BalancingControlEvent, "correct type");
-        BalancingControlEvent bce = (BalancingControlEvent)msgs.get(0);
-        assertEquals(broker, bce.getBroker(), "correct broker");
-        assertEquals(specRR1.getId(), bce.getTariffId(), "correct tariff");
-        assertEquals(-100.0, bce.getKwh(), 1e-6, "correct amount");
-        assertEquals(-6.0, bce.getPayment(), 1e-6, "correct payment");
-        assertEquals(0, bce.getTimeslotIndex(), "correct timeslot");
-        // Check regulation
-        assertEquals(-15000.0 / 370.0 / 100.0, sub1.getRegulation(), 1e-6, "correct regulation sub1");
-        assertEquals(-22000.0 / 370.0 / 200.0, sub2.getRegulation(), 1e-6, "correct regulation sub2");
-        // check tariff transactions
-        assertEquals(2, answers.size(), "correct # of calls");
-        Object[] args = answers.get(customer1);
-        assertNotNull(args, "customer1 included");
-        assertEquals(5, args.length, "correct arg count");
-        //assertEquals("correct type", TariffTransaction.Type.CONSUME,
-        //             (TariffTransaction.Type) args[0]);
-        assertEquals(tariffRR1, (Tariff) args[0], "correct tariff");
-        assertEquals(-15000.0/370.0, (Double) args[3], 1e-6, "correct kwh");
-        assertEquals(0.05 * 15000.0/370.0, (Double) args[4], 1e-6, "correct charge");
+    // Exercise the balancing control with a higher cost and larger
+    // ratio than specified by the BalancingOrder.
+    capacityControl.exerciseBalancingControl(order, -100.0, -6.0);
+    // check the outgoing message
+    assertEquals(1, msgs.size(), "one message");
+    assertTrue(msgs.get(0) instanceof BalancingControlEvent, "correct type");
+    BalancingControlEvent bce = (BalancingControlEvent)msgs.get(0);
+    assertEquals(broker, bce.getBroker(), "correct broker");
+    assertEquals(specRR1.getId(), bce.getTariffId(), "correct tariff");
+    assertEquals(-100.0, bce.getKwh(), 1e-6, "correct amount");
+    assertEquals(-6.0, bce.getPayment(), 1e-6, "correct payment");
+    assertEquals(0, bce.getTimeslotIndex(), "correct timeslot");
+    // Check regulation
+    double ratio = 100.0/370.0; //portion of capacity used = 0.270270
+    assertEquals(150.0 * ratio, sub1.getRegulation(), 1e-6, "correct regulation -0.4054 sub1");
+    assertEquals(220.0 * ratio, sub2.getRegulation(), 1e-6, "correct regulation -0.2973 sub2");
+    // check tariff transactions
+    assertEquals(2, answers.size(), "correct # of calls");
+    Object[] args = answers.get(customer1);
+    assertNotNull(args, "customer1 included");
+    assertEquals(5, args.length, "correct arg count");
+    //assertEquals(TariffTransaction.Type.PRODUCE, (TariffTransaction.Type) args[0],
+    //             "correct type");
+    assertEquals(tariffRR1, (Tariff) args[0], "correct tariff");
+    assertEquals(-150.0 * ratio, (Double) args[3], 1e-6, "correct kwh");
+    assertEquals(-0.05 * 150.0 * ratio, (Double) args[4], 1e-6, "correct charge");
 
-        args = answers.get(customer2);
-        assertNotNull(args, "customer2 included");
-        assertEquals(5, args.length, "correct arg count");
-        //assertEquals("correct type", TariffTransaction.Type.CONSUME,
-        //             (TariffTransaction.Type) args[0]);
-        assertEquals(tariffRR1, (Tariff) args[0], "correct tariff");
-        assertEquals(-22000.0/370.0, (Double) args[3], 1e-6, "correct kwh");
-        assertEquals(0.05 * 22000.0/370.0, (Double) args[4], 1e-6, "correct charge");
+    args = answers.get(customer2);
+    assertNotNull(args, "customer2 included");
+    assertEquals(5, args.length, "correct arg count");
+    //assertEquals("correct type", TariffTransaction.Type.CONSUME,
+    //             (TariffTransaction.Type) args[0]);
+    assertEquals(tariffRR1, (Tariff) args[0], "correct tariff");
+    assertEquals(-220.0 * ratio, (Double) args[3], 1e-6, "correct kwh");
+    assertEquals(-0.05 * 220.0 * ratio, (Double) args[4], 1e-6, "correct charge");
   }
 
   /**
@@ -447,8 +451,8 @@ public class CapacityControlServiceTest
     assertEquals(240.0 * 0.11, (Double) args[5], 1e-6, "correct charge");
     
     // check regulation info
-    assertEquals(40.0 / 100.0, sub1.getRegulation(), 1e-6, "correct regulation sub1");
-    assertEquals(60.0 / 200.0, sub2.getRegulation(), 1e-6, "correct regulation sub1");
+    assertEquals(40.0, sub1.getRegulation(), 1e-6, "correct regulation sub1");
+    assertEquals(60.0, sub2.getRegulation(), 1e-6, "correct regulation sub1");
   }
 
 }

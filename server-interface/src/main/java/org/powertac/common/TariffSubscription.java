@@ -98,6 +98,12 @@ public class TariffSubscription
   private double regulation = 0.0;
 
   /**
+   * Usage charge and per-member kWh computed in usePower() prior to regulation
+   */
+  private double originalKWh = 0.0;
+  private double originalCharge = 0.0;
+
+  /**
    * You need a CustomerInfo and a Tariff to create one of these.
    */
   public TariffSubscription (CustomerInfo customer, Tariff tariff)
@@ -368,23 +374,22 @@ public class TariffSubscription
    * to convert from the customer-centric view in the tariff to the broker-centric
    * view in the transactions.
    */
-  public void usePower (double kwh)
+  public void usePower (double kWh)
   {
     // deal with no-regulation customers
     ensureRegulationCapacity();
     // do economic control first
-    double kWhPerMember = kwh / customersCommitted;
-    double actualKwh =
-      (kWhPerMember - getEconomicRegulation(kWhPerMember))
-          * customersCommitted;
-    log.info("usePower " + kwh + ", actual " + actualKwh + 
+    //double kWhPerMember = kWh / customersCommitted;
+    originalKWh = (kWh - getEconomicRegulation(kWh));
+    log.info("usePower " + kWh + ", actual " + originalKWh + 
              ", customer=" + customer.getName());
     // generate the usage transaction
     TariffTransaction.Type txType =
-        actualKwh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
+        originalKWh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
+    originalCharge =
+            tariff.getUsageCharge(originalKWh, true);
     getAccounting().addTariffTransaction(txType, tariff,
-        customer, customersCommitted, -actualKwh,
-        customersCommitted * -tariff.getUsageCharge(actualKwh / customersCommitted, true));
+        customer, customersCommitted, -originalKWh, -originalCharge);
 //    if (getTimeService().getHourOfDay() == 0) {
 //      //reset the daily usage counter
 //      totalUsage = 0.0;
@@ -578,34 +583,49 @@ public class TariffSubscription
 
   /**
    * Posts a BalancingControlEvent to the subscription and generates the correct
-   * TariffTransaction. This updates
-   * the regulation for the current timeslot by the amount of the control.
-   * A positive value for kwh represents up-regulation, or an
-   * increase in production - in other words, a net gain for the broker's
-   * energy account balance. The kwh value is a population value, not a
-   * per-member value.
+   * TariffTransactions.
+   * Regulation for the current timeslot is updated by the amount of the control.
+   * The kWh value is a population value, not a per-member value, and
+   * the sign is from the perspective of the customer.
+   * So a negative value of kWh represents up-regulation, or an
+   * reduction in consumption, which of course is a net loss of energy for
+   * the customer and a net gain for the broker.
+   * The net usage for the timeslot is then the value from the original TTx minus this one,
+   * but that's not quite true for the cost. The cost needs to include not only the
+   * value attached to the balancing control, but also needs to correct the cost of
+   * the original usage/production transaction for the current timeslot, just in case
+   * the sign of the kWh is opposite to the sign of the kWh in the original TTx.
    */
   @StateChange
-  public synchronized void postBalancingControl (double kwh)
+  public synchronized void postBalancingControl (double kWh)
   {
-    // issue compensating tariff transaction
+    // start by computing the correction to the cost value in the original TTx
+    //double kWhPerMember = kWh / customersCommitted; 
+    double correction = 0.0;
+    if (tariff.hasRegulationRate() &&
+            (Math.signum(kWh) != Math.signum(originalKWh))) {
+      correction = -tariff.getUsageCharge(kWh, true);
+      log.info("regulation charge adjustment = {}", correction);
+    }
+    
+    // then issue compensating tariff transaction
+    double regCharge = -tariff.getRegulationCharge(kWh, true);
+    double updatedCharge =
+             regCharge - correction;
     getAccounting().addRegulationTransaction(tariff,
-        customer, customersCommitted, kwh,
-        customersCommitted *
-          -tariff.getRegulationCharge(-kwh / customersCommitted, //totalUsage,
-                                      true));
-    double kWhPerMember = kwh / customersCommitted; 
-    addRegulation(kWhPerMember);
-    if (kWhPerMember >= 0.0) {
-      // up-regulation
+        customer, customersCommitted, -kWh, -updatedCharge);
+    addRegulation(kWh);
+    if (kWh <= 0.0) {
+      // up-regulation, kWh is negative
       regulationAccumulator.setUpRegulationCapacity(regulationAccumulator
-          .getUpRegulationCapacity() - kWhPerMember);
+          .getUpRegulationCapacity() + kWh);
     }
     else {
+      // down-regulation, kWh is positive
       regulationAccumulator.setDownRegulationCapacity(regulationAccumulator
-          .getDownRegulationCapacity() - kWhPerMember);
+          .getDownRegulationCapacity() + kWh);
     }
-//    totalUsage -= kWhPerMember;
+    //totalUsage += kWh/customersCommitted;
   }
 
   /**
@@ -625,9 +645,9 @@ public class TariffSubscription
     }
     // generate aggregate value here
     double up =
-      regulationAccumulator.getUpRegulationCapacity() * customersCommitted;
+      regulationAccumulator.getUpRegulationCapacity();
     double down =
-      regulationAccumulator.getDownRegulationCapacity() * customersCommitted;
+      regulationAccumulator.getDownRegulationCapacity();
     if (0 == pendingUnsubscribeCount) {
       log.info("regulation capacity for " + getCustomer().getName()
                + ":" + this.getTariff().getId()

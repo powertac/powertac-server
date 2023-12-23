@@ -356,6 +356,9 @@ public class DomainObjectReader
           log.error("Failed to invoke method " + methodName
                     + " on instance of " + clazz.getName());
         }
+        else {
+          log.info("Success calling {}.{}, id {}", classname, methodName, id);
+        }
       }
       else {
         // multiple candidates -- try them until we get success

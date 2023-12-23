@@ -84,6 +84,7 @@ implements CapacityControl, InitializationService
 
   /* (non-Javadoc)
    * @see org.powertac.common.interfaces.CapacityControl#exerciseBalancingControl(org.powertac.common.msg.BalancingOrder, double)
+   * Note that positive kwh means up-regulation.
    */
   @Override
   public void exerciseBalancingControl (BalancingOrder order,
@@ -125,7 +126,8 @@ implements CapacityControl, InitializationService
     }
     for (TariffSubscription sub : subs) {
       if (sub.getCustomersCommitted() > 0)
-        sub.postBalancingControl(kwh * amts.get(sub) / available);
+        // subscription takes customer viewpoint.
+        sub.postBalancingControl(-kwh * amts.get(sub) / available);
     }
     // send off the event to the broker
     BalancingControlEvent bce = 
