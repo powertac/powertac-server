@@ -49,11 +49,13 @@ public interface CompetitionSetup
    */
   public String bootSession (String bootFilename,
                              String configFilename,
-                             String gameId);
+                             String gameId,
+                             String weatherData);
 
   public String bootSession (String bootFilename,
                              String configFilename,
                              String gameId,
+                             String weatherData,
                              String configOutput);
 
   /**
