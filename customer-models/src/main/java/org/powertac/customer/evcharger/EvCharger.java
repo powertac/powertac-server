@@ -162,8 +162,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     CustomerInfo info = new CustomerInfo(name, (int) Math.round(population));
     info.withPowerType(powerType)
       .withCustomerClass(CustomerClass.SMALL)
-      .withUpRegulationKW(-100.0)
-      .withDownRegulationKW(100.0)
+      //.withUpRegulationKW(-100.0)
+      //.withDownRegulationKW(100.0)
       .withMultiContracting(true);
     addCustomerInfo(info);
     ensureSeeds();
@@ -210,11 +210,13 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   public void handleInitialSubscription (List<TariffSubscription> subscriptions)
   {
     // Should be exactly one
-    if (subscriptions.size() != 1) {
-      log.error("Should be only one subscription, but saw {}", subscriptions.size());
-    }
+    //if (subscriptions.size() != 1) {
+    //  log.error("Should be only one subscription, but saw {}", subscriptions.size());
+    //}
     // log the initial subscription
-    log.info("initial subscription for {}", getCustomerInfo().getName());
+    for (TariffSubscription sub : subscriptions) {
+      log.info("initial subscription for {}", getCustomerInfo().getName());      
+    }
     // we assume the new StorageState and TariffInfo instances will be
     // initialized on the first step. No subscription changes should
     // occur before that.
@@ -557,8 +559,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     List<TariffSubscription> subs =
       service.getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(getCustomerInfo());
     if (subs.size() > 1) {
-      // should only be one in a bootstrap session
-      log.error("{} subscriptions, should be just one", subs.size());
+      // If there's more than one in a bootstrap session, we 
+      log.warn("{} subscriptions, should be just one", subs.size());
     }
     TariffSubscription sub = subs.get(0);
     StorageState finalState = getStorageState(sub);
