@@ -224,6 +224,7 @@ public class CompetitionSetupService
         bootSession(options.valueOf(bootOutput),
                     serverConfig,
                     game,
+                    options.valueOf(weatherData),
                     options.valueOf(configDump));
       }
       else if (options.has("sim")) {
@@ -262,6 +263,7 @@ public class CompetitionSetupService
   public String bootSession (String bootFilename,
                              String config,
                              String game,
+                             String weatherData,
                              String configDump)
   {
     // start the logs
@@ -286,6 +288,9 @@ public class CompetitionSetupService
       // process serverConfig now, because other options may override
       // parts of it
       setupConfig(config, configDump);
+
+      // Use weather file instead of webservice
+      useWeatherDataMaybe(weatherData);
 
       // set the logfile suffix
       //setLogSuffix(logSuffix, logPrefix + gameId);
@@ -327,7 +332,8 @@ public class CompetitionSetupService
   }
 
   @Override
-  public String bootSession (String bootFilename, String configFilename, String gameId)
+  public String bootSession (String bootFilename, String configFilename,
+                             String gameId, String weatherData)
   {
     return bootSession(bootFilename, configFilename, gameId, null);
   }
