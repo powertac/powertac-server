@@ -182,16 +182,16 @@ public class EvCustomerTest
     assertEquals(25.0, evCustomer.getCurrentCapacity(), 1E-06, "reduced capacity");
   }
 
-//  @Test
-//  public void testDischargeInvalid () //throws EvCustomer.ChargeException
-//  {
-//    assertThrows(EvCustomer.ChargeException.class, () -> {
-//      carType.setMaxCapacity(100.0);
-//      initialize("female");
-//      evCustomer.discharge(51.0);
-//      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
-//    });
-//  }
+  @Test
+  public void testDischargeInvalid () //throws EvCustomer.ChargeException
+  {
+    assertThrows(EvCustomer.ChargeException.class, () -> {
+      carType.setMaxCapacity(100.0);
+      initialize("female");
+      evCustomer.discharge(51.0);
+      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
+    });
+  }
 
   @Test
   public void testChargeValid () throws EvCustomer.ChargeException
@@ -204,17 +204,17 @@ public class EvCustomerTest
     assertEquals(25.0, evCustomer.getCurrentCapacity(), 1E-06, "25 remains");
   }
 
-//  @Test
-//  public void testChargeInvalid () //throws EvCustomer.ChargeException
-//  {
-//    assertThrows(EvCustomer.ChargeException.class, () -> {
-//      carType.setMaxCapacity(100.0);
-//      initialize("female");
-//      assertEquals(50.0, evCustomer.getCurrentCapacity(), 1E-06, "initial capacity");
-//      evCustomer.charge(51.0);
-//      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
-//    });
-//  }
+  @Test
+  public void testChargeInvalid () //throws EvCustomer.ChargeException
+  {
+    assertThrows(EvCustomer.ChargeException.class, () -> {
+      carType.setMaxCapacity(100.0);
+      initialize("female");
+      assertEquals(50.0, evCustomer.getCurrentCapacity(), 1E-06, "initial capacity");
+      evCustomer.charge(51.0);
+      assertEquals(0.0, evCustomer.getCurrentCapacity(), 1E-06, "should not get here");
+    });
+  }
 
   @Test
   public void testNeededCapacity ()
@@ -555,11 +555,35 @@ public class EvCustomerTest
     assertEquals(evCustomer.getRiskAttitude(), "neutral");
 
     evCustomer.setCurrentCapacity(10.0);
-    assertEquals(10.0, evCustomer.getCurrentCapacity(), 1E-06);
+    assertEquals(10.0, evCustomer.getCurrentCapacity(), 1e-06);
     double[] loads = evCustomer.getLoads(0, 0);
-    assertEquals(20.0, loads[1], 1E-06);
+    assertEquals(20.0, loads[1], 1e-06);
     assertEquals(10.0, loads[2], 1e-6);
     assertEquals(0.0, loads[3], 1e-6);
+    System.out.format("loads=[%.3f,%.3f,%.3f,%.3f]\n",
+                      loads[0], loads[1], loads[2], loads[3]);
+  }
+
+  @Test
+  public void testRegulationCapacityAfter ()
+  {
+    carType = new CarType("Test2");
+    carType.configure("TestCar", 100.0, 200.0, 10.0, 10.0);
+
+    mockSeed.setIntSeed(new int[]{1, 1});
+    mockSeed.setDoubleSeed(new double[]{0});
+    initialize("male");
+    evCustomer.makeDayPlanning(0, 0);
+
+    assertEquals(evCustomer.getRiskAttitude(), "neutral");
+
+    evCustomer.setCurrentCapacity(95.0);
+    assertEquals(95.0, evCustomer.getCurrentCapacity(), 1e-06);
+    double[] loads = evCustomer.getLoads(0, 0);
+    assertEquals(0.0, loads[0], 1e-6);
+    assertEquals(0.0, loads[1], 1e-06);
+    assertEquals(10.0, loads[2], 1e-6); // could discharge
+    assertEquals(-5.0, loads[3], 1e-6);
     System.out.format("loads=[%.3f,%.3f,%.3f,%.3f]\n",
                       loads[0], loads[1], loads[2], loads[3]);
   }

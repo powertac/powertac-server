@@ -182,8 +182,8 @@ public class EvCustomer
     customerInfo = new CustomerInfo(name, 1).
         withPowerType(PowerType.ELECTRIC_VEHICLE).
         withControllableKW(-car.getHomeChargeKW()).
-        withUpRegulationKW(-car.getHomeChargeKW()).
-        withDownRegulationKW(car.getHomeChargeKW()).
+        //withUpRegulationKW(-car.getHomeChargeKW()).
+        //withDownRegulationKW(car.getHomeChargeKW()).
         withStorageCapacity(car.getMaxCapacity());
 
     // set up tariff evaluation
@@ -243,6 +243,7 @@ public class EvCustomer
       return;
     }
     else {
+      // This assumes a population of 1
       sub = subs.get(0);
     }
 
@@ -251,11 +252,14 @@ public class EvCustomer
     driving = false;
 
     // Always do handleRegulations first, setRegulation last
+    // This is because the regulation actually happened in the previous timeslot.
     handleRegulation(day, hour, sub);
     makeDayPlanning(hour, day);
     doActivities(day, hour);
     double[] loads = getLoads(day, hour);
+    log.info("Customer {}, ts {}, loads = {}", getName(), timeslot, loads);
     consumePower(loads, sub);
+    // consumePower() should have updated the regulation values in loads
     setRegulation(loads[2], loads[3], sub);
   }
 
@@ -269,21 +273,25 @@ public class EvCustomer
       return;
     // check for non-zero regulation request
     double actualRegulation =
-        sub.getRegulation() * customerInfo.getPopulation();
+        sub.getRegulation() * customerInfo.getPopulation(); // population is always 1
     if (Math.abs(actualRegulation) < capacityEpsilon) {
       return;
     }
 
+    // Regulation value is positive for up-regulation
     // compute the regulation factor and do the regulation
-    log.info("{} regulate: {}", name, actualRegulation);
+    log.info("{} regulate: {}, currentCapacity={}",
+             name, actualRegulation, currentCapacity);
 
     double startCapacity = currentCapacity;
     try {
       if (actualRegulation > capacityEpsilon) {
+        // positive, up-regulation
         discharge(actualRegulation);
       }
       else if (actualRegulation < -capacityEpsilon) {
-        charge(-1 * actualRegulation);
+        // negative, down-regulation
+        charge(-actualRegulation);
       }
     }
     catch (ChargeException ce) {
@@ -555,7 +563,11 @@ public class EvCustomer
     sub.usePower(loads[0] + loads[1]);
 
     try {
-      charge(loads[0] + loads[1]);
+      double energy = loads[0] + loads[1]; 
+      charge(energy);
+      // Update down-regulation value if necessary
+      // Note that loads[3] should be a negative value
+      loads[3] = Math.max(loads[3], (currentCapacity - car.getMaxCapacity()));
     }
     catch (ChargeException ce) {
       log.error(ce.getMessage());
@@ -694,6 +706,7 @@ public class EvCustomer
   {
     if (currentCapacity >= (kwh - capacityEpsilon)) {
       setCurrentCapacity(currentCapacity - kwh);
+      log.info("{} discharge {} to {}", name, kwh, getCurrentCapacity());
     }
     else {
       throw new ChargeException("Not possible to discharge " + name + " : "
@@ -701,17 +714,16 @@ public class EvCustomer
     }
   }
 
+  // Handle energy consumption and down-regulation
   public void charge (double kwh) throws ChargeException
   {
     // TODO Check if partially charging would suffice
-
     if ((currentCapacity + kwh) <= car.getMaxCapacity()) {
       double startCapacity = currentCapacity;
       setCurrentCapacity(currentCapacity + kwh);
 
       if (Math.abs(startCapacity - currentCapacity) > capacityEpsilon) {
-        log.info(String.format("%s charging from %.1f to %.1f",
-            name, startCapacity, currentCapacity));
+        log.info("{} charge {} to {}", name, kwh, currentCapacity);
       }
     }
     else {
