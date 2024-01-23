@@ -51,7 +51,7 @@
     <module>auctioneer</module>
     <module>balancing-market</module>
     <module>customer-models</module>
-    <module>evcustomer</module>
+    <!-- <module>evcustomer</module> -->
     <module>default-broker</module>
     <module>distribution-utility</module>
     <module>factored-customer</module>

@@ -1,2 +1,0 @@
-# Customer model type list, needed by ServiceLoader
-org.powertac.evcustomer.customers.EvSocialClass # EV classes

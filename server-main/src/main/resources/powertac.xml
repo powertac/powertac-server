@@ -11,7 +11,9 @@
   <context:annotation-config />
   <context:component-scan base-package="org.powertac">
     <context:exclude-filter type="regex"
-                            expression="org.powertac.visualizer.*" />       
+                            expression="org.powertac.visualizer.*" />
+    <context:exclude-filter type="regex"
+                            expression="org.powertac.evcustomer.*" />
   </context:component-scan>
   <!-- <context:component-scan base-package="org.powertac" /> -->
 

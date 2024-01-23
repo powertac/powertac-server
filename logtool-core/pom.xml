@@ -42,11 +42,11 @@
       <version>1.9.1-SNAPSHOT</version>
     </dependency>
 
-    <dependency>
+    <!-- <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>evcustomer</artifactId>
       <version>1.9.1-SNAPSHOT</version>
-    </dependency>
+    </dependency> -->
 
     <dependency>
       <groupId>org.powertac</groupId>
