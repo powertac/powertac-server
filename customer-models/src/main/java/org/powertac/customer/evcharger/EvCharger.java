@@ -65,8 +65,12 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   private int minimumChunkSize = 20;
 
   @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
-          dump = true, description = "Individual Charger capacity in kW")
+          dump = true, description = "Individual Charger capacity in (positive) kW")
   private double chargerCapacity = 8.0;
+
+  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
+          dump = true, description = "Max individual discharge rate in (negative) kW")
+  private double dischargeCapacity = 0.0;
 
   @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = true,
           dump = true, description = "Where in the min-max range we compute nominal demand")
@@ -523,6 +527,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   computeRegulationCapacity (TariffSubscription sub,
                              double actualDemand, double minDemand, double maxDemand)
   {
+    // up-regulation capacity must account for non-zero V2G capacity 
     return new RegulationCapacity(sub,
                                   (actualDemand - minDemand)
                                   / sub.getCustomersCommitted(),
@@ -587,7 +592,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     try {
       int hod = time.getHourOfDay();
-      demandInfo = demandSampler.sample(hod, (int) getPopulation(), chargerCapacity);
+      demandInfo = demandSampler.sample(hod, (int) getPopulation(), getChargerCapacity());
       updateDemandInfoMean(demandInfo, hod);
     }
     catch (IllegalArgumentException e) {
@@ -699,15 +704,32 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     return chargerCapacity;
   }
 
+  EvCharger withChargerCapacity (double capacity)
+  {
+    if (0.0 < capacity)
+      chargerCapacity = capacity;
+    else
+      log.error("Non-positive charger capacity {}", capacity);
+    return this;
+  }
+
+  double getDischargeCapacity ()
+  {
+    return dischargeCapacity;
+  }
+
+  EvCharger withDischargeCapacity (double capacity)
+  {
+    if (0.0 > capacity)
+      dischargeCapacity = capacity;
+    else
+      log.error("Non-negative discharge capacity {}", capacity);
+    return this;
+  }
+
   int getMaxDemandHorizon ()
   {
     return maxDemandHorizon;
-  }
-
-  EvCharger withChargerCapacity (double capacity)
-  {
-    chargerCapacity = capacity;
-    return this;
   }
 
   double getNominalDemandBias ()

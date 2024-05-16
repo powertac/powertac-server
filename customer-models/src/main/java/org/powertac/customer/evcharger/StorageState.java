@@ -545,7 +545,7 @@ public class StorageState
 
   /**
    * Computes the minimum, maximum, and nominal demand
-   * for the current timeslot. Returns an array containing
+   * for the specified timeslot. Returns an array containing
    * [minimum, maximum, midpoint] demand values.
    */
   double[] getMinMax (int timeslot)
