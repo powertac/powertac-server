@@ -70,7 +70,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
           dump = true, description = "Max individual discharge rate in (negative) kW")
-  private double dischargeCapacity = 0.0;
+  private double dischargeCapacity = -8.0;
+
+  @ConfigurableValue(valueType = "Double", publish = true, bootstrapState = true,
+          dump = true, description = "Customer fraction accepting V2G")
+  private double v2gAcceptance = 0.3;
 
   @ConfigurableValue(valueType = "Double", publish = false, bootstrapState = true,
           dump = true, description = "Where in the min-max range we compute nominal demand")
@@ -443,7 +447,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
         // regulation must be distributed before distributing future demand
         log.info("{} regulation for tariff {} = {}", getCustomerInfo().getName(),
                  sub.getTariff().getId(), sub.getRegulation());
-        double residue = ss.distributeRegulation(timeslotIndex, sub.getRegulation());
+        double residue = ss.distributeRegulation(timeslotIndex, sub.getRegulation(), v2gAcceptance);
         if (Math.abs(residue) > epsilon) {
           log.error("Attempt to distribute regulation {} in ts {} left residue of {}",
                     sub.getRegulation(), timeslotIndex, residue);
@@ -487,9 +491,10 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
                sub.getId(), limits[0], limits[1], nominalDemand);
       ss.distributeUsage(timeslotIndex, nominalDemand);
       sub.usePower(nominalDemand);
-      
+
+      double v2gCapacity = ss.computeV2gCapacity(timeslotIndex, v2gAcceptance);
       RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand,
-                                                        limits[0], limits[1]);
+                                                        limits[0], limits[1], v2gCapacity);
       if (null != rc) {
         // if this subscription will compensate us for regulation, we'll report
         // our available capacity
@@ -525,11 +530,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   // Computes the regulation capacity to be reported on a subscription
   private RegulationCapacity
   computeRegulationCapacity (TariffSubscription sub,
-                             double actualDemand, double minDemand, double maxDemand)
+                             double actualDemand, double minDemand, double maxDemand, double v2gCapacity)
   {
     // up-regulation capacity must account for non-zero V2G capacity 
     return new RegulationCapacity(sub,
-                                  (actualDemand - minDemand)
+                                  (actualDemand - minDemand + v2gCapacity)
                                   / sub.getCustomersCommitted(),
                                   (actualDemand - maxDemand)
                                   / sub.getCustomersCommitted());
@@ -716,6 +721,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   double getDischargeCapacity ()
   {
     return dischargeCapacity;
+  }
+
+  double getV2gAcceptance ()
+  {
+    return v2gAcceptance;
   }
 
   EvCharger withDischargeCapacity (double capacity)

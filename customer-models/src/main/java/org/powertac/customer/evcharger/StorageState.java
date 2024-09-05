@@ -445,7 +445,7 @@ public class StorageState
    * Returns the residue in kWh that could not be accommodated.
    * Return value should always be zero.
    */
-  public double distributeRegulation (int timeslot, double regulation)
+  public double distributeRegulation (int timeslot, double regulation, double v2gAcceptance)
   {
     // Regulation applies to all StorageElements in this and all future
     // timeslots. The first column is never regulated.
@@ -470,10 +470,26 @@ public class StorageState
       log.warn("ts {} request for down-regulation from min usage not implemented");
       return result;
     }
+
+    // For up-regulation curtailment is bounded between 0 (max regulation) and 1 (no regulation).
     double ratio = (currentUsage + regulation - currentMin)
             / (currentUsage - currentMin);
-    log.info("Regulation {}, currentUsage={}, currentMin={}, ratio={}",
-             regulation, currentUsage, currentMin, ratio);
+
+    // In case of V2G Regulation on top of curtailment, the ratio will go below 0 due to regulation > curtailment.
+    // We want a separate V2G ratio to be applied to every group in every cohort after the maximum curtailment ratio was applied.
+    // We know, how much V2G regulation was used and calculate a new V2G ratio.
+    double v2gRegulation = 0.0;
+    if (ratio < 0.0) {
+      v2gRegulation = Math.abs(currentUsage + regulation - currentMin);
+      ratio = 0.0;
+    }
+
+    double v2gCapacity = computeV2gCapacity(timeslot, v2gAcceptance);
+    double v2gRatio = Math.abs(v2gRegulation
+            / v2gCapacity);
+
+    log.info("Regulation {}, currentUsage={}, currentMin={}, ratio={}, v2gRegulation={}, v2gRatio={}",
+             regulation, currentUsage, currentMin, ratio, v2gRegulation, v2gRatio);
     // Usage has already been reported, but collapse/rebalance has not happened
     for (int ts = timeslot;
             ts < timeslot + capacityVector.getActiveLength(timeslot);
@@ -485,11 +501,12 @@ public class StorageState
       double[] energy = target.getEnergy();
       for (int i = 1; i < pop.length; i++) {
         double minMultiplier = Math.max(pop.length -i - 0.5, 0.0);
-        double minE = minMultiplier * pop[i] * getUnitCapacity(); // min remaining demand
+        double minE = minMultiplier * pop[i] * getUnitCapacity(); // min remaining demand after curtailment
         double du = energy[i] - minE; // discretionary usage
         double dr = du * ratio;       // regulated usage
-        energy[i] = minE + dr;
-        result += (du - dr); // positive for up-reg, negative for down-reg
+        double v2gUsage = v2gAcceptance * pop[i] * (-getUnitCapacity()) * v2gRatio; // (negative) V2G usage - ratio of V2G capacity
+        energy[i] = minE + dr - v2gUsage;
+        result += (du - dr - v2gUsage); // positive for up-reg, negative for down-reg
       }
     }
     return regulation - result;
@@ -576,6 +593,25 @@ public class StorageState
     maxDemand += minDemand;
     return new double[] {minDemand, maxDemand,
                          minDemand + (maxDemand - minDemand) / 2.0};
+  }
+
+  /**
+   * Computes V2G regulation capacity for the specified
+   * timeslot. Returns the V2G regulation capacity.
+   */
+  double computeV2gCapacity (int timeslot, double v2gAcceptance)
+  {
+    double v2gCapacity = 0.0;
+    for (int ts = timeslot + 2;
+         ts < timeslot + getHorizon(timeslot); ts++) {
+      StorageElement target = getElement(ts);
+      double[] pop = target.getPopulation();
+      // Add a full chunk of fraction of chargers allowing V2G from each future timeslot to v2gCapacity
+      for (int i = 2; i < pop.length; i++) {
+        v2gCapacity += v2gAcceptance * pop[i] * (-getUnitCapacity());
+      }
+    }
+    return v2gCapacity;
   }
 
   /**
