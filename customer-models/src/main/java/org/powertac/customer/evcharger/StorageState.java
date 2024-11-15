@@ -68,6 +68,7 @@ public class StorageState
   // Cached values for current timeslot
   private double currentMin = 0.0;
   private double currentUsage = 0.0;
+  private double v2gCapacity = 0.0;
   
   /**
    * Default constructor, used to create a dummy instance.
@@ -471,8 +472,8 @@ public class StorageState
       return result;
     }
 
-    // For up-regulation curtailment is bounded between 0 (max regulation) and 1 (no regulation).
-    double ratio = (currentUsage + regulation - currentMin)
+    // For up-regulation curtailment is bounded between 0 (max curtailment regulation) and 1 (no regulation).
+    double ratio = (currentUsage - currentMin - regulation)
             / (currentUsage - currentMin);
 
     // In case of V2G Regulation on top of curtailment, the ratio will go below 0 due to regulation > curtailment.
@@ -480,16 +481,20 @@ public class StorageState
     // We know, how much V2G regulation was used and calculate a new V2G ratio.
     double v2gRegulation = 0.0;
     if (ratio < 0.0) {
-      v2gRegulation = Math.abs(currentUsage + regulation - currentMin);
+      v2gRegulation = Math.abs(currentUsage - currentMin - regulation);
       ratio = 0.0;
     }
 
-    double v2gCapacity = computeV2gCapacity(timeslot, v2gAcceptance);
-    double v2gRatio = Math.abs(v2gRegulation
-            / v2gCapacity);
+    double v2gCapacity = this.v2gCapacity;
+
+    double v2gRatio = 0;
+    if (v2gCapacity != 0) {
+      v2gRatio = Math.abs(v2gRegulation / v2gCapacity);
+    }
 
     log.info("Regulation {}, currentUsage={}, currentMin={}, ratio={}, v2gRegulation={}, v2gRatio={}",
              regulation, currentUsage, currentMin, ratio, v2gRegulation, v2gRatio);
+
     // Usage has already been reported, but collapse/rebalance has not happened
     for (int ts = timeslot;
             ts < timeslot + capacityVector.getActiveLength(timeslot);
@@ -504,12 +509,16 @@ public class StorageState
         double minE = minMultiplier * pop[i] * getUnitCapacity(); // min remaining demand after curtailment
         double du = energy[i] - minE; // discretionary usage
         double dr = du * ratio;       // regulated usage
-        double v2gUsage = v2gAcceptance * pop[i] * (-getUnitCapacity()) * v2gRatio; // (negative) V2G usage - ratio of V2G capacity
+        double v2gUsage = 0;
+        if (i >= 2) {
+          v2gUsage = v2gAcceptance * pop[i] * (-getUnitCapacity()) * v2gRatio; // (negative) V2G usage as ratio of V2G capacity
+        }
         energy[i] = minE + dr - v2gUsage;
-        result += (du - dr - v2gUsage); // positive for up-reg, negative for down-reg
+
+        result += (du - dr + v2gUsage); // negative for up-reg, positive for down-reg since du > dr with ratio < 1 and du = negative due to energy[i] < minE
       }
     }
-    return regulation - result;
+    return regulation + result;
   }
 
   /**
@@ -611,6 +620,7 @@ public class StorageState
         v2gCapacity += v2gAcceptance * pop[i] * (-getUnitCapacity());
       }
     }
+    this.v2gCapacity = v2gCapacity;
     return v2gCapacity;
   }
 
@@ -702,5 +712,9 @@ public class StorageState
   void setStartIndex (int index)
   {
     startIndex = index;
+  }
+
+  public void setV2gCapacity(double v2gCapacity) {
+    this.v2gCapacity = v2gCapacity;
   }
 }
