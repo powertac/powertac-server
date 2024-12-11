@@ -15,7 +15,7 @@
  */
 package org.powertac.common.msg;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
 

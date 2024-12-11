@@ -17,9 +17,9 @@ package org.powertac.samplebroker.core;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
@@ -50,12 +50,12 @@ public class BrokerPauseTest
     broker = new PowerTacBroker();
     Competition.setCurrent(Competition.newInstance("test"));
     competition = Competition.currentCompetition();
-    baseTime = new DateTime(2010, 6, 21, 0, 0, 0, 0, 
-                            DateTimeZone.UTC).toInstant();
+    baseTime = ZonedDateTime.of(2010, 6, 21, 0, 0, 0, 0, 
+                            ZoneOffset.UTC).toInstant();
     competition.withSimulationBaseTime(baseTime)
         .withSimulationRate(1800); // 2-second timeslots
-    timeService = new TimeService(competition.getSimulationBaseTime().getMillis(),
-                                  new DateTime(DateTimeZone.UTC).getMillis(),
+    timeService = new TimeService(competition.getSimulationBaseTime().toEpochMilli(),
+                                  Instant.now().toEpochMilli(),
                                   competition.getSimulationRate(),
                                   competition.getSimulationModulo());
     timeService.updateTime();
@@ -75,10 +75,11 @@ public class BrokerPauseTest
     try {
       Thread.sleep(2001); // 2.001 seconds
       // it's now the start of ts1
-      TimeslotUpdate tsu = new TimeslotUpdate(baseTime.plus(2000),
+      TimeslotUpdate tsu = new TimeslotUpdate(baseTime.plusMillis(2000),
                                               2, 12);
       broker.handleMessage(tsu);
-      assertEquals(baseTime.plus(TimeService.HOUR).getMillis(), timeService.getCurrentTime().getMillis(), "correct time");
+      assertEquals(baseTime.plusMillis(TimeService.HOUR).toEpochMilli(),
+                   timeService.getCurrentTime().toEpochMilli(), "correct time");
       Thread.sleep(1000); // delay by half a timeslot
       TimeslotComplete tc = new TimeslotComplete(1);
       broker.handleMessage(tc);
@@ -98,7 +99,7 @@ public class BrokerPauseTest
     try {
       Thread.sleep(2001); // 2.001 seconds
       // it's now the start of ts1
-      TimeslotUpdate tsu = new TimeslotUpdate(baseTime.plus(2000),2, 12);
+      TimeslotUpdate tsu = new TimeslotUpdate(baseTime.plusMillis(2000),2, 12);
       broker.handleMessage(tsu);
       Thread.sleep(500); // short delay
       SimPause sp = new SimPause();
@@ -107,7 +108,7 @@ public class BrokerPauseTest
       TimeslotComplete tc = new TimeslotComplete(1);
       broker.handleMessage(tc);
       assertEquals(1, broker.getTimeslotCompleted(), "correct timeslot index");
-      SimResume sr = new SimResume(baseTime.plus(1000));
+      SimResume sr = new SimResume(baseTime.plusMillis(1000));
       broker.handleMessage(sr);
       assertEquals(1, broker.getTimeslotCompleted(), "correct timeslot index");
     }
@@ -125,7 +126,7 @@ public class BrokerPauseTest
     try {
       Thread.sleep(2001); // 2.001 seconds
       // it's now the start of ts1
-      TimeslotUpdate tsu = new TimeslotUpdate(baseTime.plus(2000), 2, 12);
+      TimeslotUpdate tsu = new TimeslotUpdate(baseTime.plusMillis(2000), 2, 12);
       broker.handleMessage(tsu);
       Thread.sleep(1100); // short delay
       SimPause sp = new SimPause();
@@ -134,7 +135,7 @@ public class BrokerPauseTest
       TimeslotComplete tc = new TimeslotComplete(1);
       broker.handleMessage(tc);
       assertEquals(1, broker.getTimeslotCompleted(), "correct timeslot index");
-      SimResume sr = new SimResume(baseTime.plus(3000));
+      SimResume sr = new SimResume(baseTime.plusMillis(3000));
       broker.handleMessage(sr);
       assertEquals(1, broker.getTimeslotCompleted(), "correct timeslot index");
     }

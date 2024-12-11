@@ -15,7 +15,7 @@
  */
 package org.powertac.common;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.common.state.XStreamStateLoggable;

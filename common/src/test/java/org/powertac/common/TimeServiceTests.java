@@ -23,9 +23,9 @@ import java.util.TreeMap;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 
 /**
  * Test cases for TimeService
@@ -33,8 +33,8 @@ import org.joda.time.Instant;
  */
 public class TimeServiceTests
 {
-  DateTime theBase;
-  DateTime theStart;
+  ZonedDateTime theBase;
+  ZonedDateTime theStart;
   int theRate;
   int theMod;
   TimeService ts;
@@ -47,12 +47,12 @@ public class TimeServiceTests
   @BeforeEach
   public void setUp() throws Exception
   {
-    theBase = new DateTime(2008, 6, 21, 12, 0, 0, 0, DateTimeZone.UTC);
-    theStart = new DateTime(DateTimeZone.UTC);
+    theBase = ZonedDateTime.of(2008, 6, 21, 12, 0, 0, 0, ZoneOffset.UTC);
+    theStart = ZonedDateTime.now(ZoneOffset.UTC);
     theRate = 360;       // 6 min/sec -- 10 sec/hr
     theMod = 15*60*1000; // 15 min (2.5 sec) timeslots
-    ts = new TimeService(theBase.getMillis(),
-                         theStart.getMillis(),
+    ts = new TimeService(theBase.toInstant().toEpochMilli(),
+                         theStart.toInstant().toEpochMilli(),
                          theRate,
                          theMod);
     ts.updateTime();
@@ -61,7 +61,7 @@ public class TimeServiceTests
   @Test
   public void testCreate ()
   {
-    assertEquals(theBase.getMillis(), ts.getBase(), "correct base");
+    assertEquals(theBase.toInstant().toEpochMilli(), ts.getBase(), "correct base");
     assertEquals(theRate, ts.getRate(), "correct rate");
     assertEquals(theMod, ts.getModulo(), "correct modulo");
   }
@@ -70,7 +70,7 @@ public class TimeServiceTests
   @Test
   public void testTimeConversion () 
   {
-    long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
+    long offset = ts.getCurrentTime().toEpochMilli() - theBase.toInstant().toEpochMilli();
     assertEquals(0, offset, "offset zero");
     //assertTrue("$offset close to base time", offset < 60*1000) // less than one minute has elapsed
   }
@@ -79,7 +79,7 @@ public class TimeServiceTests
   public void testSetClockParamsGood ()
   {
     Map<String, Long> params = new TreeMap<String, Long>();
-    long newBase = theBase.plus(TimeService.DAY).getMillis();
+    long newBase = theBase.toInstant().plusMillis(TimeService.DAY).toEpochMilli();
     long newMod = TimeService.HOUR;
     params.put("base", newBase);
     params.put("rate", 560l);
@@ -97,7 +97,7 @@ public class TimeServiceTests
   public void testSetClockParamsBogus ()
   {
     Map<String, Long> params = new TreeMap<String, Long>();
-    long newBase = theBase.plus(TimeService.DAY).getMillis();
+    long newBase = theBase.toInstant().plusMillis(TimeService.DAY).toEpochMilli();
     params.put("base", newBase);
     params.put("1rate", 560l);
     params.put("modulo", TimeService.HOUR);
@@ -114,7 +114,7 @@ public class TimeServiceTests
     try {
       Thread.sleep(5000); // 5 seconds / 30 min
       ts.updateTime();
-      long delay = ts.getCurrentTime().getMillis() - theBase.getMillis();
+      long delay = ts.getCurrentTime().toEpochMilli() - theBase.toInstant().toEpochMilli();
       assertEquals(30 * TimeService.MINUTE, delay, "delay is 30 min");
     }
     catch (InterruptedException ie) {
@@ -129,7 +129,7 @@ public class TimeServiceTests
     try {
       Thread.sleep(2500); // 2.5 sec, 15 min
       ts.updateTime();
-      long delay = ts.getCurrentTime().getMillis() - theBase.getMillis();
+      long delay = ts.getCurrentTime().toEpochMilli() - theBase.toInstant().toEpochMilli();
       assertEquals(15 * TimeService.MINUTE, delay, "delay is 15 min");
 
       Thread.sleep(1001);
@@ -148,7 +148,7 @@ public class TimeServiceTests
   //{
   //  assertEquals(theBase, ts.getCurrentTime(), "base time");
   //  ts.setStart(ts.getStart() - (TimeService.HOUR / theRate));
-  //  assertEquals(theBase.plus(TimeService.HOUR), ts.getCurrentTime(), "one hour");
+  //  assertEquals(theBase.plusMillis(TimeService.HOUR), ts.getCurrentTime(), "one hour");
   //}
   
   // single action, already due
@@ -172,7 +172,7 @@ public class TimeServiceTests
   public void testSingleActionFuture()
   {
     final IntHolder var = new IntHolder(0);
-    ts.addAction(theBase.toInstant().plus(15*60*1000),
+    ts.addAction(theBase.toInstant().plusMillis(15*60*1000),
                  new TimedAction(){
       @Override
       public void perform(Instant time) {
@@ -185,7 +185,7 @@ public class TimeServiceTests
       Thread.sleep(3000); // 3 seconds -> 18 min sim time
       ts.updateTime();
       assertEquals(2, var.getValue(), "var changed");
-      long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
+      long offset = ts.getCurrentTime().toEpochMilli() - theBase.toInstant().toEpochMilli();
       assertEquals(15*60*1000, offset, "offset is 15 min");
     }
     catch (InterruptedException ie) {
@@ -257,7 +257,7 @@ public class TimeServiceTests
     };
     RepeatingTimedAction rta =
             new RepeatingTimedAction(action, interval);
-    ts.addAction(ts.getCurrentTime().plus(interval), rta);
+    ts.addAction(ts.getCurrentTime().plusMillis(interval), rta);
     ts.updateTime(); // not yet
     assertEquals(0, var.getValue(), "no action yet");
     try {
@@ -321,7 +321,7 @@ public class TimeServiceTests
     
     @Override
     public void perform (Instant time) {
-      ts.addAction(ts.getCurrentTime().plus(interval),
+      ts.addAction(ts.getCurrentTime().plusMillis(interval),
                    core);
     }
   }

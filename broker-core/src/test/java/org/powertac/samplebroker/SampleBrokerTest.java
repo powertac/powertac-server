@@ -18,9 +18,9 @@ package org.powertac.samplebroker;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
@@ -54,15 +54,15 @@ public class SampleBrokerTest
   public void setUp () throws Exception
   {
     // set the time
-    baseTime = new DateTime(2011, 2, 1, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    baseTime = ZonedDateTime.of(2011, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();
 
     // initialize the broker under test
     broker = new PowerTacBroker();
 
     Competition.setCurrent(Competition.newInstance("test"));
     Competition competition = Competition.currentCompetition();
-    TimeService timeService = new TimeService(competition.getSimulationBaseTime().getMillis(),
-                                              new DateTime(DateTimeZone.UTC).getMillis(),
+    TimeService timeService = new TimeService(competition.getSimulationBaseTime().toEpochMilli(),
+                                              Instant.now().toEpochMilli(),
                                               competition.getSimulationRate(),
                                               competition.getSimulationModulo());
 

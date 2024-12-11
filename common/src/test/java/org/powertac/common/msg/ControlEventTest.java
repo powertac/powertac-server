@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.*;
@@ -49,7 +49,7 @@ public class ControlEventTest
     broker = new Broker("Jenny");
     spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION);
     tariffRepo.addSpecification(spec);
-    Instant baseTime = new Instant();
+    Instant baseTime = Instant.now();
     timeService.setCurrentTime(baseTime);
     timeslotRepo.makeTimeslot(baseTime);
   }

@@ -23,10 +23,9 @@ import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
-import org.joda.time.base.AbstractDateTime;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.powertac.common.state.StateChange;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -78,7 +77,7 @@ public class TimeService
   
   // simulation clock parameters
   private long base;
-  private long start = new DateTime(2036, 12, 31, 23, 59, 0, 0, DateTimeZone.UTC).getMillis();
+  private long start = ZonedDateTime.of(2036, 12, 31, 23, 59, 0, 0, ZoneOffset.UTC).toInstant().toEpochMilli();
   private long rate = 720l;
   private long modulo = HOUR;
   
@@ -90,7 +89,7 @@ public class TimeService
 
   // the current time
   private Instant currentTime;
-  private DateTime currentDateTime;
+  private ZonedDateTime currentDateTime;
   
   // debug code -- keep track of TimeService instances
   private static TimeService instance;
@@ -139,9 +138,8 @@ public class TimeService
    */
   public void init (Instant start)
   {
-    currentTime = new Instant(start.getMillis() - modulo);
-    currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
-    DateTimeZone.setDefault(DateTimeZone.UTC);
+    currentTime = Instant.ofEpochMilli(start.toEpochMilli() - modulo);
+    currentDateTime = ZonedDateTime.ofInstant(currentTime, ZoneOffset.UTC);
   }
   
   /**
@@ -166,8 +164,8 @@ public class TimeService
    */
   public Instant truncateInstant (Instant time, long mod)
   {
-    long ms = time.getMillis();
-    return new Instant(ms - ms % mod);
+    long ms = time.toEpochMilli();
+    return Instant.ofEpochMilli(ms - ms % mod);
   }
 
   /**
@@ -211,7 +209,7 @@ public class TimeService
   
   public Instant getBaseInstant ()
   {
-    return new Instant(base);
+    return Instant.ofEpochMilli(base);
   }
 
   /**
@@ -270,7 +268,7 @@ public class TimeService
     return currentTime;
   }
   
-  public DateTime getCurrentDateTime()
+  public ZonedDateTime getCurrentDateTime()
   {
     return currentDateTime;
   }
@@ -280,7 +278,7 @@ public class TimeService
    */
   public int getHourOfDay()
   {
-    return currentDateTime.getHourOfDay();
+    return currentDateTime.getHour();
   }
 
   /**
@@ -291,7 +289,7 @@ public class TimeService
   {
     log.debug("ts" + id + " setCurrentTime to " + time.toString());
     currentTime = time;
-    currentDateTime = new DateTime(time, DateTimeZone.UTC);
+    currentDateTime = ZonedDateTime.ofInstant(time, ZoneOffset.UTC);
   }
   
   /**
@@ -300,8 +298,8 @@ public class TimeService
    */
   public long getOffset ()
   {
-    long systemTime = new Instant().getMillis();
-    long simTime = (currentTime.getMillis() - base) / rate + start;
+    long systemTime = Instant.now().toEpochMilli();
+    long simTime = (currentTime.toEpochMilli() - base) / rate + start;
     return systemTime - simTime;
   }
   
@@ -309,24 +307,26 @@ public class TimeService
    * Sets current time to a specific value. Intended for testing purposes only.
    */
   @StateChange
-  protected void setCurrentTime (AbstractDateTime time)
+  protected void setCurrentTime (ZonedDateTime time)
   {
     log.debug("ts" + id + " setCurrentTime to " + time.toString());
-    setCurrentTime(new Instant(time));
+    setCurrentTime(time.toInstant());
     //currentTime = new Instant(time);
     //currentDateTime = new DateTime(time, DateTimeZone.UTC);
   }
 
-  public void setCurrentTime ()
+  public void setCurrentTime() 
   {
-    long systemTime = new Instant().getMillis();
-    if (systemTime >= start) { 
+    Instant now = Instant.now();
+    long systemTime = now.toEpochMilli();
+
+    if (systemTime >= start) {
       long raw = base + (systemTime - start) * rate;
-      //currentTime = new Instant(raw - raw % modulo);
-      //currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
+      long adjustedRaw = raw - raw % modulo;
       log.debug("ts" + id + " updateTime: sys=" + systemTime +
-                ", simTime=" + currentTime);
-      setCurrentTime(new Instant(raw - raw % modulo));
+          ", simTime=" + currentTime);
+
+      setCurrentTime(Instant.ofEpochMilli(adjustedRaw));
     }
   }
 

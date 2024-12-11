@@ -17,7 +17,7 @@ package org.powertac.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -236,7 +236,7 @@ public class TariffEvaluationHelper
       time = timeService.getCurrentTime();
     }
     for (int index = 0; index < usage.length; index++) {
-      time = time.plus(TimeService.HOUR);
+      time = time.plusMillis(TimeService.HOUR);
       result += tariff.getUsageCharge(time, usage[index], this);
       if (includePeriodicCharge)
         result += tariff.getPeriodicPayment() / 24.0;
@@ -369,7 +369,7 @@ public class TariffEvaluationHelper
     double[] result = new double[usage.length];
     Instant time = timeService.getCurrentTime();
     for (int index = 0; index < usage.length; index++) {
-      time = time.plus(TimeService.HOUR);
+      time = time.plusMillis(TimeService.HOUR);
       result[index] = tariff.getUsageCharge(time, usage[index], this);
       if (includePeriodicCharge)
         result[index] += tariff.getPeriodicPayment() / 24.0;

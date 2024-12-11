@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.StringWriter;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ public class OrderTests
     Competition.setCurrent(Competition.newInstance("market order test"));
     broker = new Broker("Sam");
     brokerRepo.add(broker);
-    now = Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
+    now = Competition.currentCompetition().getSimulationBaseTime().plusMillis(TimeService.DAY);
     timeslot = timeslotRepo.makeTimeslot(now);
     timeslotNum = timeslot.getSerialNumber();
   }

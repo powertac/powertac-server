@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -113,7 +113,7 @@ public class TariffSpecification extends TariffMessage
   public Instant getExpiration ()
   {
     if (expiration > 0)
-      return new Instant(expiration);
+      return Instant.ofEpochMilli(expiration);
     else
       return null;
   }
@@ -134,7 +134,7 @@ public class TariffSpecification extends TariffMessage
    */
   public TariffSpecification withExpiration (Instant expiration)
   {
-    return this.withExpiration(expiration.getMillis());
+    return this.withExpiration(expiration.toEpochMilli());
   }
 
   public long getMinDuration ()
@@ -306,7 +306,7 @@ public class TariffSpecification extends TariffMessage
     else // otherwise if it parses as an Instant, change to long
     {
       Instant exp = Instant.parse(args[2]);
-      args[2] = Long.toString(exp.getMillis());
+      args[2] = Long.toString(exp.toEpochMilli());
     }
 
   }

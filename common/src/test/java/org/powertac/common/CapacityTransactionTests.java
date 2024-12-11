@@ -18,7 +18,7 @@ package org.powertac.common;
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.StringWriter;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.repo.BrokerRepo;
@@ -53,7 +53,7 @@ public class CapacityTransactionTests
   public void setUp () throws Exception
   {
     Competition.setCurrent(Competition.newInstance("Capacity transaction test"));
-    baseTime = Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
+    baseTime = Competition.currentCompetition().getSimulationBaseTime().plusMillis(TimeService.DAY);
     brokerRepo = BrokerRepo.getInstance();
     broker = new Broker("Sally");
     brokerRepo.add(broker);

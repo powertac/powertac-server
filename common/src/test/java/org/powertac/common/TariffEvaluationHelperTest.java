@@ -17,9 +17,9 @@ package org.powertac.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
@@ -49,8 +49,8 @@ public class TariffEvaluationHelperTest
     timeService = new TimeService();
     tariffRepo = new TariffRepo();
     ReflectionTestUtils.setField(teh, "timeService", timeService);
-    start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
-    timeService.init(start.plus(TimeService.HOUR)); // init subtracts one hour
+    start = ZonedDateTime.of(2011, 1, 1, 12, 0, 0, 0,  ZoneOffset.UTC).toInstant();
+    timeService.init(start.plusMillis(TimeService.HOUR)); // init subtracts one hour
     broker = new Broker ("testBroker");
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION);
     mbd = new MarketBootstrapData(new double[] {1.0,1.0,1.0},
@@ -262,7 +262,7 @@ public class TariffEvaluationHelperTest
     assertEquals(expected, result, 1e-6, "correct result");
     
     // add a single hourly charge -- it should be ignored
-    hc = new HourlyCharge(start.plus(TimeService.HOUR), 0.12);
+    hc = new HourlyCharge(start.plusMillis(TimeService.HOUR), 0.12);
     tariff.addHourlyCharge(hc, r.getId());
     teh.init(.6, .4, .5, 10000.0);
     double[] usage1 = {100.0, 200.0};

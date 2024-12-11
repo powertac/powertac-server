@@ -15,7 +15,7 @@
  */
 package org.powertac.common.repo;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.RepeatingTimedAction;
 import org.powertac.common.TimeService;
 import org.powertac.common.TimedAction;
@@ -57,7 +57,7 @@ public abstract class ManagedRepo implements DomainRepo
                   doCleanup();
                 }
               }, interval);
-      timeService.addAction(timeService.getCurrentTime().plus(offset),
+      timeService.addAction(timeService.getCurrentTime().plusMillis(offset),
                             rta);
       setupComplete = true;
     }

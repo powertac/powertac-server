@@ -21,9 +21,9 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.SortedSet;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,9 +70,9 @@ public class OrderbookTests
   {
     timeslotRepo.recycle();
     competition = Competition.newInstance("market order test");
-    now = new DateTime(2011, 10, 10, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    now = ZonedDateTime.of(2011, 10, 10, 12, 0, 0, 0, ZoneOffset.UTC).toInstant();
     timeslotRepo.makeTimeslot(now);
-    timeslot = timeslotRepo.makeTimeslot(now.plus(competition.getTimeslotDuration()));
+    timeslot = timeslotRepo.makeTimeslot(now.plusMillis(competition.getTimeslotDuration()));
   }
 
   @Test

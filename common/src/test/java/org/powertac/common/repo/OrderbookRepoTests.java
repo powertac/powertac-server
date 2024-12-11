@@ -17,9 +17,9 @@ package org.powertac.common.repo;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
@@ -46,7 +46,7 @@ public class OrderbookRepoTests
     repo = new OrderbookRepo();
     timeslotRepo = new TimeslotRepo();
     timeService = new TimeService();
-    start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    start = ZonedDateTime.of(2011, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC).toInstant();
     timeService.setCurrentTime(start);
     ReflectionTestUtils.setField(repo, "timeService", timeService);
   }
@@ -76,7 +76,7 @@ public class OrderbookRepoTests
     Orderbook ob = repo.makeOrderbook(timeslot, 22.0);
     assertEquals(1, repo.size(), "size 1");
     assertEquals(ob, repo.findByTimeslot(timeslot), "found this one");
-    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
+    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR));
     assertNull(repo.findByTimeslot(timeslot2), "no orderbook yet");
     Orderbook ob2 = repo.makeOrderbook(timeslot2, 23.0);
     assertEquals(2, repo.size(), "size 2");
@@ -90,7 +90,7 @@ public class OrderbookRepoTests
   public void testRecycle ()
   {
     Timeslot timeslot = timeslotRepo.makeTimeslot(start);
-    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
+    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR));
     Orderbook ob1 = repo.makeOrderbook(timeslot, 22.0);
     Orderbook ob2 = repo.makeOrderbook(timeslot2, 23.0);
     assertEquals(ob1, repo.findByTimeslot(timeslot), "found this one");
@@ -106,9 +106,9 @@ public class OrderbookRepoTests
   @Test
   public void testRecycle2 ()
   {
-    long start = new Instant().getMillis();
+    long start = Instant.now().toEpochMilli();
     int rate = 3600;
-    timeService.setClockParameters(new Instant().getMillis(),
+    timeService.setClockParameters(Instant.now().toEpochMilli(),
                                    rate, TimeService.HOUR);
     timeService.setStart(start);
     timeService.updateTime();
@@ -142,7 +142,7 @@ public class OrderbookRepoTests
     for (int i = 0; i < minAskPrices.length; i++) {
       assertEquals(minAskPrices[i], val[i], 1e-8, "same value");
     }
-    timeService.setCurrentTime(start.plus(TimeService.HOUR * 2));
+    timeService.setCurrentTime(start.plusMillis(TimeService.HOUR * 2));
   }
 
 }

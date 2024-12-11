@@ -15,19 +15,16 @@
  */
 package org.powertac.common;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -486,10 +483,10 @@ public class Tariff
 
   private int getTimeIndex (Instant when)
   {
-    DateTime dt = new DateTime(when, DateTimeZone.UTC);
-    int di = dt.getHourOfDay();
+    ZonedDateTime dt = ZonedDateTime.ofInstant(when, ZoneOffset.UTC);
+    int di = dt.getHour();
     if (isWeekly)
-      di += 24 * (dt.getDayOfWeek() - 1);
+      di += 24 * (dt.getDayOfWeek().getValue() - 1);
     return di;
   }
 

@@ -1,6 +1,6 @@
 package org.powertac.common;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 /**
  * Generic action type that takes time as an argument.

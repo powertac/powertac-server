@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Competition;
@@ -65,7 +65,7 @@ public class ConfiguratorTest
     uut.configureSingleton(comp);
     assertEquals(15, comp.getTimeslotLength(), "correct timeslot length");
     assertEquals(600, comp.getMinimumTimeslotCount(), "correct min ts count");
-    Instant inst = new DateTime(2009, 10, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    Instant inst = ZonedDateTime.of(2009, 10, 10, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();
     assertEquals(inst, comp.getSimulationBaseTime(), "correct base time");
   }
 

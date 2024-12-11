@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.joda.time.DateTime;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +19,7 @@ public class WeatherReportTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 	    Competition.newInstance("test");
-		Instant baseTime = new DateTime().toInstant();
+		Instant baseTime = ZonedDateTime.now().toInstant();
 		ts1 = new Timeslot(1, baseTime);
 		ts1Num = ts1.getSerialNumber();
 	}

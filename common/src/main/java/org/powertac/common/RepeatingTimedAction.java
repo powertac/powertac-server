@@ -15,7 +15,7 @@
  */
 package org.powertac.common;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 /**
  * A timedAction
@@ -38,7 +38,7 @@ public class RepeatingTimedAction implements TimedAction
   @Override
   public void perform (Instant theTime)
   {
-    ts.addAction(ts.getCurrentTime().plus(interval),
+    ts.addAction(ts.getCurrentTime().plusMillis(interval),
                  this);
     core.perform(theTime);
   }

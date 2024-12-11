@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringWriter;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ public class VariableRateUpdateTests
   @Test
   public void testCreate ()
   {
-    HourlyCharge hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 4.2);
+    HourlyCharge hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 4.2);
     Rate rate = new Rate().withFixed(false);
     VariableRateUpdate vru = new VariableRateUpdate(broker, rate, hc);
     assertNotNull(vru, "created VRU");
@@ -76,30 +76,30 @@ public class VariableRateUpdateTests
   {
     Rate rate = new Rate().withFixed(false)
             .withMinValue(-.01).withMaxValue(-0.1).withExpectedMean(-0.05);
-    HourlyCharge hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 4.2);
+    HourlyCharge hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 4.2);
     VariableRateUpdate vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(), "not valid without Rate");
     assertFalse(vru.isValid(rate), "out of range");
 
     // validity bounds
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.02);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.02);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.01);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.01);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.1);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.1);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
     // out of bounds
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.0099);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.0099);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "valid");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.1001);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.1001);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "valid");
   }
@@ -109,30 +109,30 @@ public class VariableRateUpdateTests
   {
     Rate rate = new Rate().withFixed(false)
             .withMinValue(.01).withMaxValue(0.1).withExpectedMean(0.05);
-    HourlyCharge hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 4.2);
+    HourlyCharge hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 4.2);
     VariableRateUpdate vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(), "not valid without Rate");
     assertFalse(vru.isValid(rate), "out of range");
 
     // validity bounds
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.02);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.02);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.01);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.01);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.1);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.1);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
     // out of bounds
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.0099);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.0099);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "not valid low");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.1001);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.1001);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "not valid high");
   }
@@ -142,19 +142,19 @@ public class VariableRateUpdateTests
   {
     Rate rate = new Rate().withFixed(false)
             .withMinValue(0.0).withMaxValue(0.0).withExpectedMean(0.0);
-    HourlyCharge hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 4.2);
+    HourlyCharge hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 4.2);
     VariableRateUpdate vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "out of range");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.0001);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.0001);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "not valid low");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.0001);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.0001);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "not valid high");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.0);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.0);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
   }
@@ -164,27 +164,27 @@ public class VariableRateUpdateTests
   {
     Rate rate = new Rate().withFixed(false)
             .withMinValue(-0.1).withMaxValue(0.1).withExpectedMean(0.0);
-    HourlyCharge hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 4.2);
+    HourlyCharge hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 4.2);
     VariableRateUpdate vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "out of range");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.10001);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.10001);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "not valid low");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.10001);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.10001);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertFalse(vru.isValid(rate), "not valid high");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.0);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.0);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), -0.1);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), -0.1);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
 
-    hc = new HourlyCharge(base.plus(TimeService.HOUR * 4), 0.1);
+    hc = new HourlyCharge(base.plusMillis(TimeService.HOUR * 4), 0.1);
     vru = new VariableRateUpdate(broker, rate, hc);
     assertTrue(vru.isValid(rate), "valid");
   }
@@ -192,7 +192,7 @@ public class VariableRateUpdateTests
   @Test
   public void xmlSerialization ()
   {
-    Instant when = base.plus(TimeService.HOUR * 4);
+    Instant when = base.plusMillis(TimeService.HOUR * 4);
     Rate rate = new Rate().withFixed(false);
     rate.setTariffId(spec.getId());
     HourlyCharge hc = new HourlyCharge(when, 4.2);

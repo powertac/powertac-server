@@ -23,7 +23,7 @@ import java.util.List;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -425,7 +425,7 @@ implements BrokerContext
               comp.getBootstrapDiscardedTimeslots());
     // now set time to end of bootstrap period.
     timeService.setClockParameters(comp.getClockParameters());
-    timeService.init(bootBaseTime.plus(bootTimeslotCount * comp.getTimeslotDuration()));
+    timeService.init(bootBaseTime.plusMillis(bootTimeslotCount * comp.getTimeslotDuration()));
     log.info("Sim start time: " + timeService.getCurrentDateTime().toString());
 
     // init repos after time is set
@@ -468,7 +468,7 @@ implements BrokerContext
     // local brokers don't need to handle this
     log.info("Resumed");
     //pausedAt = 0;
-    timeService.setStart(sr.getStart().getMillis() - serverClockOffset);
+    timeService.setStart(sr.getStart().toEpochMilli() - serverClockOffset);
     timeService.updateTime();
   }
 
@@ -480,7 +480,7 @@ implements BrokerContext
   public void handleMessage (SimStart ss)
   {
     log.info("SimStart - start time is " + ss.getStart().toString());
-    timeService.setStart(ss.getStart().getMillis() - serverClockOffset);
+    timeService.setStart(ss.getStart().toEpochMilli() - serverClockOffset);
     timeService.updateTime();
     log.info("SimStart - clock set to " + timeService.getCurrentDateTime().toString());
   }

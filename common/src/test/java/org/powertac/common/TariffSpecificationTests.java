@@ -20,9 +20,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.StringWriter;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.enumerations.PowerType;
@@ -53,7 +54,7 @@ public class TariffSpecificationTests
   @BeforeEach
   public void setUp () throws Exception
   {
-    timeService.setCurrentTime(new DateTime());
+    timeService.setCurrentTime( ZonedDateTime.now( ZoneOffset.UTC).toInstant());
     now = timeService.getCurrentTime();
     broker = new Broker("Jenny");
     BrokerRepo repo = new BrokerRepo();
@@ -80,7 +81,7 @@ public class TariffSpecificationTests
   public void testSetExpiration ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
-    Instant exp = now.plus(TimeService.HOUR * 24);
+    Instant exp = now.plusMillis(TimeService.HOUR * 24).truncatedTo(ChronoUnit.MILLIS);
     assertEquals(spec, spec.withExpiration(exp), "correct return");
     assertEquals(exp, spec.getExpiration(), "correct value");
   }
@@ -176,8 +177,8 @@ public class TariffSpecificationTests
   public void testXmlSerialization ()
   {
     Rate r = new Rate().withValue(-0.121).
-            withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC)).
-            withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC)).
+            withDailyBegin(ZonedDateTime.of(2011, 1, 1, 6, 0, 0, 0,  ZoneOffset.UTC)).
+            withDailyEnd(ZonedDateTime.of(2011, 1, 1, 8, 0, 0, 0,  ZoneOffset.UTC)).
             withTierThreshold(100.0);
     RegulationRate rr = new RegulationRate().
             withUpRegulationPayment(.05).
@@ -190,7 +191,7 @@ public class TariffSpecificationTests
                                     withMinDuration(20000l).
                                     withSignupPayment(35.0).
                                     withPeriodicPayment(-0.05).
-                                    withExpiration(now.plus(TimeService.DAY * 2)).
+                                    withExpiration(now.plusMillis(TimeService.DAY * 2)).
                                     addSupersedes(42l).
                                     addRate(r).
                                     addRate(rr);
@@ -208,7 +209,7 @@ public class TariffSpecificationTests
     assertNotNull(supersedes, "non-empty supersedes list");
     assertEquals(1, supersedes.size(), "one entry");
     assertEquals(42l, supersedes.get(0).longValue(), "correct entry");
-    assertEquals(now.plus(TimeService.DAY * 2), xspec.getExpiration(), "correct expiration");
+    assertEquals(now.plusMillis(TimeService.DAY * 2).truncatedTo(ChronoUnit.MILLIS) , xspec.getExpiration(), "correct expiration");
     Rate xr = (Rate)xspec.getRates().get(0);
     assertNotNull(xr, "rate present");
     assertTrue(xr.isFixed(), "correct rate type");
