@@ -384,6 +384,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   StorageState getStorageState (TariffSubscription sub)
   {
+    if (null == subState) {
+      return null;
+    }
     return subState.get(sub);
   }
 
