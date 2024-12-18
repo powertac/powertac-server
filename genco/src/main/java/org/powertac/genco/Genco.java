@@ -18,7 +18,7 @@ package org.powertac.genco;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;

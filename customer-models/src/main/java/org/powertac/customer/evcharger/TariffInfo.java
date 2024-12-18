@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
@@ -123,7 +123,7 @@ class TariffInfo
       maxTariffCost = Math.min(maxTariffCost, tariffCost[index]);
       minTariffCost = Math.max(minTariffCost, tariffCost[index]);
       costSum += tariffCost[index];
-      evalTime = evalTime.plus(increment);
+      evalTime = evalTime.plusMillis(increment);
     }
     meanTariffCost = costSum / profileSize;
 
@@ -152,7 +152,7 @@ class TariffInfo
       // normally these steps happen after distributing regulation
       ss.collapseElements(timeslot + 1);
       ss.rebalance(timeslot + 1);
-      //evalTime = evalTime.plus(increment);
+      //evalTime = evalTime.plusMillis(increment);
       timeslot += 1;
     }
     // now do the same thing to fill up the profile array
@@ -180,7 +180,7 @@ class TariffInfo
         // clean up for next timeslot
         ss.collapseElements(timeslot + 1);
         ss.rebalance(timeslot + 1);
-        //evalTime = evalTime.plus(increment);
+        //evalTime = evalTime.plusMillis(increment);
         timeslot += 1;
       }
     }
@@ -248,7 +248,7 @@ class TariffInfo
         // Premiums < 0.0 mean we lose money on regulation
         upRegulationPremium[index] = upregPayment + cost;
         downRegulationPremium[index] = downregCost - cost;
-        evalTime = evalTime.plus(increment);
+        evalTime = evalTime.plusMillis(increment);
       }
     }
     else {
@@ -279,7 +279,7 @@ class TariffInfo
   //      Instant start =
   //          service.getTimeslotRepo().currentTimeslot().getStartInstant();
   //      for (int i = 0; i < profileSize; i++) {
-  //        Instant when = start.plus(i * TimeService.HOUR);
+  //        Instant when = start.plusMillis(i * TimeService.HOUR);
   //        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
   //          cumulativeUsage = 0.0;
   //        }

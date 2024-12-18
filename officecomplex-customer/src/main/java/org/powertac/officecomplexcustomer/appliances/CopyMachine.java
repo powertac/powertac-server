@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -198,7 +198,7 @@ public class CopyMachine extends SemiShiftingAppliance
       int[] minindex = new int[2];
       double[] minvalue = { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
       Instant hour1 =
-        new Instant(now.getMillis() + TimeService.HOUR
+        Instant.ofEpochMilli(now.toInstant().toEpochMilli() + TimeService.HOUR
                     * OfficeComplexConstants.START_OF_FUNCTION_HOURS);
 
       for (int i = OfficeComplexConstants.START_OF_FUNCTION_HOURS; i < OfficeComplexConstants.END_OF_FUNCTION_HOUR; i++) {
@@ -221,7 +221,7 @@ public class CopyMachine extends SemiShiftingAppliance
           minindex[1] = i;
         }
 
-        hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
+        hour1 = Instant.ofEpochMilli(hour1.toInstant().toEpochMilli() + TimeService.HOUR);
 
       }
 

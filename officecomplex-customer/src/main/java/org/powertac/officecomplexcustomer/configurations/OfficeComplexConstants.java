@@ -11,7 +11,9 @@
 
 package org.powertac.officecomplexcustomer.configurations;
 
-import org.joda.time.Instant;
+import java.time.Instant;
+import java.time.ZoneOffset;
+
 import org.powertac.common.Competition;
 
 /**
@@ -212,7 +214,7 @@ public class OfficeComplexConstants
   {
     Instant base = Competition.currentCompetition().getSimulationBaseTime();
 
-    int bias = Math.abs(base.toDate().getDay() - DAYS_OF_WEEK) % DAYS_OF_WEEK;
+    int bias = Math.abs(base.atZone(ZoneOffset.UTC).getDayOfWeek().getValue() - DAYS_OF_WEEK) % DAYS_OF_WEEK;
 
     MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
     TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;

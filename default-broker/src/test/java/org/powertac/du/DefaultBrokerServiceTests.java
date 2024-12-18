@@ -26,7 +26,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -420,7 +420,7 @@ public class DefaultBrokerServiceTests
     assertEquals(0.0, usage, 1e-6, "no usage");
     
     // move the clock ahead and use some more power
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
@@ -765,7 +765,7 @@ public class DefaultBrokerServiceTests
   // called to make the clock tick
   private void nextTimeslot ()
   {
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
   }
   
   // called to end a timeslot

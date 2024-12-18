@@ -28,9 +28,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -109,9 +109,9 @@ public class AccountingServiceTests
     comp = Competition.newInstance("accounting-test");
     
     // set the clock
-    //Instant now = new DateTime(2011, 1, 26, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    //Instant now = ZonedDateTime.of(2011, 1, 26, 12, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     Instant now = Competition.currentCompetition().getSimulationBaseTime(); 
-    now = now.plus(TimeService.HOUR);
+    now = now.plusMillis(TimeService.HOUR);
     timeService.setCurrentTime(now);
     
     // set up brokers and customers
@@ -128,7 +128,7 @@ public class AccountingServiceTests
          .withPowerType(PowerType.CONSUMPTION);
 
     // set up tariffs - tariff1 for consumption, tariff2 for production
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec = new TariffSpecification(bob, PowerType.CONSUMPTION)
         .withExpiration(exp)
         .withMinDuration(TimeService.WEEK * 8)
@@ -158,10 +158,10 @@ public class AccountingServiceTests
     tariffRepo.addTariff(tariffJ1);
     
     // set up some timeslots
-    timeslotRepo.makeTimeslot(now.minus(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(now.minusMillis(TimeService.HOUR));
     timeslotRepo.makeTimeslot(now);
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR));
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
+    timeslotRepo.makeTimeslot(now.plusMillis(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(now.plusMillis(TimeService.HOUR * 2));
 
     // Set up serverProperties mock
     config = new Configurator();
@@ -537,7 +537,7 @@ public class AccountingServiceTests
     // are posted
     double bobCash1 = bob.getCashBalance();
     msgMap.clear();
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     accountingService.activate(timeService.getCurrentTime(), 3);
 
     double bobCash2 = bob.getCashBalance();
@@ -565,11 +565,11 @@ public class AccountingServiceTests
     assertEquals(0.0, accountingService.getCurrentMarketPosition (bob), 1e-6, "correct position, bob, ts4");
     assertEquals(0.0, accountingService.getCurrentMarketPosition (jim), 1e-6, "correct position, jim, ts4");
     // move forward to timeslot 5 and try again
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     assertEquals(0.8, accountingService.getCurrentMarketPosition (bob), 1e-6, "correct position, bob, ts5");
     assertEquals(0.2, accountingService.getCurrentMarketPosition (jim), 1e-6, "correct position, jim, ts5");
     // another hour and try again
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     assertEquals(0.7, accountingService.getCurrentMarketPosition (bob), 1e-6, "correct position, bob, ts5");
     assertEquals(0.0, accountingService.getCurrentMarketPosition (jim), 1e-6, "correct position, jim, ts5");
   }
@@ -589,7 +589,7 @@ public class AccountingServiceTests
     bob.updateCash(-1000.0);
 
     // move to midnight, activate and check messages
-    timeService.setCurrentTime(new DateTime(2011, 1, 27, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    timeService.setCurrentTime(ZonedDateTime.of(2011, 1, 27, 0, 0, 0, 0, ZoneOffset.UTC).toInstant());
     final Map<Broker, List> msgMap = new HashMap<Broker, List>();
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {

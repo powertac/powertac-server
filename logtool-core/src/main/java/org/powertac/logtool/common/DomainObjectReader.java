@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
@@ -808,7 +808,7 @@ public class DomainObjectReader
         // make Instant from Long
         try {
           Long msec = Long.parseLong(arg);
-          return new Instant(msec);
+          return Instant.ofEpochMilli(msec);
         }
         catch (Exception e) {
           // Long parse failure
