@@ -21,6 +21,7 @@
 # Run artifacts
 **/log/
 **/*.log
+bootstrap.xml
 
 # Release artifacts
 **/release.properties
@@ -54,5 +55,3 @@
 **/.DS_Store
 **/Thumbs.db
 **/Desktop.ini
-
-
