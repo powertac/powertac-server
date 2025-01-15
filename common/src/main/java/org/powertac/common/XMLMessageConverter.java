@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import java.time.Instant;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,6 +46,10 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.SystemPropertyUtils;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 /**
  * Initializes the XStream message serialization system
  * 
@@ -64,8 +70,45 @@ public class XMLMessageConverter
       XStream xstream = new XStream();
       //XStream.setupDefaultSecurity(xstream); // TODO Remove with XStream 1.5
       xstream.allowTypesByWildcard(new String[] {"org.powertac.**"});
+      
+      // Register custom converter for java.time.Instant
+      xstream.registerConverter(new CustomInstantConverter());
+      
       return xstream;
   }
+
+  private static class CustomInstantConverter
+    implements com.thoughtworks.xstream.converters.Converter
+  {
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean canConvert (Class type)
+    {
+      return Instant.class.equals(type);
+    }
+
+    @Override
+    public void marshal (Object source, HierarchicalStreamWriter writer,
+                         MarshallingContext context)
+    {
+      Instant instant = (Instant) source;
+      writer.startNode("iMillis");
+      writer.setValue(String.valueOf(instant.toEpochMilli()));
+      writer.endNode();
+    }
+
+    @Override
+    public Object unmarshal (HierarchicalStreamReader reader,
+                             UnmarshallingContext context)
+    {
+      reader.moveDown();
+      long millis = Long.parseLong(reader.getValue());
+      reader.moveUp();
+      return Instant.ofEpochMilli(millis);
+    }
+  }
+
 
   // inject context here so that it would be initialized before this class
   // @PostConstruct method get called and use the singleton.
