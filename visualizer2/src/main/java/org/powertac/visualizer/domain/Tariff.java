@@ -60,7 +60,7 @@ public class Tariff {
         super();
         this.broker = broker;
         this.tariffSpecId = spec.getId();
-        this.expiration = spec.getExpiration() == null ? -1 : spec.getExpiration().getMillis();
+        this.expiration = spec.getExpiration() == null ? -1 : spec.getExpiration().toInstant().toEpochMilli();
         this.minDuration = spec.getMinDuration();
         this.powerType = spec.getPowerType().toString();
         this.signupPayment = spec.getSignupPayment();

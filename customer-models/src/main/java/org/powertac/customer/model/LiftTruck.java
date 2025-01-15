@@ -26,8 +26,10 @@ import java.util.Map;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Instant;
+import java.time.temporal.ChronoField;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.Duration;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -495,7 +497,7 @@ implements CustomerModelAccessor
     // this gives us the info we need to start the sequence
     ArrayList<ShiftEnergy> data = new ArrayList<ShiftEnergy>();
     data.add(new ShiftEnergy(seStart, index, duration));
-    seStart = seStart.plus(duration * TimeService.HOUR);
+    seStart = seStart.plusMillis(duration * TimeService.HOUR);
     int elapsed = duration;
     // add shifts until we run off the end of the horizon
     // keep in mind that a shift can be null
@@ -508,7 +510,7 @@ implements CustomerModelAccessor
       nextShift = shiftSchedule[index];
       data.add(new ShiftEnergy(seStart, index, duration));
       elapsed += duration;
-      seStart = seStart.plus(duration * TimeService.HOUR);
+      seStart = seStart.plusMillis(duration * TimeService.HOUR);
     }
     // now we convert to array, then walk backward and fill in energy needs
     ShiftEnergy[] result = data.toArray(new ShiftEnergy[data.size()]);
@@ -562,8 +564,8 @@ implements CustomerModelAccessor
   // Returns the index into the shift array corresponding to the given time.
   int indexOfShift (Instant time)
   {
-    int hour = time.get(DateTimeFieldType.hourOfDay());
-    int day = time.get(DateTimeFieldType.dayOfWeek());
+    int hour = time.atZone(ZoneOffset.UTC).getHour();
+    int day = time.atZone(ZoneOffset.UTC).getDayOfWeek().getValue();
     return hour + (day - 1) * HOURS_DAY;
   }
 
@@ -595,9 +597,9 @@ implements CustomerModelAccessor
     }
     int nowIndex = indexOfShift(now);
     if (nowIndex <= index) {
-      return (now.plus(TimeService.HOUR * (index - nowIndex)));
+      return (now.plusMillis(TimeService.HOUR * (index - nowIndex)));
     }
-    return (now.plus(TimeService.HOUR * (shiftSchedule.length + index - nowIndex)));
+    return (now.plusMillis(TimeService.HOUR * (shiftSchedule.length + index - nowIndex)));
   }
 
   private Instant getNowInstant ()
@@ -609,11 +611,11 @@ implements CustomerModelAccessor
   private Instant getNextSunday ()
   {
     Instant result = getNowInstant();
-    int hour = result.get(DateTimeFieldType.hourOfDay());
+    int hour = result.get(ChronoField.HOUR_OF_DAY);
     if (hour > 0)
-      result = result.plus((24 - hour) * TimeService.HOUR);
-    int day = result.get(DateTimeFieldType.dayOfWeek());
-    result = result.plus((7 - day) * TimeService.DAY);
+      result = result.plusMillis((24 - hour) * TimeService.HOUR);
+    int day = result.get(ChronoField.DAY_OF_WEEK);
+    result = result.plusMillis((7 - day) * TimeService.DAY);
     return result;
   }
 
@@ -1280,7 +1282,7 @@ implements CustomerModelAccessor
       if (tariff != this.tariff)
         return false;
       int remaining =
-          (int)(size - (now.getMillis() - start.getMillis()) / TimeService.HOUR);
+          (int)(size - Duration.between(start, now).toHours());
       if (remaining < getMinPlanningHorizon())
         return false;
       return true;
@@ -1429,7 +1431,7 @@ implements CustomerModelAccessor
           column += 1;
           // construct cumulative usage constraints
           //a[i][column] = -1.0;
-          //time = time.plus(TimeService.HOUR);
+          //time = time.plusMillis(TimeService.HOUR);
         }
         // fill a row up to column
         for (int j = 0; j < column; j++) {

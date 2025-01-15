@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +77,7 @@ public class BalancingMarketServiceTests
   private List<Broker> brokerList = new ArrayList<>();
   private List<TariffSpecification> tariffSpecList = new ArrayList<>();
   private List<Tariff> tariffList = new ArrayList<>();
-  private DateTime start;
+  private ZonedDateTime start;
 
   @BeforeEach
   public void setUp ()
@@ -87,8 +87,10 @@ public class BalancingMarketServiceTests
     Competition.setCurrent(comp);
 
     Instant base =
-            Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
-    start = new DateTime(start, DateTimeZone.UTC);
+            Competition.currentCompetition().getSimulationBaseTime().plusMillis(TimeService.DAY);
+    if (null == start) {
+      start = ZonedDateTime.now(ZoneOffset.UTC);
+    }
     timeService.setCurrentTime(base);
     timeslotRepo.makeTimeslot(base);
     //timeslotRepo.currentTimeslot().disable();// enabled: false);
@@ -257,10 +259,10 @@ public class BalancingMarketServiceTests
   {
     // add some new timeslots
     Timeslot ts0 = timeslotRepo.currentTimeslot();
-    long start = timeService.getCurrentTime().getMillis();
-    Timeslot ts1 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR * 3));
-    Timeslot ts2 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR * 2));
-    Timeslot ts3 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR));
+    long start = timeService.getCurrentTime().toEpochMilli();
+    Timeslot ts1 = timeslotRepo.findByInstant(Instant.ofEpochMilli(start - TimeService.HOUR * 3));
+    Timeslot ts2 = timeslotRepo.findByInstant(Instant.ofEpochMilli(start - TimeService.HOUR * 2));
+    Timeslot ts3 = timeslotRepo.findByInstant(Instant.ofEpochMilli(start - TimeService.HOUR));
 
     // add some orderbooks
     orderbookRepo.makeOrderbook(ts3, 33.0);

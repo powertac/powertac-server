@@ -24,8 +24,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -885,7 +884,7 @@ implements CustomerModelAccessor
       Instant start =
           service.getTimeslotRepo().currentTimeslot().getStartInstant();
       for (int i = 0; i < profileSize; i++) {
-        Instant when = start.plus(i * TimeService.HOUR);
+        Instant when = start.plusMillis(i * TimeService.HOUR);
 //        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
 //          cumulativeUsage = 0.0;
 //        }

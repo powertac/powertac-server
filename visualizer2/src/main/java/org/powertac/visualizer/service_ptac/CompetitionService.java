@@ -1,6 +1,6 @@
 package org.powertac.visualizer.service_ptac;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.TimeService;
 import org.springframework.stereotype.Service;
 

@@ -5,9 +5,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -105,18 +105,18 @@ public class WeatherServiceTest
     //reset(serverPropertiesService);
 
     // Set the current instant to a time when we are requesting data
-    start = new DateTime(2010, 4, 1, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    start = ZonedDateTime.of(2010, 4, 1, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     comp = Competition.newInstance("WeatherService test")
             .withSimulationBaseTime(start);
     Competition.setCurrent(comp);
-    next = start.plus(comp.getTimeslotDuration());
-    timeService.setClockParameters(start.getMillis(),
+    next = start.plusMillis(comp.getTimeslotDuration());
+    timeService.setClockParameters(start.toEpochMilli(),
                                    comp.getSimulationRate(),
                                    comp.getSimulationModulo());
     timeService.setCurrentTime(start);
     //if (timeslotRepo.currentTimeslot() == null) {
     //	for (int i = 0; i < 48; i++) {
-    //		timeslotRepo.makeTimeslot(start.plus(comp.getTimeslotDuration()
+    //		timeslotRepo.makeTimeslot(start.plusMillis(comp.getTimeslotDuration()
     //				* i));
     //	}
     //}
@@ -320,7 +320,7 @@ public class WeatherServiceTest
     for (int i = 0; i < 23; i++) {
       timeService.setCurrentTime(next);
       weatherService.activate(next, 1);
-      next = next.plus(comp.getTimeslotDuration());
+      next = next.plusMillis(comp.getTimeslotDuration());
       assertEquals(24, weatherReportRepo.count());
     }
     timeService.setCurrentTime(next);

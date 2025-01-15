@@ -1,6 +1,6 @@
 package org.powertac.visualizer.service_ptac;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.CashPosition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketTransaction;
@@ -122,7 +122,7 @@ public class MessageHandler {
         // local brokers don't need to handle this
         log.trace("SimResume received");
         // pausedAt = 0;
-        // timeService.setStart(sr.getStart().getMillis() - serverClockOffset);
+        // timeService.setStart(sr.getStart().toInstant().toEpochMilli() - serverClockOffset);
         // timeService.updateTime();
     }
 
@@ -304,7 +304,7 @@ public class MessageHandler {
     }
 
     private void perTimeslotUpdate() {
-        TickSnapshot ts = new TickSnapshot(currentInstant.getMillis(), currentTimeslot);
+        TickSnapshot ts = new TickSnapshot(currentInstant.toInstant().toEpochMilli(), currentTimeslot);
         tickSnapshotRepo.save(ts);
 
         // reset per time slot KPI values:

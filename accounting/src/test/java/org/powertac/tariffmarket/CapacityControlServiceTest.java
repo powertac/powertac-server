@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -94,7 +94,7 @@ public class CapacityControlServiceTest
   public void setUp () throws Exception
   {
     reset(mockAccounting);
-    baseTime = new DateTime(1972, 9, 6, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    baseTime = ZonedDateTime.of(1972, 9, 6, 12, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(baseTime);
     Competition competition =
         Competition.newInstance("tst").withSimulationBaseTime(baseTime);
@@ -109,7 +109,7 @@ public class CapacityControlServiceTest
     customer2 = new CustomerInfo("Nowhere", 400).withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
     // a tariff for interruptible consumption
     spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-        .withExpiration(baseTime.plus(TimeService.DAY * 10))
+        .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
         .withMinDuration(TimeService.DAY * 5)
         .addRate(new Rate().withValue(-0.11).withMaxCurtailment(0.4));
     tariff = new Tariff(spec);
@@ -167,7 +167,7 @@ public class CapacityControlServiceTest
   @Test
   public void postBogusEconomicControl ()
   {
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     EconomicControlEvent ece1 = new EconomicControlEvent(spec, 0.20, 0);
     capacityControl.postEconomicControl(ece1);
     List<EconomicControlEvent> controls =
@@ -205,7 +205,7 @@ public class CapacityControlServiceTest
   {
     TariffSpecification specRR =
       new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION)
-          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
           .withMinDuration(TimeService.DAY * 5)
           .addRate(new Rate().withValue(-0.11))
           .addRate(new RegulationRate().withUpRegulationPayment(0.15)
@@ -386,7 +386,7 @@ public class CapacityControlServiceTest
   }
 
   /**
-   * Test method for {@link org.powertac.tariffmarket.CapacityControlService#activate(org.joda.time.Instant, int)}.
+   * Test method for {@link org.powertac.tariffmarket.CapacityControlService#activate(java.time.Instant, int)}.
    */
   @Test
   public void testActivate ()

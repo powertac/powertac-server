@@ -25,7 +25,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.config.ConfigurableValue;

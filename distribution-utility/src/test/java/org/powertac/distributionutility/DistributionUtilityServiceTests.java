@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +94,7 @@ public class DistributionUtilityServiceTests
   private Broker broker3;
   private CustomerInfo cust1;
   private CustomerInfo cust2;
-  private DateTime start;
+  private ZonedDateTime start;
 
   @BeforeEach
   public void setUp ()
@@ -111,8 +111,10 @@ public class DistributionUtilityServiceTests
 
     Instant base =
             Competition.currentCompetition().getSimulationBaseTime();
-    start = new DateTime(start, DateTimeZone.UTC);
-    timeService.setCurrentTime(base.plus(TimeService.HOUR * 4));
+    if (null == start) {
+      start = ZonedDateTime.now(ZoneOffset.UTC);
+    }
+    timeService.setCurrentTime(base.plusMillis(TimeService.HOUR * 4));
     timeslotRepo.makeTimeslot(base);
     //timeslotRepo.currentTimeslot().disable();// enabled: false);
     reset(accountingService);
@@ -606,7 +608,7 @@ public class DistributionUtilityServiceTests
 
   private void bumpTime (long incr)
   {
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(incr));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(incr));
   }
 
   @Test

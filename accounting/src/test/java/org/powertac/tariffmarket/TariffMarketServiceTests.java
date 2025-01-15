@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -189,13 +189,13 @@ public class TariffMarketServiceTests
     }).when(mockServerProperties).configureMe(any());
     
     // init time service
-    start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    start = ZonedDateTime.of(2011, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(start);
     timeslotRepo.makeTimeslot(start);
     
     // create useful objects, set parameters
     broker = new Broker("testBroker");
-    exp = new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    exp = ZonedDateTime.of(2011, 3, 1, 12, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .withExpiration(exp)
         .withMinDuration(TimeService.WEEK * 8)
@@ -280,7 +280,7 @@ public class TariffMarketServiceTests
 
     TariffSpecification unpublished = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .addRate(new Rate().withValue(0.121));
-    Instant newExp = new DateTime(2011, 3, 1, 10, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    Instant newExp = ZonedDateTime.of(2011, 3, 1, 10, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), unpublished, newExp);
     tariffMarketService.handleMessage(tex);
     status = (TariffStatus)msgs.get(1);
@@ -300,9 +300,9 @@ public class TariffMarketServiceTests
     assertEquals(TariffStatus.Status.success, status.getStatus(), "success");
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertEquals(exp, tf.getExpiration(), "Correct expiration");
-    //Instant newExp = new DateTime(2011, 3, 1, 8, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    //Instant newExp = ZonedDateTime.of(2011, 3, 1, 8, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     //timeService.setCurrentTime(newExp);
-    Instant newExp = timeService.getCurrentTime().minus(TimeService.HOUR);
+    Instant newExp = timeService.getCurrentTime().minusMillis(TimeService.HOUR);
     TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), tariffSpec, newExp);
     tariffMarketService.handleMessage(tex);
     status = (TariffStatus)msgs.get(1);
@@ -321,7 +321,7 @@ public class TariffMarketServiceTests
     assertEquals(TariffStatus.Status.success, status.getStatus(), "success");
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertEquals(exp, tf.getExpiration(), "Correct expiration");
-    Instant newExp = new DateTime(2011, 3, 1, 10, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    Instant newExp = ZonedDateTime.of(2011, 3, 1, 10, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), tariffSpec, newExp);
     tariffMarketService.handleMessage(tex);
     status = (TariffStatus)msgs.get(1);
@@ -438,12 +438,12 @@ public class TariffMarketServiceTests
     assertFalse(tf.isRevoked(), "tariff not yet revoked");
 
     // forward an hour and activate, still should not be revoked.
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertFalse(tf.isRevoked(), "tariff not yet revoked");
 
     // forward two more hours and activate, should do the trick
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 2));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR * 2));
     tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertTrue(tf.isRevoked(), "tariff revoked");
     TariffRevoke revoke = (TariffRevoke)msgs.get(2);
@@ -488,14 +488,14 @@ public class TariffMarketServiceTests
 
     // forward an hour and activate, still should not be revoked.
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR));
+        .plusMillis(TimeService.HOUR));
     tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertFalse(tf.isRevoked(), "tariff 1 not yet revoked");
     assertFalse(tf2.isRevoked(), "tariff 2 not yet revoked");
 
     // forward two more hours and activate, should do the trick
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR * 2));
+        .plusMillis(TimeService.HOUR * 2));
     tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertFalse(tf.isRevoked(), "tariff 1 not revoked");
     assertFalse(tf2.isRevoked(), "tariff 2 not revoked");
@@ -511,7 +511,7 @@ public class TariffMarketServiceTests
     // what the broker does...
     TariffSpecification ts2 =
           new TariffSpecification(broker, PowerType.CONSUMPTION)
-              .withExpiration(new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant())
+              .withExpiration(ZonedDateTime.of(2011, 3, 1, 12, 0, 0, 0, ZoneOffset.UTC).toInstant())
               .withMinDuration(TimeService.WEEK * 4);
     Rate r1 = new Rate()
         .withFixed(false)
@@ -520,7 +520,7 @@ public class TariffMarketServiceTests
         .withNoticeInterval(0)
         .withExpectedMean(-0.10);
     ts2.addRate(r1);
-    Instant lastHr = start.minus(TimeService.HOUR);
+    Instant lastHr = start.minusMillis(TimeService.HOUR);
     r1.addHourlyCharge(new HourlyCharge(lastHr, -0.07), true);    
 
     // send to market
@@ -587,7 +587,7 @@ public class TariffMarketServiceTests
     initializeService();
     TariffSpecification ts2 =
           new TariffSpecification(broker, PowerType.CONSUMPTION)
-              .withExpiration(new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant())
+              .withExpiration(ZonedDateTime.of(2011, 3, 1, 12, 0, 0, 0, ZoneOffset.UTC).toInstant())
               .withMinDuration(TimeService.WEEK * 4);
     Rate r1 = new Rate()
         .withFixed(false)
@@ -610,7 +610,7 @@ public class TariffMarketServiceTests
     initializeService();
     TariffSpecification ts2 =
           new TariffSpecification(broker, PowerType.CONSUMPTION)
-              .withExpiration(new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant())
+              .withExpiration(ZonedDateTime.of(2011, 3, 1, 12, 0, 0, 0, ZoneOffset.UTC).toInstant())
               .withMinDuration(TimeService.WEEK * 4);
     Rate r1 = new Rate()
         .withFixed(false)
@@ -626,7 +626,7 @@ public class TariffMarketServiceTests
     assertEquals(TariffStatus.Status.success, status.getStatus(), "valid");
     
     // update the hourly rate on tariff 2
-    HourlyCharge hc = new HourlyCharge(start.plus(TimeService.HOUR), -0.9);
+    HourlyCharge hc = new HourlyCharge(start.plusMillis(TimeService.HOUR), -0.9);
     VariableRateUpdate vru = new VariableRateUpdate(broker, r1, hc);
     
     int msgsize = msgs.size();
@@ -647,26 +647,26 @@ public class TariffMarketServiceTests
     assertEquals(0, tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION).size(), "no initial tariffs");
     // first, add multiple tariffs for more than one power type, multiple expirations
     TariffSpecification tsc1 = new TariffSpecification(broker, PowerType.CONSUMPTION)
-          .withExpiration(start.plus(TimeService.DAY))
+          .withExpiration(start.plusMillis(TimeService.DAY))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
     TariffSpecification tsc2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
-          .withExpiration(start.plus(TimeService.DAY * 2))
+          .withExpiration(start.plusMillis(TimeService.DAY * 2))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
     TariffSpecification tsc3 = new TariffSpecification(broker, PowerType.CONSUMPTION)
-          .withExpiration(start.plus(TimeService.DAY * 3))
+          .withExpiration(start.plusMillis(TimeService.DAY * 3))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
     tariffMarketService.handleMessage(tsc1);
     tariffMarketService.handleMessage(tsc2);
     tariffMarketService.handleMessage(tsc3);
     TariffSpecification tsp1 = new TariffSpecification(broker, PowerType.PRODUCTION)
-          .withExpiration(start.plus(TimeService.DAY))
+          .withExpiration(start.plusMillis(TimeService.DAY))
           .withMinDuration(TimeService.WEEK* 8)
           .addRate(new Rate().withValue(0.119));
     TariffSpecification tsp2 = new TariffSpecification(broker, PowerType.PRODUCTION)
-          .withExpiration(start.plus(TimeService.DAY * 2))
+          .withExpiration(start.plusMillis(TimeService.DAY * 2))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.119));
     tariffMarketService.handleMessage(tsp1);
@@ -694,21 +694,21 @@ public class TariffMarketServiceTests
     assertEquals(2, tplist.size(), "2 production tariffs");
     
     // forward one day, try again
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.DAY));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.DAY));
     tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
     assertEquals(2, tclist.size(), "2 consumption tariffs");
     tplist = tariffMarketService.getActiveTariffList(PowerType.PRODUCTION);
     assertEquals(1, tplist.size(), "1 production tariffs");
     
     // forward another day, try again
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.DAY));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.DAY));
     tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
     assertEquals(1, tclist.size(), "1 consumption tariff");
     tplist = tariffMarketService.getActiveTariffList(PowerType.PRODUCTION);
     assertEquals(0, tplist.size(), "no production tariffs");
     
     // forward another day, try again
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.DAY));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.DAY));
     tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
     assertEquals(0, tclist.size(), "no consumption tariffs");
   }
@@ -737,41 +737,41 @@ public class TariffMarketServiceTests
     assertEquals(0, listener.publishedTariffs.size(), "no tariffs at 12:00");
     // publish some tariffs over a period of three hours, check for publication
     TariffSpecification tsc1 = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .withExpiration(start.plus(TimeService.DAY))
+        .withExpiration(start.plusMillis(TimeService.DAY))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222));
     tariffMarketService.handleMessage(tsc1);
     TariffSpecification tsc1a = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .withExpiration(start.plus(TimeService.DAY))
+        .withExpiration(start.plusMillis(TimeService.DAY))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.223));
     tariffMarketService.handleMessage(tsc1a);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     // it's 13:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
     assertEquals(0, listener.publishedTariffs.size(), "no tariffs at 13:00");
     
     TariffSpecification tsc2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .withExpiration(start.plus(TimeService.DAY * 2))
+        .withExpiration(start.plusMillis(TimeService.DAY * 2))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222));
     tariffMarketService.handleMessage(tsc2);
     TariffSpecification tsc3 = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .withExpiration(start.plus(TimeService.DAY * 3))
+        .withExpiration(start.plusMillis(TimeService.DAY * 3))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222));
     tariffMarketService.handleMessage(tsc3);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     // it's 14:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
     assertEquals(0, listener.publishedTariffs.size(), "no tariffs at 14:00");
 
     TariffSpecification tsp1 = new TariffSpecification(broker, PowerType.PRODUCTION)
-        .withExpiration(start.plus(TimeService.DAY))
+        .withExpiration(start.plusMillis(TimeService.DAY))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.119));
     TariffSpecification tsp2 = new TariffSpecification(broker, PowerType.PRODUCTION)
-        .withExpiration(start.plus(TimeService.DAY * 2))
+        .withExpiration(start.plusMillis(TimeService.DAY * 2))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.119));
     tariffMarketService.handleMessage(tsp1);
@@ -782,7 +782,7 @@ public class TariffMarketServiceTests
     tariffMarketService.handleMessage(tex);
     tariffMarketService.processRevokedTariffs();
 
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     // it's 15:00 - time to publish
     tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertEquals(5, listener.publishedTariffs.size(), "5 tariffs at 15:00");
@@ -797,15 +797,15 @@ public class TariffMarketServiceTests
     initializeService();
     // create some tariffs
     TariffSpecification tsc1 = new TariffSpecification(broker, PowerType.CONSUMPTION)
-          .withExpiration(start.plus(TimeService.DAY * 5))
+          .withExpiration(start.plusMillis(TimeService.DAY * 5))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
     TariffSpecification tsc2 = new TariffSpecification(broker,  PowerType.CONSUMPTION)
-          .withExpiration(start.plus(TimeService.DAY * 7))
+          .withExpiration(start.plusMillis(TimeService.DAY * 7))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
     TariffSpecification tsc3 = new TariffSpecification(broker,  PowerType.CONSUMPTION)
-          .withExpiration(start.plus(TimeService.DAY * 9))
+          .withExpiration(start.plusMillis(TimeService.DAY * 9))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
     tariffMarketService.handleMessage(tsc1);
@@ -866,7 +866,7 @@ public class TariffMarketServiceTests
     assertEquals(3, tariffSubscriptionRepo.findSubscriptionsForCustomer(charley).size(), "Charley has 3 subscriptions");
     
     // forward an hour, revoke the second tariff
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tc2.getBroker(), tsc2);
     int index = msgs.size();
     tariffMarketService.handleMessage(tex);
@@ -904,12 +904,12 @@ public class TariffMarketServiceTests
     initializeService();
     // set defaults for consumption and production
     TariffSpecification tsc1 = new TariffSpecification(broker,PowerType.CONSUMPTION) 
-          .withExpiration(start.plus(TimeService.WEEK))
+          .withExpiration(start.plusMillis(TimeService.WEEK))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
     assertTrue(tariffMarketService.setDefaultTariff(tsc1), "add consumption default");
     TariffSpecification tsp1 = new TariffSpecification(broker, PowerType.PRODUCTION) 
-          .withExpiration(start.plus(TimeService.WEEK))
+          .withExpiration(start.plusMillis(TimeService.WEEK))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.122));
     assertTrue(tariffMarketService.setDefaultTariff(tsp1), "add production default");
@@ -938,14 +938,14 @@ public class TariffMarketServiceTests
 
     TariffSpecification tsc1 = new TariffSpecification(broker,
                                                        PowerType.INTERRUPTIBLE_CONSUMPTION) 
-        .withExpiration(start.plus(TimeService.WEEK))
+        .withExpiration(start.plusMillis(TimeService.WEEK))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222).withMaxCurtailment(0.1));
     tariffMarketService.handleMessage(tsc1);
 
     TariffSpecification tsc2 = new TariffSpecification(broker,
                                                        PowerType.INTERRUPTIBLE_CONSUMPTION) 
-        .withExpiration(start.plus(TimeService.WEEK))
+        .withExpiration(start.plusMillis(TimeService.WEEK))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.20).withMaxCurtailment(0.5));
     tariffMarketService.handleMessage(tsc2);
@@ -987,7 +987,7 @@ public class TariffMarketServiceTests
 
     TariffSpecification tsc1 = new TariffSpecification(broker,
                                                        PowerType.INTERRUPTIBLE_CONSUMPTION)
-        .withExpiration(start.plus(TimeService.WEEK))
+        .withExpiration(start.plusMillis(TimeService.WEEK))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222));
     tariffMarketService.handleMessage(tsc1);
@@ -1018,7 +1018,7 @@ public class TariffMarketServiceTests
 
     TariffSpecification tsc1 = new TariffSpecification(broker,
                                                        PowerType.CONSUMPTION) 
-        .withExpiration(start.plus(TimeService.WEEK))
+        .withExpiration(start.plusMillis(TimeService.WEEK))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222).withMaxCurtailment(0.5));
     tariffMarketService.handleMessage(tsc1);
@@ -1048,7 +1048,7 @@ public class TariffMarketServiceTests
 
     TariffSpecification tsc1 = new TariffSpecification(broker,
                                                        PowerType.CONSUMPTION) 
-        .withExpiration(start.plus(TimeService.WEEK))
+        .withExpiration(start.plusMillis(TimeService.WEEK))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222).withMaxCurtailment(0.5))
         .addRate(new RegulationRate().withUpRegulationPayment(.10));
@@ -1079,7 +1079,7 @@ public class TariffMarketServiceTests
 
     TariffSpecification tsc1 = new TariffSpecification(broker,
                                                        PowerType.ELECTRIC_VEHICLE) 
-        .withExpiration(start.plus(TimeService.WEEK))
+        .withExpiration(start.plusMillis(TimeService.WEEK))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222))
         .addRate(new RegulationRate()
