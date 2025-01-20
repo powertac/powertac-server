@@ -490,6 +490,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       
       RegulationCapacity rc = computeRegulationCapacity(sub, nominalDemand,
                                                         limits[0], limits[1]);
+      log.debug("regulation capacity for sub {}: up = {}, down = {}",
+                sub.getId(), rc.getUpRegulationCapacity(), rc.getDownRegulationCapacity());
+      
       if (null != rc) {
         // if this subscription will compensate us for regulation, we'll report
         // our available capacity
@@ -521,6 +524,13 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
     }
     return result;
   }
+  
+  // test access, must be called after step()
+  private double testActual, testMin, testMax;
+  double[] getRegulationData ()
+  {
+    return new double [] {testActual, testMin, testMax};
+  }
 
   // Computes the regulation capacity to be reported on a subscription
   private RegulationCapacity
@@ -528,6 +538,11 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
                              double actualDemand, double minDemand, double maxDemand)
   {
     // up-regulation capacity must account for non-zero V2G capacity 
+    // record values to support test
+    testActual = actualDemand;
+    testMin = minDemand;
+    testMax = maxDemand;
+    
     return new RegulationCapacity(sub,
                                   (actualDemand - minDemand)
                                   / sub.getCustomersCommitted(),
@@ -599,7 +614,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       log.error("Cannot sample new demandInfo due to an invalid argument. Returning empty demand info: " + e);
     }
     catch (Exception e) {
-      log.error("Cannot sample new demand info. Returning emtpy demand info: " + e);
+      log.error("Cannot sample new demand info. Returning empty demand info: " + e);
     }
 
     return demandInfo;

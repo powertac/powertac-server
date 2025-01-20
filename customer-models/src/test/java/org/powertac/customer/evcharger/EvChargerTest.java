@@ -20,6 +20,8 @@ import java.util.ServiceLoader;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -32,6 +34,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.RegulationRate;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSpecification;
@@ -62,6 +65,8 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 class EvChargerTest
 {
+  static private Logger log = LogManager.getLogger(EvChargerTest.class.getName());
+  
   private Competition competition;
   private CustomerServiceAccessor serviceAccessor;
   private TimeService timeService;
@@ -97,6 +102,9 @@ class EvChargerTest
 
   private TariffSubscription oldSub;
   //private StorageState oldSS;
+
+  // convenient values
+  private double epsilon = 1e-5;
 
   /**
    * @throws java.lang.Exception
@@ -398,10 +406,8 @@ class EvChargerTest
     assertEquals(defaultSub, ss.getSubscription());
   }
 
-  @Test
-  public void testFirstStepSim ()
+  TariffSubscription runFirstStepSim ()
   {
-    // need to configure first
     TreeMap<String, Object> map = new TreeMap<>();
     map.put("customer.evcharger.evCharger.population", "1000");
     map.put("customer.evcharger.evCharger.chargerCapacity", "8.0");
@@ -439,17 +445,64 @@ class EvChargerTest
 
     // now we step and make sure everything is set up
     uut.step();
+    return defaultSub;
+  }
 
+  @Test
+  public void testFirstStepSim ()
+  {
+    log.info("testFirstStepSim()");
+    // need to configure first
+    TariffSubscription defaultSub = runFirstStepSim();
+
+    // check StorageState
     StorageState ss = uut.getStorageState(defaultSub);
     assertNotNull(ss);
     assertEquals(defaultSub, ss.getSubscription());
 
+    // check demandInfo
     List<ArrayList<DemandElement>> demandInfoMean = uut.getDemandInfoMean();
     assertNotNull(demandInfoMean);
     assertEquals(24, demandInfoMean.size());
     TariffInfo ti = uut.getTariffInfo(evTariff);
     assertEquals(uut.getDefaultCapacityProfile(), ti.getCapacityProfile());
+    
+    // check regulation capacity
+    //RegulationAccumulator ra = defaultSub.getRemainingRegulationCapacity();
+    //System.out.println("Reg: up=" + ra.getUpRegulationCapacity()
+    //                   + " down=" + ra.getDownRegulationCapacity());
     System.out.println("endx");
+  }
+
+  @Test
+  public void testRegulationCapacity ()
+  {
+    log.info("testRegCapacity over two timeslots");
+    // need to configure first
+    TariffSubscription defaultSub = runFirstStepSim();
+
+    // bump the clock forward an hour
+    DateTime now =
+            new DateTime(2014, 12, 1, 11, 0, 0, DateTimeZone.UTC);
+    timeService.setCurrentTime(now.toInstant());
+    when(mockTimeslotRepo.currentTimeslot())
+    .thenReturn(new Timeslot(361, now.toInstant()));
+    when(mockTimeslotRepo.currentSerialNumber())
+    .thenReturn(361);
+
+    // generate some activity, assuming no regulation was called for
+    // in the previous timeslot
+    assertEquals(0.0, defaultSub.getRegulation(), epsilon);
+    uut.step();
+    // retrieve actual, min, max, and data sent to subscription
+    double[] regData = uut.getRegulationData();
+    RegulationAccumulator ra = defaultSub.getRemainingRegulationCapacity();
+    double upreg = ra.getUpRegulationCapacity();
+    double downreg = ra.getDownRegulationCapacity();
+    double pop = defaultSub.getCustomersCommitted();
+    log.debug("remaining regulation: up = {}, down = {}", regData[1], regData[2]);
+    assertEquals(upreg * pop, regData[0] - regData[1], epsilon);
+    assertEquals(downreg * pop, regData[0] - regData[2], epsilon);
   }
 
   /**
@@ -618,12 +671,6 @@ class EvChargerTest
     ArrayList<Tariff> tariffs = new ArrayList<>();
     tariffs.add(tariff1);
     uut.evaluateTariffs(tariffs);
-  }
-
-  @Test
-  public void testRegulationCapacity ()
-  {
-    //TODO - test this feature
   }
 
   class DummyCMA implements CustomerModelAccessor
