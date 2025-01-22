@@ -605,8 +605,10 @@ public class DomainObjectReader
     }
     catch (Exception e) {
       StringBuilder argsString = new StringBuilder();
-      for (Object arg : realArgs) {
-        argsString.append("(" + arg.getClass().getName() + ") " + arg.toString() + ", ");
+      if (realArgs != null) {
+        for (Object arg : realArgs) {
+          argsString.append("(" + arg.getClass().getName() + ") " + arg.toString() + ", ");
+        }
       }
       log.error(e.getClass().getName() + " calling method " + thing.getClass().getName()
                 + "." + method.getName()
