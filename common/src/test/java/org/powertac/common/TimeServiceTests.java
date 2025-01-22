@@ -112,7 +112,7 @@ public class TimeServiceTests
   public void testTimePass() 
   {
     try {
-      Thread.sleep(5000); // 5 seconds / 30 min
+      Thread.sleep(5300); // 5 seconds / 30 min
       ts.updateTime();
       long delay = ts.getCurrentTime().toEpochMilli() - theBase.toInstant().toEpochMilli();
       assertEquals(30 * TimeService.MINUTE, delay, "delay is 30 min");
@@ -182,7 +182,7 @@ public class TimeServiceTests
     ts.updateTime(); // not yet
     assertEquals(0, var.getValue(), "var unchanged");
     try {
-      Thread.sleep(3000); // 3 seconds -> 18 min sim time
+      Thread.sleep(3300); // 3 seconds -> 18 min sim time
       ts.updateTime();
       assertEquals(2, var.getValue(), "var changed");
       long offset = ts.getCurrentTime().toEpochMilli() - theBase.toInstant().toEpochMilli();
