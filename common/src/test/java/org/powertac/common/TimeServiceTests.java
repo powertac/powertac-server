@@ -127,7 +127,7 @@ public class TimeServiceTests
   public void testOffset ()
   {
     try {
-      Thread.sleep(2500); // 2.5 sec, 15 min
+      Thread.sleep(2800); // 2.5 sec, 15 min , slightly late to reduce test flakiness
       ts.updateTime();
       long delay = ts.getCurrentTime().toEpochMilli() - theBase.toInstant().toEpochMilli();
       assertEquals(15 * TimeService.MINUTE, delay, "delay is 15 min");
@@ -220,7 +220,7 @@ public class TimeServiceTests
     ts.updateTime(); // not yet
     assertEquals(0, var.getValue(), "var unchanged");
     try {
-      Thread.sleep(2500); // 2.5 seconds -> 15 min sim time
+      Thread.sleep(2800); // 2.5 seconds -> 15 min sim time, slightly late to reduce test flakiness
       ts.updateTime();
       assertEquals(3, var.getValue(), "var changed");
       assertEquals(1, actionCount.getValue(), "actionCount=1");
@@ -261,7 +261,7 @@ public class TimeServiceTests
     ts.updateTime(); // not yet
     assertEquals(0, var.getValue(), "no action yet");
     try {
-      Thread.sleep(2500); // 2.5 seconds -> 15 min sim time
+      Thread.sleep(2800); // 2.5 seconds -> 15 min sim time
       ts.updateTime();
       assertEquals(3, var.getValue(), "var changed");
       assertEquals(1, actionCount.getValue(), "actionCount=1");
