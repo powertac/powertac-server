@@ -25,11 +25,11 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.MessageListener;
+import jakarta.annotation.Resource;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageListener;
 
 import java.util.concurrent.Executor;
 
@@ -71,15 +71,13 @@ public class JmsManagementService
     }
 
     ActiveMQConnectionFactory amqConnectionFactory = null;
-    if (connectionFactory instanceof PooledConnectionFactory) {
-      PooledConnectionFactory pooledConnectionFactory = (PooledConnectionFactory) connectionFactory;
+    if (connectionFactory instanceof PooledConnectionFactory pooledConnectionFactory) {
       if (pooledConnectionFactory.getConnectionFactory() instanceof ActiveMQConnectionFactory) {
         amqConnectionFactory = (ActiveMQConnectionFactory) pooledConnectionFactory
             .getConnectionFactory();
       }
     }
-    else if (connectionFactory instanceof CachingConnectionFactory) {
-      CachingConnectionFactory cachingConnectionFactory = (CachingConnectionFactory) connectionFactory;
+    else if (connectionFactory instanceof CachingConnectionFactory cachingConnectionFactory) {
       if (cachingConnectionFactory.getTargetConnectionFactory() instanceof ActiveMQConnectionFactory) {
         amqConnectionFactory = (ActiveMQConnectionFactory) cachingConnectionFactory
             .getTargetConnectionFactory();

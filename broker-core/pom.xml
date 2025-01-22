@@ -28,6 +28,14 @@
     </dependency>
 
 
+    <!-- Jakarta -->
+
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+    </dependency>
+
+
     <!-- Spring -->
 
     <dependency>

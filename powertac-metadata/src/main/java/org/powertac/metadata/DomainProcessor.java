@@ -42,7 +42,7 @@ import org.powertac.common.state.Domain;
  *
  */
 @SupportedAnnotationTypes("org.powertac.common.state.Domain")
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
+@SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class DomainProcessor extends AbstractProcessor
 {
 

@@ -226,8 +226,8 @@ public class TariffSpecification extends TariffMessage
       return result;
     }
     for (RateCore rate : rates) {
-      if (rate instanceof Rate) {
-        result.add((Rate)rate);
+      if (rate instanceof Rate rate1) {
+        result.add(rate1);
       }
     }
     return result;
@@ -241,8 +241,8 @@ public class TariffSpecification extends TariffMessage
   {
     List<RegulationRate> result = new ArrayList<RegulationRate>();
     for (RateCore rate : rates) {
-      if (rate instanceof RegulationRate) {
-        result.add((RegulationRate)rate);
+      if (rate instanceof RegulationRate regulationRate) {
+        result.add(regulationRate);
       }
     }
     return result;

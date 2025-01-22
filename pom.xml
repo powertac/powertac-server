@@ -36,11 +36,9 @@
   <!-- Shared properties -->
   <properties>
     <!-- Frameworks -->
-    <java.version>11</java.version>
-    <java.version_max>16</java.version_max>
-    <java.version_end>17</java.version_end>
-    <maven.version>3.6.0</maven.version>
-    <spring.version>5.3.20</spring.version>
+    <java.version>21</java.version>
+    <maven.version>3.8.8</maven.version>
+    <spring.version>6.2.0</spring.version>
 
     <!-- Build layout -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -50,13 +48,13 @@
     <sonatype.release.args />
 
     <!-- Managed common dependency versions -->
-    <aspectj.version>1.9.7</aspectj.version>
+    <aspectj.version>1.9.22</aspectj.version>
 
-    <active-mq.version>5.15.11</active-mq.version>
-    <xstream.version>1.4.19</xstream.version>
+    <active-mq.version>6.1.4</active-mq.version>
+    <xstream.version>1.4.21</xstream.version>
 
-    <jms-api.version>2.0.1</jms-api.version>
-    <junit.version>5.5.1</junit.version>
+    <jms-api.version>3.1.0</jms-api.version>
+    <junit.version>5.11.2</junit.version>
     <mockito.version>3.12.4</mockito.version>
 
     <log4j.version>2.17.1</log4j.version>
@@ -67,18 +65,18 @@
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-lang3.version>3.9</commons-lang3.version>
     <commons-math.version>3.6.1</commons-math.version>
-    <javax-annotations.version>1.3.2</javax-annotations.version>
+    <jakarta-annotations.version>3.0.0</jakarta-annotations.version>
     <jopt-simple.version>5.0.4</jopt-simple.version>
 
     <!-- Managed common plugin versions -->
-    <maven-compiler.version>3.8.1</maven-compiler.version>
+    <maven-compiler.version>3.13.0</maven-compiler.version>
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
 
-    <maven-aspectj.version>1.14.0</maven-aspectj.version>
+    <maven-aspectj.version>1.15.0</maven-aspectj.version>
     <maven-aspectj.compliance>${java.version}</maven-aspectj.compliance>
 
-    <maven-antrun.version>1.8</maven-antrun.version>
+    <maven-antrun.version>3.1.0</maven-antrun.version>
     <maven-assembly.version>3.1.1</maven-assembly.version>
     <maven-clean.version>3.1.0</maven-clean.version>
     <maven-dependency.version>3.1.1</maven-dependency.version>
@@ -91,9 +89,9 @@
     <!-- https://github.com/tesla/m2eclipse-mavenarchiver/issues/8 -->
     <maven-jar.version>3.1.2</maven-jar.version>
 
-    <maven-war.version>3.2.3</maven-war.version>
+    <maven-war.version>3.4.0</maven-war.version>
     <maven-source.version>3.1.0</maven-source.version>
-    <maven-javadoc.version>3.1.1</maven-javadoc.version>
+    <maven-javadoc.version>3.10.0</maven-javadoc.version>
     <maven-gpg.version>1.6</maven-gpg.version>
     <maven-release.version>2.5.3</maven-release.version>
     <maven-site.version>3.8.2</maven-site.version>
@@ -183,12 +181,12 @@
         <version>${spring.version}</version>
       </dependency>
 
-      <!-- JavaX -->
+      <!-- Jakarta -->
 
       <dependency>
-        <groupId>javax.annotation</groupId>
-        <artifactId>javax.annotation-api</artifactId>
-        <version>${javax-annotations.version}</version>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta-annotations.version}</version>
       </dependency>
 
       <!-- AspectJ -->
@@ -286,8 +284,8 @@
       <!-- Utilities -->
 
       <dependency>
-        <groupId>javax.jms</groupId>
-        <artifactId>javax.jms-api</artifactId>
+        <groupId>jakarta.jms</groupId>
+        <artifactId>jakarta.jms-api</artifactId>
         <version>${jms-api.version}</version>
       </dependency>
 
@@ -371,8 +369,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler.version}</version>
           <configuration>
-            <source>${maven-compiler.source}</source>
-            <target>${maven-compiler.target}</target>
+            <release>${java.version}</release>
           </configuration>
         </plugin>
 
@@ -416,8 +413,8 @@
           <configuration>
             <rules>
               <requireJavaVersion>
-                <message>Java versions ${java.version} - ${java.version_max} are supported</message>
-                <version>[${java.version},${java.version_end})</version>
+                <message>Java version ${java.version} is supported</message>
+                <version>[${java.version},)</version>
               </requireJavaVersion>
               <requireMavenVersion>
                 <message>You must have Maven ${maven.version} or better</message>
@@ -501,7 +498,36 @@
             </includes>
             <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>false</useSystemClassLoader>
-            <argLine>--illegal-access=warn</argLine>
+            <argLine>
+              --illegal-access=warn
+              --add-opens java.base/java.lang=ALL-UNNAMED 
+              --add-opens java.base/java.util=ALL-UNNAMED 
+              --add-opens java.base/java.io=ALL-UNNAMED 
+              --add-opens java.base/java.time=ALL-UNNAMED 
+              --add-opens java.base/java.time.chrono=ALL-UNNAMED 
+              --add-opens java.base/java.lang.invoke=ALL-UNNAMED 
+              --add-opens java.base/java.lang.ref=ALL-UNNAMED 
+              --add-opens java.base/java.lang.reflect=ALL-UNNAMED 
+              --add-opens java.base/java.text=ALL-UNNAMED 
+              --add-opens java.base/javax.security.auth.x500=ALL-UNNAMED 
+              --add-opens java.base/sun.util.calendar=ALL-UNNAMED 
+              --add-opens java.desktop/java.beans=ALL-UNNAMED 
+              --add-opens java.desktop/java.awt=ALL-UNNAMED 
+              --add-opens java.desktop/java.awt.font=ALL-UNNAMED 
+              --add-opens java.desktop/javax.swing=ALL-UNNAMED 
+              --add-opens java.desktop/javax.swing.border=ALL-UNNAMED 
+              --add-opens java.desktop/javax.swing.event=ALL-UNNAMED 
+              --add-opens java.desktop/javax.swing.table=ALL-UNNAMED 
+              --add-opens java.desktop/javax.swing.plaf.basic=ALL-UNNAMED 
+              --add-opens java.desktop/javax.swing.plaf.metal=ALL-UNNAMED 
+              --add-opens java.desktop/javax.imageio=ALL-UNNAMED 
+              --add-opens java.desktop/javax.imageio.spi=ALL-UNNAMED 
+              --add-opens java.desktop/sun.swing=ALL-UNNAMED 
+              --add-opens java.desktop/sun.swing.table=ALL-UNNAMED 
+              --add-opens java.xml/javax.xml.datatype=ALL-UNNAMED 
+              --add-opens java.xml/com.sun.xml.internal.stream=ALL-UNNAMED 
+              --add-opens java.xml/com.sun.org.apache.xerces.internal.parsers=ALL-UNNAMED 
+              --add-opens java.xml/com.sun.org.apache.xerces.internal.util=ALL-UNNAMED</argLine>
           </configuration>
         </plugin>
 

@@ -1,5 +1,7 @@
 package org.powertac.common.exceptions;
 
+import java.io.Serial;
+
 /**
  * Generic PowerTAC Exception
  *
@@ -7,6 +9,7 @@ package org.powertac.common.exceptions;
  * @version 1.0, Date: 10.01.11
  */
 public class PowerTacException extends RuntimeException {
+  @Serial
   private static final long serialVersionUID = 3756680475439684129L;
 
   public PowerTacException() {
