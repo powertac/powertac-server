@@ -258,8 +258,8 @@ public class AccountingServiceTests
     List<BrokerTransaction> signups = filter(pending,
                                              new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {
-        return (tx instanceof TariffTransaction &&
-            ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.SIGNUP);
+        return (tx instanceof TariffTransaction tt &&
+            tt.getTxType() == TariffTransaction.Type.SIGNUP);
       }
     });
     assertEquals(1, signups.size(), "one signup");
@@ -272,8 +272,8 @@ public class AccountingServiceTests
     List<BrokerTransaction> consumes = filter(pending,
                                               new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {
-        return (tx instanceof TariffTransaction &&
-            ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.CONSUME);
+        return (tx instanceof TariffTransaction tt &&
+            tt.getTxType() == TariffTransaction.Type.CONSUME);
       }
     });
     assertEquals(2, consumes.size(), "two consumes");
@@ -293,8 +293,8 @@ public class AccountingServiceTests
     List<BrokerTransaction> produces = filter(pending,
                                               new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {
-        return (tx instanceof TariffTransaction &&
-            ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.PRODUCE);
+        return (tx instanceof TariffTransaction tt &&
+            tt.getTxType() == TariffTransaction.Type.PRODUCE);
       }
     });
     assertEquals(1, produces.size(), "one produce");
@@ -421,9 +421,9 @@ public class AccountingServiceTests
     Object obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
         Timeslot ts5 = timeslotRepo.findBySerialNumber(1);
-        return (item instanceof MarketTransaction &&
-                ((MarketTransaction)item).getBroker() == bob &&
-                ((MarketTransaction)item).getTimeslot() == ts5);
+        return (item instanceof MarketTransaction mt &&
+                mt.getBroker() == bob &&
+                mt.getTimeslot() == ts5);
       }
     });
     MarketTransaction mtx1 = (MarketTransaction)obj;
@@ -433,9 +433,9 @@ public class AccountingServiceTests
     obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
         Timeslot ts5 = timeslotRepo.findBySerialNumber(2);
-        return (item instanceof MarketPosition &&
-                ((MarketPosition)item).getBroker() == bob &&
-                ((MarketPosition)item).getTimeslot() == ts5);
+        return (item instanceof MarketPosition mp &&
+                mp.getBroker() == bob &&
+                mp.getTimeslot() == ts5);
       }
     });
     MarketPosition mp1 = (MarketPosition)obj;
@@ -443,8 +443,8 @@ public class AccountingServiceTests
 
     obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
-        return (item instanceof CashPosition &&
-                ((CashPosition)item).getBroker() == bob);
+        return (item instanceof CashPosition cp &&
+                cp.getBroker() == bob);
       }
     });
     CashPosition cp1 = (CashPosition)obj;

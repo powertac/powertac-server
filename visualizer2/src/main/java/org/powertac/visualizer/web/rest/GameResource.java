@@ -30,8 +30,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -320,7 +320,7 @@ public class GameResource {
             throw new IllegalStateException("Visualizer already has a game running");
         }
 
-        InputStream source = new URL(url).openStream();
+        InputStream source = URI.create(url).toURL().openStream();
         String error = embeddedService.runReplayGame(source);
         if (error != null) {
             throw new RuntimeException(error);

@@ -812,8 +812,7 @@ public class Household
 
     // Case of Washing Machine as dominant Appliance
     Appliance app = appliances.get(dominantAppliance);
-    if (app instanceof WashingMachine) {
-      WashingMachine wm = (WashingMachine) app;
+    if (app instanceof WashingMachine wm) {
       // Case there is dryer
       if (wm.getDryerFlag())
         helpIndex = wm.getDryerIndex();

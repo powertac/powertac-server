@@ -30,7 +30,7 @@ import org.springframework.web.filter.CorsFilter;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
-import javax.servlet.*;
+import jakarta.servlet.*;
 
 /**
  * Configuration of web application with Servlet 3.0 APIs.

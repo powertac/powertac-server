@@ -18,7 +18,7 @@ import java.time.Duration;
 @AutoConfigureAfter(value = { MetricsConfiguration.class })
 @AutoConfigureBefore(value = { WebConfigurer.class, DatabaseConfiguration.class })
 public class CacheConfiguration {
-    private final javax.cache.configuration.Configuration<Object, Object> jcacheConfiguration;
+    private final jakarta.cache.configuration.Configuration<Object, Object> jcacheConfiguration;
 
     public CacheConfiguration(JHipsterProperties jHipsterProperties) {
         JHipsterProperties.Cache.Ehcache ehcache =

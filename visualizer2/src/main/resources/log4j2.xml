@@ -68,13 +68,13 @@
       <AppenderRef ref="VizFile" />
     </Logger>
 
-    <Logger name="javax.activation" level="warn">
+    <Logger name="jakarta.activation" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
-    <Logger name="javax.mail" level="warn">
+    <Logger name="jakarta.mail" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
-    <Logger name="javax.xml.bind" level="warn">
+    <Logger name="jakarta.xml.bind" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
     <Logger name="com.codahale.metrics" level="warn">

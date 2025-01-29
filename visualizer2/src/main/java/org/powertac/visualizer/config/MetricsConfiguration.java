@@ -20,8 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.*;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.ServletContext;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.TimeUnit;
 

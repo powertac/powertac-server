@@ -29,7 +29,6 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherForecastPrediction;
-import org.powertac.common.WeatherReport;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;

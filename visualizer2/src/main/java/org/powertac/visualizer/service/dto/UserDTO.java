@@ -5,7 +5,7 @@ import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.domain.Authority;
 import org.powertac.visualizer.domain.User;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
