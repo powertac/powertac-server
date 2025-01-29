@@ -642,8 +642,7 @@ public class DomainObjectReader
     }
 
     // check for non-parameterized types
-    if (type instanceof Class) {
-      Class<?> clazz = (Class<?>)type;
+    if (type instanceof Class<?> clazz) {
       if (clazz.isEnum()) {
         return Enum.valueOf((Class<Enum>)type, arg);
       }
@@ -657,8 +656,7 @@ public class DomainObjectReader
     }
 
     // check for collection, denoted by leading (
-    else if (type instanceof ParameterizedType) {
-      ParameterizedType ptype = (ParameterizedType)type;
+    else if (type instanceof ParameterizedType ptype) {
       Class<?> clazz = (Class<?>)ptype.getRawType();
       boolean isCollection = false;
       if (clazz.equals(Collection.class))
@@ -689,7 +687,7 @@ public class DomainObjectReader
           if (clazz.isInterface())
             clazz = ifImplementors.get(clazz);
           try {
-            coll = (Collection<Object>)clazz.newInstance();
+            coll = (Collection<Object>)clazz.getDeclaredConstructor().newInstance();
           }
           catch (Exception e) {
             log.error("Exception creating collection: " + e.toString());

@@ -1,7 +1,7 @@
 package org.powertac.visualizer.web.rest.vm;
 
 import org.powertac.visualizer.service.dto.UserDTO;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 import java.util.Set;

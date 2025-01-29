@@ -31,7 +31,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.customer.evcharger.EvChargerTest.ServiceAccessor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class TariffInfoTest

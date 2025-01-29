@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 import org.mockito.ArgumentCaptor;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import java.time.ZonedDateTime;
 import java.time.ZoneOffset;

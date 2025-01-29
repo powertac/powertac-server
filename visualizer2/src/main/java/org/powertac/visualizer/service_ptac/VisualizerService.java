@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * @author Jurica Babic, Govert Buijs, Erik Kemperman

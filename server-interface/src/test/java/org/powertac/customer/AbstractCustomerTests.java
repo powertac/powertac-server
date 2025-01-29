@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import java.time.ZonedDateTime;
 import java.time.ZoneOffset;

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * This service runs Power TAC games (sim, boot and replay).

@@ -424,8 +424,8 @@ public class CompetitionControlService
       brokerProxyService.broadcastMessages(bootstrapDataset);
       // pull out the weather reports and stick them in their repo
       for (Object msg : bootstrapDataset) {
-        if (msg instanceof WeatherReport) {
-          weatherReportRepo.add((WeatherReport) msg);
+        if (msg instanceof WeatherReport report) {
+          weatherReportRepo.add(report);
         }
       }
     }
