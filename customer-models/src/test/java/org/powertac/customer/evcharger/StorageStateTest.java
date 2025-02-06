@@ -290,6 +290,36 @@ class StorageStateTest
     assertEquals(49.6 + (133.6 - 49.6) / 2.0, minMax[2], 1e-6);
   }
 
+  // Test computation of v2g capacity
+  @Test
+  void testV2gComputation ()
+  {
+    double chargerCapacity = 4.0; // kW -> discharge capacity is then -4.0
+    double ratio = 0.8;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption,
+            (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 10.0, new double[]{1.0}));
+    // v2gCapacity = 0 since no eligible discharge groups
+    demand.add(new DemandElement(1, 15.0, new double[] {0.5,0.5}));
+    // v2gCapacity = 0 since no eligible discharge groups
+    demand.add(new DemandElement(2, 30.0, new double[] {0.1,0.6,0.3}));
+    // eligible group 2 -> 30*0.8 = 24 ch that are subscribed to this tariff,
+    // group 2 = 24ch*0.3 = 7.2, v2gAcceptance = 0.3, dischargeCapacity = -4.0,
+    // v2gCapacity = 7.2*0.3*(-4.0) = -8.64
+    demand.add(new DemandElement(3, 30.0, new double[] {0,0,1,0}));
+    // eligible group 2+3 -> 30*0.8 = 24 ch,
+    // group 2 = 24ch*1 = 24, v2gAcceptance = 0.3, dischargeCapacity = -4.0,
+    // v2gCapacity = 24*0.3*(-4.0) = -28.8
+    ss.distributeDemand(22, demand, ratio);
+
+    double v2gCapacity = ss.computeV2gCapacity(22, 0.3);
+    // total v2gCapacity = -28.8 - 8.64 = -37.44
+    assertEquals(-37.44, v2gCapacity, 1e-6);
+  }
+
   // Create some demand, distribute maximum usage.
   @Test
   void testDistributeUsageMax ()
@@ -615,6 +645,83 @@ class StorageStateTest
   }
 
   @Test
+  void testRebalanceV2g () {
+    double chargerCapacity = 8.0; //kW
+    double ratio = 0.6;
+    TariffSubscription dc = subscribeTo(customer, defaultConsumption,
+            (int) Math.round(customer.getPopulation() * ratio));
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 8.0, // 4.8 chg, 19.2 kWh
+            new double[]{1.0}));
+    demand.add(new DemandElement(1, 22.0, // 13.2 chg, p={3.96, 9.24}, e={47.52,36.96}
+            new double[]{0.3, 0.7}));
+    demand.add(new DemandElement(2, 32.0, // 19.2 chg, p={3.84,11.52,3.84}, e={76.8,138.24,15.36}
+            new double[]{0.2, 0.6, 0.2}));
+    ss.distributeDemand(36, demand, ratio);
+    assertArrayEquals(new double[]{4.8},
+            ss.getElement(36).getPopulation(), 1e-6);
+    assertArrayEquals(new double[]{19.2},
+            ss.getElement(36).getEnergy(), 1e-6);
+    assertArrayEquals(new double[]{3.96, 9.24},
+            ss.getElement(37).getPopulation(), 1e-6);
+    assertArrayEquals(new double[]{47.52, 36.96}, // [1.5, 0.5]
+            ss.getElement(37).getEnergy(), 1e-6);
+    assertArrayEquals(new double[]{3.84, 11.52, 3.84},
+            ss.getElement(38).getPopulation(), 1e-6);
+    assertArrayEquals(new double[]{76.8, 138.24, 15.36}, // [2.5, 1.5, 0.5]
+            ss.getElement(38).getEnergy(), 1e-6);
+
+    StorageState ss1 = ss.copy();
+
+    // ----------------------------
+    // Now we apply minimal usage
+    double[] minMax = ss1.getMinMax(36);
+    assertArrayEquals(new double[]{81.6, 226.08, 153.84}, minMax, 1e-8);
+
+    ss1.distributeUsage(36, minMax[0]); // minimal usage
+    // distribute regulation which is curtailment done through minimal usage and discharge in subsequent line
+    ss1.getElement(38).getEnergy()[2] += 30.72; // simulate max discharge possible, which is the population of index 2 3.84 * 8 kW
+
+    assertArrayEquals(new double[]{0.0},
+            ss1.getElement(36).getEnergy(), 1e-6);
+    assertArrayEquals(new double[]{15.84, 36.96}, // [0.5, 0.5]
+            ss1.getElement(37).getEnergy(), 1e-6);
+    assertArrayEquals(new double[]{46.08, 138.24, 46.08}, // [1.5, 1.5, 0.5]
+            ss1.getElement(38).getEnergy(), 1e-6);
+
+    // collapse and rebalance
+    ss1.collapseElements(37);
+    assertArrayEquals(new double[]{3.96 + 9.24},
+            ss1.getElement(37).getPopulation(), 1e-6);
+    assertArrayEquals(new double[]{15.84 + 36.96},
+            ss1.getElement(37).getEnergy(), 1e-6);
+
+    assertArrayEquals(new double[]{3.84, 15.36},
+            ss1.getElement(38).getPopulation(), 1e-6);
+    assertArrayEquals(new double[]{46.08, 138.24 + 46.08},
+            ss1.getElement(38).getEnergy(), 1e-6);
+
+    StorageElement se = ss1.getElement(38);
+    double totalE = se.getEnergy()[1] + se.getEnergy()[0];
+    //System.out.println("38 before: " + se.toString());
+    ss1.rebalance(37);
+    assertArrayEquals(new double[]{3.96 + 9.24},
+            ss1.getElement(37).getPopulation(), 1e-6);
+    assertArrayEquals(new double[]{15.84 + 36.96},
+            ss1.getElement(37).getEnergy(), 1e-6);
+
+    //System.out.println("38 after: " + se.toString());
+    assertArrayEquals(new double[]{19.2, 0.0},
+            ss1.getElement(38).getPopulation(), 1e-6);
+    assertArrayEquals(new double[]{230.4, 0.0},
+            ss1.getElement(38).getEnergy(), 1e-6);
+    // population from index 2 was fully rebalanced and moved to index 0 by 2 indices due to both curtailing and then discharging
+
+  }
+
+  @Test
   void testDistributeRegulation ()
   {
     double chargerCapacity = 8.0; //kW
@@ -627,7 +734,7 @@ class StorageStateTest
                                  new double[] {1.0}));
     demand.add(new DemandElement(1, 22.0, // 22 chg, p={6.6,15.4}, e={79.2,61.6}
                                  new double[] {0.3,0.7}));
-    demand.add(new DemandElement(2, 32.0, // 32 chg, p={6.4,19.2,6.4}, e={25.6,230.4,128.0}
+    demand.add(new DemandElement(2, 32.0, // 32 chg, p={6.4,19.2,6.4}, e={128.0,230.4,25.6}
                                  new double[] {0.2,0.6,0.2}));
     ss.distributeDemand(36, demand, ratio);
 
@@ -637,7 +744,7 @@ class StorageStateTest
     assertArrayEquals(new double[] {136.0, 376.8, 256.4}, minMax, 1e-6);
     ssc.distributeUsage(36,  minMax[1]);
     // upRegulationCapacity = 376.8 - 136.0; 
-    double result = ssc.distributeRegulation(37, 100.0); // next timeslot
+    double result = ssc.distributeRegulation(37, 100.0, 0.3); // next timeslot
     //System.out.println("difference = " + result);
     assertEquals(0.0, result, 1e-6);
 
@@ -648,10 +755,10 @@ class StorageStateTest
                       ssc.getElement(36).getEnergy(), 1e-6);
     assertArrayEquals(new double[] {26.4, 30.8}, // (6.6*8*.5), (15.4*8*.25)
                       ssc.getElement(37).getEnergy(), 1e-6);
-    assertArrayEquals(new double[] {76.8, 153.6, 12.8}, // 6.4*8*1.5, 19.2*8*1.0, 6.4*.25
+    assertArrayEquals(new double[] {76.8, 153.6, 12.8}, // 6.4*8*1.5, 19.2*8*1.0, 6.4*8*.25
                       ssc.getElement(38).getEnergy(), 1e-6);
     // down-regulation capacity = 136 - 256.4
-    result = ssc.distributeRegulation(37, -100);
+    result = ssc.distributeRegulation(37, -100, 0.3);
     assertEquals(0.0, result, 1e-6);
 
     // distribute usage that is close to max and try regulating it
@@ -659,8 +766,45 @@ class StorageStateTest
     minMax = ssc.getMinMax(36);
     ssc.distributeUsage(36,  minMax[1] - 50);
     // upRegulationCapacity = 326.8 - 136.0; 
-    result = ssc.distributeRegulation(37, 100.0); // next timeslot
+    result = ssc.distributeRegulation(37, 100.0, 0.3); // next timeslot
     assertEquals(0.0, result, 1e-6);    
+  }
+
+  @Test
+  void testDistributeV2gRegulation ()
+  {
+    double chargerCapacity = 8.0; //kW
+    double ratio = 1.0;
+    TariffSubscription dc = subscribeTo (customer, defaultConsumption, 100);
+    StorageState ss = new StorageState(dc, chargerCapacity, maxHorizon);
+
+    ArrayList<DemandElement> demand = new ArrayList<>();
+    demand.add(new DemandElement(0, 8.0, // 8 chg, 32 kWh
+            new double[] {1.0}));
+    demand.add(new DemandElement(1, 22.0, // 22 chg, p={6.6,15.4}, e={79.2,61.6}
+            new double[] {0.3,0.7}));
+    demand.add(new DemandElement(2, 32.0, // 32 chg, p={6.4,19.2,6.4}, e={128.0,230.4,25.6}
+            new double[] {0.2,0.6,0.2}));
+    ss.distributeDemand(36, demand, ratio);
+
+    // energy is now [32.0], [79.2, 61.6], [128.0, 230.4, 25.6]
+    // distribute maximum usage and then fully curtail usage and distribute v2g regulation
+    StorageState ssc = ss.copy();
+    double[] minMax = ssc.getMinMax(36);
+    assertArrayEquals(new double[] {136.0, 376.8, 256.4}, minMax, 1e-6);
+    ssc.distributeUsage(36,  minMax[1]);
+
+    ssc.setV2gCapacity(15.36); // 6.4 charger * 8 kW discharge * 0.3 V2g acceptance from timeslot 38, only index 2 or higher eligible to discharge
+
+    // we now regulate the maximum curtailment and v2g capacity which is 376.8 - 136 = 240.8 + 15.36 = 256.16
+    double result = ssc.distributeRegulation(37, 256.16, 0.3); // next timeslot
+    assertEquals(0.0, result, 1e-6);
+    assertArrayEquals(new double[]{0.0},
+            ssc.getElement(36).getEnergy(), 1e-6);
+    assertArrayEquals(new double[]{26.4, 61.6}, // (6.6*8*.5), (15.4*8*.25)
+            ssc.getElement(37).getEnergy(), 1e-6);
+    assertArrayEquals(new double[]{76.8, 230.4, 40.96}, // 6.4*8*1.5, 19.2*8*1.5, 6.4*8*0.5 + 6.4*8*0.3 = 25.6+15.36 = 40.96
+            ssc.getElement(38).getEnergy(), 1e-6);
   }
 
   /**

@@ -135,15 +135,31 @@ import org.apache.logging.log4j.Logger;
         }
         else {
           double move = (currentRatio - xRatio);
-          if (move > 1.0 + epsilon || move < 0.0 - epsilon) {
+          if (move < 0.0 - epsilon) {
             log.error("Move ratio = {} out of range", move);
           }
+
+          // Move by 2 in case of V2G
+          if (move > 1.0 & i > 1) { // Group 0 and 1 cannot be moved above index 0 and are not eligible for V2G
+            double v2gMove = move - 1.0;
+            double v2gMoveP = population[i] * v2gMove;
+            population[i] -= v2gMoveP;
+            population[i - 2] += v2gMoveP;
+
+            double v2gMoveE = energy[i] - population[i] * chargerCapacity * xRatio;
+            energy[i] -= v2gMoveE;
+            energy[i - 2] += v2gMoveE;
+          }
+
+          move = Math.min(1.0, move);
+
           double moveP = population[i] * move;
           population[i] -= moveP;
           population[i - 1] += moveP;
           double moveE = energy[i] - population[i] * chargerCapacity * xRatio;
           energy[i] -= moveE;
           energy[i - 1] += moveE;
+
         }
       }
     }
