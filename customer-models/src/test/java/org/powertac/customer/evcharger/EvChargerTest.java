@@ -496,12 +496,13 @@ class EvChargerTest
     uut.step();
     // retrieve actual, min, max, and data sent to subscription
     double[] regData = uut.getRegulationData();
+    double v2gAvail = uut.getV2G();
     RegulationAccumulator ra = defaultSub.getRemainingRegulationCapacity();
     double upreg = ra.getUpRegulationCapacity();
     double downreg = ra.getDownRegulationCapacity();
     double pop = defaultSub.getCustomersCommitted();
     log.debug("remaining regulation: up = {}, down = {}", regData[1], regData[2]);
-    assertEquals(upreg * pop, regData[0] - regData[1], epsilon);
+    assertEquals(upreg * pop, regData[0] - regData[1] - v2gAvail, epsilon);
     assertEquals(downreg * pop, regData[0] - regData[2], epsilon);
   }
 
