@@ -1,7 +1,0 @@
-version: '2'
-services:
-    visualizer2-sonar:
-        image: sonarqube:6.2-alpine
-        ports:
-            - 9000:9000
-            - 9092:9092
