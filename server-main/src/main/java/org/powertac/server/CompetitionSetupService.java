@@ -38,13 +38,10 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.logtool.LogtoolContext;
 import org.powertac.logtool.LogtoolCore;
-import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.ifc.Analyzer;
 import org.powertac.logtool.ifc.ObjectReader;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -52,6 +49,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -63,9 +61,7 @@ import javax.xml.xpath.*;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -562,7 +558,8 @@ public class CompetitionSetupService
       public void run () {
         cc.setAuthorizedBrokerList(brokers);
         cc.setInputQueueName(inputQueueName);
-        Document document = getDocument(bootUrl);
+        Document document = null;
+        document = getDocument(bootUrl);
         if (document != null) {
           if (preGame(document)) {
             bootstrapDataRepo.add(processBootDataset(document));
@@ -593,9 +590,20 @@ public class CompetitionSetupService
   }
 
   // copied to BootstrapDataRepo
-  private Document getDocument (URL bootUrl)
+  private Document getDocument  (URL bootUrl)
   {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    try {
+      factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+      factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+    }
+    catch (ParserConfigurationException e) {
+      log.error("Error setting parser features: " + e.toString());
+    }
+    factory.setXIncludeAware(false);
+    factory.setExpandEntityReferences(false);
     factory.setNamespaceAware(true);
     DocumentBuilder builder;
     Document doc = null;
