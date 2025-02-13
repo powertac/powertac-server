@@ -591,7 +591,7 @@ public class DomainObjectReader
         if (null == realArgs || realArgs.length != args.length) {
           log.debug("Could not resolve args: method " + method.getName()
                     + ", class = " + thing.getClass().getName()
-                    + ", args = " + args);
+                    + ", args = " + Arrays.toString(args));
           return false;
         }
       }
@@ -607,7 +607,11 @@ public class DomainObjectReader
       StringBuilder argsString = new StringBuilder();
       if (realArgs != null) {
         for (Object arg : realArgs) {
-          argsString.append("(" + arg.getClass().getName() + ") " + arg.toString() + ", ");
+          if (arg != null) {
+            argsString.append("(" + arg.getClass().getName() + ") " + arg.toString() + ", ");
+          } else {
+            argsString.append("(null) null, ");
+          }
         }
       }
       log.error(e.getClass().getName() + " calling method " + thing.getClass().getName()
