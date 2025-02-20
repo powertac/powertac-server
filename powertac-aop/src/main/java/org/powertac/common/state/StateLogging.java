@@ -154,10 +154,10 @@ public class StateLogging
       buf.append(argId.toString());
     else if (arg == null)
       buf.append("null");
-    else if (arg instanceof Collection) {
+    else if (arg instanceof Collection collection) {
       buf.append("(");
       String delimiter = "";
-      for (Object item : (Collection) arg) {
+      for (Object item : collection) {
         buf.append(delimiter);
         writeArg(buf, item);
         delimiter = ",";

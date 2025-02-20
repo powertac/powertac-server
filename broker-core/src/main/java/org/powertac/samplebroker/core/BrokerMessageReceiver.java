@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageListener;
+import jakarta.jms.TextMessage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -111,11 +111,11 @@ public class BrokerMessageReceiver implements MessageListener
   @Override
   public void onMessage (Message message)
   {
-    if (message instanceof TextMessage) {
+    if (message instanceof TextMessage textMessage) {
       String msg;
       try {
         log.debug("onMessage(Message) - receiving a message");
-        msg = ((TextMessage) message).getText();
+        msg = textMessage.getText();
         log.info("received message:\n" + msg);
         //onMessage(msg);
         if (adapter != null) {
