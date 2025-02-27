@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" strict="true" shutdownHook="disable"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="http://xlarge.rsm.nl/xsd/Log4j-config.xsd">
+  <Properties>
+    <Property name="logfile">files/system/log/init.trace</Property>
+    <Property name="statefile">files/system/log/init.state</Property>
+
+    <Property name="vizfile">files/system/log/visualizer.log</Property>
+    <Property name="PID">????</Property>
+    <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+    <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+    <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN} ${sys:PID} --- [%15.15t]%-40.40c{1.} : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+  </Properties>
+
+  <ThresholdFilter level="trace"/>
+
+  <Appenders>
+
+    <Appender name="LogFile" type="File" fileName="${sys:logfile}" append="false">
+      <Layout type="PatternLayout" pattern="%r %-5p %c{2}: %m%n"/>
+    </Appender>
+
+    <Appender name="StateFile" type="File" fileName="${sys:statefile}" append="false">
+      <Layout type="PatternLayout" pattern="%r:%m%n"/>
+    </Appender>
+
+    <Appender name="VizFile" type="File" fileName="${sys:vizfile}" append="false">
+      <Layout type="PatternLayout" pattern="${LOG_PATTERN}"/>
+    </Appender>
+
+  </Appenders>
+
+  <Loggers>
+
+    <Logger name="Log" level="info">
+      <AppenderRef ref="LogFile"/>
+    </Logger>
+
+    <Logger name="State" level="info" additivity="false">
+      <AppenderRef ref="StateFile"/>
+    </Logger>
+
+
+    <Logger name="org.powertac.visualizer" level="#log4j2.loglevel#">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+
+    <Logger name="io.github.jhipster" level="debug">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+
+
+    <Logger name="org.springframework" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.springframework.web" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.springframework.security" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.springframework.cache" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+
+    <Logger name="org.powertac.logtool" level="#log4j2.loglevel#">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+
+    <Logger name="jakarta.activation" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="jakarta.mail" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="jakarta.xml.bind" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="com.codahale.metrics" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="com.ryantenney" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="com.sun" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="com.zaxxer" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="net.sf.ehcache" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.apache" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.apache.catalina.startup.DigesterFactory" level="off">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.bson" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.hibernate.validator" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.hibernate" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.hibernate.ejb.HibernatePersistence" level="off">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.xnio" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="sun.rmi" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="liquibase" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="LiquibaseSchemaResolver" level="info">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="sun.rmi.transport" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+
+    <Logger name="org.apache.catalina.util.LifecycleBase" level="error">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.apache.coyote.http11.Http11NioProtocol" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.apache.sshd.common.util.SecurityUtils" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.apache.tomcat.util.net.NioSelectorPool" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.crsh.plugin" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.crsh.ssh" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="error">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+    <Logger name="org.hibernate.validator.internal.util.Version" level="warn">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+
+    <Root level="#log4j2.loglevel#">
+      <AppenderRef ref="LogFile"/>
+    </Root>
+
+  </Loggers>
+
+</Configuration>

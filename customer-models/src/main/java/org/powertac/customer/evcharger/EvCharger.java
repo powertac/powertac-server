@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -32,7 +32,6 @@ import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -205,9 +204,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   void initDemandInfoMean ()
   {
     int repeat = 168;
-    DateTime currentTime = service.getTimeService().getCurrentDateTime();
+    ZonedDateTime currentTime = service.getTimeService().getCurrentDateTime();
     for (int i = 0; i < repeat; i++) {
-      getDemandInfo(currentTime.plus(i * TimeService.HOUR));
+      getDemandInfo(currentTime.plusHours(i));
     }
   }
 
@@ -393,6 +392,9 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
 
   StorageState getStorageState (TariffSubscription sub)
   {
+    if (null == subState) {
+      return null;
+    }
     return subState.get(sub);
   }
 
@@ -401,7 +403,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   {
     // In each timeslot, we first distribute regulation from the previous timeslot,
     // and then collapse and re-balance storage state histograms for each subscription.
-    DateTime currentTime = service.getTimeService().getCurrentDateTime();
+    ZonedDateTime currentTime = service.getTimeService().getCurrentDateTime();
     int timeslotIndex = service.getTimeslotRepo().currentSerialNumber();
     log.info("Step at ts {}", timeslotIndex);
 
@@ -507,7 +509,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
   }
 
   // Computes nominal demand for the current timeslot based on tariff terms
-  private double computeNominalDemand (DateTime time,
+  private double computeNominalDemand (ZonedDateTime time,
                                        TariffSubscription sub,
                                        double[] minMax)
   {
@@ -611,7 +613,7 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
    * vehicles that plug in now and unplug in a future timeslot,
    * and how needed energy is distributed.
    */
-  public List<DemandElement> getDemandInfo (DateTime time)
+  public List<DemandElement> getDemandInfo (ZonedDateTime time)
   {
     List<DemandElement> demandInfo = new ArrayList<DemandElement>();
     if (!demandSampler.isEnabled()) {
@@ -619,8 +621,13 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       return demandInfo;
     }
     try {
+<<<<<<< HEAD
       int hod = time.getHourOfDay();
       demandInfo = demandSampler.sample(hod, (int) getPopulation(), getChargerCapacity());
+=======
+      int hod = time.getHour();
+      demandInfo = demandSampler.sample(hod, (int) getPopulation(), chargerCapacity);
+>>>>>>> 40b3feee10a3e1d811240aaa46a232d16d18b37e
       updateDemandInfoMean(demandInfo, hod);
     }
     catch (IllegalArgumentException e) {

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -73,7 +73,7 @@ public class GencoTests
     timeslotRepo = new TimeslotRepo();
     genco = new Genco("Test");
     genco.init(mockProxy, 0, mockSeedRepo);
-    start = comp.getSimulationBaseTime().plus(TimeService.DAY);
+    start = comp.getSimulationBaseTime().plusMillis(TimeService.DAY);
     timeService = new TimeService();
     timeService.setCurrentTime(start);
     ReflectionTestUtils.setField(timeslotRepo, "timeService", timeService);
@@ -133,8 +133,8 @@ public class GencoTests
     }).when(mockProxy).routeMessage(isA(Order.class));
     // set up some timeslots
     Timeslot ts1 = timeslotRepo.makeTimeslot(start);
-    Timeslot ts2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
-    Timeslot ts3 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
+    Timeslot ts2 = timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR));
+    Timeslot ts3 = timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR * 2));
     assertEquals(4, timeslotRepo.enabledTimeslots().size(), "4 enabled timeslots");
     // 50 mwh already sold in ts2
     MarketPosition posn2 = new MarketPosition(genco, ts2, -50.0);
@@ -175,10 +175,10 @@ public class GencoTests
     // set up some timeslots
     Timeslot ts0 = timeslotRepo.makeTimeslot(start);
     assertEquals(24, ts0.getSerialNumber(), "first ts has sn=24");
-    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
-    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
-    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 3));
-    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 4));
+    timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR * 2));
+    timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR * 3));
+    timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR * 4));
     assertEquals(4, timeslotRepo.enabledTimeslots().size(), "4 enabled timeslots");
 
     // generate orders and check
@@ -217,10 +217,10 @@ public class GencoTests
     // set up some timeslots
     Timeslot ts0 = timeslotRepo.makeTimeslot(start);
     assertEquals(24, ts0.getSerialNumber(), "first ts has sn=24");
-    //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
-    //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
-    //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 3));
-    //timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 4));
+    //timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR));
+    //timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR * 2));
+    //timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR * 3));
+    //timeslotRepo.makeTimeslot(start.plusMillis(TimeService.HOUR * 4));
     assertEquals(4, timeslotRepo.enabledTimeslots().size(), "4 enabled timeslots");
 
     // 50 mwh already sold in ts2

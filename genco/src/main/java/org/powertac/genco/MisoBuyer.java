@@ -17,8 +17,8 @@ package org.powertac.genco;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.DateTime;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.MarketPosition;
@@ -198,9 +198,9 @@ public class MisoBuyer extends Broker
     // compute offsets for daily and weekly seasonal data
     int ts = timeslotRepo.currentSerialNumber();
     timeslotOffset = ts;
-    DateTime start = timeslotRepo.getDateTimeForIndex(ts);
-    dailyOffset = start.getHourOfDay();
-    weeklyOffset = (start.getDayOfWeek() - 1) * 24 + dailyOffset;
+    ZonedDateTime start = timeslotRepo.getDateTimeForIndex(ts);
+    dailyOffset = start.getHour();
+    weeklyOffset = (start.getDayOfWeek().getValue() - 1) * 24 + dailyOffset;
     timeseries = new ComposedTS();
     timeseries.initialize(ts);
   }

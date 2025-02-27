@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.Order;
 import org.powertac.common.RandomSeed;
-import org.powertac.common.TariffTransaction;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.du.DefaultBroker;
 import org.powertac.logtool.common.DomainBuilder;

@@ -5,7 +5,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.HashMap;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -404,7 +404,7 @@ public class DomainObjectReaderTest
       Competition comp = (Competition)dor.readObject(nc);
       assertNotNull(comp, "valid Competition");
       dor.readObject(m1);
-      assertEquals(1229644800000l, comp.getSimulationBaseTime().getMillis(), "correct base time");
+      assertEquals(1229644800000l, comp.getSimulationBaseTime().toEpochMilli(), "correct base time");
       dor.readObject(m2);
       assertEquals(1380, comp.getMinimumTimeslotCount(), "correct min ts count");
       dor.readObject(m3);

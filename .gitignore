@@ -21,6 +21,7 @@
 # Run artifacts
 **/log/
 **/*.log
+bootstrap.xml
 
 # Release artifacts
 **/release.properties
@@ -44,9 +45,13 @@
 **/*.ids
 **/*.orig
 
+#VSCode artifacts
+.vscode/
+
+#Jenv artifacts
+.java-version
+
 # OS artifacts
 **/.DS_Store
 **/Thumbs.db
 **/Desktop.ini
-
-

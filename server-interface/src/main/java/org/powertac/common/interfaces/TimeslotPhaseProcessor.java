@@ -15,7 +15,7 @@
  */
 package org.powertac.common.interfaces;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
