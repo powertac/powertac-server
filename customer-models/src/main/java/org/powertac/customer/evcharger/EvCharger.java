@@ -20,10 +20,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.ZonedDateTime;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.time.ZonedDateTime;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.CustomerInfo.CustomerClass;
@@ -621,13 +621,8 @@ public class EvCharger extends AbstractCustomer implements CustomerModelAccessor
       return demandInfo;
     }
     try {
-<<<<<<< HEAD
-      int hod = time.getHourOfDay();
-      demandInfo = demandSampler.sample(hod, (int) getPopulation(), getChargerCapacity());
-=======
       int hod = time.getHour();
       demandInfo = demandSampler.sample(hod, (int) getPopulation(), chargerCapacity);
->>>>>>> 40b3feee10a3e1d811240aaa46a232d16d18b37e
       updateDemandInfoMean(demandInfo, hod);
     }
     catch (IllegalArgumentException e) {

@@ -18,19 +18,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.TreeMap;
-
-import org.apache.commons.configuration2.MapConfiguration;
-<<<<<<< HEAD
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
-=======
 import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.time.Instant;
->>>>>>> 40b3feee10a3e1d811240aaa46a232d16d18b37e
+
+import org.apache.commons.configuration2.MapConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -488,11 +482,10 @@ class EvChargerTest
     TariffSubscription defaultSub = runFirstStepSim();
 
     // bump the clock forward an hour
-    DateTime now =
-            new DateTime(2014, 12, 1, 11, 0, 0, DateTimeZone.UTC);
-    timeService.setCurrentTime(now.toInstant());
+    Instant now = ZonedDateTime.of(2014, 12, 1, 11, 0, 0, 0, ZoneOffset.UTC).toInstant();
+    timeService.setCurrentTime(now);
     when(mockTimeslotRepo.currentTimeslot())
-    .thenReturn(new Timeslot(361, now.toInstant()));
+    .thenReturn(new Timeslot(361, now));
     when(mockTimeslotRepo.currentSerialNumber())
     .thenReturn(361);
 
