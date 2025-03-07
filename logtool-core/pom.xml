@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>powertac-server</artifactId>
-    <version>1.9.1-SNAPSHOT</version>
+    <version>1.10.0-SNAPSHOT</version>
   </parent>
 
 
@@ -27,37 +27,37 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.10.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>default-broker</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.10.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>customer-models</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.10.0-SNAPSHOT</version>
     </dependency>
 
     <!-- <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>evcustomer</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.10.0-SNAPSHOT</version>
     </dependency> -->
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>factored-customer</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.10.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
-      <version>1.9.1-SNAPSHOT</version>
+      <version>1.10.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
