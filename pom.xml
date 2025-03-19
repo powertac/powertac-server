@@ -501,8 +501,7 @@
             <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>false</useSystemClassLoader>
             <argLine>
-              --illegal-access=warn
-              --add-opens java.base/java.util=ALL-UNNAMED
+              --illegal-access=warn --add-opens java.base/java.util=ALL-UNNAMED
             </argLine>
           </configuration>
         </plugin>
