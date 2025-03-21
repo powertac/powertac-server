@@ -44,6 +44,7 @@ import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.msg.BrokerComplete;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.DomainRepo;
@@ -629,6 +630,8 @@ implements BrokerContext
           // unconditionally activate
           activateServices();
         }
+        // time to send the BrokerComplete message
+        sendMessage(new BrokerComplete(adapter));
       }
     }
 

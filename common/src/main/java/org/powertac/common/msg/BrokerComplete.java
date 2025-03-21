@@ -18,28 +18,40 @@ package org.powertac.common.msg;
 
 import org.powertac.common.state.Domain;
 
+import org.powertac.common.Broker;
+import org.powertac.common.xml.BrokerConverter;
+
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
- * Message type that is guaranteed to be sent by brokers as the last
+ * Message that is guaranteed to be sent by brokers as the last
  * outgoing message in a timeslot. It carries the timeslot index, so the
- * server can use it to check whether the broker is in sync. 
- * Note that this is not a "standard" domain type, since it does not
- * have an ID and is not logged in the state log. It is just a message.
+ * server can use it to check whether the broker is in sync.
  * @author John Collins
  */
 @Domain
 @XStreamAlias("br-done")
 public class BrokerComplete
 {
+  /** The broker */
+  @XStreamConverter(BrokerConverter.class)
+  private Broker broker;
+
   @XStreamAsAttribute
   private int timeslotIndex = 0;
 
-  public BrokerComplete (int timeslotIndex)
+  public BrokerComplete (Broker broker, int timeslotIndex)
   {
     super();
+    this.broker = broker;
     this.timeslotIndex = timeslotIndex;
+  }
+
+  public Broker getBroker ()
+  {
+    return broker;
   }
 
   public int getTimeslotIndex ()
@@ -50,6 +62,6 @@ public class BrokerComplete
   @Override
   public String toString ()
   {
-    return ("BrokerComplete#" + timeslotIndex);
+    return ("BrokerComplete " + broker.getUsername() + ":" + timeslotIndex);
   }
 }
