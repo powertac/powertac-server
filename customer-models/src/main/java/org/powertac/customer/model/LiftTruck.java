@@ -15,6 +15,8 @@
  */
 package org.powertac.customer.model;
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,7 +28,6 @@ import java.util.Map;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import java.time.temporal.ChronoField;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.Duration;
@@ -610,13 +611,13 @@ implements CustomerModelAccessor
   // Get a beginning-of-week time for consistent tariff evaluation
   private Instant getNextSunday ()
   {
-    Instant result = getNowInstant();
-    int hour = result.get(ChronoField.HOUR_OF_DAY);
-    if (hour > 0)
-      result = result.plusMillis((24 - hour) * TimeService.HOUR);
-    int day = result.get(ChronoField.DAY_OF_WEEK);
-    result = result.plusMillis((7 - day) * TimeService.DAY);
-    return result;
+    Instant now = getNowInstant();
+    ZonedDateTime zdt = now.atZone(ZoneOffset.UTC);
+    ZonedDateTime startOfDay = zdt.truncatedTo(ChronoUnit.DAYS);
+    int currentDay = zdt.getDayOfWeek().getValue();
+    int daysToAdd = currentDay == 7 ? 7 : 7 - currentDay;
+    return startOfDay.plusDays(daysToAdd).toInstant();
+
   }
 
   // ================ getters and setters =====================
