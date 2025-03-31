@@ -26,11 +26,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.commons.compress.archivers.ArchiveEntry;

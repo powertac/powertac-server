@@ -221,9 +221,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     lazyInit();
     for (Object key : props.keySet()) {
       Object value = props.get(key);
-      if (value instanceof String && ((String) value).startsWith("[")) {
-        // clean up list format
-        String str = (String)value;
+      if (value instanceof String str && str.startsWith("[")) {
         value = str.substring(1, str.length() - 2);
       }
       config.setProperty((String)key, value);

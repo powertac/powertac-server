@@ -27,7 +27,7 @@ import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
@@ -1728,7 +1728,7 @@ public class Village extends AbstractCustomer
     Timeslot ts = service.getTimeslotRepo().currentTimeslot();
     // TODO - this code assumes that games start at midnight. Bad assumption.
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY);
-    int hour = ts.getStartTime().getHourOfDay();
+    int hour = ts.getStartTime().getHour();
     Instant now = ts.getStartInstant();
 
     weatherCheck(day, hour, now);
@@ -1797,7 +1797,7 @@ public class Village extends AbstractCustomer
   void checkCurtailment (int serial, int day, int hour)
   {
     int nextSerial = service.getTimeslotRepo().currentSerialNumber() + 1;
-      // (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR) + 1;
+      // (int) ((timeService.getCurrentTime().toInstant().toEpochMilli() - timeService.getBase()) / TimeService.HOUR) + 1;
     int nextDay = (int) (nextSerial / VillageConstants.HOURS_OF_DAY);
     int nextHour = (int) (nextSerial % VillageConstants.HOURS_OF_DAY);
 

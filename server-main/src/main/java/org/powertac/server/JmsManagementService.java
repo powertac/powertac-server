@@ -7,13 +7,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
-import javax.annotation.Resource;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.MessageListener;
-import javax.jms.Queue;
-import javax.jms.Session;
+import jakarta.annotation.Resource;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.MessageListener;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.Broker;
@@ -109,8 +109,7 @@ public class JmsManagementService
     unregisterAllMessageListeners();
     
     // reset connection factory
-    if (connectionFactory instanceof CachingConnectionFactory) {
-      CachingConnectionFactory cachingConnectionFactory = (CachingConnectionFactory) connectionFactory;
+    if (connectionFactory instanceof CachingConnectionFactory cachingConnectionFactory) {
       cachingConnectionFactory.resetConnection();
     }
     
@@ -129,15 +128,13 @@ public class JmsManagementService
   public void initializeClientInterface ()
   {
     ActiveMQConnectionFactory amqConnectionFactory = null;
-    if (connectionFactory instanceof PooledConnectionFactory) {
-      PooledConnectionFactory pooledConnectionFactory = (PooledConnectionFactory) connectionFactory;
+    if (connectionFactory instanceof PooledConnectionFactory pooledConnectionFactory) {
       if (pooledConnectionFactory.getConnectionFactory() instanceof ActiveMQConnectionFactory) {
         amqConnectionFactory = (ActiveMQConnectionFactory) pooledConnectionFactory
                 .getConnectionFactory();
       }
     }
-    else if (connectionFactory instanceof CachingConnectionFactory) {
-      CachingConnectionFactory cachingConnectionFactory = (CachingConnectionFactory) connectionFactory;
+    else if (connectionFactory instanceof CachingConnectionFactory cachingConnectionFactory) {
       if (cachingConnectionFactory.getTargetConnectionFactory() instanceof ActiveMQConnectionFactory) {
         amqConnectionFactory = (ActiveMQConnectionFactory) cachingConnectionFactory
                 .getTargetConnectionFactory();

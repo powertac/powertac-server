@@ -15,6 +15,7 @@
  */
 package org.powertac.customer.evcharger;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import java.util.Objects;
  */
 class DemandElement implements Serializable // package visibility
 {
+  @Serial
   private static final long serialVersionUID = -4634719604251761446L;
 
   // how far in the future will this amount be needed?

@@ -17,7 +17,7 @@ package org.powertac.du;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -941,7 +941,7 @@ public class DefaultBrokerService
     int getIndex (Instant when)
     {
       int offset = getUsageIndexOffset();
-      int result = (int)((when.getMillis() - base.getMillis()) /
+      int result = (int)((when.toEpochMilli() - base.toEpochMilli()) /
                          (Competition.currentCompetition().getTimeslotDuration()))
                    - offset;
       log.debug("offset=" + offset + ", index=" + result);

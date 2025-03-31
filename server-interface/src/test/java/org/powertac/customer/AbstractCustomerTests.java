@@ -19,11 +19,11 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -96,10 +96,10 @@ public class AbstractCustomerTests
     broker1 = new Broker("Joe");
     broker1 = new Broker("Anna");
 
-    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
-    timeService.setCurrentTime(now.toInstant());
+    now = ZonedDateTime.of(2011, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();;
+    timeService.setCurrentTime(now);
 
-    exp = new Instant(now.getMillis() + TimeService.WEEK * 10);
+    exp = Instant.ofEpochMilli(now.toEpochMilli() + TimeService.WEEK * 10);
 
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
@@ -250,15 +250,15 @@ public class AbstractCustomerTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc2 =
       new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r3);
     TariffSpecification tsc3 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withExpiration(now.plusMillis(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -442,15 +442,15 @@ public class AbstractCustomerTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc2 =
       new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r3);
     TariffSpecification tsc3 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withExpiration(now.plusMillis(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -501,8 +501,8 @@ public class AbstractCustomerTests
                                  .size(),
             "Five subscriptions for customer");
 
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
-            .getMillis() + TimeService.HOUR));
+    timeService.setCurrentTime(Instant.ofEpochMilli(timeService.getCurrentTime()
+            .toEpochMilli() + TimeService.HOUR));
 
     //TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
     tariff2.setState(Tariff.State.KILLED);

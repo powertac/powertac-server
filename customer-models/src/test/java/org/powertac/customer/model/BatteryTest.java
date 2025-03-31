@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -88,7 +88,7 @@ public class BatteryTest
     Competition.setCurrent(competition);
     timeService = new TimeService();
     Instant now =
-        new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+        ZonedDateTime.of(2011, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(now);
 
     // tariff setup

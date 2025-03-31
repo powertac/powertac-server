@@ -3,10 +3,10 @@ package org.powertac.server;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageListener;
+import jakarta.jms.TextMessage;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -41,8 +41,8 @@ public class ServerMessageReceiver implements MessageListener
   @Override
   public void onMessage (Message message)
   {
-    if (message instanceof TextMessage)
-      onMessage((TextMessage)message);
+    if (message instanceof TextMessage textMessage)
+      onMessage(textMessage);
     else
       log.warn("Unable to process incoming message of type " + 
                message.getClass().getName());

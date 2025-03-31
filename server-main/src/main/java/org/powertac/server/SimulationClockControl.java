@@ -405,7 +405,7 @@ public class SimulationClockControl
     }
     else {
       // second and subsequent ticks
-      long simTime = timeService.getCurrentTime().getMillis();
+      long simTime = timeService.getCurrentTime().toEpochMilli();
       long nextSimTime = simTime + modulo;
       long nextTick = start + (nextSimTime - base) / rate; 
       //System.out.println("next tick: current " + current + "; next tick at " + nextTick);

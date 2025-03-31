@@ -148,7 +148,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     }
 
     for (CapacityOriginator capacityOriginator : bundle.getCapacityOriginators()) {
-      if (capacityOriginator instanceof ProfileRecommendation.Listener) {
+      if (capacityOriginator instanceof ProfileRecommendation.Listener listener) {
         for (TariffSubscription sub : subscriptions) {
           ProfileRecommendation rec = recsPerSub.get(capacityOriginator).get(sub);
           if (!rec.isEmpty()) {
@@ -157,7 +157,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
                 + bundle.getCustomerInfo().getPowerType()
                 + " capacity originator: "
                 + capacityOriginator.getCapacityName());
-            ((ProfileRecommendation.Listener) capacityOriginator)
+            listener
                 .handleProfileRecommendationPerSub(rec, sub, capacityOriginator.getCurrentForecast());
           }
           else {

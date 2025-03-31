@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -188,13 +188,13 @@ public class TariffSubscription
     // Compute the 00:00 Instant for the current time
     Instant start = getTimeService().getCurrentTime();
     if (expirations.size() > 0 &&
-        expirations.get(expirations.size() - 1).getHorizon() == start.getMillis() + minDuration) {
+        expirations.get(expirations.size() - 1).getHorizon() == start.toEpochMilli() + minDuration) {
       // update existing entry
       expirations.get(expirations.size() - 1).updateCount(customerCount);
     }
     else {
       // need a new entry
-      expirations.add(new ExpirationRecord(start.getMillis() + minDuration,
+      expirations.add(new ExpirationRecord(start.toEpochMilli() + minDuration,
                                            customerCount));
     }
     //}
@@ -390,7 +390,7 @@ public class TariffSubscription
             tariff.getUsageCharge(originalKWh, true);
     getAccounting().addTariffTransaction(txType, tariff,
         customer, customersCommitted, -originalKWh, -originalCharge);
-//    if (getTimeService().getHourOfDay() == 0) {
+//    if (getTimeService().getHour() == 0) {
 //      //reset the daily usage counter
 //      totalUsage = 0.0;
 //    }
@@ -710,7 +710,7 @@ public class TariffSubscription
     int cc = 0;
     Instant now = getTimeService().getCurrentTime();
     for (ExpirationRecord exp : expirations) {
-      if (exp.getHorizon() <= now.getMillis()) {
+      if (exp.getHorizon() <= now.toEpochMilli()) {
         cc += exp.getCount();
       }
     }

@@ -17,6 +17,8 @@ package org.powertac.common;
 
 import org.powertac.common.state.StateChange;
 
+import java.io.Serial;
+
 /**
  * RandomSeed is used to store generated random seed in the database in
  * order to be able to "replay" PowerTAC competitions later on with
@@ -35,6 +37,7 @@ import org.powertac.common.state.StateChange;
 public class RandomSeed extends java.util.Random
 {
   // needed because Random is serializable
+  @Serial
   private static final long serialVersionUID = 1L;
   
   long id = IdGenerator.createId();

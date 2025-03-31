@@ -21,9 +21,9 @@ import static org.mockito.Mockito.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,12 +81,12 @@ public class TariffSubscriptionTests
   {
     Competition comp = Competition.newInstance("tariff-sub-test");
     broker = new Broker("Joe");
-    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    now = ZonedDateTime.of(2011, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(now);
     List<String> inits = new ArrayList<String>();
     inits.add("AccountingService");
     tariffMarketService.initialize(comp, inits);
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
           .withExpiration(exp)
@@ -117,7 +117,7 @@ public class TariffSubscriptionTests
   @Test
   public void testSignupBonus ()
   {
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
@@ -142,7 +142,7 @@ public class TariffSubscriptionTests
   @Test
   public void testEarlyWithdraw ()
   {
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
@@ -161,7 +161,7 @@ public class TariffSubscriptionTests
                                                 5, 0.0, -33.2*5);
 
     // move time forward 2 weeks, withdraw 2 customers
-    Instant wk2 = now.plus(TimeService.WEEK * 2);
+    Instant wk2 = now.plusMillis(TimeService.WEEK * 2);
     timeService.setCurrentTime(wk2);
     tsub.unsubscribe(2);
     tariffMarketService.activate(wk2, 4);
@@ -175,7 +175,7 @@ public class TariffSubscriptionTests
     assertEquals(3, tsub.getCustomersCommitted(), "three customers committed");
     
     // move time forward another week, add 4 customers and drop 1
-    Instant wk3 = now.plus(TimeService.WEEK * 2 + TimeService.HOUR * 6);
+    Instant wk3 = now.plusMillis(TimeService.WEEK * 2 + TimeService.HOUR * 6);
     timeService.setCurrentTime(wk3);
     tariffMarketService.subscribeToTariff(tariff, customer, 4);
     TariffSubscription tsub1 = 
@@ -200,7 +200,7 @@ public class TariffSubscriptionTests
   @Test
   public void testEarlyWithdrawRevoke ()
   {
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
@@ -219,7 +219,7 @@ public class TariffSubscriptionTests
                                                 5, 0.0, -33.2*5);
 
     // move time forward 2 weeks, revoke tariff, withdraw 2 customers
-    Instant wk2 = now.plus(TimeService.WEEK * 2);
+    Instant wk2 = now.plusMillis(TimeService.WEEK * 2);
     timeService.setCurrentTime(wk2);
     TariffRevoke tex = new TariffRevoke(tariffSpec.getBroker(), tariffSpec);
     tariffMarketService.handleMessage(tex);
@@ -236,7 +236,7 @@ public class TariffSubscriptionTests
   @Test
   public void testConsumption ()
   {
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
@@ -267,7 +267,7 @@ public class TariffSubscriptionTests
     //assertEquals(0.121 * 24.4, ttx.charge, 1e-6, "correct charge")
 
     // just consume in the second timeslot
-    Instant hour = now.plus(TimeService.HOUR);
+    Instant hour = now.plusMillis(TimeService.HOUR);
     timeService.setCurrentTime(hour);
     tsub.usePower(32.8); // consumption
     //assertEquals((24.4 + 32.8) / 4, tsub.getTotalUsage(), 1e-6, "correct total usage");
@@ -284,7 +284,7 @@ public class TariffSubscriptionTests
   @Test
   public void testTwoPart()
   {
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
@@ -322,7 +322,7 @@ public class TariffSubscriptionTests
   @Test
   public void testProduction ()
   {
-    Instant exp = now.plus(TimeService.WEEK * 10);
+    Instant exp = now.plusMillis(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.PRODUCTION)
             .withExpiration(exp)

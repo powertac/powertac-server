@@ -31,9 +31,10 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.time.ZoneOffset;
+
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.exceptions.PowerTacException;
@@ -121,8 +122,8 @@ implements InitializationService
   private LogtoolCore logtool;
 
   // These dates need to be fetched when using not blocking
-  private List<DateTime> aheadDays;
-  private DateTime simulationBaseTime;
+  private List<ZonedDateTime> aheadDays;
+  private ZonedDateTime simulationBaseTime;
   private int daysAhead = 3;
 
   // if we're extracting from a state log, we cannot create multiple instances
@@ -149,36 +150,36 @@ implements InitializationService
     return forecastHorizon;
   }
 
-  private String dateString (DateTime dateTime)
+  private String dateString (ZonedDateTime dateTime)
   {
     // Parse out year, month, day, and hour out of DateTime
-    int y = dateTime.get(DateTimeFieldType.year());
-    int m = dateTime.get(DateTimeFieldType.monthOfYear());
-    int d = dateTime.get(DateTimeFieldType.dayOfMonth());
-    int h = dateTime.get(DateTimeFieldType.clockhourOfDay()) % 24;
+    int y = dateTime.getYear();
+    int m = dateTime.getMonthValue();
+    int d = dateTime.getDayOfMonth();
+    int h = dateTime.getHour() % 24;
 
     return String.format("%04d%02d%02d%02d", y, m, d, h);
   }
 
-  private String dateStringLong (DateTime dateTime)
+  private String dateStringLong (ZonedDateTime dateTime)
   {
-    // Parse out year, month, day, and hour out of DateTime
-    int y = dateTime.get(DateTimeFieldType.year());
-    int m = dateTime.get(DateTimeFieldType.monthOfYear());
-    int d = dateTime.get(DateTimeFieldType.dayOfMonth());
-    int h = dateTime.get(DateTimeFieldType.clockhourOfDay()) % 24;
+    // Parse out year, month, day, and hour out of ZonedDateTime
+    int y = dateTime.getYear();
+    int m = dateTime.getMonthValue();
+    int d = dateTime.getDayOfMonth();
+    int h = dateTime.getHour() % 24;
 
     return String.format("%04d-%02d-%02d %02d:00", y, m, d, h);
   }
 
-  private int getTimeIndex (DateTime dateTime)
+  private int getTimeIndex (ZonedDateTime dateTime)
   {
     // Used for testing
     if (simulationBaseTime == null) {
       simulationBaseTime = timeslotRepo.currentTimeslot().getStartTime();
     }
 
-    long diff = dateTime.getMillis() - simulationBaseTime.getMillis();
+    long diff = dateTime.toInstant().toEpochMilli() - simulationBaseTime.toInstant().toEpochMilli();
     // WARNING:This assumes one-hour timeslots, but matches weather data granularity
     return (int) (diff / TimeService.HOUR);
   }
@@ -187,7 +188,7 @@ implements InitializationService
   @Override
   public void activate (Instant time, int phaseNumber)
   {
-    long msec = time.getMillis();
+    long msec = time.toEpochMilli();
     if (msec % (getWeatherReqInterval() * TimeService.HOUR) != 0) {
       log.info("WeatherService reports not time to grab weather data.");
     }
@@ -196,7 +197,7 @@ implements InitializationService
           + timeslotRepo.currentTimeslot().getId()
           + " WeatherService reports time to make request for weather data");
 
-      DateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
+      ZonedDateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
       if (blocking) {
         WeatherRequester wr = new WeatherRequester(dateTime);
         wr.run();
@@ -267,10 +268,10 @@ implements InitializationService
   public String initialize (Competition competition, List<String> completedInits)
   {
     super.init();
-    aheadDays = new CopyOnWriteArrayList<DateTime>();
+    aheadDays = new CopyOnWriteArrayList<ZonedDateTime>();
     serverProps.configureMe(this);
     weatherReqInterval = Math.min(24, weatherReqInterval);
-    simulationBaseTime = competition.getSimulationBaseTime().toDateTime();
+    simulationBaseTime = competition.getSimulationBaseTime().atZone(ZoneOffset.UTC);
 
     if (weatherData != null) {
       log.info("read from file in blocking mode");
@@ -279,7 +280,7 @@ implements InitializationService
 
     if (!blocking) {
       log.info("Not blocking");
-      DateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
+      ZonedDateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
       // Get the first 3 days of weather, blocking!
       for (int i = 0; i < daysAhead; i++) {
         WeatherRequester weatherRequester = new WeatherRequester(dateTime);
@@ -293,9 +294,9 @@ implements InitializationService
 
   private class WeatherRequester implements Runnable
   {
-    private DateTime requestDate;
+    private ZonedDateTime requestDate;
 
-    public WeatherRequester (DateTime requestDate)
+    public WeatherRequester (ZonedDateTime requestDate)
     {
       this.requestDate = requestDate;
     }
@@ -475,7 +476,7 @@ implements InitializationService
   {
     private int timeIndex;
 
-    public WeatherReportConverter (DateTime requestDate)
+    public WeatherReportConverter (ZonedDateTime requestDate)
     {
       super();
       this.timeIndex = getTimeIndex(requestDate);
@@ -611,7 +612,7 @@ implements InitializationService
       }
     }
 
-    private String extractPartialXml (DateTime requestDate)
+    private String extractPartialXml (ZonedDateTime requestDate)
     {
       if (nodeListRead == null) {
         return null;

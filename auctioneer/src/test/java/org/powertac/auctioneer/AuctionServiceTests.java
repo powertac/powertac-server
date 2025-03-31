@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 import org.apache.commons.configuration2.MapConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -154,12 +154,12 @@ public class AuctionServiceTests
     Instant now = Competition.currentCompetition().getSimulationBaseTime();
     timeService.setCurrentTime(now);
     ts0 = timeslotRepo.makeTimeslot(now);
-    ts1 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR));
+    ts1 = timeslotRepo.makeTimeslot(now.plusMillis(TimeService.HOUR));
     ts1Num = ts1.getSerialNumber();
-    ts2 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
+    ts2 = timeslotRepo.makeTimeslot(now.plusMillis(TimeService.HOUR * 2));
     ts2Num = ts2.getSerialNumber();
-    //timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3));
-    //timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4));
+    //timeslotRepo.makeTimeslot(now.plusMillis(TimeService.HOUR * 3));
+    //timeslotRepo.makeTimeslot(now.plusMillis(TimeService.HOUR * 4));
     svc.clearEnabledTimeslots();
 
     // mock the AccountingService, capture args
@@ -1021,7 +1021,7 @@ public class AuctionServiceTests
 
     assertEquals(17, svc.getIncoming().size(), "17 orders received");
     // Advance time before activation, otherwise offsets are incorrect
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime().plusMillis(TimeService.HOUR));
     svc.activate(timeService.getCurrentTime(), 1);
     assertEquals(20, accountingArgs.size(), "accounting: 20 calls");
     // first tx should be ask, second bid

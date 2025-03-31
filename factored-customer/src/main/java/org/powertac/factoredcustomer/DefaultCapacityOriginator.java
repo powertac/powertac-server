@@ -18,7 +18,7 @@ package org.powertac.factoredcustomer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.DateTime;
+import java.time.ZonedDateTime;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
@@ -340,11 +340,11 @@ class DefaultCapacityOriginator implements CapacityOriginator
     return (currentShift == null) ? capacity : capacity + currentShift;
   }
 
-  private double adjustCapacityForPeriodicSkew (double capacity, DateTime when,
+  private double adjustCapacityForPeriodicSkew (double capacity, ZonedDateTime when,
                                                 boolean verbose)
   {
-    int day = when.getDayOfWeek(); // 1=Monday, 7=Sunday
-    int hour = when.getHourOfDay(); // 0-23
+    int day = when.getDayOfWeek().getValue(); // 1=Monday, 7=Sunday
+    int hour = when.getHour(); // 0-23
 
     double periodicSkew = capacityStructure.getPeriodicSkew(day, hour);
     if (verbose) {

@@ -15,11 +15,14 @@
  */
 package org.powertac.logtool.common;
 
+import java.io.Serial;
+
 /**
  * @author John Collins
  */
 public class MissingDomainObject extends Exception
 {
+  @Serial
   private static final long serialVersionUID = -5349118852334688746L;
 
   public MissingDomainObject (String msg)

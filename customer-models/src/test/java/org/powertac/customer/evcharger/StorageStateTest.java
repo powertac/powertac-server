@@ -5,14 +5,10 @@ package org.powertac.customer.evcharger;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeMap;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -24,17 +20,14 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
-import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
-import org.powertac.util.Pair;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import cern.colt.Arrays;
 
 /**
  * @author John Collins
@@ -75,8 +68,8 @@ class StorageStateTest
     competition = Competition.newInstance("storage-state-test");
     timeService = new TimeService();
     timeService.setCurrentTime(competition.getSimulationBaseTime()
-                               .plus(TimeService.HOUR * 7));
-    start = timeService.getCurrentTime().plus(TimeService.HOUR);
+                               .plusMillis(TimeService.HOUR * 7));
+    start = timeService.getCurrentTime().plusMillis(TimeService.HOUR);
     tariffSubscriptionRepo = new TariffSubscriptionRepo();
     tariffRepo = mock(TariffRepo.class);
     ReflectionTestUtils.setField(tariffSubscriptionRepo,

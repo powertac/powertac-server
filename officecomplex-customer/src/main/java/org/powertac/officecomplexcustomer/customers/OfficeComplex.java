@@ -27,7 +27,7 @@ import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
@@ -1342,7 +1342,7 @@ public class OfficeComplex extends AbstractCustomer
     Timeslot ts = service.getTimeslotRepo().currentTimeslot();
     // TODO - this code assumes that games start at midnight. Bad assumption.
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY);
-    int hour = ts.getStartTime().getHourOfDay();
+    int hour = ts.getStartTime().getHour();
     Instant now = ts.getStartInstant();
 
     weatherCheck(day, hour, now);

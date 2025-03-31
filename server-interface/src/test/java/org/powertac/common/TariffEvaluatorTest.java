@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -73,8 +73,8 @@ public class TariffEvaluatorTest
     competition = Competition.newInstance("tariff-evaluator-test");
     timeService = new TimeService();
     timeService.setCurrentTime(competition.getSimulationBaseTime()
-                               .plus(TimeService.HOUR * 7));
-    start = timeService.getCurrentTime().plus(TimeService.HOUR);
+                               .plusMillis(TimeService.HOUR * 7));
+    start = timeService.getCurrentTime().plusMillis(TimeService.HOUR);
     //tariffRepo = new TariffRepo();
     tariffSubscriptionRepo = new TariffSubscriptionRepo();
 

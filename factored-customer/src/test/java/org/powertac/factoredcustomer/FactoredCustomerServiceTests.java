@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,9 +126,9 @@ public class FactoredCustomerServiceTests
 
     defaultBroker = new Broker("DefaultBroker");
 
-    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    now = ZonedDateTime.of(2011, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(now);
-    exp = now.plus(TimeService.WEEK * 10);
+    exp = now.plusMillis(TimeService.WEEK * 10);
 
     defaultConsumptionTariffSpec = new TariffSpecification(defaultBroker,
         PowerType.CONSUMPTION).withExpiration(exp)
