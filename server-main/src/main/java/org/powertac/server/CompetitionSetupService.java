@@ -361,9 +361,8 @@ public class CompetitionSetupService
       // parts of it
       setupConfig(config, configOutput);
 
-      // extract sim time info from Competition instance in seed or weather data
-      // if either is in use
-      loadCompetitionMaybe(seedData, weatherData);
+      // extract sim time info from Competition instance in seed if used
+      loadCompetitionMaybe(seedData);
 
       // Use weather file instead of webservice
       useWeatherDataMaybe(weatherData);
@@ -423,7 +422,7 @@ public class CompetitionSetupService
 
   // Digs out the Competition instance from old logs and sets time data as needed
   // for the current session. If we cannot retrieve the data, the server will exit.
-  private void loadCompetitionMaybe (String seedData, String weatherData)
+  private void loadCompetitionMaybe (String seedData)
   {
     CompetitionLoader loader = null;
     Competition tempCompetition = null;
@@ -435,15 +434,6 @@ public class CompetitionSetupService
         System.exit(1);
       }
       loadTimeslotCounts(tempCompetition);
-    }
-    if (null != weatherData) {
-      log.info("Loading weather data from {}", weatherData);
-      loader = new CompetitionLoader(weatherData);
-      tempCompetition = loader.extractCompetition();
-      if (null == tempCompetition) {
-        System.exit(1);
-      }
-      loadStartTime(tempCompetition);
     }
   }
 
