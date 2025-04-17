@@ -631,7 +631,8 @@ implements BrokerContext
           activateServices();
         }
         // time to send the BrokerComplete message
-        sendMessage(new BrokerComplete(adapter));
+        log.info("Broker complete ts " + current.getSerialNumber());
+        sendMessage(new BrokerComplete(adapter, current.getSerialNumber()));
       }
     }
 
