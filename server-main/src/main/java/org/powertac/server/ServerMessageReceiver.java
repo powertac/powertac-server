@@ -61,8 +61,8 @@ public class ServerMessageReceiver implements MessageListener
   void onMessage (String xml) {
     // validate broker's key, then strip it off
     String validXml = xml;
-    if (xml.startsWith("<broker-authentication")) {
-      // don't validate the broker-authentication messages
+    if (xml.startsWith("<broker-authentication") || xml.startsWith("<br-done")) {
+      // don't validate empty messages
       validXml = xml;
     }
     else if (xml.startsWith("<visualizer-status")) {

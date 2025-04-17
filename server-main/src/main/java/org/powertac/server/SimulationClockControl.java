@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author or authors.
+ * Copyright (c) 2011, 2025 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ public class SimulationClockControl
   private int minWindow = 10;
   private int minPauseInterval = 100; // min time before pause
   private double maxTickOffsetRatio = 0.2; // max offset as proportion of tickInterval
+  private long maxSyncWindow = 3000;
 
   private long base;
   private long start;
@@ -97,6 +98,8 @@ public class SimulationClockControl
   private Timer theTimer;
   private WatchdogAction currentWatchdog;
   
+  private boolean brokerSync = false;
+  
   private Set<Semaphore> waitUntilStopSemaphores;
   
   // ------------- Singleton methods -------------
@@ -105,6 +108,7 @@ public class SimulationClockControl
   /**
    * Creates the instance and sets the reference to the timeService.
    */
+  private static CompetitionControlService ccs;
   public static void initialize (CompetitionControlService competitionControl,
                                  TimeService timeService)
   {
@@ -112,6 +116,7 @@ public class SimulationClockControl
     ServerConfiguration serverConfig =
         (ServerConfiguration) SpringApplicationContext.getBean("serverPropertiesService");
     serverConfig.configureMe(instance);
+    ccs = competitionControl;
   }
   
   /**
@@ -159,6 +164,12 @@ public class SimulationClockControl
     else {
       return minAgentWindow;
     }
+  }
+  
+  public void setBrokerSync (boolean sync, long window)
+  {
+    brokerSync = sync;
+    maxSyncWindow = window;
   }
 
   /**
@@ -261,13 +272,17 @@ public class SimulationClockControl
     while (nextTick < n) {
       try {
         wait();
+        log.info("tick {} activated", n);
       }
       catch (InterruptedException ie) { }
     }
 
     // find the delay offset for this tick
+    // The absolute value is used to allow this to handle short intervals
+    // arising in brokerSync mode
     long offset = new Date().getTime() - scheduledTickTime;
-    if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
+    log.info("Clock offset {}, tick interval {}", offset, tickInterval);
+    if (Math.abs(offset) > (long)(tickInterval / maxTickOffsetRatio)) {
       log.warn("clock delay: " + offset + " msec");
       updateStart(offset);
     }
@@ -275,13 +290,24 @@ public class SimulationClockControl
     // update the time, set the watchdog, and schedule the next tick.
     timeService.updateTime();
     setState(Status.CLEAR);
-    long earliestPause = new Date().getTime() + minPauseInterval;
-    long wdTime = computeNextTickTime() - minWindow;
-    if (wdTime < earliestPause)
-      wdTime = earliestPause;
-    //System.out.println("watchdog set for " + wdTime);
+    if (currentWatchdog != null) {
+      currentWatchdog.cancel();
+    }
     currentWatchdog = new WatchdogAction(this);
-    theTimer.schedule(currentWatchdog, new Date(wdTime));
+    if (!ccs.getBrokerSync()) {
+      // watchdog controls pause mechanism
+      long earliestPause = new Date().getTime() + minPauseInterval;
+      long wdTime = computeNextTickTime() - minWindow;
+      if (wdTime < earliestPause)
+        wdTime = earliestPause;
+      //System.out.println("watchdog set for " + wdTime);
+      theTimer.schedule(currentWatchdog, new Date(wdTime));
+    }
+    else {
+      // Otherwise watchdog aborts the sim if a broker has not responded
+      theTimer.schedule(currentWatchdog,
+                        computeNextTickTime() + maxSyncWindow);
+    }
   }
   
   /**
@@ -326,9 +352,10 @@ public class SimulationClockControl
   /**
    * notifies the waiting thread (if any).
    */
-  private synchronized void notifyTick ()
+  synchronized void notifyTick ()
   {
     nextTick += 1;
+    log.info("notify tick {}", nextTick);
     notifyAll();
   }
   
@@ -408,7 +435,7 @@ public class SimulationClockControl
       long simTime = timeService.getCurrentTime().toEpochMilli();
       long nextSimTime = simTime + modulo;
       long nextTick = start + (nextSimTime - base) / rate; 
-      //System.out.println("next tick: current " + current + "; next tick at " + nextTick);
+      log.info("next tick: current {} ; next tick at {}", current, nextTick);
       return nextTick;
     }
   }
@@ -448,15 +475,25 @@ public class SimulationClockControl
     }
     
     /**
-     * Checks for sim task completion by calling pauseMaybe on the
-     * instance.
+     * In normal operation, checks for sim task completion by
+     * calling pauseMaybe on the instance.
+     * In broker-sync mode, shuts down the simulation with
+     * an error.
      */
     @Override
     public void run ()
     {
       //System.out.println("WatchdogAction.run() " + new Date().getTime());
-      scc.delayMaybe();
-      currentWatchdog = null;
+      if (!brokerSync) {
+        scc.delayMaybe();
+        currentWatchdog = null;
+      }
+      else {
+        // If this goes off in brokerSync mode, it's a fatal error
+        log.error("Broker failure, shutting down");
+        competitionControl.stop();
+        scc.stop();
+      }
     }
   }
 }

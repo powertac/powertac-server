@@ -151,4 +151,19 @@ public class CompetitionControlServiceTests
     assertEquals(2, names.indexOf("Sally"), "Sally first");
     assertEquals(3, names.indexOf("Jenny"), "Jenny second");
   }
+
+  // Test broker sync count when brokerSync is not set
+  @Test
+  public void testBrokerSyncCountNS ()
+  {
+    CompetitionControlService ccs = new CompetitionControlService();
+    ccs.setAlwaysAuthorizedBrokers(new ArrayList<String>());
+    List<String> usernames = Arrays.asList("Sally/S1", "Jenny/J1");
+    ccs.setAuthorizedBrokerList(usernames);
+    List<String> names = ccs.getBrokerNames();
+    assertEquals(2, names.size(), "2 names");
+    // start a timeslot
+    // issue a BrokerComplete, check count, check timeslot not complete
+    // issue second BrokerComplete, check timeslot complete
+  }
 }

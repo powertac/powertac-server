@@ -1140,6 +1140,11 @@ public class TariffMarketServiceTests
     }
 
     @Override
+    public void setBrokerSync (boolean setting)
+    {
+    }
+
+    @Override
     public void runOnce (boolean bootstrapMode)
     {
     }

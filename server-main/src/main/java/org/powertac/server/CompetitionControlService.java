@@ -151,9 +151,20 @@ public class CompetitionControlService
   private ArrayList<String> pendingLogins; // external logins expected
   private int loginCount = 0; // number of external brokers logged in so far
 
+  @ConfigurableValue(valueType = "Boolean",
+      description = "If true, time advances when all brokers have sent BrokerComplete messages")
+  private boolean brokerSync;
+  // This is the number of brokers who have not yet sent their
+  // brokerComplete messages in the current timeslot
+  private int brokerSyncCount = 0;
+  
+  @ConfigurableValue(valueType = "Long",
+      description = "Max time in msec to wait for brokers in broker-sync mode")
+  private long maxSyncWindow = 3000; //3 seconds
+
   @ConfigurableValue(valueType = "Long",
       description = "Milliseconds/timeslot in boot mode. Should be > 300.")
-  private long bootstrapTimeslotMillis = 2000;
+  private long bootstrapTimeslotMillis = 1000;
   
   @ConfigurableValue(valueType = "String",
       description = "Name of abort file")
@@ -187,6 +198,7 @@ public class CompetitionControlService
     // broker message registration for clock-control messages
     //brokerProxyService.registerSimListener(this);
     for (Class<?> messageType: Arrays.asList(BrokerAuthentication.class,
+                                             BrokerComplete.class,
                                              PauseRequest.class,
                                              PauseRelease.class)) {
       brokerProxyService.registerBrokerMessageListener(this, messageType);
@@ -254,12 +266,27 @@ public class CompetitionControlService
   }
 
   /**
-   * Sets up the bootstrap dataset extracted from its external source.
+   * Sets the brokerSync flag. This is to support testing,
+   * otherwise it should be set by configuration.
    */
-  //void setBootstrapDataset (List<Object> dataset)
-  //{
-  //  bootstrapDataset = dataset;
-  //}
+  @Override
+  public void setBrokerSync (boolean sync)
+  {
+    brokerSync = sync;
+  }
+
+  /**
+   * Returns the brokerSync flag, needed by the clock
+   */
+  public boolean getBrokerSync () {
+    return brokerSync;
+  }
+
+  // test support
+  int getBrokerSyncCount ()
+  {
+    return brokerSyncCount;
+  }
   
   /**
    * Sets the name of the server's JMS input queue.
@@ -294,7 +321,7 @@ public class CompetitionControlService
       log.warn("attempt to start sim on top of running sim");
       return;
     }
-    // -- note small race condition here --
+    // -- note small race condition here between testing and setting --
     simRunning = true;
     if (competition == null) {
       log.error("null competition instance");
@@ -781,7 +808,7 @@ public class CompetitionControlService
     // make sure the clock has not drifted
     clock.checkClockDrift();
 
-    int ts = activateNextTimeslot();
+    int ts = activateNextTimeslot(); 
     if (!running)
       return;
     Instant time = timeService.getCurrentTime();
@@ -796,6 +823,9 @@ public class CompetitionControlService
         fn.activate(time, phase);
       }
     }
+
+    // in brokerSync mode, this is where we count the active brokers
+    brokerSyncCount = brokerNames.size();
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
     Date ended = new Date();
@@ -1064,6 +1094,22 @@ public class CompetitionControlService
   }
 
   /**
+   * Handle broker synchronization if enabled
+   */
+  public void handleMessage(BrokerComplete msg) {
+    log.info("Received {}, brokerSyncCount={}", msg.toString(), brokerSyncCount);
+    if (brokerSync) {
+      // Ignore unless we are in brokerSync mode
+      brokerSyncCount -= 1;
+      if (brokerSyncCount <= 1) {
+        // End of timeslot, note that the default broker is also in the list
+        log.info("broker sync complete");
+        clock.notifyTick();
+      }
+    }
+  }
+
+  /**
    * Allows Spring to set the boostrap timeslot length
    */
   public void setBootstrapTimeslotMillis (long length)
@@ -1099,6 +1145,7 @@ public class CompetitionControlService
 
       SimulationClockControl.initialize(parent, timeService);
       clock = SimulationClockControl.getInstance();
+      clock.setBrokerSync(brokerSync, maxSyncWindow);
       clock.adjustAgentWindow(competition.getSimulationTimeslotSeconds());
       
       // wait for start time
@@ -1128,6 +1175,8 @@ public class CompetitionControlService
       clock.scheduleTick();
       while (running) {
         log.info("Wait for tick {}", currentSlot);
+        // In broker-sync mode, here is where we wait for all active brokers
+        // to send BrokerComplete msg
         clock.waitForTick(currentSlot);
         try {
           step();

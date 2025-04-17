@@ -190,6 +190,7 @@ public class CompetitionSetupService
         parser.accepts("input-queue").withRequiredArg().ofType(String.class);
     OptionSpec<String> brokerList =
         parser.accepts("brokers").withRequiredArg().withValuesSeparatedBy(',');
+    //OptionSpec<Void> brokerSync = parser.accepts("broker-sync");
     OptionSpec<String> configDump =
         parser.accepts("config-dump").withRequiredArg().ofType(String.class);
 
@@ -354,6 +355,7 @@ public class CompetitionSetupService
                + ", config=" + config
                + ", jmsUrl=" + jmsUrl
                + ", game=" + game
+               + ", brokers=(" + brokerUsernames + ")"
                + ", seedData=" + seedData
                + ", weatherData=" + weatherData
                + ", inputQueue=" + inputQueueName);
@@ -549,6 +551,7 @@ public class CompetitionSetupService
 
   // Runs a simulation session
   private void startSimSession (final List<String> brokers,
+                                //final boolean brokerSync,
                                 final String inputQueueName,
                                 final URL bootUrl)
   {
@@ -556,6 +559,7 @@ public class CompetitionSetupService
       @Override
       public void run () {
         cc.setAuthorizedBrokerList(brokers);
+        //cc.setBrokerSync(brokerSync);
         cc.setInputQueueName(inputQueueName);
         Document document = getDocument(bootUrl);
         if (document != null) {
