@@ -277,34 +277,35 @@ public class SimulationClockControl
       catch (InterruptedException ie) { }
     }
 
-    // find the delay offset for this tick
-    // The absolute value is used to allow this to handle short intervals
-    // arising in brokerSync mode
-    long offset = new Date().getTime() - scheduledTickTime;
-    log.info("Clock offset {}, tick interval {}", offset, tickInterval);
-    if (Math.abs(offset) > (long)(tickInterval / maxTickOffsetRatio)) {
-      log.warn("clock delay: " + offset + " msec");
-      updateStart(offset);
-    }
+    // if we're running a legacy simulation, we allow some slop
+    if (!ccs.getBrokerSync())
+    {
+      // find the delay offset for this tick
+      long offset = new Date().getTime() - scheduledTickTime;
+      if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
+        log.warn("clock delay: " + offset + " msec");
+        updateStart(offset);
+      }
 
-    // update the time, set the watchdog, and schedule the next tick.
-    timeService.updateTime();
-    setState(Status.CLEAR);
-    if (currentWatchdog != null) {
-      currentWatchdog.cancel();
-    }
-    currentWatchdog = new WatchdogAction(this);
-    if (!ccs.getBrokerSync()) {
-      // watchdog controls pause mechanism
+      // update the time, set the watchdog, and schedule the next tick.
+      timeService.updateTime();
+      setState(Status.CLEAR);
+      // allow a bit of slop to avoid small updates
       long earliestPause = new Date().getTime() + minPauseInterval;
       long wdTime = computeNextTickTime() - minWindow;
       if (wdTime < earliestPause)
         wdTime = earliestPause;
       //System.out.println("watchdog set for " + wdTime);
+      currentWatchdog = new WatchdogAction(this);
       theTimer.schedule(currentWatchdog, new Date(wdTime));
     }
     else {
-      // Otherwise watchdog aborts the sim if a broker has not responded
+      // broker-sync mode, just update the clock
+      long offset = new Date().getTime() - scheduledTickTime;
+      updateStart(offset);
+      timeService.updateTime();
+      setState(Status.CLEAR);
+      currentWatchdog = new WatchdogAction(this);
       theTimer.schedule(currentWatchdog,
                         computeNextTickTime() + maxSyncWindow);
     }
@@ -427,7 +428,7 @@ public class SimulationClockControl
     // not a valid test in sim mode...
     if (current < start) {
       // first tick is special
-      //System.out.println("first tick at " + start + "; current is " + current);
+      log.info("first tick at {}; current is {}", start, current);
       return start;
     }
     else {

@@ -530,6 +530,8 @@ public class StorageState
     for (int ts = timeslot;
             ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       StorageElement target = getElement(ts);
+      if (null == target)
+        log.error("Null StorageElement in timeslot {} for ts {}", timeslot, ts);
       // last index, if not already complete, must be folded into the previous index
       int lastIndex = target.getEnergy().length - 1;
       if (target.getEnergy()[lastIndex] < -epsilon) {
