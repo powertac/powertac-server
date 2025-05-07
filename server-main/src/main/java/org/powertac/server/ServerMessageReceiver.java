@@ -110,11 +110,12 @@ public class ServerMessageReceiver implements MessageListener
             return message.substring(realMsg);
           }
         }
-        else {
+        // it's not clear why this is here
+        //else {
           // message with no id?
-          log.warn("Incoming message with no object id: " + message);
-          return message.substring(realMsg);
-        }
+        //  log.warn("Incoming message with no object id: " + message);
+        //  return message.substring(realMsg);
+        //}
       }
     }
     return null;
