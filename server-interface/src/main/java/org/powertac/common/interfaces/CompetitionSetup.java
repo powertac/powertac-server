@@ -77,6 +77,8 @@ public interface CompetitionSetup
    * is of the form string1/string2, then string1 is the broker's username,
    * and string2 is the name of that broker's JMS input queue. If this argument
    * is null or empty, the simulation will start without brokers.</li>
+   * <li>brokerSync, if true, will use BrokerComplete messages to advance
+   * to the next timeslot;</li>
    * <li>seedData is the (optional) name of a file containing seed data
    * for the simulation;
    * it will be treated as a URL if it contains a ":" character.</li>

@@ -18,7 +18,7 @@ package org.powertac.server;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -151,9 +151,20 @@ public class CompetitionControlService
   private ArrayList<String> pendingLogins; // external logins expected
   private int loginCount = 0; // number of external brokers logged in so far
 
+  @ConfigurableValue(valueType = "Boolean",
+      description = "If true, time advances when all brokers have sent BrokerComplete messages")
+  private boolean brokerSync;
+  // This is the number of brokers who have not yet sent their
+  // brokerComplete messages in the current timeslot
+  private int brokerSyncCount = 0;
+  
+  @ConfigurableValue(valueType = "Long",
+      description = "Max time in msec to wait for brokers in broker-sync mode")
+  private long maxSyncWindow = 3000; //3 seconds
+
   @ConfigurableValue(valueType = "Long",
       description = "Milliseconds/timeslot in boot mode. Should be > 300.")
-  private long bootstrapTimeslotMillis = 2000;
+  private long bootstrapTimeslotMillis = 1000;
   
   @ConfigurableValue(valueType = "String",
       description = "Name of abort file")
@@ -187,6 +198,7 @@ public class CompetitionControlService
     // broker message registration for clock-control messages
     //brokerProxyService.registerSimListener(this);
     for (Class<?> messageType: Arrays.asList(BrokerAuthentication.class,
+                                             BrokerComplete.class,
                                              PauseRequest.class,
                                              PauseRelease.class)) {
       brokerProxyService.registerBrokerMessageListener(this, messageType);
@@ -254,12 +266,27 @@ public class CompetitionControlService
   }
 
   /**
-   * Sets up the bootstrap dataset extracted from its external source.
+   * Sets the brokerSync flag. This is to support testing,
+   * otherwise it should be set by configuration.
    */
-  //void setBootstrapDataset (List<Object> dataset)
-  //{
-  //  bootstrapDataset = dataset;
-  //}
+  @Override
+  public void setBrokerSync (boolean sync)
+  {
+    brokerSync = sync;
+  }
+
+  /**
+   * Returns the brokerSync flag, needed by the clock
+   */
+  public boolean getBrokerSync () {
+    return brokerSync;
+  }
+
+  // test support
+  int getBrokerSyncCount ()
+  {
+    return brokerSyncCount;
+  }
   
   /**
    * Sets the name of the server's JMS input queue.
@@ -294,7 +321,7 @@ public class CompetitionControlService
       log.warn("attempt to start sim on top of running sim");
       return;
     }
-    // -- note small race condition here --
+    // -- note small race condition here between testing and setting --
     simRunning = true;
     if (competition == null) {
       log.error("null competition instance");
@@ -424,8 +451,8 @@ public class CompetitionControlService
       brokerProxyService.broadcastMessages(bootstrapDataset);
       // pull out the weather reports and stick them in their repo
       for (Object msg : bootstrapDataset) {
-        if (msg instanceof WeatherReport) {
-          weatherReportRepo.add((WeatherReport) msg);
+        if (msg instanceof WeatherReport report) {
+          weatherReportRepo.add(report);
         }
       }
     }
@@ -591,7 +618,7 @@ public class CompetitionControlService
     if (!bootstrapMode) {
       slotCount = bootstrapOffset;
       log.info("first slot: " + slotCount);
-      //base = base.plus(slotCount * competition.getTimeslotDuration());
+      //base = base.plusMillis(slotCount * competition.getTimeslotDuration());
     }
     else {
       // compute rate from bootstrapTimeslotMillis
@@ -599,9 +626,9 @@ public class CompetitionControlService
       rate = competition.getTimeslotDuration() / bootstrapTimeslotMillis;
       log.info("bootstrap mode clock rate: " + rate);
     }
-    timeService.setClockParameters(base.getMillis(), rate,
+    timeService.setClockParameters(base.toEpochMilli(), rate,
                                    competition.getTimeslotDuration());
-    timeService.setCurrentTime(base.plus(slotCount * competition.getTimeslotDuration()));
+    timeService.setCurrentTime(base.plusMillis(slotCount * competition.getTimeslotDuration()));
   }
 
   // Computes a random game length as outlined in the game specification
@@ -708,7 +735,7 @@ public class CompetitionControlService
     //  timeslotRepo.makeTimeslot(base);
     //}
     //for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
-    //  timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
+    //  timeslotRepo.makeTimeslot(base.plusMillis(i * timeslotMillis));
     //}
   }
   
@@ -781,7 +808,7 @@ public class CompetitionControlService
     // make sure the clock has not drifted
     clock.checkClockDrift();
 
-    int ts = activateNextTimeslot();
+    int ts = activateNextTimeslot(); 
     if (!running)
       return;
     Instant time = timeService.getCurrentTime();
@@ -796,6 +823,9 @@ public class CompetitionControlService
         fn.activate(time, phase);
       }
     }
+
+    // in brokerSync mode, this is where we count the active brokers
+    brokerSyncCount = brokerNames.size();
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
     Date ended = new Date();
@@ -863,9 +893,9 @@ public class CompetitionControlService
     Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
     if (newTs == null) {
       log.info("newTS null in activateNextTimeslot");
-      long start = (current.getStartInstant().getMillis() +
+      long start = (current.getStartInstant().toEpochMilli() +
               (newSerial - current.getSerialNumber()) * timeslotMillis);
-      newTs = timeslotRepo.makeTimeslot(new Instant(start));
+      newTs = timeslotRepo.makeTimeslot(Instant.ofEpochMilli(start));
     }
     log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
     // Communicate timeslot updates to brokers
@@ -895,7 +925,7 @@ public class CompetitionControlService
       stop();
 //      long newStart =
 //              new Date().getTime()
-//              - (currentTimeslot.getStartInstant().getMillis()
+//              - (currentTimeslot.getStartInstant().toInstant().toEpochMilli()
 //                 - timeService.getBase()) / timeService.getRate();
 //      timeService.setStart(newStart);
 //      timeService.setCurrentTime();
@@ -1004,7 +1034,7 @@ public class CompetitionControlService
   {
     log.info("resume");
     // create and post the resume message
-    SimResume msg = new SimResume(new Instant(newStart));
+    SimResume msg = new SimResume(Instant.ofEpochMilli(newStart));
     brokerProxyService.broadcastMessage(msg);
   }
 
@@ -1064,7 +1094,23 @@ public class CompetitionControlService
   }
 
   /**
-   * Allows Spring to set the boostrap timeslot length
+   * Handle broker synchronization if enabled
+   */
+  public void handleMessage(BrokerComplete msg) {
+    log.info("Received {}, brokerSyncCount={}", msg.toString(), brokerSyncCount);
+    if (brokerSync) {
+      // Ignore unless we are in brokerSync mode
+      brokerSyncCount -= 1;
+      if (brokerSyncCount <= 1) {
+        // End of timeslot, note that the default broker is also in the list
+        log.info("broker sync complete");
+        clock.notifyTick();
+      }
+    }
+  }
+
+  /**
+   * Allows Spring to set the bootstrap timeslot length
    */
   public void setBootstrapTimeslotMillis (long length)
   {
@@ -1099,6 +1145,7 @@ public class CompetitionControlService
 
       SimulationClockControl.initialize(parent, timeService);
       clock = SimulationClockControl.getInstance();
+      clock.setBrokerSync(brokerSync, maxSyncWindow);
       clock.adjustAgentWindow(competition.getSimulationTimeslotSeconds());
       
       // wait for start time
@@ -1114,7 +1161,7 @@ public class CompetitionControlService
       }
       long start = now - startOffset + TimeService.SECOND * 3; // start in three seconds
       // communicate start time to brokers
-      SimStart startMsg = new SimStart(new Instant(start));
+      SimStart startMsg = new SimStart(Instant.ofEpochMilli(start));
       brokerProxyService.broadcastMessage(startMsg);
 
       // Start up the clock at the correct time, so first tick gets us to
@@ -1128,6 +1175,8 @@ public class CompetitionControlService
       clock.scheduleTick();
       while (running) {
         log.info("Wait for tick {}", currentSlot);
+        // In broker-sync mode, here is where we wait for all active brokers
+        // to send BrokerComplete msg
         clock.waitForTick(currentSlot);
         try {
           step();

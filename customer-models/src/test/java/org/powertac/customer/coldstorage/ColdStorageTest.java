@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -93,7 +93,7 @@ public class ColdStorageTest
     Competition.setCurrent(competition);
     timeService = new TimeService();
     Instant now =
-      new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+      ZonedDateTime.of(2011, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(now);
 
     // tariff setup
@@ -328,8 +328,8 @@ public class ColdStorageTest
   public void testDailyPriceProfile ()
   {
     init();
-    DateTime now =
-        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2014, 12, 1, 10, 0, 0, 0, ZoneOffset.UTC);
     when(mockTimeslotRepo.currentTimeslot())
         .thenReturn(new Timeslot(0, now.toInstant()));
     TariffSpecification dailySpec =
@@ -360,8 +360,8 @@ public class ColdStorageTest
   public void testWeeklyPriceProfile ()
   {
     init();
-    DateTime now =
-        new DateTime(2015, 2, 12, 12, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2015, 2, 12, 12, 0, 0, 0, ZoneOffset.UTC);
     when(mockTimeslotRepo.currentTimeslot())
         .thenReturn(new Timeslot(0, now.toInstant()));
     TariffSpecification weeklySpec =
@@ -415,8 +415,8 @@ public class ColdStorageTest
   public void testTouHeuristicProfile ()
   {
     init();
-    DateTime now =
-        new DateTime(2015, 2, 12, 12, 0, 0, DateTimeZone.UTC);
+    ZonedDateTime now =
+        ZonedDateTime.of(2015, 2, 12, 12, 0, 0, 0, ZoneOffset.UTC);
     when(mockTimeslotRepo.currentTimeslot())
         .thenReturn(new Timeslot(0, now.toInstant()));
     TariffSpecification weeklySpec =

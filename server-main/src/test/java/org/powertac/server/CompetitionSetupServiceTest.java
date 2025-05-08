@@ -18,9 +18,6 @@ package org.powertac.server;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-import java.io.File;
-import java.net.URL;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.RandomSeed;

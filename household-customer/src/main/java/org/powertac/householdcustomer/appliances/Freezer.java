@@ -19,7 +19,7 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -118,7 +118,7 @@ public class Freezer extends NotShiftingAppliance
               minvalue = tariff.getUsageCharge(now2, 1, 0);
               minindex = j;
             }
-            now2 = new Instant(now2.getMillis() + TimeService.HOUR);
+            now2 = Instant.ofEpochMilli(now2.toInstant().toEpochMilli() + TimeService.HOUR);
           }
           newControllableLoad[VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL * i
                               + minindex] =

@@ -15,11 +15,11 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.CustomerInfo;
@@ -116,11 +116,10 @@ public class CompetitionControlServiceTests
   @Test
   public void testConfig ()
   {
-    DateTimeZone.setDefault(DateTimeZone.UTC);
-    Instant val = new DateTime(2011, 1, 26, 0, 0, 0, 0).toInstant();
-    String dateString = "2011-1-26";
-    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-    DateTime dt = fmt.parseDateTime(dateString);
+    Instant val = ZonedDateTime.of(2011, 1, 26, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();
+    String dateString = "2011-01-26";
+    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    ZonedDateTime dt = LocalDate.parse(dateString, fmt).atStartOfDay(ZoneOffset.UTC);
     assertEquals(val, dt.toInstant(), "correct time translation");
   }
 
@@ -151,5 +150,20 @@ public class CompetitionControlServiceTests
     assertEquals(4, names.size(), "4 names");
     assertEquals(2, names.indexOf("Sally"), "Sally first");
     assertEquals(3, names.indexOf("Jenny"), "Jenny second");
+  }
+
+  // Test broker sync count when brokerSync is not set
+  @Test
+  public void testBrokerSyncCountNS ()
+  {
+    CompetitionControlService ccs = new CompetitionControlService();
+    ccs.setAlwaysAuthorizedBrokers(new ArrayList<String>());
+    List<String> usernames = Arrays.asList("Sally/S1", "Jenny/J1");
+    ccs.setAuthorizedBrokerList(usernames);
+    List<String> names = ccs.getBrokerNames();
+    assertEquals(2, names.size(), "2 names");
+    // start a timeslot
+    // issue a BrokerComplete, check count, check timeslot not complete
+    // issue second BrokerComplete, check timeslot complete
   }
 }

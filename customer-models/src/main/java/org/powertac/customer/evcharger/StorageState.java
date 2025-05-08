@@ -15,7 +15,6 @@
  */
 package org.powertac.customer.evcharger;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -23,7 +22,6 @@ import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.powertac.common.RegulationCapacity;
 import org.powertac.common.TariffSubscription;
 import org.powertac.util.RingArray;
 
@@ -532,6 +530,8 @@ public class StorageState
     for (int ts = timeslot;
             ts < timeslot + capacityVector.getActiveLength(timeslot); ts++) {
       StorageElement target = getElement(ts);
+      if (null == target)
+        log.error("Null StorageElement in timeslot {} for ts {}", timeslot, ts);
       // last index, if not already complete, must be folded into the previous index
       int lastIndex = target.getEnergy().length - 1;
       if (target.getEnergy()[lastIndex] < -epsilon) {

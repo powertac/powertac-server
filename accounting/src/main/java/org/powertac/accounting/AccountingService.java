@@ -25,7 +25,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.config.ConfigurableValue;
@@ -266,8 +266,7 @@ public class AccountingService
   {
     double netLoad = 0.0;
     for (BrokerTransaction btx : usageTransactions.values()) {
-      if (btx instanceof TariffTransaction) {
-        TariffTransaction ttx = (TariffTransaction)btx;
+      if (btx instanceof TariffTransaction ttx) {
         if (ttx.getBroker().getUsername().equals(broker.getUsername())) {
           if (ttx.getTxType() == TariffTransaction.Type.CONSUME ||
               ttx.getTxType() == TariffTransaction.Type.PRODUCE) {
@@ -290,8 +289,7 @@ public class AccountingService
     HashMap<Broker, Map<Type, Double>> result =
             new HashMap<Broker, Map<Type, Double>>();
     for (BrokerTransaction btx : usageTransactions.values()) {
-      if (btx instanceof TariffTransaction) {
-        TariffTransaction ttx = (TariffTransaction)btx;
+      if (btx instanceof TariffTransaction ttx) {
         Broker broker = ttx.getBroker();
         Map<Type, Double> record = result.get(broker);
         if (null == record) {
@@ -534,8 +532,8 @@ public class AccountingService
   {
     List<TariffTransaction> result = new ArrayList<TariffTransaction>();
     for (BrokerTransaction tx : pendingTransactions) {
-      if (tx instanceof TariffTransaction)
-        result.add((TariffTransaction)tx);
+      if (tx instanceof TariffTransaction transaction)
+        result.add(transaction);
     }
     result.addAll(usageTransactions.values());
     return result;

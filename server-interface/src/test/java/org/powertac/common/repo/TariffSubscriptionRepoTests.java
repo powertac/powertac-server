@@ -5,9 +5,9 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.powertac.common.Broker;
@@ -61,7 +61,7 @@ public class TariffSubscriptionRepoTests
     repo = new TariffSubscriptionRepo();
     //ReflectionTestUtils.setField(repo, "tariffMarketService", mockTariffMarket);
     ReflectionTestUtils.setField(repo, "tariffRepo", mockTariffRepo);
-    baseTime = new DateTime(1972, 9, 6, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    baseTime = ZonedDateTime.of(1972, 9, 6, 12, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(baseTime);
     Competition.newInstance("tst").withSimulationBaseTime(baseTime);
     b1 = new Broker("Bob");
@@ -69,11 +69,11 @@ public class TariffSubscriptionRepoTests
     c1 = new CustomerInfo("Podunk", 23).withPowerType(PowerType.CONSUMPTION);
     c2 = new CustomerInfo("Sticks", 230).withPowerType(PowerType.CONSUMPTION);
     ts1 = new TariffSpecification(b1, PowerType.CONSUMPTION)
-        .withExpiration(baseTime.plus(TimeService.DAY * 10))
+        .withExpiration(baseTime.plusMillis(TimeService.DAY * 10))
         .withMinDuration(TimeService.DAY * 5)
         .addRate(new Rate().withValue(-0.11));
     ts2 = new TariffSpecification(b2, PowerType.CONSUMPTION)
-        .withExpiration(baseTime.plus(TimeService.DAY * 11))
+        .withExpiration(baseTime.plusMillis(TimeService.DAY * 11))
         .withMinDuration(TimeService.DAY * 7)
         .addRate(new Rate().withValue(-0.10));
   }

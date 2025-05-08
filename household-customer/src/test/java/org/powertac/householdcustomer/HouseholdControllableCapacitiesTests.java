@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -142,10 +142,10 @@ public class HouseholdControllableCapacitiesTests
     comp = Competition.newInstance("household-customer-test");
     broker1 = new Broker("Joe");
 
-    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    now = ZonedDateTime.of(2011, 1, 10, 0, 0, 0, 0, ZoneOffset.UTC).toInstant();;
     timeService.setCurrentTime(now);
-    timeService.setBase(now.getMillis());
-    exp = now.plus(TimeService.WEEK * 10);
+    timeService.setBase(now.toEpochMilli());
+    exp = now.plusMillis(TimeService.WEEK * 10);
 
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
@@ -358,7 +358,7 @@ public class HouseholdControllableCapacitiesTests
 //      customer.subscribeDefault();
     }
 
-    timeService.setCurrentTime(now.plus(18 * TimeService.HOUR));
+    timeService.setCurrentTime(now.plusMillis(18 * TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (Village customer: householdCustomerService.getVillageList())
@@ -411,15 +411,15 @@ public class HouseholdControllableCapacitiesTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
     TariffSpecification tsc2 =
       new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r3);
     TariffSpecification tsc3 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withExpiration(now.plusMillis(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -497,15 +497,15 @@ public class HouseholdControllableCapacitiesTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r4);
     TariffSpecification tsc2 =
       new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r3);
     TariffSpecification tsc3 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withExpiration(now.plusMillis(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -623,7 +623,7 @@ public class HouseholdControllableCapacitiesTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8);
     tsc1.addRate(r0);
     tsc1.addRate(r1);
@@ -669,9 +669,9 @@ public class HouseholdControllableCapacitiesTests
     householdCustomerService.publishNewTariffs(tclist1);
 
     // }
-    timeService.setBase(now.getMillis());
+    timeService.setBase(now.toEpochMilli());
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.HOUR * 23));
+            .plusMillis(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
   }
 
@@ -704,9 +704,9 @@ public class HouseholdControllableCapacitiesTests
     }
 
     // for (int i = 0; i < 10; i++) {
-    timeService.setBase(now.getMillis());
+    timeService.setBase(now.toEpochMilli());
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.HOUR * 5));
+            .plusMillis(TimeService.HOUR * 5));
 
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
@@ -716,9 +716,9 @@ public class HouseholdControllableCapacitiesTests
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (int i = 0; i < 30; i++) {
-      timeService.setBase(now.getMillis());
+      timeService.setBase(now.toEpochMilli());
       timeService.setCurrentTime(timeService.getCurrentTime()
-              .plus(TimeService.HOUR * 1));
+              .plusMillis(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
       temperature = 40 * Math.random();
@@ -756,13 +756,13 @@ public class HouseholdControllableCapacitiesTests
 //      customer.subscribeDefault();
     }
 
-    timeService.setBase(now.getMillis());
+    timeService.setBase(now.toEpochMilli());
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.DAY * 1020));
+            .plusMillis(TimeService.DAY * 1020));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.HOUR * 23));
+            .plusMillis(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
@@ -774,7 +774,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (int i = 1700; i < 1730; i++) {
       timeService.setCurrentTime(timeService.getCurrentTime()
-              .plus(TimeService.HOUR * 1));
+              .plusMillis(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
 
@@ -819,7 +819,7 @@ public class HouseholdControllableCapacitiesTests
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
+              .withExpiration(now.plusMillis(TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r3);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -856,11 +856,11 @@ public class HouseholdControllableCapacitiesTests
 
       }
     }
-    timeService.setBase(now.getMillis());
+    timeService.setBase(now.toEpochMilli());
     timeService.setCurrentTime(timeService.getCurrentTime());
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(TimeService.HOUR));
+            .plusMillis(TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
   }

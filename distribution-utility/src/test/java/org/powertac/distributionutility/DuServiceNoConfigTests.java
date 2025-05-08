@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration2.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,7 +79,7 @@ public class DuServiceNoConfigTests
   private Broker broker3;
   //private CustomerInfo cust1;
   //private CustomerInfo cust2;
-  private DateTime start;
+  private ZonedDateTime start;
 
   @BeforeEach
   public void setUp ()
@@ -95,8 +95,10 @@ public class DuServiceNoConfigTests
     //    new CustomerInfo("Acme", 1).withCustomerClass(CustomerClass.LARGE);
 
     Instant base =
-            Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
-    start = new DateTime(start, DateTimeZone.UTC);
+            Competition.currentCompetition().getSimulationBaseTime().plusMillis(TimeService.DAY);
+    if (null == start) {
+      start = ZonedDateTime.now(ZoneOffset.UTC);
+    }
     timeService.setCurrentTime(base);
     timeslotRepo.makeTimeslot(base);
     //timeslotRepo.currentTimeslot().disable();// enabled: false);

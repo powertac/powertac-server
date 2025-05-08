@@ -14,7 +14,7 @@ package org.powertac.common.interfaces;
 import java.util.List;
 import java.util.Map;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.Broker;
 import org.powertac.common.CapacityTransaction;

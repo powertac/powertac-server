@@ -26,7 +26,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BalancingMarket;

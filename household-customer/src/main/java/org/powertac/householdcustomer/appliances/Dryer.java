@@ -19,7 +19,7 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -62,8 +62,7 @@ public class Dryer extends SemiShiftingAppliance
 
     // Inform the washing machine for the existence of the dryer
     for (Appliance appliance: applianceOf.getAppliances()) {
-      if (appliance instanceof WashingMachine) {
-        WashingMachine wm = (WashingMachine) appliance;
+      if (appliance instanceof WashingMachine wm) {
         times = wm.getTimes();
         days = wm.getDays();
         wm.dryerFlag = true;
@@ -223,8 +222,7 @@ public class Dryer extends SemiShiftingAppliance
   public void refresh ()
   {
     for (Appliance appliance: applianceOf.getAppliances()) {
-      if (appliance instanceof WashingMachine) {
-        WashingMachine wm = (WashingMachine) appliance;
+      if (appliance instanceof WashingMachine wm) {
         days = wm.getDays();
         break;
       }

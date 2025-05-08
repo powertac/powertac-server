@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.Instant;
+import java.time.Instant;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
@@ -591,7 +591,7 @@ public class DomainObjectReader
         if (null == realArgs || realArgs.length != args.length) {
           log.debug("Could not resolve args: method " + method.getName()
                     + ", class = " + thing.getClass().getName()
-                    + ", args = " + args);
+                    + ", args = " + Arrays.toString(args));
           return false;
         }
       }
@@ -605,8 +605,14 @@ public class DomainObjectReader
     }
     catch (Exception e) {
       StringBuilder argsString = new StringBuilder();
-      for (Object arg : realArgs) {
-        argsString.append("(" + arg.getClass().getName() + ") " + arg.toString() + ", ");
+      if (realArgs != null) {
+        for (Object arg : realArgs) {
+          if (arg != null) {
+            argsString.append("(" + arg.getClass().getName() + ") " + arg.toString() + ", ");
+          } else {
+            argsString.append("(null) null, ");
+          }
+        }
       }
       log.error(e.getClass().getName() + " calling method " + thing.getClass().getName()
                 + "." + method.getName()
@@ -640,8 +646,7 @@ public class DomainObjectReader
     }
 
     // check for non-parameterized types
-    if (type instanceof Class) {
-      Class<?> clazz = (Class<?>)type;
+    if (type instanceof Class<?> clazz) {
       if (clazz.isEnum()) {
         return Enum.valueOf((Class<Enum>)type, arg);
       }
@@ -655,8 +660,7 @@ public class DomainObjectReader
     }
 
     // check for collection, denoted by leading (
-    else if (type instanceof ParameterizedType) {
-      ParameterizedType ptype = (ParameterizedType)type;
+    else if (type instanceof ParameterizedType ptype) {
       Class<?> clazz = (Class<?>)ptype.getRawType();
       boolean isCollection = false;
       if (clazz.equals(Collection.class))
@@ -687,7 +691,7 @@ public class DomainObjectReader
           if (clazz.isInterface())
             clazz = ifImplementors.get(clazz);
           try {
-            coll = (Collection<Object>)clazz.newInstance();
+            coll = (Collection<Object>)clazz.getDeclaredConstructor().newInstance();
           }
           catch (Exception e) {
             log.error("Exception creating collection: " + e.toString());
@@ -808,7 +812,7 @@ public class DomainObjectReader
         // make Instant from Long
         try {
           Long msec = Long.parseLong(arg);
-          return new Instant(msec);
+          return Instant.ofEpochMilli(msec);
         }
         catch (Exception e) {
           // Long parse failure

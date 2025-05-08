@@ -3,10 +3,10 @@ package org.powertac.server;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.TextMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageListener;
+import jakarta.jms.TextMessage;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -41,8 +41,8 @@ public class ServerMessageReceiver implements MessageListener
   @Override
   public void onMessage (Message message)
   {
-    if (message instanceof TextMessage)
-      onMessage((TextMessage)message);
+    if (message instanceof TextMessage textMessage)
+      onMessage(textMessage);
     else
       log.warn("Unable to process incoming message of type " + 
                message.getClass().getName());
@@ -61,8 +61,8 @@ public class ServerMessageReceiver implements MessageListener
   void onMessage (String xml) {
     // validate broker's key, then strip it off
     String validXml = xml;
-    if (xml.startsWith("<broker-authentication")) {
-      // don't validate the broker-authentication messages
+    if (xml.startsWith("<broker-authentication") || xml.startsWith("<br-done")) {
+      // don't validate empty messages
       validXml = xml;
     }
     else if (xml.startsWith("<visualizer-status")) {
@@ -110,11 +110,12 @@ public class ServerMessageReceiver implements MessageListener
             return message.substring(realMsg);
           }
         }
-        else {
+        // it's not clear why this is here
+        //else {
           // message with no id?
-          log.warn("Incoming message with no object id: " + message);
-          return message.substring(realMsg);
-        }
+        //  log.warn("Incoming message with no object id: " + message);
+        //  return message.substring(realMsg);
+        //}
       }
     }
     return null;

@@ -38,13 +38,10 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.logtool.LogtoolContext;
 import org.powertac.logtool.LogtoolCore;
-import org.powertac.logtool.common.NewObjectListener;
 import org.powertac.logtool.ifc.Analyzer;
 import org.powertac.logtool.ifc.ObjectReader;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -63,9 +60,7 @@ import javax.xml.xpath.*;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -195,6 +190,7 @@ public class CompetitionSetupService
         parser.accepts("input-queue").withRequiredArg().ofType(String.class);
     OptionSpec<String> brokerList =
         parser.accepts("brokers").withRequiredArg().withValuesSeparatedBy(',');
+    //OptionSpec<Void> brokerSync = parser.accepts("broker-sync");
     OptionSpec<String> configDump =
         parser.accepts("config-dump").withRequiredArg().ofType(String.class);
 
@@ -359,6 +355,7 @@ public class CompetitionSetupService
                + ", config=" + config
                + ", jmsUrl=" + jmsUrl
                + ", game=" + game
+               + ", brokers=(" + brokerUsernames + ")"
                + ", seedData=" + seedData
                + ", weatherData=" + weatherData
                + ", inputQueue=" + inputQueueName);
@@ -366,9 +363,8 @@ public class CompetitionSetupService
       // parts of it
       setupConfig(config, configOutput);
 
-      // extract sim time info from Competition instance in seed or weather data
-      // if either is in use
-      loadCompetitionMaybe(seedData, weatherData);
+      // extract sim time info from Competition instance in seed if used
+      loadCompetitionMaybe(seedData);
 
       // Use weather file instead of webservice
       useWeatherDataMaybe(weatherData);
@@ -428,7 +424,7 @@ public class CompetitionSetupService
 
   // Digs out the Competition instance from old logs and sets time data as needed
   // for the current session. If we cannot retrieve the data, the server will exit.
-  private void loadCompetitionMaybe (String seedData, String weatherData)
+  private void loadCompetitionMaybe (String seedData)
   {
     CompetitionLoader loader = null;
     Competition tempCompetition = null;
@@ -440,15 +436,6 @@ public class CompetitionSetupService
         System.exit(1);
       }
       loadTimeslotCounts(tempCompetition);
-    }
-    if (null != weatherData) {
-      log.info("Loading weather data from {}", weatherData);
-      loader = new CompetitionLoader(weatherData);
-      tempCompetition = loader.extractCompetition();
-      if (null == tempCompetition) {
-        System.exit(1);
-      }
-      loadStartTime(tempCompetition);
     }
   }
 
@@ -472,7 +459,7 @@ public class CompetitionSetupService
   private void loadStartTime (Competition comp)
   {
     serverProps.setProperty("common.competition.simulationBaseTime",
-                            comp.getSimulationBaseTime().getMillis());
+                            comp.getSimulationBaseTime().toEpochMilli());
   }
 
   // Sets game-length parameters from seed data
@@ -554,6 +541,7 @@ public class CompetitionSetupService
 
   // Runs a simulation session
   private void startSimSession (final List<String> brokers,
+                                //final boolean brokerSync,
                                 final String inputQueueName,
                                 final URL bootUrl)
   {
@@ -561,6 +549,7 @@ public class CompetitionSetupService
       @Override
       public void run () {
         cc.setAuthorizedBrokerList(brokers);
+        //cc.setBrokerSync(brokerSync);
         cc.setInputQueueName(inputQueueName);
         Document document = getDocument(bootUrl);
         if (document != null) {

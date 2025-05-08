@@ -53,7 +53,14 @@ public interface CompetitionControl
    * This is normally done immediately after calling preGame().
    */
   public void setAuthorizedBrokerList (List<String> brokerList);
-  
+
+  /**
+   * Sets the broker-synchronization flag, which if true allows
+   * sim to proceed as soon as all brokers have sent their
+   * BrokerComplete messages
+   */
+  public void setBrokerSync (boolean sync);
+
   /**
    * Waits for broker login, then starts and runs a simulation.
    * The second form allows for configuration dumps without actually running
