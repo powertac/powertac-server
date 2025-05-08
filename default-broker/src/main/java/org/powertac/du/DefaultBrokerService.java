@@ -26,6 +26,7 @@ import org.powertac.common.msg.BrokerAccept;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.msg.TimeslotComplete;
+import org.powertac.common.msg.BrokerComplete;
 import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
@@ -268,7 +269,7 @@ public class DefaultBrokerService
       }
     }
 
-    // Finally, once we have a full week of records, we use the data for
+    // Once we have a full week of records, we use the data for
     // the hour and day-of-week.
     else {
       double neededKWh = 0.0;
@@ -276,8 +277,10 @@ public class DefaultBrokerService
         int index = (timeslot.getSerialNumber()) % usageRecordLength;
         neededKWh = collectUsage(index);
         submitOrder(neededKWh, timeslot);
-      }      
+      }
     }
+    // Let the server know this broker is finished
+    brokerProxyService.routeMessage(new BrokerComplete(face, current.getSerialNumber()));
   }
 
   private void ensureBootProfiles ()

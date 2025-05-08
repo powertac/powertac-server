@@ -1110,7 +1110,7 @@ public class CompetitionControlService
   }
 
   /**
-   * Allows Spring to set the boostrap timeslot length
+   * Allows Spring to set the bootstrap timeslot length
    */
   public void setBootstrapTimeslotMillis (long length)
   {
