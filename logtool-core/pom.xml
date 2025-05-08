@@ -18,7 +18,7 @@
 
 
   <properties>
-    <commons-compress.version>1.21</commons-compress.version>
+    <commons-compress.version>1.26.0</commons-compress.version>
     <exec.args /><!-- E.g. foo-sim.state org.powertac.logtool.common.NoopAnalyzer -->
   </properties>
 
