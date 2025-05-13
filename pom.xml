@@ -102,6 +102,8 @@
     <maven-exec.version>3.5.0</maven-exec.version>
     <maven-bundle.version>6.0.0</maven-bundle.version>
 
+    <jvm.args>--add-opens java.base/java.util=ALL-UNNAMED</jvm.args>
+
   </properties>
 
 
@@ -500,9 +502,7 @@
             </includes>
             <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>false</useSystemClassLoader>
-            <argLine>
-              --illegal-access=warn --add-opens java.base/java.util=ALL-UNNAMED
-            </argLine>
+            <argLine>${jvm.args}</argLine>
           </configuration>
         </plugin>
 
