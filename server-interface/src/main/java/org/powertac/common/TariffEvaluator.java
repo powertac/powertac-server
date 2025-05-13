@@ -700,7 +700,7 @@ public class TariffEvaluator
     if (Double.isNaN(scale)) {
       log.error(getName() + ": scale NaN for tariff " + tariff.getId());
     }
-    log.debug("tariff {}: profileCost={}, inconv={}, scaled-charge={}, scaled (cost+inconv)={}",
+    log.debug("tariff {}: profileCost={}, inconv={}, scaled-charge={}, scaled (cost+inconv)={}, ratio={}",
               tariff.getId(), profileCost, inconv, profileCost * scale, (profileCost + inconv) * scale,
               (profileCost + inconv) * scale / (profileCost * scale));
     return (profileCost + inconv) * scale;
