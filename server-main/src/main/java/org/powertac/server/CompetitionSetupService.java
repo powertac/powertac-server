@@ -49,6 +49,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -551,7 +552,8 @@ public class CompetitionSetupService
         cc.setAuthorizedBrokerList(brokers);
         //cc.setBrokerSync(brokerSync);
         cc.setInputQueueName(inputQueueName);
-        Document document = getDocument(bootUrl);
+        Document document = null;
+        document = getDocument(bootUrl);
         if (document != null) {
           if (preGame(document)) {
             bootstrapDataRepo.add(processBootDataset(document));
@@ -582,9 +584,20 @@ public class CompetitionSetupService
   }
 
   // copied to BootstrapDataRepo
-  private Document getDocument (URL bootUrl)
+  private Document getDocument  (URL bootUrl)
   {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    try {
+      factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+      factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+    }
+    catch (ParserConfigurationException e) {
+      log.error("Error setting parser features: " + e.toString());
+    }
+    factory.setXIncludeAware(false);
+    factory.setExpandEntityReferences(false);
     factory.setNamespaceAware(true);
     DocumentBuilder builder;
     Document doc = null;
