@@ -15,26 +15,18 @@
  */
 package org.powertac.du;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import java.time.Instant;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.*;
-import org.powertac.common.msg.BrokerAccept;
-import org.powertac.common.msg.CustomerBootstrapData;
-import org.powertac.common.msg.MarketBootstrapData;
-import org.powertac.common.msg.TimeslotComplete;
-import org.powertac.common.msg.BrokerComplete;
-import org.powertac.common.repo.BootstrapDataRepo;
-import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.msg.*;
+import org.powertac.common.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -898,7 +890,10 @@ public class DefaultBrokerService
     {
       fillBootstrapUsage(kwh, rawIndex);
       int index = getIndex(rawIndex);
-      double kwhPerCustomer = kwh / (double)subscribedPopulation;
+      double kwhPerCustomer = 0.0;
+      if (subscribedPopulation > 0) {
+        kwhPerCustomer = kwh / (double) subscribedPopulation;
+      }
       double oldUsage = usage[index];
       if (oldUsage == 0.0) {
         // assume this is the first time
