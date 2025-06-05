@@ -1,123 +1,192 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>server-main</artifactId>
-  <packaging>jar</packaging>
+    <artifactId>server-main</artifactId>
+    <packaging>jar</packaging>
 
-  <name>Power TAC server main</name>
-  <description>Top-level module of the Power TAC simulation server</description>
-  <url>https://github.com/powertac/powertac-server/</url>
-
-  <parent>
-    <groupId>org.powertac</groupId>
-    <artifactId>powertac-server</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
-  </parent>
-
-
-  <dependencies>
-
-    <!-- Power TAC -->
-    <!-- <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>common</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency> -->      
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>logtool-core</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>server-interface</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>accounting</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>auctioneer</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>default-broker</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>distribution-utility</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>genco</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>household-customer</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>factored-customer</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>officecomplex-customer</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>balancing-market</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>customer-models</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-    <!--<dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>evcustomer</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency> -->
-
-    <!-- Messaging -->
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jms</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-broker</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-pool</artifactId>
-    </dependency>
-
-    <!-- Utilities -->
-    <dependency>
-      <groupId>net.sf.jopt-simple</groupId>
-      <artifactId>jopt-simple</artifactId>
-    </dependency>
-  </dependencies>
-
-
-  <scm>
-    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <name>Power TAC server main</name>
+    <description>Top-level module of the Power TAC simulation server</description>
     <url>https://github.com/powertac/powertac-server/</url>
-    <tag>HEAD</tag>
-  </scm>
+
+    <parent>
+        <groupId>org.powertac</groupId>
+        <artifactId>powertac</artifactId>
+        <version>1.10.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+
+    <dependencies>
+
+
+        <!-- Power TAC -->
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>logtool-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>server-interface</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>auctioneer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>accounting</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>default-broker</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>distribution-utility</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>genco</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>household-customer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>factored-customer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>officecomplex-customer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>balancing-market</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>customer-models</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+        </dependency>
+
+        <!-- Messaging -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jms</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-broker</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-pool</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.jms</groupId>
+            <artifactId>jakarta.jms-api</artifactId>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+        </dependency>
+        
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Utilities -->
+        <dependency>
+            <groupId>net.sf.jopt-simple</groupId>
+            <artifactId>jopt-simple</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+        </dependency>
+
+
+    </dependencies>
+
+
+    <scm>
+        <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+        <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+        <url>https://github.com/powertac/powertac-server/</url>
+        <tag>HEAD</tag>
+    </scm>
 
 </project>

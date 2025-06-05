@@ -46,7 +46,6 @@ import org.powertac.du.DefaultBroker;
 import org.powertac.logtool.LogtoolContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -859,7 +858,15 @@ public class DomainObjectReader
     }
     catch (NoSuchMethodException e) {
       // normal result of no setId() method
-      ReflectionTestUtils.setField(thing, "id", id);
+      try {
+        Field idField = ReflectionUtils.findField(thing.getClass(), "id");
+        if (idField != null) {
+          ReflectionUtils.makeAccessible(idField);
+          ReflectionUtils.setField(idField, thing, id);
+        }
+      } catch (Exception ex) {
+        log.error("Error setting id field " + ex.toString());
+      }
     }
     catch (Exception e) {
       log.error("Error setting id value " + e.toString());
