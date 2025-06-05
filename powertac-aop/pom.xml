@@ -8,12 +8,13 @@
 
   <name>Power TAC aspect-oriented programming</name>
   <description>Aspects and related classes, interfaces, annotations</description>
-  <url>https://github.com/powertac/powertac-core/</url>
+  <url>https://github.com/powertac/powertac-server/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
-    <artifactId>powertac-parent</artifactId>
+    <artifactId>powertac</artifactId>
     <version>1.10.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
 
@@ -39,21 +40,12 @@
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
     </dependency>
 
 
     <!-- Logging -->
-
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-core</artifactId>
-      </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -139,13 +131,13 @@
   </developers>
 
 
+
   <scm>
-    <connection>scm:git:git//github.com/powertac/powertac-core.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/powertac-core.git</developerConnection>
-    <url>https://github.com/powertac/powertac-core/</url>
+    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <url>https://github.com/powertac/powertac-server/</url>
     <tag>HEAD</tag>
   </scm>
-
 
 </project>
 

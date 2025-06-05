@@ -15,25 +15,20 @@
  */
 package org.powertac.metadata;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Map;
-import java.util.Set;
+import org.powertac.common.state.Domain;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.FilerException;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.SourceVersion;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-
-import org.powertac.common.state.Domain;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Map;
+import java.util.Set;
 
 //import org.powertac.common.state.Domain;
 
@@ -64,7 +59,7 @@ public class DomainProcessor extends AbstractProcessor
       FileObject f =
               processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT,
                                                       "",
-                                                      "metadata/domain.schema");
+                                                      "metadata/domain-default.schema");
       out = new PrintWriter(f.openWriter(), true);
     }
     catch (FilerException e) {

@@ -16,16 +16,12 @@
 
 package org.powertac.common.metadata;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.state.StateLogging;
 import org.springframework.stereotype.Component;
+
+import java.io.*;
 
 /**
  * Initializes state log files by copying the current domain schema to the log.
@@ -64,8 +60,8 @@ public class StateLogService
    */
   public void init (boolean abbreviateClassnames)
   {
-    InputStream schema =
-            getClass().getClassLoader().getResourceAsStream("metadata/domain.schema");
+    InputStream schema = getClass().getClassLoader()
+            .getResourceAsStream("metadata/domain-default.schema");
     log.debug("found schema");
     Reader rdr = new InputStreamReader(schema);
     BufferedReader reader = new BufferedReader(rdr);

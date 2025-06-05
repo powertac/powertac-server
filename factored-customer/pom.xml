@@ -1,43 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>factored-customer</artifactId>
-  <packaging>jar</packaging>
+    <artifactId>factored-customer</artifactId>
+    <packaging>jar</packaging>
 
-  <name>Power TAC factored customer</name>
-  <description>Top-down statistical model framework for different classes of customers.</description>
-  <url>https://github.com/powertac/powertac-server/</url>
-
-  <parent>
-    <groupId>org.powertac</groupId>
-    <artifactId>powertac-server</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
-  </parent>
-
-
-  <dependencies>
-
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>server-interface</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
-    </dependency>
-
-  </dependencies>
-
-
-  <scm>
-    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <name>Power TAC factored customer</name>
+    <description>Top-down statistical model framework for different classes of customers.</description>
     <url>https://github.com/powertac/powertac-server/</url>
-    <tag>HEAD</tag>
-  </scm>
+
+    <parent>
+        <groupId>org.powertac</groupId>
+        <artifactId>powertac</artifactId>
+        <version>1.10.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+
+    <dependencies>
+
+        <!-- PowerTAC -->
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>server-interface</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+        </dependency>
+
+        <!-- Commons -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+    </dependencies>
+
+
+    <scm>
+        <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+        <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+        <url>https://github.com/powertac/powertac-server/</url>
+        <tag>HEAD</tag>
+    </scm>
 
 </project>
