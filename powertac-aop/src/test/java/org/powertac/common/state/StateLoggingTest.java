@@ -30,6 +30,9 @@ public class StateLoggingTest
     dd = new DummyDomain(31, 2, "second");
     dd.setNumber(42);
 
+    System.out.println("Looking for log file at: " + new File(
+            "log/test.state").getAbsolutePath());
+
     File logDir = new File("log");
     if (!logDir.exists()) {
       logDir.mkdirs();
@@ -76,6 +79,9 @@ public class StateLoggingTest
     DummyDomain dd = new DummyDomain(1, "abbreviated");
     dd = new DummyDomain(31, 2, "second");
     dd.setNumber(42);
+
+    System.out.println("Looking for log file at: " + new File(
+            "log/test.state").getAbsolutePath());
 
     File logDir = new File("log");
     if (!logDir.exists()) {
