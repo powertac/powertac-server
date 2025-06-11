@@ -56,6 +56,8 @@ public class WeatherServiceTest
   //@Autowired
   private LogtoolCore logtoolCore;
 
+  private WeatherXmlExtractor weatherXmlExtractor;
+
   Instant start;
   Instant next;
 
@@ -99,6 +101,9 @@ public class WeatherServiceTest
     DomainBuilder db = mock(DomainBuilder.class);
     ReflectionTestUtils.setField(logtoolCore, "domainBuilder", db);
     ReflectionTestUtils.setField(weatherService, "logtool", logtoolCore);
+
+    weatherXmlExtractor = new WeatherXmlExtractor();
+    ReflectionTestUtils.setField(weatherService, "weatherXmlExtractor", weatherXmlExtractor);
 
     //reset(serverPropertiesService);
 
