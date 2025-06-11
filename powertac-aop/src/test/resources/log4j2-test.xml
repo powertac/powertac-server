@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" strict="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://xlarge.rsm.nl/xsd/Log4j-config.xsd">
+  <Properties>
+    <Property name="logfile">log/test.trace</Property>
+    <Property name="statefile">log/test.state</Property>
+  </Properties>
+  
+  <ThresholdFilter level="trace"/>
+  
+  <Appenders>
+    
+    <Appender name="LogFile" type="File" fileName="${logfile}" append="false">
+      <Layout type="PatternLayout" pattern="%r %-5p %c{2}: %m%n"/>
+    </Appender>
+    
+    <Appender name="StateFile" type="File" fileName="${statefile}" append="false">
+      <Layout type="PatternLayout" pattern="%r:%m%n"/>
+    </Appender>
+    
+  </Appenders>
+  
+  <Loggers>
+    
+    <Logger name="Log" level="debug" additivity="false">
+      <AppenderRef ref="LogFile"/>
+    </Logger>
+    
+    <Logger name="State" level="info" additivity="false">
+      <AppenderRef ref="StateFile"/>
+    </Logger>
+    
+    <Logger name="org.springframework" level="warn" additivity="false">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    
+    <Root level="debug">
+      <AppenderRef ref="LogFile"/>
+    </Root>
+    
+  </Loggers>
+  
+</Configuration>
