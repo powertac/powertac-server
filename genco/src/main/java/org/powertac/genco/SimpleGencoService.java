@@ -15,24 +15,14 @@
  */
 
 package org.powertac.genco;
- 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import java.time.Instant;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableValue;
-import org.powertac.common.interfaces.BootstrapState;
-import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.ContextService;
-import org.powertac.common.interfaces.InitializationService;
-import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.interfaces.*;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -40,6 +30,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Very simple service that operates wholesale market actors, activated by the
@@ -51,7 +46,8 @@ public class SimpleGencoService
   extends TimeslotPhaseProcessor
   implements ContextService, InitializationService, BootstrapState
 {
-  static private Logger log = LogManager.getLogger(SimpleGencoService.class.getName());
+  static private final Logger log =
+          LogManager.getLogger(SimpleGencoService.class.getName());
 
   @Autowired
   private TimeService timeService;
@@ -73,11 +69,15 @@ public class SimpleGencoService
 
   private List<Genco> gencos; // old-style gencos, including buyer
   private CpGenco cpGenco; // only one of these
+  private SolarGenco solarGenco; // only one of these for now ?
   private MisoBuyer misoBuyer;
 
   @ConfigurableValue(valueType = "Boolean",
       description = "If true, use the CpGenco to generate the supply price curve")
   private boolean useCpGenco = true;
+
+  @ConfigurableValue(valueType = "Boolean", description = "If true, use the SolarGenco")
+  private boolean useSolarGenco = true;
 
   @ConfigurableValue(valueType = "Boolean",
       description = "If true, use the MisoBuyer to load the wholesale market")
@@ -127,6 +127,13 @@ public class SimpleGencoService
       cpGenco.init(brokerProxyService, seedId++, this);
       brokerRepo.add(cpGenco);
     }
+    if (useSolarGenco) {
+      // configure the solar genco
+      solarGenco = new SolarGenco("solar");
+      serverConfig.configureMe(solarGenco);
+      solarGenco.init(brokerProxyService, seedId++, this);
+      brokerRepo.add(solarGenco);
+    }
     if (useMisoBuyer) {
       // configure the MISO demand generator
       misoBuyer= new MisoBuyer("miso");
@@ -163,6 +170,9 @@ public class SimpleGencoService
     if (null != cpGenco) {
       cpGenco.generateOrders(when, openSlots);
     }
+    if (null != solarGenco) {
+      solarGenco.generateOrders(when, openSlots);
+    }
     if (null != misoBuyer) {
       misoBuyer.generateOrders(when, openSlots);
     }
@@ -172,6 +182,9 @@ public class SimpleGencoService
   public void saveBootstrapState ()
   {
     cpGenco.saveBootstrapState(serverConfig);
+    if (null != solarGenco) {
+      solarGenco.saveBootstrapState(serverConfig);
+    }
 //    serverConfig.saveBootstrapState(cpGenco);
   }
 
