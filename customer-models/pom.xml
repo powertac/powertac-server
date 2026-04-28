@@ -1,87 +1,139 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>customer-models</artifactId>
-  <packaging>jar</packaging>
+    <artifactId>customer-models</artifactId>
+    <packaging>jar</packaging>
 
-  <name>Power TAC customer models</name>
-  <description>Set of bottom-up customer implementations</description>
-  <url>https://github.com/powertac/powertac-server/</url>
-
-  <parent>
-    <groupId>org.powertac</groupId>
-    <artifactId>powertac-server</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
-  </parent>
-
-
-  <properties>
-    <joptimizer.version>3.5.1</joptimizer.version>
-  </properties>
-
-
-  <dependencies>
-
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>server-interface</artifactId>
-      <version>1.10.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.joptimizer</groupId>
-      <artifactId>joptimizer</artifactId>
-      <version>${joptimizer.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-  </dependencies>
-
-
-  <build>
-
-    <plugins>
-      <!-- explicit compile to prevent annotation processing -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <compilerArgs>-proc:none</compilerArgs>
-        </configuration>
-      </plugin>
-
-      <!-- Needs AspectJ build -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>aspectj-maven-plugin</artifactId>
-        <configuration>
-          <proc>none</proc>
-        </configuration>
-      </plugin>
-
-    </plugins>
-
-  </build>
-
-
-  <scm>
-    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+    <name>Power TAC customer models</name>
+    <description>Set of bottom-up customer implementations</description>
     <url>https://github.com/powertac/powertac-server/</url>
-    <tag>HEAD</tag>
-  </scm>
+
+    <parent>
+        <groupId>org.powertac</groupId>
+        <artifactId>powertac</artifactId>
+        <version>1.10.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+
+    <properties>
+        <joptimizer.version>3.5.1</joptimizer.version>
+    </properties>
+
+
+    <dependencies>
+
+        <!-- Power TAC -->
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>server-interface</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>powertac-aop</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <!-- Utilities -->
+        <dependency>
+            <groupId>com.joptimizer</groupId>
+            <artifactId>joptimizer</artifactId>
+            <version>${joptimizer.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>colt</groupId>
+            <artifactId>colt</artifactId>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+        </dependency>
+
+        <!-- Testing - not inherited from common due to test scope -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+
+        <plugins>
+            <!-- explicit compile to prevent annotation processing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgs>-proc:none</compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- Needs AspectJ build -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <configuration>
+                    <proc>none</proc>
+                </configuration>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+
+    <scm>
+        <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
+        <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
+        <url>https://github.com/powertac/powertac-server/</url>
+        <tag>HEAD</tag>
+    </scm>
 
 
 </project>

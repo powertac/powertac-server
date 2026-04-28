@@ -15,12 +15,12 @@
  */
 package org.powertac.server;
 
-/**
- *  This is the Power TAC simulator weather service that queries an existing
- *  weather server for weather data and serves it to the brokers logged into 
- *  the game.
- *
- * @author Erik Onarheim, Govert Buijs, John Collins
+/*
+   This is the Power TAC simulator weather service that queries an existing
+   weather server for weather data and serves it to the brokers logged into
+   the game.
+
+  @author Erik Onarheim, Govert Buijs, John Collins
  */
 
 import com.thoughtworks.xstream.XStream;
@@ -29,12 +29,8 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import java.time.ZonedDateTime;
-import java.time.Instant;
-import java.time.ZoneOffset;
-
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.exceptions.PowerTacException;
@@ -51,81 +47,58 @@ import org.powertac.logtool.LogtoolCore;
 import org.powertac.logtool.ifc.ObjectReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class WeatherService extends TimeslotPhaseProcessor
-implements InitializationService
+        implements InitializationService
 {
-  static private Logger log = LogManager.getLogger(WeatherService.class);
-
-  @ConfigurableValue(valueType = "String", bootstrapState = true,
-          description = "Location of weather data to be reported")
+  static private final Logger log = LogManager.getLogger(WeatherService.class);
+  private final int daysAhead = 3;
+  @ConfigurableValue(valueType = "String", bootstrapState = true, description = "Location of weather data to be reported")
   private String weatherLocation = "rotterdam";
-
-  @ConfigurableValue(valueType = "String", bootstrapState = true,
-          description = "Location of weather server rest url")
-  private String serverUrl = "https://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
-
+  @ConfigurableValue(valueType = "String", bootstrapState = true, description = "Location of weather server rest url")
+  private String serverUrl =
+          "https://weather.powertac.org:8080/WeatherServer/faces/index.xhtml";
   // If network requests should be made asynchronously or not.
-  @ConfigurableValue(valueType = "Boolean",
-          description = "If network calls to weather server should block until finished")
+  @ConfigurableValue(valueType = "Boolean", description = "If network calls to weather server should block until finished")
   private boolean blocking = true;
-
-  @ConfigurableValue(valueType = "String",
-          description = "Location of weather file (XML or state) or URL (state)")
+  @ConfigurableValue(valueType = "String", description = "Location of weather file (XML or state) or URL (state)")
   private String weatherData = null;
-
   // length of reports and forecasts. Can't really change this
-  @ConfigurableValue(valueType = "Integer",
-          description = "Timeslot interval to make requests")
+  @ConfigurableValue(valueType = "Integer", description = "Timeslot interval to make requests")
   private int weatherReqInterval = 24;
-
-  @ConfigurableValue(valueType = "Integer",
-          description = "Length of forecasts (in hours)")
+  @ConfigurableValue(valueType = "Integer", description = "Length of forecasts (in hours)")
   private int forecastHorizon = 24; // 24 hours
-
   @Autowired
   private TimeslotRepo timeslotRepo;
-
   @Autowired
   private WeatherReportRepo weatherReportRepo;
-
   @Autowired
   private WeatherForecastRepo weatherForecastRepo;
-
   @Autowired
   private BrokerProxy brokerProxyService;
-
   @Autowired
   private ServerConfiguration serverProps;
-
   @Autowired
   private LogtoolCore logtool;
-
+  @Autowired
+  private WeatherXmlExtractor weatherXmlExtractor;
   // These dates need to be fetched when using not blocking
   private List<ZonedDateTime> aheadDays;
   private ZonedDateTime simulationBaseTime;
-  private int daysAhead = 3;
-
   // if we're extracting from a state log, we cannot create multiple instances
   // of the StateFileExtractor. So this one is either null or not.
   private StateFileExtractor sfe = null;
@@ -161,7 +134,7 @@ implements InitializationService
     return String.format("%04d%02d%02d%02d", y, m, d, h);
   }
 
-  private String dateStringLong (ZonedDateTime dateTime)
+  public String dateStringLong (ZonedDateTime dateTime)
   {
     // Parse out year, month, day, and hour out of ZonedDateTime
     int y = dateTime.getYear();
@@ -179,7 +152,9 @@ implements InitializationService
       simulationBaseTime = timeslotRepo.currentTimeslot().getStartTime();
     }
 
-    long diff = dateTime.toInstant().toEpochMilli() - simulationBaseTime.toInstant().toEpochMilli();
+    long diff =
+            dateTime.toInstant().toEpochMilli() - simulationBaseTime.toInstant()
+                    .toEpochMilli();
     // WARNING:This assumes one-hour timeslots, but matches weather data granularity
     return (int) (diff / TimeService.HOUR);
   }
@@ -193,9 +168,8 @@ implements InitializationService
       log.info("WeatherService reports not time to grab weather data.");
     }
     else {
-      log.info("Timeslot "
-          + timeslotRepo.currentTimeslot().getId()
-          + " WeatherService reports time to make request for weather data");
+      log.info("Timeslot " + timeslotRepo.currentTimeslot().getId()
+               + " WeatherService reports time to make request for weather data");
 
       ZonedDateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
       if (blocking) {
@@ -204,8 +178,8 @@ implements InitializationService
       }
       else {
         aheadDays.add(dateTime.plusDays(daysAhead));
-        while (aheadDays.size() > 0) {
-          WeatherRequester wr = new WeatherRequester(aheadDays.remove(0));
+        while (!aheadDays.isEmpty()) {
+          WeatherRequester wr = new WeatherRequester(aheadDays.removeFirst());
           new Thread(wr).start();
         }
       }
@@ -224,13 +198,17 @@ implements InitializationService
     catch (PowerTacException e) {
       log.error("Weather Service reports Weather Report Repo empty");
     }
+
     if (report == null) {
-      // In the event of an error return a default
-      log.error("null weather-report for : "
-          + timeslotRepo.currentSerialNumber() +" "
-          + timeslotRepo.currentTimeslot());
-      brokerProxyService.broadcastMessage(new WeatherReport(timeslotRepo.currentSerialNumber(),
-          0.0, 0.0, 0.0, 0.0));
+      log.error(
+              "null weather-report for : " + timeslotRepo.currentSerialNumber()
+              + " " + timeslotRepo.currentTimeslot());
+
+      // Create a new report with the current timeslot
+      WeatherReport newReport =
+              new WeatherReport(timeslotRepo.currentSerialNumber(), 0.0, 0.0,
+                                0.0, 0.0);
+      brokerProxyService.broadcastMessage(newReport);
     }
     else {
       brokerProxyService.broadcastMessage(report);
@@ -244,20 +222,23 @@ implements InitializationService
       forecast = weatherForecastRepo.currentWeatherForecast();
     }
     catch (PowerTacException e) {
-      log.error("Weather Service reports Weather Forecast Repo emtpy");
+      log.error("Weather Service reports Weather Forecast Repo empty");
     }
+
     if (forecast == null) {
       log.error("null weather-forecast for : "
-          + timeslotRepo.currentSerialNumber() +" "
-          + timeslotRepo.currentTimeslot());
-      // In the event of an error return a default
-      List<WeatherForecastPrediction> currentPredictions = new ArrayList<WeatherForecastPrediction>();
-      for (int j = 1; j <= getForecastHorizon(); j++) {
-        currentPredictions.add(
-            new WeatherForecastPrediction(j, 0.0, 0.0, 0.0, 0.0));
-      }
-      brokerProxyService.broadcastMessage(new WeatherForecast(
-          timeslotRepo.currentSerialNumber(), currentPredictions));
+                + timeslotRepo.currentSerialNumber() + " "
+                + timeslotRepo.currentTimeslot());
+
+      // Create a new forecast with current timeslot
+      List<WeatherForecastPrediction> defaultPredictions =
+              IntStream.rangeClosed(1, getForecastHorizon()).mapToObj(
+                              j -> new WeatherForecastPrediction(j, 0.0, 0.0, 0.0, 0.0))
+                      .collect(Collectors.toList());
+      WeatherForecast newForecast =
+              new WeatherForecast(timeslotRepo.currentSerialNumber(),
+                                  defaultPredictions);
+      brokerProxyService.broadcastMessage(newForecast);
     }
     else {
       brokerProxyService.broadcastMessage(forecast);
@@ -265,13 +246,15 @@ implements InitializationService
   }
 
   @Override
-  public String initialize (Competition competition, List<String> completedInits)
+  public String initialize (Competition competition,
+                            List<String> completedInits)
   {
     super.init();
-    aheadDays = new CopyOnWriteArrayList<ZonedDateTime>();
+    aheadDays = new CopyOnWriteArrayList<>();
     serverProps.configureMe(this);
     weatherReqInterval = Math.min(24, weatherReqInterval);
-    simulationBaseTime = competition.getSimulationBaseTime().atZone(ZoneOffset.UTC);
+    simulationBaseTime =
+            competition.getSimulationBaseTime().atZone(ZoneOffset.UTC);
 
     if (weatherData != null) {
       log.info("read from file in blocking mode");
@@ -308,39 +291,51 @@ implements InitializationService
       try {
         Data data = null;
 
-        if (weatherData != null && weatherData.endsWith(".xml")) {
-          currentMethod = "xml file";
-          WeatherXmlExtractor wxe = new WeatherXmlExtractor(weatherData);
-          String weatherXml = wxe.extractPartialXml(requestDate);
-          data = parseXML(weatherXml);
-        }
-        else if (weatherData != null) {
-          // could be URL, tar, tar.gz, .gz, or uncompressed state log
-          // We cannot run multiple extractors in parallel on the same file;
-          // this essentially negates the "blocking" feature
-          currentMethod = "state file";
-          log.info("Reading weather data from {}", weatherData);
-          if (null == sfe)
-            sfe = new StateFileExtractor(weatherData);
-          data = sfe.extractData();
+        if (weatherData != null) {
+          if (weatherData.endsWith(".xml")) {
+            currentMethod = "xml file";
+            log.info("Processing weather XML using StAX from file: {}",
+                     weatherData);
+            String weatherXml =
+                    weatherXmlExtractor.extractPartialXml(WeatherService.this,
+                                                          weatherData,
+                                                          requestDate,
+                                                          weatherReqInterval,
+                                                          forecastHorizon);
+            if (weatherXml != null && !weatherXml.isEmpty()) {
+              data = parseXML(weatherXml);
+            }
+          }
+          else {
+            // state log handling - unchanged
+            currentMethod = "state file";
+            log.info("Reading weather data from {}", weatherData);
+            if (null == sfe)
+              sfe = new StateFileExtractor(weatherData);
+            data = sfe.extractData();
+          }
         }
         else {
           currentMethod = "web";
           data = webRequest();
         }
 
-        processData(data);
-
-        log.debug("Got data via a " + currentMethod + " request");
+        if (data != null) {
+          log.info("Successfully obtained weather data via {} method",
+                   currentMethod);
+          processData(data);
+        }
+        else {
+          log.error("Failed to obtain weather data via {} method",
+                    currentMethod);
+        }
       }
       catch (Exception e) {
-        log.error("Unable to get weather from weather : " + currentMethod);
+        log.error("Unable to get weather from: " + currentMethod, e);
         if (!blocking) {
           log.warn("Retrying : " + dateStringLong(requestDate));
           aheadDays.add(requestDate);
         }
-
-        log.error(e.getMessage());
       }
     }
 
@@ -350,7 +345,8 @@ implements InitializationService
       log.info("Query datetime value for REST call: " + queryDate);
 
       String urlString = String.format("%s?weatherDate=%s&weatherLocation=%s",
-          getServerUrl(), queryDate, weatherLocation);
+                                       getServerUrl(), queryDate,
+                                       weatherLocation);
       log.info("Weather request URL {}", urlString);
 
       try {
@@ -361,7 +357,7 @@ implements InitializationService
 
         // Get the response in xml
         BufferedReader input = new BufferedReader(
-            new InputStreamReader(conn.getInputStream()));
+                new InputStreamReader(conn.getInputStream()));
 
         return parseXML(input);
       }
@@ -407,24 +403,52 @@ implements InitializationService
 
         // Unmarshall the xml input and place it into data container object
         try {
-        if (input.getClass().equals(BufferedReader.class)) {
-          data = (Data) xstream.fromXML((BufferedReader) input);
+          if (input instanceof BufferedReader) {
+            data = (Data) xstream.fromXML((BufferedReader) input);
+            log.debug("Parsed XML from BufferedReader");
+          }
+          else if (input instanceof String) {
+            String xmlInput = (String) input;
+            log.debug("Parsing XML string of length: {}", xmlInput.length());
+            data = (Data) xstream.fromXML(xmlInput);
+            log.debug("Successfully parsed XML string");
+          }
+          else {
+            log.error("Unrecognized input type: {}",
+                      input.getClass().getName());
+          }
         }
-        else if (input.getClass().equals(String.class)) {
-          data = (Data) xstream.fromXML((String) input);
-        }
-        } catch (Exception ex) {
-          log.error("Exception {} converting input from {}", ex.toString(), serverUrl);
+        catch (Exception ex) {
+          log.error("Exception parsing XML: {}", ex.getMessage(), ex);
         }
 
-        if (data != null && (data.weatherReports.size() != weatherReqInterval ||
-            data.weatherForecasts.size() != weatherReqInterval*forecastHorizon)) {
-          data = null;
+        if (data != null) {
+          log.debug("Parsed data: {} weather reports, {} weather forecasts", (
+                  data.weatherReports != null
+                          ? data.weatherReports.size()
+                          : 0), (data.weatherForecasts != null
+                  ? data.weatherForecasts.size()
+                  : 0));
+
+          if (data.weatherReports == null
+              || data.weatherReports.size() != weatherReqInterval
+              || data.weatherForecasts == null || data.weatherForecasts.size()
+                                                  != weatherReqInterval
+                                                     * forecastHorizon) {
+            log.error(
+                    "Data validation failed: expected {} reports and {} forecasts, got {} reports and {} forecasts",
+                    weatherReqInterval, weatherReqInterval * forecastHorizon, (
+                            data.weatherReports != null
+                                    ? data.weatherReports.size()
+                                    : 0), (data.weatherForecasts != null
+                            ? data.weatherForecasts.size()
+                            : 0));
+            data = null;
+          }
         }
       }
       catch (Exception e) {
-        log.error("Exception Raised parsing XML : " + e.toString());
-        e.printStackTrace();
+        log.error("Exception raised parsing XML: {}", e.getMessage(), e);
         data = null;
       }
 
@@ -439,7 +463,7 @@ implements InitializationService
 
     private void processWeatherData (Data data) throws NullPointerException
     {
-      for (WeatherReport report : data.getWeatherReports()) {
+      for (WeatherReport report: data.getWeatherReports()) {
         weatherReportRepo.add(report);
       }
 
@@ -450,22 +474,21 @@ implements InitializationService
     {
       int timeIndex = getTimeIndex(requestDate);
 
-      List<WeatherForecastPrediction> currentPredictions =
-          new ArrayList<WeatherForecastPrediction>();
-      for (WeatherForecastPrediction prediction : data.getWeatherForecasts()) {
+      List<WeatherForecastPrediction> currentPredictions = new ArrayList<>();
+      for (WeatherForecastPrediction prediction: data.getWeatherForecasts()) {
         currentPredictions.add(prediction);
 
         if (currentPredictions.size() == forecastHorizon) {
           // Add a forecast to the repo, increment to the next timeslot
           WeatherForecast newForecast =
-              new WeatherForecast(timeIndex++, currentPredictions);
+                  new WeatherForecast(timeIndex++, currentPredictions);
           weatherForecastRepo.add(newForecast);
           currentPredictions = new ArrayList<WeatherForecastPrediction>();
         }
       }
 
       log.info(data.getWeatherForecasts().size()
-          + " WeatherForecasts fetched from xml response.");
+               + " WeatherForecasts fetched from xml response.");
     }
   }
 
@@ -483,7 +506,7 @@ implements InitializationService
     }
 
     @Override
-    public boolean canConvert (@SuppressWarnings("rawtypes") Class clazz)
+    public boolean canConvert (Class clazz)
     {
       return clazz.equals(WeatherReport.class);
     }
@@ -503,9 +526,10 @@ implements InitializationService
       String dir = reader.getAttribute("winddir");
       String cloudCvr = reader.getAttribute("cloudcover");
 
-      return new WeatherReport(timeIndex++,
-          Double.parseDouble(temp), Double.parseDouble(wind),
-          Double.parseDouble(dir), Double.parseDouble(cloudCvr));
+      return new WeatherReport(timeIndex++, Double.parseDouble(temp),
+                               Double.parseDouble(wind),
+                               Double.parseDouble(dir),
+                               Double.parseDouble(cloudCvr));
     }
   }
 
@@ -517,7 +541,7 @@ implements InitializationService
     }
 
     @Override
-    public boolean canConvert (@SuppressWarnings("rawtypes") Class clazz)
+    public boolean canConvert (Class clazz)
     {
       return clazz.equals(WeatherForecastPrediction.class);
     }
@@ -539,8 +563,10 @@ implements InitializationService
       String cloudCvr = reader.getAttribute("cloudcover");
 
       return new WeatherForecastPrediction(Integer.parseInt(id),
-          Double.parseDouble(temp), Double.parseDouble(wind),
-          Double.parseDouble(dir), Double.parseDouble(cloudCvr));
+                                           Double.parseDouble(temp),
+                                           Double.parseDouble(wind),
+                                           Double.parseDouble(dir),
+                                           Double.parseDouble(cloudCvr));
     }
   }
 
@@ -569,145 +595,6 @@ implements InitializationService
     public List<EnergyReport> getEnergyReports ()
     {
       return energyReports;
-    }
-  }
-
-  private class WeatherXmlExtractor
-  {
-    /**
-     * This class extracts a part of a weather-xml, which contacins the weather
-     * for the complete duration of the simulation.
-     * It returns 24 reports and 24 * 24 forecasts
-     */
-    private NodeList nodeListRead = null;
-    private Document documentWrite;
-    private Element weatherReports;
-    private Element weatherForecasts;
-
-    public WeatherXmlExtractor (String fileName)
-    {
-      try {
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
-            .newInstance();
-        DocumentBuilder docBuilderRead = docBuilderFactory.newDocumentBuilder();
-        Document documentRead = docBuilderRead.parse(new File(fileName));
-        Node rootNode = documentRead.getDocumentElement();
-        nodeListRead = rootNode.getChildNodes();
-
-        // Output document
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder docBuilderWrite = docFactory.newDocumentBuilder();
-        documentWrite = docBuilderWrite.newDocument();
-        documentWrite.setXmlStandalone(true);
-        Element rootElement = documentWrite.createElement("data");
-        documentWrite.appendChild(rootElement);
-
-        // weatherReports and weatherForecasts elements
-        weatherReports = documentWrite.createElement("weatherReports");
-        rootElement.appendChild(weatherReports);
-        weatherForecasts = documentWrite.createElement("weatherForecasts");
-        rootElement.appendChild(weatherForecasts);
-      }
-      catch (Exception ignored) {
-      }
-    }
-
-    private String extractPartialXml (ZonedDateTime requestDate)
-    {
-      if (nodeListRead == null) {
-        return null;
-      }
-
-      try {
-        // Find 24 weatherReport starting at startDate
-        for (int i = 0; i < nodeListRead.getLength(); i++) {
-          Node currentNode = nodeListRead.item(i);
-
-          if (!currentNode.getNodeName().equals("weatherReports")) {
-            continue;
-          }
-
-          NodeList nodeListReports = currentNode.getChildNodes();
-          findReports(nodeListReports, dateStringLong(requestDate));
-        }
-
-        // Find all weatherForecasts belonging to the 24 reports
-        for (int i = 0; i < weatherReqInterval; i++) {
-          for (int j = 0; j < nodeListRead.getLength(); j++) {
-            Node currentNode = nodeListRead.item(j);
-
-            if (!currentNode.getNodeName().equals("weatherForecasts")) {
-              continue;
-            }
-
-            String origin = dateStringLong(requestDate.plusHours(i));
-            NodeList nodes = currentNode.getChildNodes();
-            findForecasts(nodes, origin);
-          }
-        }
-
-        if (weatherReports.getChildNodes().getLength() != weatherReqInterval ||
-            weatherForecasts.getChildNodes().getLength() !=
-                weatherReqInterval * forecastHorizon) {
-          return null;
-        }
-
-        TransformerFactory transFactory = TransformerFactory.newInstance();
-        Transformer transformer = transFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        StringWriter buffer = new StringWriter();
-        transformer.transform(new DOMSource(documentWrite), new StreamResult(buffer));
-
-        return buffer.toString();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-      return null;
-    }
-
-    private void findReports (NodeList nodes, String startDate)
-    {
-      // Find reports starting at startDate, copy 24 reports to output document
-      for (int j = 0; j < nodes.getLength(); j++) {
-        Node report = nodes.item(j);
-        if (!report.getNodeName().equals("weatherReport")) {
-          continue;
-        }
-
-        // TODO We shouldn't assume the reports are ordered on date
-        String date = ((Element) report).getAttribute("date");
-        if (date.compareTo(startDate) < 0) {
-          continue;
-        }
-
-        Node temp = documentWrite.importNode(report, true);
-        weatherReports.appendChild(temp);
-
-        if (weatherReports.getChildNodes().getLength() == weatherReqInterval) {
-          break;
-        }
-      }
-    }
-
-    private void findForecasts (NodeList nodes, String target)
-    {
-      // Find all forecasts belonging to a report-date, copy to output document
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Node forecast = nodes.item(i);
-
-        if (!forecast.getNodeName().equals("weatherForecast")) {
-          continue;
-        }
-
-        String origin = ((Element) forecast).getAttribute("origin");
-        if (!origin.equals(target)) {
-          continue;
-        }
-
-        Node temp = documentWrite.importNode(forecast, true);
-        weatherForecasts.appendChild(temp);
-      }
     }
   }
 
